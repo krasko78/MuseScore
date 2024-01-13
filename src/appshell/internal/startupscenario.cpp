@@ -187,11 +187,17 @@ void StartupScenario::openScore(const project::ProjectFile& file)
 
 void StartupScenario::restoreLastSession()
 {
-    IInteractive::Result result = interactive()->question(trc("appshell", "The previous session quit unexpectedly."),
-                                                          trc("appshell", "Do you want to restore the session?"),
-                                                          { IInteractive::Button::No, IInteractive::Button::Yes });
+    bool restore = true;
 
-    if (result.button() == static_cast<int>(IInteractive::Button::Yes)) {
+    StartupModeType modeType = resolveStartupModeType();
+    if (modeType != StartupModeType::ContinueLastSession) {
+        IInteractive::Result result = interactive()->question(trc("appshell", "The previous session quit unexpectedly."),
+                                                              trc("appshell", "Do you want to restore the session?"),
+                                                              { IInteractive::Button::No, IInteractive::Button::Yes });
+        restore = result.button() == static_cast<int>(IInteractive::Button::Yes);
+    }
+
+    if (restore) {
         sessionsManager()->restore();
     } else {
         removeProjectsUnsavedChanges(configuration()->sessionProjectsPaths());
