@@ -256,7 +256,7 @@ LineSegment* Trill::createLineSegment(System* parent)
 {
     TrillSegment* seg = new TrillSegment(this, parent);
     seg->setTrack(track());
-    seg->setColor(color());
+    seg->setColor(lineColor()); // or seg->setColor(getProperty(Pid::COLOR).value<mu::draw::Color>());
     seg->initElementStyle(&trillSegmentStyle);
     return seg;
 }
