@@ -168,6 +168,10 @@ FilterNotesOptions SelectNoteDialog::noteOptions() const
         options.system = m_note->chord()->segment()->system();
     }
 
+    if (sameColor->isChecked()) {
+        options.color = m_note->color();
+    }
+
     return options;
 }
 

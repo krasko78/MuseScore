@@ -114,6 +114,13 @@
           </property>
          </widget>
         </item>
+        <item row="2" column="1">
+         <widget class="QCheckBox" name="sameColor">
+          <property name="text">
+           <string>Same color</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>
@@ -185,6 +192,7 @@
   <tabstop>sameSubtype</tabstop>
   <tabstop>subtype</tabstop>
   <tabstop>sameStaff</tabstop>
+  <tabstop>sameColor</tabstop>
   <tabstop>sameVoice</tabstop>
   <tabstop>inSelection</tabstop>
   <tabstop>sameDuration</tabstop>
