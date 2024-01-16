@@ -1182,8 +1182,8 @@ void ChordLayout::layoutStem(Chord* item, const LayoutContext& ctx)
 
     item->stem()->mutldata()->setPosX(item->stemPosX());
 
-    // This calls _stem->layout()
     item->stem()->setBaseLength(Millimetre(item->defaultStemLength()));
+    TLayout::layoutStem(item->stem(), item->stem()->mutldata(), ctx.conf());
 
     // And now we need to set the position of the flag.
     if (item->hook()) {
@@ -1365,6 +1365,8 @@ static bool computeUp_TremoloTwoNotesCase(const Chord* item, TremoloTwoChord* tr
 
 void ChordLayout::computeUp(const Chord* item, Chord::LayoutData* ldata, const LayoutContext& ctx)
 {
+    LAYOUT_CALL() << LAYOUT_ITEM_INFO(item);
+
     assert(!item->notes().empty());
 
     const StaffType* tab = item->staff() ? item->staff()->staffTypeForElement(item) : 0;
@@ -1430,7 +1432,7 @@ void ChordLayout::computeUp(const Chord* item, Chord::LayoutData* ldata, const L
     ldata->up = direction > 0;
 }
 
-void ChordLayout::computeUp(ChordRest* item, LayoutContext& ctx)
+void ChordLayout::computeUp(ChordRest* item, const LayoutContext& ctx)
 {
     if (item->isChord()) {
         Chord* ch = item_cast<Chord*>(item);
@@ -1500,6 +1502,8 @@ void ChordLayout::skipAccidentals(Segment* segment, track_idx_t startTrack, trac
 void ChordLayout::layoutChords1(LayoutContext& ctx, Segment* segment, staff_idx_t staffIdx)
 {
     TRACEFUNC;
+    LAYOUT_CALL() << LAYOUT_ITEM_INFO(segment);
+
     const Staff* staff = ctx.dom().staff(staffIdx);
     const bool isTab = staff->isTabStaff(segment->tick());
     const track_idx_t startTrack = staffIdx * VOICES;
@@ -1885,7 +1889,8 @@ void ChordLayout::layoutChords1(LayoutContext& ctx, Segment* segment, staff_idx_
                         upOffset = maxDownWidth + adjSpace;
                         if (downHooks) {
                             bool needsHookSpace = (ledgerOverlapBelow || ledgerOverlapAbove);
-                            double hookSpace = topDownNote->chord()->hook()->width();
+                            Hook* hook = topDownNote->chord()->hook();
+                            double hookSpace = hook ? hook->width() : 0.0;
                             upOffset = needsHookSpace ? hookSpace + ledgerLen + ledgerGap : upOffset + 0.3 * sp;
                         }
                     }
