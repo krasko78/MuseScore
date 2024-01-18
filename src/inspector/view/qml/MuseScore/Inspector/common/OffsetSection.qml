@@ -50,6 +50,7 @@ InspectorPropertyView {
 
             width: parent.width / 2 - row.spacing / 2
 
+            step: 0.1
             navigation.name: "HorizontalOffsetControl"
             navigation.panel: root.navigationPanel
             navigation.row: root.navigationRowStart + 1
@@ -72,6 +73,7 @@ InspectorPropertyView {
 
             width: parent.width / 2 - row.spacing / 2
 
+            step: 0.1
             navigation.name: "VerticalOffsetControl"
             navigation.panel: root.navigationPanel
             navigation.row: root.navigationRowStart + 2
