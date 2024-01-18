@@ -1322,6 +1322,9 @@ static bool computeUp_TremoloTwoNotesCase(const Chord* item, TremoloTwoChord* tr
 {
     const Chord* c1 = tremolo->chord1();
     const Chord* c2 = tremolo->chord2();
+    if (!c1 || !c2) {
+        return true;
+    }
     bool cross = c1->staffMove() != c2->staffMove();
     if (item == c1) {
         // we have to lay out the tremolo because it hasn't been laid out at all yet, and we need its direction
@@ -1926,7 +1929,8 @@ void ChordLayout::layoutChords1(LayoutContext& ctx, Segment* segment, staff_idx_
                         // we will need more space to avoid collision with hook
                         // but we won't need as much dot adjustment
                         if (ledgerOverlapBelow) {
-                            double hookWidth = topDownNote->chord()->hook()->width();
+                            Hook* hook = topDownNote->chord()->hook();
+                            double hookWidth = hook ? hook->width() : 0.0;
                             upOffset = hookWidth + ledgerLen + ledgerGap;
                         }
                         upOffset = std::max(upOffset, maxDownWidth + 0.1 * sp);
@@ -3079,7 +3083,7 @@ void ChordLayout::updateLineAttachPoints(Chord* chord, bool isFirstInMeasure, La
         for (Note* note : chord->notes()) {
             Tie* tieBack = note->tieBack();
             if (tieBack && tieBack->startNote()->findMeasure() != note->findMeasure()) {
-                SlurTieLayout::tieLayoutBack(tieBack, note->findMeasure()->system());
+                SlurTieLayout::tieLayoutBack(tieBack, note->findMeasure()->system(), ctx);
             }
         }
     }
@@ -3460,13 +3464,10 @@ void ChordLayout::layoutNote2(Note* item, LayoutContext& ctx)
     bool isTabStaff = staffType && staffType->isTabStaff();
     // First, for tab staves that have show back-tied fret marks option, we add parentheses to the tied note if
     // the tie spans a system boundary. This can't be done in layout as the system of each note is not decided yet
-    bool useParens = isTabStaff && !staffType->showBackTied() && !item->fixed();
-    if (useParens
-        && item->tieBack()
-        && (
-            item->chord()->measure()->system() != item->tieBack()->startNote()->chord()->measure()->system()
-            || !item->el().empty()
-            )) {
+    ShowTiedFret showTiedFret = item->style().value(Sid::tabShowTiedFret).value<ShowTiedFret>();
+    bool useParens = isTabStaff && !item->fixed() && item->tieBack()
+                     && showTiedFret != ShowTiedFret::TIE_AND_FRET && !item->shouldHideFret();
+    if (useParens) {
         if (!item->fretString().startsWith(u'(')) { // Hack: don't add parentheses if already added
             item->setFretString(String(u"(%1)").arg(item->fretString()));
         }

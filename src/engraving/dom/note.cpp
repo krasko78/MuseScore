@@ -1405,6 +1405,72 @@ void Note::updateFrettingForTiesAndBends()
     setFret(prevNote->fret());
 }
 
+bool Note::shouldHideFret() const
+{
+    if (!tieBack() || shouldForceShowFret()) {
+        return false;
+    }
+
+    if (isContinuationOfBend()) {
+        return true;
+    }
+
+    ShowTiedFret showTiedFret = style().value(Sid::tabShowTiedFret).value<ShowTiedFret>();
+    if (showTiedFret == ShowTiedFret::TIE_AND_FRET) {
+        return false;
+    }
+
+    ParenthesizeTiedFret parenthTiedFret = style().value(Sid::tabParenthesizeTiedFret).value<ParenthesizeTiedFret>();
+    if (parenthTiedFret == ParenthesizeTiedFret::NEVER || !rtick().isZero()) {
+        return true;
+    }
+
+    if (parenthTiedFret == ParenthesizeTiedFret::START_OF_MEASURE) {
+        return false;
+    }
+
+    const Measure* measure = findMeasure();
+    bool isStartOfSystem = measure && measure->system() && measure->isFirstInSystem();
+
+    return !isStartOfSystem;
+}
+
+bool Note::shouldForceShowFret() const
+{
+    if (!style().styleB(Sid::parenthesizeTiedFretIfArticulation)) {
+        return false;
+    }
+
+    Chord* ch = chord();
+    if (!ch) {
+        return false;
+    }
+
+    auto hasTremoloBar = [&] () {
+        for (EngravingItem* item : ch->segment()->annotations()) {
+            if (item && item->isTremoloBar() && item->track() == track()) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    auto hasVibratoLine = [&] () {
+        auto spanners = score()->spannerMap().findOverlapping(tick().ticks(), (tick() + ch->actualTicks()).ticks());
+        for (auto interval : spanners) {
+            Spanner* sp = interval.value;
+            if (sp->isVibrato() && sp->startElement() == ch) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    bool startsNonBendSpanner = !spannerFor().empty() && !bendFor();
+
+    return !ch->articulations().empty() || ch->chordLine() || startsNonBendSpanner || hasTremoloBar() || hasVibratoLine();
+}
+
 void Note::setupAfterRead(const Fraction& ctxTick, bool pasteMode)
 {
     // ensure sane values:
@@ -2006,9 +2072,9 @@ static bool hasAlteredUnison(Note* note)
 {
     const auto& chordNotes = note->chord()->notes();
     AccidentalVal accVal = tpc2alter(note->tpc());
-    int relLine = absStep(note->tpc(), note->epitch());
-    return std::find_if(chordNotes.begin(), chordNotes.end(), [note, accVal, relLine](Note* n) {
-        return n != note && !n->hidden() && absStep(n->tpc(), n->epitch()) == relLine && tpc2alter(n->tpc()) != accVal;
+    int absLine = absStep(note->tpc(), note->epitch());
+    return std::find_if(chordNotes.begin(), chordNotes.end(), [note, accVal, absLine](Note* n) {
+        return n != note && !n->hidden() && absStep(n->tpc(), n->epitch()) == absLine && tpc2alter(n->tpc()) != accVal;
     }) != chordNotes.end();
 }
 
@@ -2019,7 +2085,7 @@ static bool hasAlteredUnison(Note* note)
 
 void Note::updateAccidental(AccidentalState* as)
 {
-    int relLine = absStep(tpc(), epitch());
+    int absLine = absStep(tpc(), epitch());
 
     // don't touch accidentals that don't concern tpc such as
     // quarter tones
@@ -2029,14 +2095,14 @@ void Note::updateAccidental(AccidentalState* as)
 
         AccidentalVal accVal = tpc2alter(tpc());
         bool error = false;
-        int eRelLine = absStep(tpc(), epitch());
-        AccidentalVal relLineAccVal = as->accidentalVal(eRelLine, error);
+        int eAbsLine = absStep(tpc(), epitch());
+        AccidentalVal absLineAccVal = as->accidentalVal(eAbsLine, error);
         if (error) {
             LOGD("error accidentalVal()");
             return;
         }
-        if ((accVal != relLineAccVal) || hidden() || as->tieContext(eRelLine) || as->forceRestateAccidental(eRelLine)) {
-            as->setAccidentalVal(eRelLine, accVal, m_tieBack != 0 && m_accidental == 0);
+        if ((accVal != absLineAccVal) || hidden() || as->tieContext(eAbsLine) || as->forceRestateAccidental(eAbsLine)) {
+            as->setAccidentalVal(eAbsLine, accVal, m_tieBack != 0 && m_accidental == 0);
             acci = Accidental::value2subtype(accVal);
             // if previous tied note has same tpc, don't show accidental
             if (m_tieBack && m_tieBack->startNote()->tpc1() == tpc1()) {
@@ -2088,11 +2154,11 @@ void Note::updateAccidental(AccidentalState* as)
         // for now, at least change state to natural, so subsequent notes playback as might be expected
         // this is an incompatible change, but better to break it for 2.0 than wait until later
         AccidentalVal accVal = Accidental::subtype2value(m_accidental->accidentalType());
-        as->setAccidentalVal(relLine, accVal, m_tieBack != 0 && m_accidental == 0);
+        as->setAccidentalVal(absLine, accVal, m_tieBack != 0 && m_accidental == 0);
     }
 
-    as->setForceRestateAccidental(relLine, false);
-    updateRelLine(relLine, true);
+    as->setForceRestateAccidental(absLine, false);
+    updateRelLine(absLine, true);
 }
 
 //---------------------------------------------------------
@@ -2631,10 +2697,10 @@ void Note::horizontalDrag(EditData& ed)
 //---------------------------------------------------------
 //   updateRelLine
 //    calculate the real note line depending on clef,
-//    _line is the absolute line
+//    absLine is the absolute line
 //---------------------------------------------------------
 
-void Note::updateRelLine(int relLine, bool undoable)
+void Note::updateRelLine(int absLine, bool undoable)
 {
     if (!staff()) {
         return;
@@ -2650,7 +2716,7 @@ void Note::updateRelLine(int relLine, bool undoable)
         return;
     }
     ClefType clef = staff->clef(chord()->tick());
-    int line      = relStep(relLine, clef);
+    int line      = relStep(absLine, clef);
 
     if (undoable && (m_line != INVALID_LINE) && (line != m_line)) {
         undoChangeProperty(Pid::LINE, line);
@@ -2669,8 +2735,8 @@ void Note::updateRelLine(int relLine, bool undoable)
 
 void Note::updateLine()
 {
-    int relLine = absStep(tpc(), epitch());
-    updateRelLine(relLine, false);
+    int absLine = absStep(tpc(), epitch());
+    updateRelLine(absLine, false);
 }
 
 //---------------------------------------------------------
@@ -3611,6 +3677,25 @@ bool Note::isGraceBendStart() const
     GuitarBend* bend = bendFor();
 
     return bend && bend->type() == GuitarBendType::GRACE_NOTE_BEND;
+}
+
+bool Note::isContinuationOfBend() const
+{
+    if (bendBack()) {
+        return true;
+    }
+
+    Tie* tie = tieBack();
+    Note* note = nullptr;
+    while (tie && tie->startNote()) {
+        note = tie->startNote();
+        if (note->bendBack()) {
+            return true;
+        }
+        tie = note->tieBack();
+    }
+
+    return false;
 }
 
 bool Note::hasAnotherStraightAboveOrBelow(bool above) const

@@ -430,6 +430,7 @@ public:
 
     bool isPreBendStart() const;
     bool isGraceBendStart() const;
+    bool isContinuationOfBend() const;
 
     bool hasAnotherStraightAboveOrBelow(bool above) const;
 
@@ -446,6 +447,8 @@ public:
     bool isNoteName() const;
 
     void updateFrettingForTiesAndBends();
+    bool shouldHideFret() const;
+    bool shouldForceShowFret() const;
 
     struct LayoutData : public EngravingItem::LayoutData {
         ld_field<bool> useTablature = { "[Note] useTablature", false };
@@ -472,7 +475,7 @@ private:
     void addSpanner(Spanner*);
     void removeSpanner(Spanner*);
     int concertPitchIdx() const;
-    void updateRelLine(int relLine, bool undoable);
+    void updateRelLine(int absLine, bool undoable);
 
     void normalizeLeftDragDelta(Segment* seg, EditData& ed, NoteEditData* ned);
 
