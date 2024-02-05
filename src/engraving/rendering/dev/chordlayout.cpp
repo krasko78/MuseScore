@@ -1210,7 +1210,7 @@ void ChordLayout::layoutStem(Chord* item, const LayoutContext& ctx)
     }
 
     // Add Stem slash
-    if ((item->noteType() == NoteType::ACCIACCATURA) && !(item->beam() && item->beam()->elements().front() != item)) {
+    if ((item->showStemSlash()) && !(item->beam() && item->beam()->elements().front() != item)) {
         if (!item->stemSlash()) {
             item->add(Factory::createStemSlash(item));
         }
@@ -3172,6 +3172,7 @@ void ChordLayout::resolveRestVSChord(std::vector<Rest*>& rests, std::vector<Chor
 
             Shape chordShape = chord->shape().translate(chord->pos());
             chordShape.removeInvisibles();
+            chordShape.removeTypes({ ElementType::ARPEGGIO });
             if (chordShape.empty()) {
                 continue;
             }
