@@ -412,6 +412,7 @@ const std::array<StyleDef::StyleValue, size_t(Sid::STYLES)> StyleDef::styleValue
     { Sid::smallClefMag,            "smallClefMag",            PropertyValue(0.8) },
 
     { Sid::genClef,                 "genClef",                 true },
+    { Sid::hideTabClefAfterFirst,   "hideTabClefAfterFirst",   true },
     { Sid::genKeysig,               "genKeysig",               true },
     { Sid::genCourtesyTimesig,      "genCourtesyTimesig",      true },
     { Sid::genCourtesyKeysig,       "genCourtesyKeysig",       true },
@@ -476,10 +477,14 @@ const std::array<StyleDef::StyleValue, size_t(Sid::STYLES)> StyleDef::styleValue
     { Sid::SlurEndWidth,            "slurEndWidth",            Spatium(.05) },
     { Sid::SlurMidWidth,            "slurMidWidth",            Spatium(.21) },
     { Sid::SlurDottedWidth,         "slurDottedWidth",         Spatium(.10) },
+    { Sid::TieEndWidth,             "tieEndWidth",             Spatium(.05) },
+    { Sid::TieMidWidth,             "tieMidWidth",             Spatium(.21) },
+    { Sid::TieDottedWidth,          "tieDottedWidth",          Spatium(.10) },
     { Sid::MinTieLength,            "minTieLength",            Spatium(1.0) },
     { Sid::MinStraightGlissandoLength, "minStraightGlissandoLength", Spatium(1.2) },
     { Sid::MinWigglyGlissandoLength, "minWigglyGlissandoLength", Spatium(2.0) },
     { Sid::SlurMinDistance,         "slurMinDistance",         Spatium(0.5) },
+    { Sid::TieMinDistance,          "tieMinDistance",          Spatium(0.5) },
     { Sid::HeaderToLineStartDistance,   "headerSlurTieDistance",   Spatium(1.0) },
 
     { Sid::tiePlacementSingleNote,   "tiePlacementSingleNote", TiePlacement::OUTSIDE },

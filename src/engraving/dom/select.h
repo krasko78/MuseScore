@@ -39,6 +39,7 @@ class Note;
 class Measure;
 class Chord;
 class Tuplet;
+class GuitarBend;
 
 //---------------------------------------------------------
 //   ElementPattern
@@ -227,6 +228,7 @@ private:
     void appendFiltered(EngravingItem* e);
     void appendChord(Chord* chord);
     void appendTupletHierarchy(Tuplet* innermostTuplet);
+    void appendGuitarBend(GuitarBend* guitarBend);
 
     Score* m_score = nullptr;
     SelState m_state = SelState::NONE;

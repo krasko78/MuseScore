@@ -36,6 +36,7 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/inotation.h
     ${CMAKE_CURRENT_LIST_DIR}/inotationpainting.h
     ${CMAKE_CURRENT_LIST_DIR}/inotationviewstate.h
+    ${CMAKE_CURRENT_LIST_DIR}/inotationsolomutestate.h
     ${CMAKE_CURRENT_LIST_DIR}/inotationnoteinput.h
     ${CMAKE_CURRENT_LIST_DIR}/inotationselection.h
     ${CMAKE_CURRENT_LIST_DIR}/inotationinteraction.h
@@ -66,6 +67,8 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/internal/notationpainting.h
     ${CMAKE_CURRENT_LIST_DIR}/internal/notationviewstate.cpp
     ${CMAKE_CURRENT_LIST_DIR}/internal/notationviewstate.h
+    ${CMAKE_CURRENT_LIST_DIR}/internal/notationsolomutestate.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/internal/notationsolomutestate.h
     ${CMAKE_CURRENT_LIST_DIR}/internal/notationundostack.cpp
     ${CMAKE_CURRENT_LIST_DIR}/internal/notationundostack.h
     ${CMAKE_CURRENT_LIST_DIR}/internal/notationstyle.cpp
@@ -143,12 +146,12 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/view/noteinputbarcustomiseitem.h
     ${CMAKE_CURRENT_LIST_DIR}/view/continuouspanel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/view/continuouspanel.h
+    ${CMAKE_CURRENT_LIST_DIR}/view/abstractelementpopupmodel.h
+    ${CMAKE_CURRENT_LIST_DIR}/view/abstractelementpopupmodel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/view/internal/undoredomodel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/view/internal/undoredomodel.h
     ${CMAKE_CURRENT_LIST_DIR}/view/internal/noteflagstypeselectormodel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/view/internal/noteflagstypeselectormodel.h
-    ${CMAKE_CURRENT_LIST_DIR}/view/internal/abstractelementpopupmodel.h
-    ${CMAKE_CURRENT_LIST_DIR}/view/internal/abstractelementpopupmodel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/view/internal/harppedalpopupmodel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/view/internal/harppedalpopupmodel.h
     ${CMAKE_CURRENT_LIST_DIR}/view/internal/caposettingsmodel.cpp

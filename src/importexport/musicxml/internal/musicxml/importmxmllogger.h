@@ -23,7 +23,7 @@
 #ifndef __IMPORTMXMLLOGGER_H__
 #define __IMPORTMXMLLOGGER_H__
 
-#include <QString>
+#include "global/types/string.h"
 
 class QXmlStreamReader;
 
@@ -35,12 +35,12 @@ public:
         MXML_TRACE, MXML_INFO, MXML_ERROR
     };
     MxmlLogger() {}
-    void logDebugTrace(const QString& trace, const QXmlStreamReader* const xmlreader = 0);
-    void logDebugInfo(const QString& info, const QXmlStreamReader* const xmlreader = 0);
-    void logError(const QString& error, const QXmlStreamReader* const xmlreader = 0);
-    void setLoggingLevel(const Level level) { _level = level; }
+    void logDebugTrace(const mu::String& trace, const QXmlStreamReader* const xmlreader = 0);
+    void logDebugInfo(const String& info, const QXmlStreamReader* const xmlreader = 0);
+    void logError(const String& error, const QXmlStreamReader* const xmlreader = 0);
+    void setLoggingLevel(const Level level) { m_level = level; }
 private:
-    Level _level = Level::MXML_INFO;
+    Level m_level = Level::MXML_INFO;
 };
 } // namespace Ms
 

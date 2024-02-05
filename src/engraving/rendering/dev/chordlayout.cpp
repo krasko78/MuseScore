@@ -173,6 +173,10 @@ void ChordLayout::layoutPitched(Chord* item, LayoutContext& ctx)
 
     item->addLedgerLines();
 
+    // A chord can have its own arpeggio and also be part of another arpeggio's span.  We need to lay out both of these arpeggios properly
+    Arpeggio* oldSpanArp = item->spanArpeggio();
+    Arpeggio* newSpanArp = nullptr;
+
     // If item has an arpeggio: mark chords which are part of the arpeggio
     if (item->arpeggio()) {
         item->arpeggio()->findAndAttachToChords();
@@ -180,9 +184,16 @@ void ChordLayout::layoutPitched(Chord* item, LayoutContext& ctx)
         item->arpeggio()->mutldata()->minChordX = DBL_MAX;
         TLayout::layoutArpeggio(item->arpeggio(), item->arpeggio()->mutldata(), ctx.conf());
     }
+
+    if (item->spanArpeggio() != oldSpanArp) {
+        newSpanArp = item->spanArpeggio();
+    }
     // If item is within arpeggio span, keep track of largest space needed between glissando and chord across staves
-    if (item->spanArpeggio()) {
-        Arpeggio* spanArp = item->spanArpeggio();
+    double lllMax = lll;
+    for (Arpeggio* spanArp : { oldSpanArp, newSpanArp }) {
+        if (!spanArp || !spanArp->chord()) {
+            continue;
+        }
         Arpeggio::LayoutData* arpldata = spanArp->mutldata();
         const Segment* seg = spanArp->chord()->segment();
         const EngravingItem* endItem = seg->elementAt(spanArp->endTrack());
@@ -247,11 +258,13 @@ void ChordLayout::layoutPitched(Chord* item, LayoutContext& ctx)
                 double offset = -(xDiff + arpldata->maxChordPad);
                 spanArp->mutldata()->setPosX(offset);
                 if (spanArp->visible()) {
-                    lll = offset;
+                    lllMax = std::max(lllMax, offset);
                 }
             }
         }
     }
+
+    lll = lllMax;
 
     if (item->dots()) {
         double x = item->dotPosX() + dotNoteDistance
@@ -358,6 +371,7 @@ void ChordLayout::layoutTablature(Chord* item, LayoutContext& ctx)
     for (size_t i = 0; i < numOfNotes; ++i) {
         Note* note = item->notes().at(i);
         note->updateFrettingForTiesAndBends();
+        note->setDotRelativeLine(0);
         TLayout::layoutNote(note, note->mutldata());
         // set headWidth to max fret text width
         double fretWidth = note->ldata()->bbox().width();
@@ -3471,12 +3485,15 @@ void ChordLayout::layoutNote2(Note* item, LayoutContext& ctx)
     // the tie spans a system boundary. This can't be done in layout as the system of each note is not decided yet
     ShowTiedFret showTiedFret = item->style().value(Sid::tabShowTiedFret).value<ShowTiedFret>();
     bool useParens = isTabStaff && !item->fixed() && item->tieBack()
-                     && showTiedFret != ShowTiedFret::TIE_AND_FRET && !item->shouldHideFret();
+                     && (showTiedFret != ShowTiedFret::TIE_AND_FRET || item->isContinuationOfBend()) && !item->shouldHideFret();
     if (useParens) {
+        double widthWithoutParens = item->tabHeadWidth(staffType);
         if (!item->fretString().startsWith(u'(')) { // Hack: don't add parentheses if already added
             item->setFretString(String(u"(%1)").arg(item->fretString()));
         }
-        double w = item->tabHeadWidth(staffType);     // !! use _fretString
+        double w = item->tabHeadWidth(staffType);
+        double xOff = 0.5 * (w - widthWithoutParens);
+        ldata->moveX(-xOff);
         ldata->setBbox(0, staffType->fretBoxY() * item->magS(), w, staffType->fretBoxH() * item->magS());
     }
     int dots = item->chord()->dots();
@@ -3748,7 +3765,7 @@ void ChordLayout::fillShape(const Chord* item, ChordRest::LayoutData* ldata, con
         shape.add(arpeggio->shape().translate(arpeggio->pos()));
     }
 
-    if (spanArpeggio && !arpeggio && spanArpeggio->addToSkyline()) {
+    if (spanArpeggio && !arpeggio && spanArpeggio->vStaffIdx() == item->vStaffIdx() && spanArpeggio->addToSkyline()) {
         PointF spanArpPos = spanArpeggio->pos() - (item->pagePos() - spanArpeggio->chord()->pagePos());
         shape.add(spanArpeggio->shape().translate(spanArpPos));
     }

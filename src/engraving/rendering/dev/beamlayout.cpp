@@ -272,9 +272,16 @@ void BeamLayout::layout1(Beam* item, LayoutContext& ctx)
         const bool staffMove = cr->isChord() ? toChord(cr)->staffMove() : false;
         if (!item->cross() || !staffMove) {
             if (cr->up() != item->up()) {
-                cr->setUp(isEntirelyMoved ? item->up() : (item->up() != staffMove));
+                bool prevChordUpValue = cr->up();
+                bool newChordUpValue = isEntirelyMoved ? item->up() : (item->up() != staffMove);
+                cr->setUp(newChordUpValue);
                 if (cr->isChord()) {
-                    ChordLayout::layoutStem(toChord(cr), ctx);
+                    if (newChordUpValue != prevChordUpValue && !toChord(cr)->isGrace()) {
+                        // A change in stem direction may require to recompute note positions
+                        ChordLayout::layoutChords1(ctx, cr->segment(), cr->staffIdx());
+                    } else {
+                        ChordLayout::layoutStem(toChord(cr), ctx);
+                    }
                 }
             }
         }
@@ -373,7 +380,6 @@ void BeamLayout::layout2(Beam* item, const LayoutContext& ctx, const std::vector
         item->startAnchor() = PointF(x1, y);
         item->endAnchor() = PointF(x2, y);
         item->mutldata()->setAnchors(item->startAnchor(), item->endAnchor());
-        item->setBeamWidth(item->ldata()->beamWidth);
     }
 
     item->beamFragments()[frag]->py1[fragmentIndex] = item->startAnchor().y() - item->pagePos().y();
@@ -692,6 +698,11 @@ void BeamLayout::createBeams(LayoutContext& ctx, Measure* measure)
                             && ctx.state().prevMeasure()
                             && !(prevCR->isChord() && prevCR->durationType().type() <= DurationType::V_QUARTER)) {
                             beam = prevBeam;
+                            if (prevCR->isChord()) {
+                                if (Hook* hook = toChord(prevCR)->hook()) {
+                                    ctx.mutDom().doUndoRemoveElement(hook);
+                                }
+                            }
                             //a1 = beam ? beam->elements().front() : prevCR;
                             a1 = beam ? nullptr : prevCR;               // when beam is found, a1 is no longer required.
                         } else if (prevBeam && prevBeam == cr->beam() && prevBeam->elements().front() == prevCR) {

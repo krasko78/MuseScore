@@ -225,7 +225,7 @@ void TLayout::layoutItem(EngravingItem* item, LayoutContext& ctx)
         layoutChordLine(item_cast<const ChordLine*>(item), static_cast<ChordLine::LayoutData*>(ldata), ctx.conf());
         break;
     case ElementType::CLEF:
-        layoutClef(item_cast<const Clef*>(item), static_cast<Clef::LayoutData*>(ldata));
+        layoutClef(item_cast<const Clef*>(item), static_cast<Clef::LayoutData*>(ldata), ctx.conf());
         break;
     case ElementType::CAPO:
         layoutCapo(item_cast<const Capo*>(item), static_cast<Capo::LayoutData*>(ldata), ctx);
@@ -1377,6 +1377,7 @@ void TLayout::layoutVBox(const VBox* item, VBox::LayoutData* ldata, const Layout
         layoutItem(e, const_cast<LayoutContext&>(ctx));
     }
     bool boxAutoSize = item->getProperty(Pid::BOX_AUTOSIZE).toBool();
+    bool heightChanged = false;
     if (boxAutoSize) {
         double contentHeight = item->contentRect().height();
 
@@ -1385,6 +1386,7 @@ void TLayout::layoutVBox(const VBox* item, VBox::LayoutData* ldata, const Layout
         }
 
         ldata->setHeight(contentHeight);
+        heightChanged = true;
     }
 
     if (boxAutoSize && MScore::noImages) {
@@ -1407,6 +1409,12 @@ void TLayout::layoutVBox(const VBox* item, VBox::LayoutData* ldata, const Layout
         }
 
         ldata->setHeight(calculatedVBoxHeight);
+        heightChanged = true;
+    }
+    if (heightChanged) {
+        for (EngravingItem* e : item->el()) {
+            layoutItem(e, const_cast<LayoutContext&>(ctx));
+        }
     }
 }
 
@@ -1691,7 +1699,7 @@ void TLayout::layoutChordLine(const ChordLine* item, ChordLine::LayoutData* ldat
     }
 }
 
-void TLayout::layoutClef(const Clef* item, Clef::LayoutData* ldata)
+void TLayout::layoutClef(const Clef* item, Clef::LayoutData* ldata, const LayoutConfiguration& conf)
 {
     LAYOUT_CALL_ITEM(item);
     LD_INDEPENDENT;
@@ -1710,12 +1718,13 @@ void TLayout::layoutClef(const Clef* item, Clef::LayoutData* ldata)
 
     // check clef visibility and type compatibility
     if (clefSeg && item->staff()) {
-        Fraction tick = clefSeg->tick();
-        Fraction tickPrev = tick - Fraction::eps();
+        const Fraction tick = clefSeg->tick();
+        const Fraction tickPrev = tick - Fraction::eps();
         const StaffType* st = item->staff()->staffType(tick);
         const StaffType* stPrev = !tickPrev.negative() ? item->staff()->staffType(tickPrev) : nullptr;
         bool show = st->genClef();            // check staff type allows clef display
         StaffGroup staffGroup = st->group();
+        const bool hideClef = st->isTabStaff() ? conf.styleB(Sid::hideTabClefAfterFirst) : !conf.styleB(Sid::genClef);
 
         // if not tab, use instrument->useDrumset to set staffGroup (to allow pitched to unpitched in same staff)
         if (staffGroup != StaffGroup::TAB) {
@@ -1724,7 +1733,7 @@ void TLayout::layoutClef(const Clef* item, Clef::LayoutData* ldata)
 
         // check clef is compatible with staff type group:
         if (ClefInfo::staffGroup(item->clefType()) != staffGroup) {
-            if (tick > Fraction(0, 1) && !item->generated()) {     // if clef is not generated, hide it
+            if (tick > Fraction(0, 1) && (!item->generated() || hideClef)) {     // if clef is not generated, hide it
                 show = false;
             } else {                            // if generated, replace with initial clef type
                 // TODO : instead of initial staff clef (which is assumed to be compatible)
@@ -5247,6 +5256,7 @@ void TLayout::layoutStemSlash(const StemSlash* item, StemSlash::LayoutData* ldat
 
     LD_CONDITION(stem->ldata()->isSetPos());
     LD_CONDITION(stem->ldata()->isSetBbox());
+    //  Notes without a stem (including whole notes) don't draw a slash.
 
     static constexpr double heightReduction = 0.66;
     static constexpr double angleIncrease = 1.2;
@@ -5263,13 +5273,8 @@ void TLayout::layoutStemSlash(const StemSlash* item, StemSlash::LayoutData* ldat
     double graceNoteMag = mag;
 
     double startX = stem->ldata()->bbox().translated(stem->pos()).right() - leftHang;
-
-    double startY;
-    if (straight || beam) {
-        startY = stemTipY - up * graceNoteMag * conf.styleMM(Sid::stemSlashPosition) * heightReduction;
-    } else {
-        startY = stemTipY - up * graceNoteMag * conf.styleMM(Sid::stemSlashPosition);
-    }
+    double startY = stemTipY - up * graceNoteMag * conf.styleMM(Sid::stemSlashPosition)
+                    * (straight || !hook ? heightReduction : 1);
 
     double endX = 0;
     double endY = 0;
@@ -5283,8 +5288,7 @@ void TLayout::layoutStemSlash(const StemSlash* item, StemSlash::LayoutData* ldat
         }
         endX = hook->ldata()->bbox().translated(hook->ldata()->pos()).right(); // always ends at the right bbox margin of the hook
         endY = startY + up * (endX - startX) * tan(angle);
-    }
-    if (beam) {
+    } else if (beam) {
         PointF p1 = beam->startAnchor();
         PointF p2 = beam->endAnchor();
         double beamAngle = p2.x() > p1.x() ? atan((p2.y() - p1.y()) / (p2.x() - p1.x())) : 0;
@@ -5296,6 +5300,10 @@ void TLayout::layoutStemSlash(const StemSlash* item, StemSlash::LayoutData* ldat
         }
         endX = startX + length * cos(angle);
         endY = startY + up * length * sin(angle);
+    } else {
+        double rightHang = (conf.noteHeadWidth() * mag / 2) - stem->width(); //  subtract the stem width so the slash is optically centered on the stem
+        endX = stem->ldata()->bbox().translated(stem->pos()).right() + rightHang;
+        endY = startY + up * (endX - startX) * tan(angle);
     }
 
     ldata->line = LineF(PointF(startX, startY), PointF(endX, endY));

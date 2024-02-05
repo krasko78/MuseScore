@@ -4204,9 +4204,19 @@ void NotationInteraction::addText(TextStyleType type, EngravingItem* item)
         return;
     }
 
+    if (textBox->isInstrumentChange()) {
+        if (!selectInstrument(toInstrumentChange(textBox))) {
+            rollback();
+            return;
+        }
+    }
+
     apply();
     showItem(textBox);
-    startEditText(textBox);
+
+    if (!textBox->isInstrumentChange()) {
+        startEditText(textBox);
+    }
 }
 
 mu::Ret NotationInteraction::canAddImageToItem(const EngravingItem* item) const
@@ -4666,7 +4676,9 @@ void NotationInteraction::navigateToLyrics(bool back, bool moveOnly, bool end)
             break;
         }
         // for the same reason, it cannot have a melisma
-        fromLyrics->undoChangeProperty(mu::engraving::Pid::LYRIC_TICKS, Fraction::fromTicks(0));
+        if (fromLyrics->separator() && !fromLyrics->separator()->isEndMelisma()) {
+            fromLyrics->undoChangeProperty(mu::engraving::Pid::LYRIC_TICKS, Fraction::fromTicks(0));
+        }
     }
 
     if (newLyrics) {

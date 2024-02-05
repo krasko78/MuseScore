@@ -426,6 +426,7 @@ enum class Sid {
     smallStaffMag,
     smallClefMag,
     genClef,
+    hideTabClefAfterFirst,
     genKeysig,
     genCourtesyTimesig,
     genCourtesyKeysig,
@@ -486,10 +487,14 @@ enum class Sid {
     SlurEndWidth,
     SlurMidWidth,
     SlurDottedWidth,
+    TieEndWidth,
+    TieMidWidth,
+    TieDottedWidth,
     MinTieLength,
     MinStraightGlissandoLength,
     MinWigglyGlissandoLength,
     SlurMinDistance,
+    TieMinDistance,
     HeaderToLineStartDistance, // determines start point of "dangling" lines (ties, gliss, lyrics...) at start of system
 
     tiePlacementSingleNote,
