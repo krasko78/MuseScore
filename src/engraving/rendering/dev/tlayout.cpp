@@ -2432,7 +2432,7 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                     double d = sk.minDistance(ss->skyline().north());
                     double yd = 0.0;
                     if (d > 0.0 && item->isStyled(Pid::MIN_DISTANCE)) {
-                        yd -= d + item->ldata()->bbox().height() * .25;
+                        yd -= d /*+ item->lineHeight() * .25*/;
                     }
                     // force extra space above staff & chord (but not other fingerings)
                     double top = 0.0;
@@ -2468,7 +2468,7 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                     double d = ss->skyline().south().minDistance(sk);
                     double yd = 0.0;
                     if (d > 0.0 && item->isStyled(Pid::MIN_DISTANCE)) {
-                        yd += d + item->ldata()->bbox().height() * .25;
+                        yd += d /*+ item->lineHeight() * .25*/;
                     }
                     // force extra space below staff & chord (but not other fingerings)
                     double bottom;
