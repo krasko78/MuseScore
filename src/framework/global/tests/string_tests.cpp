@@ -880,6 +880,40 @@ TEST_F(Global_Types_StringTests, AsciiString_ToDouble)
     }
 }
 
+TEST_F(Global_Types_StringTests, String_DecodeXmlEntities)
+{
+    String ret = String::decodeXmlEntities(u"gg &#33; &#37;&#37;");
+    EXPECT_EQ(ret, String(u"gg ! %%"));
+}
+
+TEST_F(Global_Types_StringTests, String_Contains)
+{
+    //! GIVEN Regex (taken from musicxml parsing, for determining coda, segno, etc):
+    std::wregex re(L"^(d\\.? ?|d[ae]l )(s\\.?|segno\\.?) al coda$");
+
+    {
+        //! GIVEN String:
+        String str(u"d.segno. al coda");
+
+        //! DO
+        bool ret = str.contains(re);
+
+        //! CHECK
+        EXPECT_TRUE(ret);
+    }
+
+    {
+        //! GIVEN String:
+        String str(u"d.segno. alcoda");
+
+        //! DO
+        bool ret = str.contains(re);
+
+        //! CHECK
+        EXPECT_FALSE(ret);
+    }
+}
+
 TEST_F(Global_Types_StringTests, String_Remove)
 {
     //! GIVEN Some String

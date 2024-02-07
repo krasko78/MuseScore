@@ -43,13 +43,13 @@
 #include <QString>
 #include <QBuffer>
 #include <QDate>
-#include <QRegularExpression>
 
 #include "containers.h"
 #include "io/iodevice.h"
 #include "io/buffer.h"
+#include "io/file.h"
 #include "io/fileinfo.h"
-#include "global/deprecated/qzipwriter_p.h"
+#include "global/serialization/zipwriter.h"
 
 #include "engraving/style/style.h"
 #include "engraving/rw/xmlwriter.h"
@@ -2168,8 +2168,8 @@ void ExportMusicXml::timesig(TimeSig* tsig)
 
     m_xml.startElement("time", attrs);
 
-    QRegularExpression regex(QRegularExpression::anchoredPattern("^\\d+(\\+\\d+)+$")); // matches a compound numerator
-    if (regex.match(ns).hasMatch()) {
+    static const std::regex beats_re("^\\d+(\\+\\d+)+$");
+    if (std::regex_match(ns.toStdString(), beats_re)) {
         // if compound numerator, exported as is
         m_xml.tag("beats", ns);
     } else {
@@ -4570,6 +4570,32 @@ static void partGroupStart(XmlWriter& xml, int number, const BracketItem* const 
 //---------------------------------------------------------
 //   findMetronome
 //---------------------------------------------------------
+static size_t indexOf(const String& src_, const std::wregex& re, size_t from, std::wsmatch* m)
+{
+    std::u16string u16 = src_.toStdU16String();
+    std::wstring src;
+    src.resize(u16.size());
+
+    static_assert(sizeof(wchar_t) >= sizeof(char16_t));
+
+    for (size_t i = 0; i < u16.size(); ++i) {
+        src[i] = static_cast<wchar_t>(u16.at(i));
+    }
+
+    auto begin = std::wsregex_iterator(src.begin(), src.end(), re);
+    auto end = std::wsregex_iterator();
+    for (auto it = begin; it != end; ++it) {
+        std::wsmatch match = *it;
+        size_t pos = src.find(match.str(), from);
+        if (pos != std::u16string::npos) {
+            if (m) {
+                *m = match;
+            }
+            return pos;
+        }
+    }
+    return std::u16string::npos;
+}
 
 static bool findMetronome(const std::list<TextFragment>& list,
                           std::list<TextFragment>& wordsLeft,  // words left of metronome
@@ -4579,7 +4605,7 @@ static bool findMetronome(const std::list<TextFragment>& list,
                           std::list<TextFragment>& wordsRight // words right of metronome
                           )
 {
-    QString words = MScoreTextToMXML::toPlainTextPlusSymbols(list);
+    String words = MScoreTextToMXML::toPlainTextPlusSymbols(list);
     //LOGD("findMetronome('%s')", qPrintable(words));
     hasParen   = false;
     metroLeft  = "";
@@ -4587,8 +4613,8 @@ static bool findMetronome(const std::list<TextFragment>& list,
     int metroPos = -1;     // metronome start position
     int metroLen = 0;      // metronome length
 
-    int indEq  = words.indexOf('=');
-    if (indEq <= 0) {
+    size_t indEq  = words.indexOf('=');
+    if (indEq == 0 || indEq == mu::nidx) {
         return false;
     }
 
@@ -4598,37 +4624,29 @@ static bool findMetronome(const std::list<TextFragment>& list,
     // find first note, limiting search to the part left of the first '=',
     // to prevent matching the second note in a "note1 = note2" metronome
     int pos1 = TempoText::findTempoDuration(words.left(indEq), len1, dur);
-    QRegularExpression equationRegEx("\\s*=\\s*");
-    QRegularExpressionMatch equationMatch;
-    int pos2 = words.indexOf(equationRegEx, pos1 + len1, &equationMatch);
+    static const std::wregex equationRegEx(L"\\s*=\\s*");
+    std::wsmatch equationMatch;
+    size_t pos2 = indexOf(words, equationRegEx, pos1 + len1, &equationMatch);
     if (pos1 != -1 && pos2 == pos1 + len1) {
-        int len2 = equationMatch.capturedLength();
-        if (words.length() > pos2 + len2) {
-            QString s1 = words.mid(0, pos1);           // string to the left of metronome
-            QString s2 = words.mid(pos1, len1);        // first note
-            QString s3 = words.mid(pos2, len2);        // equals sign
-            QString s4 = words.mid(pos2 + len2);       // string to the right of equals sign
-            /*
-            LOGD("found note and equals: '%s'%s'%s'%s'",
-                   qPrintable(s1),
-                   qPrintable(s2),
-                   qPrintable(s3),
-                   qPrintable(s4)
-                   );
-             */
+        int len2 = equationMatch.length();
+        if (words.size() > pos2 + len2) {
+            String s1 = words.mid(0, pos1);           // string to the left of metronome
+            String s2 = words.mid(pos1, len1);        // first note
+            String s3 = words.mid(pos2, len2);        // equals sign
+            String s4 = words.mid(pos2 + len2);       // string to the right of equals sign
 
             // now determine what is to the right of the equals sign
             // must have either a (dotted) note or a number at start of s4
             int len3 = 0;
             // One or more digits, optionally followed by a single dot or comma and one or more digits
-            QRegularExpression numberRegEx("\\d+([,\\.]{1}\\d+)?");
+            static const std::wregex numberRegEx(L"\\d+([,\\.]{1}\\d+)?");
             int pos3 = TempoText::findTempoDuration(s4, len3, dur);
             if (pos3 == -1) {
                 // did not find note, try to find a number
-                QRegularExpressionMatch numberMatch;
-                pos3 = s4.indexOf(numberRegEx, 0, &numberMatch);
+                std::wsmatch numberMatch;
+                pos3 = static_cast<int>(indexOf(s4, numberRegEx, 0, &numberMatch));
                 if (pos3 == 0) {
-                    len3 = numberMatch.capturedLength();
+                    len3 = numberMatch.length();
                 }
             }
             if (pos3 == -1) {
@@ -4636,21 +4654,15 @@ static bool findMetronome(const std::list<TextFragment>& list,
                 return false;
             }
 
-            QString s5 = s4.mid(0, len3);       // number or second note
-            QString s6 = s4.mid(len3);          // string to the right of metronome
-            /*
-            LOGD("found right part: '%s'%s'",
-                   qPrintable(s5),
-                   qPrintable(s6)
-                   );
-             */
+            String s5 = s4.mid(0, len3);       // number or second note
+            String s6 = s4.mid(len3);          // string to the right of metronome
 
             // determine if metronome has parentheses
             // left part of string must end with parenthesis plus optional spaces
             // right part of string must have parenthesis (but not in first pos)
-            int lparen = s1.indexOf("(");
-            int rparen = s6.indexOf(")");
-            hasParen = (lparen == s1.length() - 1 && rparen == 0);
+            size_t lparen = s1.indexOf(u'(');
+            size_t rparen = s6.indexOf(u')');
+            hasParen = (lparen == s1.size() - 1 && rparen == 0);
 
             metroLeft = s2;
             metroRight = s5;
@@ -4672,13 +4684,6 @@ static bool findMetronome(const std::list<TextFragment>& list,
             }
             metroPos = corrPos;
 
-            /*
-            LOGD("-> found '%s'%s' hasParen %d metro pos %d len %d",
-                   qPrintable(metroLeft),
-                   qPrintable(metroRight),
-                   hasParen, metroPos, metroLen
-                   );
-             */
             std::list<TextFragment> mid;       // not used
             MScoreTextToMXML::split(list, metroPos, metroLen, wordsLeft, mid, wordsRight);
             return true;
@@ -8011,24 +8016,24 @@ void ExportMusicXml::write(mu::io::IODevice* dev)
  Return false on error.
  */
 
-bool saveXml(Score* score, QIODevice* device)
+bool saveXml(Score* score, IODevice* device)
 {
     mu::io::Buffer buf;
     buf.open(mu::io::IODevice::WriteOnly);
     ExportMusicXml em(score);
     em.write(&buf);
-    device->write(buf.data().toQByteArrayNoCopy());
+    device->write(buf.data());
     return true;
 }
 
 bool saveXml(Score* score, const String& name)
 {
-    QFile f(name.toQString());
-    if (!f.open(QIODevice::WriteOnly)) {
+    File f(name.toQString());
+    if (!f.open(IODevice::WriteOnly)) {
         return false;
     }
 
-    bool res = saveXml(score, &f) && (f.error() == QFile::NoError);
+    bool res = saveXml(score, &f) && !f.hasError();
     f.close();
     return res;
 }
@@ -8052,7 +8057,7 @@ bool saveXml(Score* score, const String& name)
 //     </rootfiles>
 // </container>
 
-static void writeMxlArchive(Score* score, MQZipWriter& zipwriter, const String& filename)
+static void writeMxlArchive(Score* score, ZipWriter& zip, const String& filename)
 {
     mu::io::Buffer cbuf;
     cbuf.open(mu::io::IODevice::ReadWrite);
@@ -8068,35 +8073,36 @@ static void writeMxlArchive(Score* score, MQZipWriter& zipwriter, const String& 
     xml.endElement();
     cbuf.seek(0);
 
-    zipwriter.addFile("META-INF/container.xml", cbuf.data().toQByteArrayNoCopy());
+    zip.addFile("META-INF/container.xml", cbuf.data());
 
     mu::io::Buffer dbuf;
     dbuf.open(mu::io::IODevice::ReadWrite);
     ExportMusicXml em(score);
     em.write(&dbuf);
     dbuf.seek(0);
-    zipwriter.addFile(filename, dbuf.data().toQByteArrayNoCopy());
+    zip.addFile(filename.toStdString(), dbuf.data());
 }
 
-bool saveMxl(Score* score, QIODevice* device)
+bool saveMxl(Score* score, IODevice* device)
 {
-    MQZipWriter uz(device);
+    ZipWriter zip(device);
 
     //anonymized filename since we don't know the actual one here
     String fn = u"score.xml";
-    writeMxlArchive(score, uz, fn);
-    uz.close();
+    writeMxlArchive(score, zip, fn);
+    zip.close();
 
     return true;
 }
 
 bool saveMxl(Score* score, const String& name)
 {
-    MQZipWriter uz(name);
+    ZipWriter zip(name);
 
     FileInfo fi(name);
     String fn = fi.completeBaseName() + u".xml";
-    writeMxlArchive(score, uz, fn);
+    writeMxlArchive(score, zip, fn);
+    zip.close();
 
     return true;
 }

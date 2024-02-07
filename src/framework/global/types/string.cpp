@@ -599,6 +599,25 @@ bool String::contains(const String& str, CaseSensitivity cs) const
     }
 }
 
+bool String::contains(const std::wregex& re) const
+{
+    const std::u16string& u16 = constStr();
+    std::wstring ws;
+    ws.resize(u16.size());
+
+    static_assert(sizeof(wchar_t) >= sizeof(char16_t));
+
+    for (size_t i = 0; i < ws.size(); ++i) {
+        ws[i] = static_cast<wchar_t>(u16.at(i));
+    }
+
+    auto words_begin = std::wsregex_iterator(ws.begin(), ws.end(), re);
+    if (words_begin != std::wsregex_iterator()) {
+        return true;
+    }
+    return false;
+}
+
 int String::count(const Char& ch) const
 {
     int count = 0;
@@ -1051,6 +1070,23 @@ String String::toXmlEscaped(const String& s)
 String String::toXmlEscaped() const
 {
     return toXmlEscaped(*this);
+}
+
+String String::decodeXmlEntities(const String& src_)
+{
+    std::string src = src_.toStdString();
+    String ret = src_;
+    static const std::regex re("&#([0-9]+);");
+
+    auto begin = std::sregex_iterator(src.begin(), src.end(), re);
+    auto end = std::sregex_iterator();
+    for (auto it = begin; it != end; ++it) {
+        std::smatch match = *it;
+        std::string str0 = match[0];
+        std::string str1 = match[1];
+        ret.replace(String::fromStdString(str0), String(Char(std::stoi(str1))));
+    }
+    return ret;
 }
 
 String String::toLower() const
