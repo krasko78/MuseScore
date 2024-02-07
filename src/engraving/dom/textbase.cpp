@@ -1047,7 +1047,7 @@ void TextBlock::layout(const TextBase* t)
                 x += w;
             }
 
-            m_bbox   |= fm.tightBoundingRect(f.text).translated(f.pos);
+            m_bbox   |= fm.boundingRect(f.text).translated(f.pos);   // KRASKO: use the font metrics rather than the actual text to account for characters with ascents and descents
             mu::draw::Font font = f.font(t);
             if (font.type() == mu::draw::Font::Type::MusicSymbol || font.type() == mu::draw::Font::Type::MusicSymbolText) {
                 // SEMI-HACK: Music fonts can have huge linespacing because of tall symbols, so instead of using the
