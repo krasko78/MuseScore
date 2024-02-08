@@ -23,9 +23,9 @@
 #ifndef __IMPORTMXMLPASS1_H__
 #define __IMPORTMXMLPASS1_H__
 
-#include <QXmlStreamReader>
-
-#include "containers.h"
+#include "global/serialization/xmlstreamreader.h"
+#include "global/containers.h"
+#include "global/types/flags.h"
 #include "draw/types/geometry.h"
 
 #include "importxmlfirstpass.h"
@@ -90,7 +90,7 @@ enum class MxmlTupletFlag : char {
     STOP_CURRENT = 8
 };
 
-typedef QFlags<MxmlTupletFlag> MxmlTupletFlags;
+typedef Flags<MxmlTupletFlag> MxmlTupletFlags;
 
 struct MxmlTupletState {
     void addDurationToTuplet(const Fraction duration, const Fraction timeMod);
@@ -125,7 +125,7 @@ class MusicXMLParserPass1
 public:
     MusicXMLParserPass1(Score* score, MxmlLogger* logger);
     void initPartState(const String& partId);
-    Err parse(QIODevice* device);
+    Err parse(const ByteArray& data);
     Err parse();
     String errors() const { return m_errors; }
     void scorePartwise();
@@ -154,9 +154,9 @@ public:
     void note(const String& partId, const Fraction& cTime, Fraction& missingPrev, Fraction& dura, Fraction& missingCurr,
               VoiceOverlapDetector& vod, MxmlTupletStates& tupletStates);
     void notePrintSpacingNo(Fraction& dura);
-    Fraction calcTicks(const int& intTicks, const int& _divisions, const QXmlStreamReader* const xmlReader);
+    Fraction calcTicks(const int& intTicks, const int& _divisions, const XmlStreamReader* xmlReader);
     Fraction calcTicks(const int& intTicks) { return calcTicks(intTicks, m_divs, &m_e); }
-    void duration(Fraction& dura, QXmlStreamReader& e);
+    void duration(Fraction& dura, XmlStreamReader& e);
     void duration(Fraction& dura) { duration(dura, m_e); }
     void forward(Fraction& dura);
     void backup(Fraction& dura);
@@ -170,9 +170,9 @@ public:
     int voiceToInt(const String& voice);
     track_idx_t trackForPart(const String& id) const;
     bool hasPart(const String& id) const;
-    Part* getPart(const QString& id) const { return mu::value(m_partMap, id); }
-    MusicXmlPart getMusicXmlPart(const QString& id) const { return mu::value(m_parts, id); }
-    MusicXMLInstruments getInstruments(const QString& id) const { return mu::value(m_instruments, id); }
+    Part* getPart(const String& id) const { return mu::value(m_partMap, id); }
+    MusicXmlPart getMusicXmlPart(const String& id) const { return mu::value(m_parts, id); }
+    MusicXMLInstruments getInstruments(const String& id) const { return mu::value(m_instruments, id); }
     void setDrumsetDefault(const String& id, const String& instrId, const NoteHeadGroup hg, const int line, const DirectionV sd);
     MusicXmlInstrList getInstrList(const String& id) const;
     MusicXmlIntervalList getIntervals(const String& id) const;
@@ -180,7 +180,7 @@ public:
     int octaveShift(const String& id, const staff_idx_t staff, const Fraction& f) const;
     const CreditWordsList& credits() const { return m_credits; }
     bool hasBeamingInfo() const { return m_hasBeamingInfo; }
-    bool isVocalStaff(const QString& id) const { return m_parts.at(id).isVocalStaff(); }
+    bool isVocalStaff(const String& id) const { return m_parts.at(id).isVocalStaff(); }
     static VBox* createAndAddVBoxForCreditWords(Score* score, const int miny = 0, const int maxy = 75);
     int maxDiff() const { return m_maxDiff; }
     void insertAdjustedDuration(Fraction key, Fraction value) { m_adjustedDurations.insert({ key, value }); }
@@ -192,7 +192,7 @@ private:
     void addError(const String& error);        // Add an error to be shown in the GUI
 
     // generic pass 1 data
-    QXmlStreamReader m_e;
+    XmlStreamReader m_e;
     int m_divs = 0;                              // Current MusicXML divisions value
     std::map<String, MusicXmlPart> m_parts;     // Parts data, mapped on part id
     std::set<int> m_systemStartMeasureNrs;       // Measure numbers of measures starting a page

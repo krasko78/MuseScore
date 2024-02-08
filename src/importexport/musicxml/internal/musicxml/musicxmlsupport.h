@@ -23,17 +23,19 @@
 #ifndef __MUSICXMLSUPPORT_H__
 #define __MUSICXMLSUPPORT_H__
 
-#include <QDomElement>
-#include <QAbstractMessageHandler>
 #include <QSourceLocation>
 
 #include "engraving/types/fraction.h"
 #include "engraving/dom/mscore.h"
 #include "engraving/dom/note.h"
 
-class Chord;
+namespace mu {
+class XmlStreamReader;
+}
 
 namespace mu::engraving {
+class Chord;
+
 //---------------------------------------------------------
 //   NoteList
 //---------------------------------------------------------
@@ -204,35 +206,9 @@ class MxmlSupport
 {
 public:
     static int stringToInt(const String& s, bool* ok);
-    static Fraction durationAsFraction(const int divisions, const QDomElement e);
     static Fraction noteTypeToFraction(const String& type);
     static Fraction calculateFraction(const String& type, int dots, int normalNotes, int actualNotes);
 };
-
-//---------------------------------------------------------
-//   ValidatorMessageHandler
-//---------------------------------------------------------
-
-/**
- Message handler for the MusicXML schema validator QXmlSchemaValidator.
- */
-
-class ValidatorMessageHandler : public QAbstractMessageHandler
-{
-    Q_OBJECT
-
-public:
-    ValidatorMessageHandler()
-        : QAbstractMessageHandler(0) {}
-    QString getErrors() const { return m_errors; }
-protected:
-    virtual void handleMessage(QtMsgType type, const QString& description, const QUrl& identifier, const QSourceLocation& sourceLocation);
-private:
-    QString m_errors;
-};
-
-extern void domError(const QDomElement&);
-extern void domNotImplemented(const QDomElement&);
 
 extern String accSymId2MxmlString(const SymId id);
 extern String accSymId2SmuflMxmlString(const SymId id);
@@ -242,8 +218,8 @@ extern AccidentalType mxmlString2accidentalType(const String mxmlName, const Str
 extern SymId mxmlString2accSymId(const String mxmlName, const String smufl = u"");
 extern AccidentalType microtonalGuess(double val);
 extern bool isLaissezVibrer(const SymId id);
-extern const Articulation* findLaissezVibrer(const Chord* const chord);
+extern const Articulation* findLaissezVibrer(const Chord* chord);
 extern String errorStringWithLocation(int line, int col, const String& error);
-extern String checkAtEndElement(const QXmlStreamReader& e, const String& expName);
+extern String checkAtEndElement(const XmlStreamReader& e, const String& expName);
 } // namespace Ms
 #endif

@@ -24,6 +24,8 @@
  MusicXML support.
  */
 
+#include "global/serialization/xmlstreamreader.h"
+
 #include "translation.h"
 #include "engraving/dom/accidental.h"
 #include "engraving/dom/articulation.h"
@@ -33,8 +35,6 @@
 #include "musicxmlsupport.h"
 
 #include "log.h"
-
-#include <QXmlStreamReader>
 
 using AccidentalType = mu::engraving::AccidentalType;
 using SymId = mu::engraving::SymId;
@@ -218,114 +218,6 @@ String MusicXMLInstrument::toString() const
            .arg(int(stemDirection));
 }
 
-void ValidatorMessageHandler::handleMessage(QtMsgType type, const QString& description,
-                                            const QUrl& /* identifier */, const QSourceLocation& sourceLocation)
-{
-    // convert description from html to text
-    QDomDocument desc;
-    QString contentError;
-    int contentLine;
-    int contentColumn;
-    if (!desc.setContent(description, false, &contentError, &contentLine,
-                         &contentColumn)) {
-        LOGD("ValidatorMessageHandler: could not parse validation error line %d column %d: %s",
-             contentLine, contentColumn, qPrintable(contentError));
-        return;
-    }
-
-    QDomElement e = desc.documentElement();
-    if (e.tagName() != "html") {
-        LOGD("ValidatorMessageHandler: description is not html");
-        return;
-    }
-
-    QString typeStr;
-    switch (type) {
-    case 0:  typeStr = qtrc("iex_musicxml", "Debug message:");
-        break;
-    case 1:  typeStr = qtrc("iex_musicxml", "Warning:");
-        break;
-    case 2:  typeStr = qtrc("iex_musicxml", "Critical error:");
-        break;
-    case 3:  typeStr = qtrc("iex_musicxml", "Fatal error:");
-        break;
-    default: typeStr = qtrc("iex_musicxml", "Unknown error:");
-        break;
-    }
-
-    QString errorStr = typeStr + " " + errorStringWithLocation(sourceLocation.line(), sourceLocation.column(), e.text());
-
-    // append error, separated by newline if necessary
-    if (!m_errors.isEmpty()) {
-        m_errors += "\n";
-    }
-    m_errors += errorStr;
-}
-
-//---------------------------------------------------------
-//   printDomElementPath
-//---------------------------------------------------------
-
-static QString domElementPath(const QDomElement& e)
-{
-    QString s;
-    QDomNode dn(e);
-    while (!dn.parentNode().isNull()) {
-        dn = dn.parentNode();
-        const QDomElement& de = dn.toElement();
-        const QString k(de.tagName());
-        if (!s.isEmpty()) {
-            s += ":";
-        }
-        s += k;
-    }
-    return s;
-}
-
-//---------------------------------------------------------
-//   domError
-//---------------------------------------------------------
-
-void domError(const QDomElement& e)
-{
-    QString m;
-    QString s = domElementPath(e);
-//      if (!docName.isEmpty())
-//            m = QString("<%1>:").arg(docName);
-    int ln = e.lineNumber();
-    if (ln != -1) {
-        m += QString("line:%1 ").arg(ln);
-    }
-    int col = e.columnNumber();
-    if (col != -1) {
-        m += QString("col:%1 ").arg(col);
-    }
-    m += QString("%1: Unknown Node <%2>, type %3").arg(s, e.tagName()).arg(e.nodeType());
-    if (e.isText()) {
-        m += QString("  text node <%1>").arg(e.toText().data());
-    }
-    LOGD("%s", qPrintable(m));
-}
-
-//---------------------------------------------------------
-//   domNotImplemented
-//---------------------------------------------------------
-
-void domNotImplemented(const QDomElement& e)
-{
-    if (!MScore::debugMode) {
-        return;
-    }
-    QString s = domElementPath(e);
-//      if (!docName.isEmpty())
-//            LOGD("<%s>:", qPrintable(docName));
-    LOGD("%s: Node not implemented: <%s>, type %d",
-         qPrintable(s), qPrintable(e.tagName()), e.nodeType());
-    if (e.isText()) {
-        LOGD("  text node <%s>", qPrintable(e.toText().data()));
-    }
-}
-
 //---------------------------------------------------------
 //   errorStringWithLocation
 //---------------------------------------------------------
@@ -339,16 +231,16 @@ String errorStringWithLocation(int line, int col, const String& error)
 //   checkAtEndElement
 //---------------------------------------------------------
 
-String checkAtEndElement(const QXmlStreamReader& e, const String& expName)
+String checkAtEndElement(const XmlStreamReader& e, const String& expName)
 {
-    if (e.isEndElement() && e.name() == expName) {
+    if (e.isEndElement() && e.name() == expName.toAscii().constChar()) {
         return u"";
     }
 
     String res = mtrc("iex_musicxml", "expected token type and name ‘EndElement %1’, actual ‘%2 %3’")
                  .arg(expName)
-                 .arg(e.tokenString())
-                 .arg(e.name().toString());
+                 .arg(String::fromAscii(e.tokenString().ascii()))
+                 .arg(String::fromAscii(e.name().ascii()));
     return res;
 }
 
@@ -374,29 +266,6 @@ int MxmlSupport::stringToInt(const String& s, bool* ok)
     }
     res = str.toInt(ok);
     return res;
-}
-
-//---------------------------------------------------------
-//   durationAsFraction
-//---------------------------------------------------------
-
-/**
- Return duration specified in the element e as Fraction.
- Caller must ensure divisions is valid.
- */
-
-Fraction MxmlSupport::durationAsFraction(const int divisions, const QDomElement e)
-{
-    Fraction f;
-    if (e.tagName() == "duration") {
-        bool ok;
-        int val = MxmlSupport::stringToInt(e.text(), &ok);
-        f = Fraction(val, 4 * divisions);     // note divisions = ticks / quarter note
-        f.reduce();
-    } else {
-        LOGD() << "durationAsFraction tagname error" << f.toString();
-    }
-    return f;
 }
 
 //---------------------------------------------------------
@@ -900,7 +769,7 @@ bool isLaissezVibrer(const SymId id)
 
 // TODO: there should be a lambda hiding somewhere ...
 
-const Articulation* findLaissezVibrer(const Chord* const chord)
+const Articulation* findLaissezVibrer(const Chord* chord)
 {
     for (const Articulation* a : chord->articulations()) {
         if (isLaissezVibrer(a->symId())) {

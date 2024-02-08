@@ -20,16 +20,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef __IMPORTMXML_H__
-#define __IMPORTMXML_H__
+#ifndef MU_MUSICXML_MUSICXMLVALIDATION_H
+#define MU_MUSICXML_MUSICXMLVALIDATION_H
 
+#include "global/types/bytearray.h"
 #include "global/types/string.h"
-#include "engravingerrors.h"
+#include "engraving/engravingerrors.h"
 
-namespace mu::engraving {
-class Score;
+namespace mu::iex::musicxml {
+class MusicxmlValidation
+{
+public:
 
-Err importMusicXMLfromBuffer(Score* score, const String&, const ByteArray& data);
+    static engraving::Err validate(const String& name, const ByteArray& data);
+};
 }
 
-#endif
+#endif // MU_MUSICXML_MUSICXMLVALIDATION_H

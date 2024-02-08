@@ -130,14 +130,14 @@ private:
 class MusicXMLParserLyric
 {
 public:
-    MusicXMLParserLyric(const LyricNumberHandler lyricNumberHandler, QXmlStreamReader& e, Score* score, MxmlLogger* logger);
+    MusicXMLParserLyric(const LyricNumberHandler lyricNumberHandler, XmlStreamReader& e, Score* score, MxmlLogger* logger);
     std::set<Lyrics*> extendedLyrics() const { return m_extendedLyrics; }
     std::map<int, Lyrics*> numberedLyrics() const { return m_numberedLyrics; }
     void parse();
 private:
     void skipLogCurrElem();
     const LyricNumberHandler m_lyricNumberHandler;
-    QXmlStreamReader& m_e;
+    XmlStreamReader& m_e;
     const Score* m_score = nullptr;            // the score
     MxmlLogger* m_logger = nullptr;            // Error logger
     std::map<int, Lyrics*> m_numberedLyrics;   // lyrics with valid number
@@ -155,7 +155,6 @@ public:
     Notation(const String& name, const String& parent = u"",
              const SymId& symId = SymId::noSym) { m_name = name; m_parent = parent; m_symId = symId; }
     void addAttribute(const String& name, const String& value);
-    void addAttribute(const QStringRef name, const QStringRef value);
     String attribute(const String& name) const;
     const std::map<String, String>& attributes() const { return m_attributes; }
     String name() const { return m_name; }
@@ -167,8 +166,8 @@ public:
     String print() const;
     void setText(const String& text) { m_text = text; }
     String text() const { return m_text; }
-    static Notation notationWithAttributes(const String& name, const QXmlStreamAttributes attributes, const String& parent = u"",
-                                           const SymId& symId = SymId::noSym);
+    static Notation notationWithAttributes(const String& name, const std::vector<XmlStreamReader::Attribute>& attributes,
+                                           const String& parent = u"", const SymId& symId = SymId::noSym);
 private:
     String m_name;
     String m_parent;
@@ -206,7 +205,7 @@ using SpannerSet = std::set<Spanner*>;
 class MusicXMLParserNotations
 {
 public:
-    MusicXMLParserNotations(QXmlStreamReader& e, Score* score, MxmlLogger* logger);
+    MusicXMLParserNotations(XmlStreamReader& e, Score* score, MxmlLogger* logger);
     void parse();
     void addToScore(ChordRest* const cr, Note* const note, const int tick, SlurStack& slurs, Glissando* glissandi[MAX_NUMBER_LEVEL][2],
                     MusicXmlSpannerMap& spanners, TrillStack& trills, Tie*& tie);
@@ -231,7 +230,7 @@ private:
     void technical();
     void tied();
     void tuplet();
-    QXmlStreamReader& m_e;
+    XmlStreamReader& m_e;
     const Score* m_score = nullptr;                         // the score
     MxmlLogger* m_logger = nullptr;                              // the error logger
     String m_errors;                    // errors to present to the user
@@ -258,7 +257,7 @@ class MusicXMLParserPass2
 {
 public:
     MusicXMLParserPass2(Score* score, MusicXMLParserPass1& pass1, MxmlLogger* logger);
-    Err parse(QIODevice* device);
+    Err parse(const ByteArray& data);
     String errors() const { return m_errors; }
 
     // part specific data interface functions
@@ -303,7 +302,7 @@ private:
     void backup(Fraction& dura);
     void timeModification(Fraction& timeMod, TDuration& normalType);
     void stem(DirectionV& sd, bool& nost);
-    void doEnding(const String& partId, Measure* measure, const String& number, const String& type, const QColor color, const String& text,
+    void doEnding(const String& partId, Measure* measure, const String& number, const String& type, const Color color, const String& text,
                   const bool print);
     void staffDetails(const String& partId, Measure* measure = nullptr);
     void staffTuning(StringData* t);
@@ -315,7 +314,7 @@ private:
 
     // generic pass 2 data
 
-    QXmlStreamReader m_e;
+    XmlStreamReader m_e;
     int m_divs = 0;                        // the current divisions value
     Score* m_score = nullptr;              // the score
     MusicXMLParserPass1& m_pass1;          // the pass1 results
@@ -367,7 +366,7 @@ private:
 class MusicXMLParserDirection
 {
 public:
-    MusicXMLParserDirection(QXmlStreamReader& e, Score* score, MusicXMLParserPass1& pass1, MusicXMLParserPass2& pass2, MxmlLogger* logger);
+    MusicXMLParserDirection(XmlStreamReader& e, Score* score, MusicXMLParserPass1& pass1, MusicXMLParserPass2& pass2, MxmlLogger* logger);
     void direction(const String& partId, Measure* measure, const Fraction& tick, MusicXmlSpannerMap& spanners,
                    DelayedDirectionsList& delayedDirections);
     qreal totalY() const { return m_defaultY + m_relativeY; }
@@ -392,7 +391,7 @@ private:
 
     bool hasTotalY() { return m_hasRelativeY || m_hasDefaultY; }
 
-    QXmlStreamReader& m_e;
+    XmlStreamReader& m_e;
     Score* m_score = nullptr;                              // the score
     MusicXMLParserPass1& m_pass1;                // the pass1 results
     MusicXMLParserPass2& m_pass2;                // the pass2 results
