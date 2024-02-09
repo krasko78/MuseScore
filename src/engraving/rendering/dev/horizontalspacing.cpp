@@ -269,7 +269,7 @@ void HorizontalSpacing::spaceRightAlignedSegments(Measure* m, double segmentShap
             raSegment->setWidth(raSegment->width() + minDistAfter);
         }
         // 2) Make sure the segment isn't colliding with anything behind
-        double minDistBefore = 0.0;
+        double minDistBefore = raSegment->extraLeadingSpace().val() * m->spatium(); // KRASKO: Take the leading space into account
         for (Segment* seg = raSegment->prevActive(); seg; seg = seg->prevActive()) {
             double xDiff = raSegment->x() - seg->x();
             double minDist = minHorizontalCollidingDistance(seg, raSegment, segmentShapeSqueezeFactor);
