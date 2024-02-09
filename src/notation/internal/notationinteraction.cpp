@@ -127,7 +127,7 @@ static qreal nudgeDistance(const mu::engraving::EditData& editData, qreal raster
     if (raster > 0) {
         raster = editData.element->spatium() / raster;
         if (distance < raster) {
-            distance = raster;
+            //distance = raster;   // KRASKO: Allow the distance to stay small enough for fine adjustments
         }
     }
 
@@ -2969,7 +2969,7 @@ bool NotationInteraction::needStartEditGrip(QKeyEvent* event) const
 bool NotationInteraction::handleKeyPress(QKeyEvent* event)
 {
     if (event->modifiers() & Qt::KeyboardModifier::AltModifier) {
-        return false;
+        //return false;   // KRASKO: Enable the ALT modifier for nudging (of e.g. slurs/ties)
     }
 
     if (m_editData.element->isTextBase()) {
@@ -3250,7 +3250,7 @@ bool NotationInteraction::isEditAllowed(QKeyEvent* event)
     }
 
     if (event->modifiers() & Qt::KeyboardModifier::AltModifier) {
-        return false;
+        //return false;   // KRASKO: Enable the ALT modifier for nudging (of e.g. slurs/ties)
     }
 
     if (editData.element->isTextBase()) {
