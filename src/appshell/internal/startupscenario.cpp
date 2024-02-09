@@ -187,6 +187,7 @@ void StartupScenario::openScore(const project::ProjectFile& file)
 
 void StartupScenario::restoreLastSession()
 {
+    // KRASKO: Restore lass session automatically after crash
     bool restore = true;
 
     StartupModeType modeType = resolveStartupModeType();

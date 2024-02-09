@@ -145,7 +145,7 @@ FilterElementsOptions SelectDialog::elementOptions() const
         options.system = elementSystem(m_element);
     }
 
-    if (sameColor->isChecked()) {
+    if (sameColor->isChecked()) { // KRASKO: Filter elements by color
         options.color = m_element->color();
     }
 

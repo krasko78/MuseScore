@@ -168,7 +168,7 @@ FilterNotesOptions SelectNoteDialog::noteOptions() const
         options.system = m_note->chord()->segment()->system();
     }
 
-    if (sameColor->isChecked()) {
+    if (sameColor->isChecked()) { // KRASKO: Filter elements by color
         options.color = m_note->color();
     }
 

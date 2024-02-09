@@ -444,7 +444,7 @@ struct FilterElementsOptions
     Fraction durationTicks{ -1, 1 };
     Fraction beat{ 0, 0 };
     const mu::engraving::Measure* measure = nullptr;
-    mu::draw::Color color;
+    mu::draw::Color color; // KRASKO: Filter elements by color
 
     bool bySubtype = false;
     int subtype = -1;

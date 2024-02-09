@@ -3676,7 +3676,7 @@ void Score::collectMatch(void* data, EngravingItem* e)
         return;
     }
 
-    if ((p->color.isValid()) && (p->color != e->color())) {
+    if ((p->color.isValid()) && (p->color != e->color())) { // KRASKO: Filter elements by color
         return;
     }
 
@@ -3731,7 +3731,7 @@ void Score::collectNoteMatch(void* data, EngravingItem* e)
     if ((p->beat.isValid()) && (p->beat != n->beat())) {
         return;
     }
-    if ((p->color.isValid()) && (p->color != e->color())) {
+    if ((p->color.isValid()) && (p->color != e->color())) { // KRASKO: Filter elements by color
         return;
     }
 

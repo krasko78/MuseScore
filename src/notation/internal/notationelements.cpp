@@ -208,7 +208,7 @@ ElementPattern* NotationElements::constructElementPattern(const FilterElementsOp
     pattern->durationTicks = elementOptions->durationTicks;
     pattern->beat = elementOptions->beat;
     pattern->measure = elementOptions->measure;
-    pattern->color = elementOptions->color;
+    pattern->color = elementOptions->color; // KRASKO: Filter elements by color
 
     return pattern;
 }
@@ -229,7 +229,7 @@ mu::engraving::NotePattern* NotationElements::constructNotePattern(const FilterN
     pattern->system = notesOptions->system;
     pattern->beat = notesOptions->beat;
     pattern->measure = notesOptions->measure;
-    pattern->color = notesOptions->color;
+    pattern->color = notesOptions->color; // KRASKO: Filter elements by color
 
     return pattern;
 }

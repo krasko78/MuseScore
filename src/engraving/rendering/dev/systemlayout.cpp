@@ -1382,9 +1382,9 @@ void SystemLayout::layoutGuitarBends(const std::vector<Segment*>& sl, LayoutCont
             }
 
             Note* startOfTie = note;
-            Note* nextStartOfTie = startOfTie;
+            Note* nextStartOfTie = startOfTie; // KRASKO: {START} Fixed an infinite loop
             while (startOfTie->tieBack() && (nextStartOfTie = startOfTie->tieBack()->startNote()) && (nextStartOfTie != startOfTie)) {
-                startOfTie = nextStartOfTie;
+                startOfTie = nextStartOfTie; // KRASKO: {END}
             }
             if (startOfTie != note) {
                 GuitarBend* bendBack2 = startOfTie->bendBack();
