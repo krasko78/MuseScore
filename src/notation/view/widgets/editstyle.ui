@@ -4933,9 +4933,6 @@ By default, they will be placed such as that their right end are at the same lev
       </widget>
       <widget class="QWidget" name="PageBarlines">
        <layout class="QVBoxLayout" name="verticalLayout_17">
-        <property name="spacing">
-         <number>0</number>
-        </property>
         <item>
          <widget class="QGroupBox" name="groupBox_barlines">
           <property name="title">
@@ -5251,6 +5248,66 @@ By default, they will be placed such as that their right end are at the same lev
             <widget class="QCheckBox" name="showStartBarlineSingle">
              <property name="text">
               <string>Barline at start of single staff</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="keySigCourtesyBarlineGroup">
+          <property name="title">
+           <string>Use double barlines before key signatures</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_611">
+           <item>
+            <widget class="QRadioButton" name="radioKeySigCourtesyBarlineAlwaysDouble">
+             <property name="text">
+              <string>Always</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="radioKeySigCourtesyBarlineAlwaysSingle">
+             <property name="text">
+              <string>Never</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="radioKeySigCourtesyBarlineDoubleBeforeNewSystem">
+             <property name="text">
+              <string>Only before courtesy key signatures</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="timeSigCourtesyBarlineGroup">
+          <property name="title">
+           <string>Use double barlines before time signatures</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_62">
+           <item>
+            <widget class="QRadioButton" name="radioTimeSigCourtesyBarlineAlwaysDouble">
+             <property name="text">
+              <string>Always</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="radioTimeSigCourtesyBarlineAlwaysSingle">
+             <property name="text">
+              <string>Never</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="radioTimeSigCourtesyBarlineDoubleBeforeNewSystem">
+             <property name="text">
+              <string>Only before courtesy time signatures</string>
              </property>
             </widget>
            </item>
@@ -13806,7 +13863,7 @@ articulation markings are present</string>
            <string>Edit text style</string>
           </property>
           <layout class="QGridLayout" name="_12">
-           <item row="12" column="0" colspan="3">
+           <item row="14" column="0" colspan="3">
             <widget class="QGroupBox" name="groupBox_text_style">
              <property name="title">
               <string/>
@@ -14020,17 +14077,17 @@ articulation markings are present</string>
              </layout>
             </widget>
            </item>
-           <item row="10" column="1">
+           <item row="12" column="1">
             <widget class="mu::notation::OffsetSelect" name="textStyleOffset" native="true">
              <property name="focusPolicy">
               <enum>Qt::StrongFocus</enum>
              </property>
             </widget>
            </item>
-           <item row="9" column="1">
+           <item row="11" column="1">
             <widget class="Awl::ColorLabel" name="textStyleColor"/>
            </item>
-           <item row="7" column="2">
+           <item row="9" column="2">
             <widget class="QToolButton" name="resetTextStyleFontStyle">
              <property name="toolTip">
               <string>Reset to default</string>
@@ -14066,7 +14123,7 @@ articulation markings are present</string>
              </property>
             </widget>
            </item>
-           <item row="8" column="2">
+           <item row="10" column="2">
             <widget class="QToolButton" name="resetTextStyleAlign">
              <property name="toolTip">
               <string>Reset to default</string>
@@ -14079,7 +14136,7 @@ articulation markings are present</string>
              </property>
             </widget>
            </item>
-           <item row="9" column="2">
+           <item row="11" column="2">
             <widget class="QToolButton" name="resetTextStyleColor">
              <property name="toolTip">
               <string>Reset to default</string>
@@ -14092,7 +14149,7 @@ articulation markings are present</string>
              </property>
             </widget>
            </item>
-           <item row="9" column="0">
+           <item row="11" column="0">
             <widget class="QLabel" name="textStyleColorLabel">
              <property name="text">
               <string>Color:</string>
@@ -14102,7 +14159,7 @@ articulation markings are present</string>
              </property>
             </widget>
            </item>
-           <item row="7" column="1">
+           <item row="9" column="1">
             <widget class="mu::notation::FontStyleSelect" name="textStyleFontStyle" native="true"/>
            </item>
            <item row="2" column="2">
@@ -14121,7 +14178,7 @@ articulation markings are present</string>
            <item row="0" column="1">
             <widget class="QLineEdit" name="styleName"/>
            </item>
-           <item row="7" column="0">
+           <item row="9" column="0">
             <widget class="QLabel" name="label_209">
              <property name="text">
               <string>Style:</string>
@@ -14131,7 +14188,7 @@ articulation markings are present</string>
              </property>
             </widget>
            </item>
-           <item row="8" column="1">
+           <item row="10" column="1">
             <widget class="mu::notation::AlignSelect" name="textStyleAlign" native="true"/>
            </item>
            <item row="6" column="2">
@@ -14147,7 +14204,7 @@ articulation markings are present</string>
              </property>
             </widget>
            </item>
-           <item row="10" column="0">
+           <item row="12" column="0">
             <widget class="QLabel" name="label_186">
              <property name="text">
               <string>Offset:</string>
@@ -14190,7 +14247,7 @@ articulation markings are present</string>
              </property>
             </widget>
            </item>
-           <item row="10" column="2">
+           <item row="12" column="2">
             <widget class="QToolButton" name="resetTextStyleOffset">
              <property name="toolTip">
               <string>Reset to default</string>
@@ -14203,7 +14260,7 @@ articulation markings are present</string>
              </property>
             </widget>
            </item>
-           <item row="8" column="0">
+           <item row="10" column="0">
             <widget class="QLabel" name="label_210">
              <property name="text">
               <string>Align:</string>
@@ -14280,6 +14337,71 @@ articulation markings are present</string>
              <property name="text">
               <string notr="true"/>
              </property>
+            </widget>
+           </item>
+           <item row="7" column="0" colspan="2">
+            <widget class="QCheckBox" name="tupletUseSymbols">
+             <property name="text">
+              <string>Use musical symbols font for tuplet numbers</string>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="2">
+            <widget class="QToolButton" name="resetTupletUseSymbols">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Use musical symbols font for tuplet numbers' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="0" colspan="3">
+            <widget class="QWidget" name="row_textStyleMusicalSymbolsScale">
+             <layout class="QHBoxLayout" name="horizontalLayout_13">
+              <item>
+               <widget class="QLabel" name="label_14712">
+                <property name="text">
+                 <string>Musical symbols scale:</string>
+                </property>
+                <property name="buddy">
+                 <cstring>textStyleMusicalSymbolsScale</cstring>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="textStyleMusicalSymbolsScale">
+                <property name="keyboardTracking">
+                 <bool>false</bool>
+                </property>
+                <property name="suffix">
+                 <string>%</string>
+                </property>
+                <property name="decimals">
+                 <number>0</number>
+                </property>
+                <property name="maximum">
+                 <double>1000.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QToolButton" name="resetTextStyleMusicalSymbolsScale">
+                <property name="toolTip">
+                 <string>Reset to default</string>
+                </property>
+                <property name="accessibleName">
+                 <string>Reset 'Musical symbols scale' value</string>
+                </property>
+                <property name="text">
+                 <string notr="true"/>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </item>
           </layout>
@@ -14604,6 +14726,12 @@ articulation markings are present</string>
   <tabstop>resetDoubleBarDistance</tabstop>
   <tabstop>repeatBarlineDotSeparation</tabstop>
   <tabstop>resetRepeatBarlineDotSeparation</tabstop>
+  <tabstop>radioKeySigCourtesyBarlineAlwaysDouble</tabstop>
+  <tabstop>radioKeySigCourtesyBarlineAlwaysSingle</tabstop>
+  <tabstop>radioKeySigCourtesyBarlineDoubleBeforeNewSystem</tabstop>
+  <tabstop>radioTimeSigCourtesyBarlineAlwaysDouble</tabstop>
+  <tabstop>radioTimeSigCourtesyBarlineAlwaysSingle</tabstop>
+  <tabstop>radioTimeSigCourtesyBarlineDoubleBeforeNewSystem</tabstop>
   <tabstop>shortenStem</tabstop>
   <tabstop>shortestStem</tabstop>
   <tabstop>accidentalNoteDistance</tabstop>
@@ -14653,6 +14781,7 @@ articulation markings are present</string>
   <tabstop>resetTupletNumberType</tabstop>
   <tabstop>tupletBracketType</tabstop>
   <tabstop>resetTupletBracketType</tabstop>
+  <tabstop>tupletUseSymbols</tabstop>
   <tabstop>tupletBracketWidth</tabstop>
   <tabstop>resetTupletBracketWidth</tabstop>
   <tabstop>tupletBracketHookHeight</tabstop>
@@ -14973,6 +15102,8 @@ articulation markings are present</string>
   <tabstop>resetTextStyleLineSpacing</tabstop>
   <tabstop>textStyleSpatiumDependent</tabstop>
   <tabstop>resetTextStyleSpatiumDependent</tabstop>
+  <tabstop>textStyleMusicalSymbolsScale</tabstop>
+  <tabstop>resetTextStyleMusicalSymbolsScale</tabstop>
   <tabstop>resetTextStyleFontStyle</tabstop>
   <tabstop>resetTextStyleAlign</tabstop>
   <tabstop>textStyleColor</tabstop>

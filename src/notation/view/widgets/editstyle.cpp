@@ -237,6 +237,16 @@ EditStyle::EditStyle(QWidget* parent)
     ksng->addButton(radioKeySigNatBefore, int(KeySigNatural::BEFORE));
     ksng->addButton(radioKeySigNatAfter, int(KeySigNatural::AFTER));
 
+    QButtonGroup* ksbl = new QButtonGroup(this);
+    ksbl->addButton(radioKeySigCourtesyBarlineAlwaysSingle, int(CourtesyBarlineMode::ALWAYS_SINGLE));
+    ksbl->addButton(radioKeySigCourtesyBarlineAlwaysDouble, int(CourtesyBarlineMode::ALWAYS_DOUBLE));
+    ksbl->addButton(radioKeySigCourtesyBarlineDoubleBeforeNewSystem, int(CourtesyBarlineMode::DOUBLE_BEFORE_COURTESY));
+
+    QButtonGroup* tsbl = new QButtonGroup(this);
+    tsbl->addButton(radioTimeSigCourtesyBarlineAlwaysSingle, int(CourtesyBarlineMode::ALWAYS_SINGLE));
+    tsbl->addButton(radioTimeSigCourtesyBarlineAlwaysDouble, int(CourtesyBarlineMode::ALWAYS_DOUBLE));
+    tsbl->addButton(radioTimeSigCourtesyBarlineDoubleBeforeNewSystem, int(CourtesyBarlineMode::DOUBLE_BEFORE_COURTESY));
+
     QButtonGroup* ctg = new QButtonGroup(this);
     ctg->addButton(clefTab1, int(ClefType::TAB));
     ctg->addButton(clefTab2, int(ClefType::TAB_SERIF));
@@ -504,6 +514,7 @@ EditStyle::EditStyle(QWidget* parent)
         { StyleId::tupletBracketType,       false, tupletBracketType,       resetTupletBracketType },
         { StyleId::tupletMaxSlope,          false, tupletMaxSlope,          resetTupletMaxSlope },
         { StyleId::tupletOufOfStaff,        false, tupletOutOfStaff,        0 },
+        { StyleId::tupletUseSymbols,        false, tupletUseSymbols,        resetTupletUseSymbols },
 
         { StyleId::repeatBarTips,            false, showRepeatBarTips,            resetShowRepeatBarTips },
         { StyleId::startBarlineSingle,       false, showStartBarlineSingle,       resetShowStartBarlineSingle },
@@ -539,6 +550,8 @@ EditStyle::EditStyle(QWidget* parent)
         { StyleId::genCourtesyTimesig,       false, genCourtesyTimesig,           0 },
         { StyleId::genCourtesyKeysig,        false, genCourtesyKeysig,            0 },
         { StyleId::genCourtesyClef,          false, genCourtesyClef,              0 },
+        { StyleId::keySigCourtesyBarlineMode, false, ksbl,                        0 },
+        { StyleId::timeSigCourtesyBarlineMode, false, tsbl,                       0 },
         { StyleId::swingRatio,               false, swingBox,                     0 },
         { StyleId::chordsXmlFile,            false, chordsXmlFile,                0 },
         { StyleId::dotMag,                   true,  dotMag,                       0 },
@@ -919,6 +932,8 @@ EditStyle::EditStyle(QWidget* parent)
     connect(radioShowAllClefs, &QRadioButton::toggled, this, &EditStyle::clefVisibilityChanged);
     connect(radioHideClefs,    &QRadioButton::toggled, this, &EditStyle::clefVisibilityChanged);
 
+    connect(tupletUseSymbols,  &QCheckBox::toggled,    this, &EditStyle::tupletUseSymbolsChanged);
+
     accidentalsGroup->setVisible(false);   // disable, not yet implemented
 
     // ====================================================
@@ -1013,6 +1028,15 @@ EditStyle::EditStyle(QWidget* parent)
     });
     connect(textStyleFontSize, QOverload<double>::of(&QDoubleSpinBox::valueChanged), [=]() {
         textStyleValueChanged(TextStylePropertyType::FontSize, QVariant(textStyleFontSize->value()));
+    });
+
+    // musical symbols scale
+    WidgetUtils::setWidgetIcon(resetTextStyleMusicalSymbolsScale, IconCode::Code::UNDO);
+    connect(resetTextStyleMusicalSymbolsScale, &QToolButton::clicked, [=]() {
+        resetTextStyle(TextStylePropertyType::MusicalSymbolsScale);
+    });
+    connect(textStyleMusicalSymbolsScale, QOverload<double>::of(&QDoubleSpinBox::valueChanged), [=]() {
+        textStyleValueChanged(TextStylePropertyType::MusicalSymbolsScale, QVariant(textStyleMusicalSymbolsScale->value()));
     });
 
     // line spacing
@@ -2518,6 +2542,11 @@ void EditStyle::textStyleChanged(int row)
             resetTextStyleLineSpacing->setEnabled(styleValue(a.sid) != defaultStyleValue(a.sid));
             break;
 
+        case TextStylePropertyType::MusicalSymbolsScale:
+            textStyleMusicalSymbolsScale->setValue(styleValue(a.sid).toDouble() * 100);
+            resetTextStyleMusicalSymbolsScale->setEnabled(styleValue(a.sid) != defaultStyleValue(a.sid));
+            break;
+
         case TextStylePropertyType::FontStyle:
             textStyleFontStyle->setFontStyle(FontStyle(styleValue(a.sid).toInt()));
             resetTextStyleFontStyle->setEnabled(styleValue(a.sid) != defaultStyleValue(a.sid));
@@ -2588,6 +2617,13 @@ void EditStyle::textStyleChanged(int row)
     styleName->setEnabled(int(tid) >= int(TextStyleType::USER1));
     resetTextStyleName->setEnabled(styleName->text() != TConv::translatedUserName(tid));
 
+    tupletUseSymbols->setVisible(tid == TextStyleType::TUPLET);
+    resetTupletUseSymbols->setVisible(tid == TextStyleType::TUPLET);
+    row_textStyleMusicalSymbolsScale->setVisible(tid == TextStyleType::TUPLET
+                                                 || tid == TextStyleType::OTTAVA || tid == TextStyleType::PEDAL
+                                                 || tid == TextStyleType::HARP_PEDAL_DIAGRAM);
+    row_textStyleMusicalSymbolsScale->setEnabled(tid != TextStyleType::TUPLET || tupletUseSymbols->isChecked());
+
     s_lastSubPageRow = row;
 }
 
@@ -2602,7 +2638,11 @@ void EditStyle::textStyleValueChanged(TextStylePropertyType type, QVariant value
 
     for (const auto& a : *ts) {
         if (a.type == type) {
-            setStyleQVariantValue(a.sid, value);
+            if (type == TextStylePropertyType::MusicalSymbolsScale) {
+                setStyleQVariantValue(a.sid, value.toDouble() / 100);
+            } else {
+                setStyleQVariantValue(a.sid, value);
+            }
             break;
         }
     }
@@ -2691,4 +2731,9 @@ void EditStyle::clefVisibilityChanged(bool checked)
     } else {
         hideTabClefs->setEnabled(true);
     }
+}
+
+void EditStyle::tupletUseSymbolsChanged(bool checked)
+{
+    row_textStyleMusicalSymbolsScale->setEnabled(checked);
 }

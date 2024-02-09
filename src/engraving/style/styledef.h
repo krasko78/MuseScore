@@ -288,6 +288,7 @@ enum class Sid {
     pedalFontSize,
     pedalLineSpacing,
     pedalFontSpatiumDependent,
+    pedalMusicalSymbolsScale,
     pedalFontStyle,
     pedalColor,
     pedalTextAlign,
@@ -431,6 +432,9 @@ enum class Sid {
     genCourtesyTimesig,
     genCourtesyKeysig,
     genCourtesyClef,
+
+    keySigCourtesyBarlineMode,
+    timeSigCourtesyBarlineMode,
 
     swingRatio,
     swingUnit,
@@ -593,6 +597,7 @@ enum class Sid {
     ottavaFontSize,
     ottavaLineSpacing,
     ottavaFontSpatiumDependent,
+    ottavaMusicalSymbolsScale,
     ottavaFontStyle,
     ottavaColor,
     ottavaTextAlignAbove,
@@ -636,9 +641,11 @@ enum class Sid {
     tupletFontSize,
     tupletLineSpacing,
     tupletFontSpatiumDependent,
+    tupletMusicalSymbolsScale,
     tupletFontStyle,
     tupletColor,
     tupletAlign,
+    tupletUseSymbols,
     tupletBracketHookHeight,
     tupletOffset,
     tupletFrameType,
@@ -843,6 +850,7 @@ enum class Sid {
     harpPedalDiagramFontSize,
     harpPedalDiagramLineSpacing,
     harpPedalDiagramFontSpatiumDependent,
+    harpPedalDiagramMusicalSymbolsScale,
     harpPedalDiagramFontStyle,
     harpPedalDiagramColor,
     harpPedalDiagramAlign,
@@ -1616,6 +1624,8 @@ enum class Sid {
     parenthesizeTiedFretIfArticulation,
 
     chordlineThickness,
+
+    dummyMusicalSymbolsScale,
 
     autoplaceEnabled,
     defaultsVersion,
