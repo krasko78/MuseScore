@@ -74,6 +74,14 @@ public:
 
     virtual io::paths_t sessionProjectsPaths() const = 0;
     virtual Ret setSessionProjectsPaths(const io::paths_t& paths) = 0;
+
+    // KRASKO {START} Settings
+    virtual bool navNextPrevPanelGoesToNextPrevControl() const = 0;
+    virtual void setNavNextPrevPanelGoesToNextPrevControl(bool value) = 0;
+
+    virtual bool useArrowKeysForNavigation() const = 0;
+    virtual void setUseArrowKeysForNavigation(bool value) = 0;
+    // KRASKO {END}
 };
 }
 

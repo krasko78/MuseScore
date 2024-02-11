@@ -121,7 +121,7 @@ static T* findNearestEnabled(const std::set<T*>& set, const INavigation::Index& 
             }
         } break;
         case MoveDirection::Down: {
-            if (v->index().column != currentIndex.column) {
+            if (v->index().column != currentIndex.column && currentIndex.column >= 0) { // KRASKO
                 continue;
             }
 
@@ -131,13 +131,15 @@ static T* findNearestEnabled(const std::set<T*>& set, const INavigation::Index& 
                     continue;
                 }
 
-                if (v->index().row < ret->index().row) {
+                if (v->index().row < ret->index().row
+                    || ((v->index().row == ret->index().row) && (currentIndex.column < 0) && v->index().column < ret->index().column)) // KRASKO
+                {
                     ret = v;
                 }
             }
         } break;
         case MoveDirection::Up: {
-            if (v->index().column != currentIndex.column) {
+            if (v->index().column != currentIndex.column && currentIndex.column >= 0) { // KRASKO
                 continue;
             }
 
@@ -147,7 +149,9 @@ static T* findNearestEnabled(const std::set<T*>& set, const INavigation::Index& 
                     continue;
                 }
 
-                if (v->index().row > ret->index().row) {
+                if (v->index().row > ret->index().row
+                        || ((v->index().row == ret->index().row) && (currentIndex.column < 0) && v->index().column > ret->index().column)) // KRASKO
+                {
                     ret = v;
                 }
             }
@@ -273,8 +277,8 @@ void NavigationController::init()
 {
     dispatcher()->reg(this, "nav-next-section", [this]() { navigateTo(NavigationType::NextSection); });
     dispatcher()->reg(this, "nav-prev-section", [this]() { navigateTo(NavigationType::PrevSection); });
-    dispatcher()->reg(this, "nav-next-panel", [this]() { navigateTo(NavigationType::NextPanel); });
-    dispatcher()->reg(this, "nav-prev-panel", [this]() { navigateTo(NavigationType::PrevPanel); });
+    dispatcher()->reg(this, "nav-next-panel", [this]() { navigateTo(configuration()->navNextPrevPanelGoesToNextPrevControl() ? NavigationType::NextControl : NavigationType::NextPanel); }); // KRASKO
+    dispatcher()->reg(this, "nav-prev-panel", [this]() { navigateTo(configuration()->navNextPrevPanelGoesToNextPrevControl() ? NavigationType::PrevControl : NavigationType::PrevPanel); }); // KRASKO
     //! NOTE Same as panel at the moment
     dispatcher()->reg(this, "nav-next-tab", [this]() { navigateTo(NavigationType::NextPanel); });
     dispatcher()->reg(this, "nav-prev-tab", [this]() { navigateTo(NavigationType::PrevPanel); });
@@ -424,6 +428,14 @@ void NavigationController::navigateTo(NavigationController::NavigationType type)
     case NavigationType::PrevRowControl:
         goToPrevRowControl();
         break;
+    // KRASKO {START}
+    case NavigationType::NextControl:
+        goToNextControl();
+        break;
+    case NavigationType::PrevControl:
+        goToPrevControl();
+        break;
+    // KRASKO {END}
     }
 
     setIsHighlight(true);
@@ -838,7 +850,9 @@ void NavigationController::onRight()
         }
     }
 
-    goToControl(MoveDirection::Right, activePanel);
+    if (configuration()->useArrowKeysForNavigation()) { // KRASKO
+        goToControl(MoveDirection::Right, activePanel);
+    }
 }
 
 void NavigationController::onLeft()
@@ -863,7 +877,9 @@ void NavigationController::onLeft()
         }
     }
 
-    goToControl(MoveDirection::Left, activePanel);
+    if (configuration()->useArrowKeysForNavigation()) { // KRASKO
+        goToControl(MoveDirection::Left, activePanel);
+    }
 }
 
 void NavigationController::onDown()
@@ -888,7 +904,9 @@ void NavigationController::onDown()
         }
     }
 
-    goToControl(MoveDirection::Down, activePanel);
+    if (configuration()->useArrowKeysForNavigation()) { // KRASKO
+        goToControl(MoveDirection::Down, activePanel);
+    }
 }
 
 void NavigationController::onUp()
@@ -913,7 +931,9 @@ void NavigationController::onUp()
         }
     }
 
-    goToControl(MoveDirection::Up, activePanel);
+    if (configuration()->useArrowKeysForNavigation()) { // KRASKO
+        goToControl(MoveDirection::Up, activePanel);
+    }
 }
 
 void NavigationController::onEscape()
@@ -1035,6 +1055,103 @@ void NavigationController::goToPrevRowControl()
 
     m_navigationChanged.notify();
 }
+
+// KRASKO {START}
+void NavigationController::goToNextControl()
+{
+    INavigationPanel* activePanel = this->activePanel();
+    if (!activePanel) {
+        return;
+    }
+
+    INavigationControl* activeControl = findActive(activePanel->controls());
+    INavigationControl* toControl = nullptr;
+
+    if (!activeControl) { // no any active
+        toControl = firstEnabled(activePanel->controls(), INavigation::Index(), MoveDirection::Right);
+    } else {
+        toControl = nextEnabled(activePanel->controls(), activeControl->index(), MoveDirection::Right);
+        if (!toControl) {
+            INavigation::Index index = activeControl->index();
+            index.column = -1;
+            toControl = nextEnabled(activePanel->controls(), activeControl->index(), MoveDirection::Down);
+        }
+        if (!toControl) { // active is last
+            goToNextPanel();
+            return;
+        }
+    }
+
+    if (!toControl) {
+        return;
+    }
+
+    //! NOTE Maybe just one control (or just one enabled control)
+    if (toControl == activeControl) {
+        return;
+    }
+
+    if (activeControl) {
+        MYLOG() << "current activated control: " << activeControl->name()
+                << ", row: " << activeControl->index().row
+                << ", column: " << activeControl->index().column;
+
+        doDeactivateControl(activeControl);
+    }
+
+    doActivateControl(toControl);
+
+    m_navigationChanged.notify();
+}
+
+void NavigationController::goToPrevControl()
+{
+    INavigationPanel* activePanel = this->activePanel();
+    if (!activePanel) {
+        return;
+    }
+
+    INavigationControl* activeControl = findActive(activePanel->controls());
+    INavigationControl* toControl = nullptr;
+
+    if (!activeControl) { // no any active
+        toControl = firstEnabled(activePanel->controls(), INavigation::Index(), MoveDirection::Left);
+    } else {
+        toControl = nextEnabled(activePanel->controls(), activeControl->index(), MoveDirection::Left);
+        if (!toControl) {
+            INavigation::Index index = activeControl->index();
+            index.column = -1;
+            toControl = nextEnabled(activePanel->controls(), activeControl->index(), MoveDirection::Up);
+        }
+        if (!toControl) { // active is last
+            goToPrevPanel();
+            goToLastControl();
+            return;
+        }
+    }
+
+    if (!toControl) {
+        return;
+    }
+
+    //! NOTE Maybe just one control (or just one enabled control)
+    if (toControl == activeControl) {
+        return;
+    }
+
+    if (activeControl) {
+        MYLOG() << "current activated control: " << activeControl->name()
+                << ", row: " << activeControl->index().row
+                << ", column: " << activeControl->index().column;
+
+        doDeactivateControl(activeControl);
+    }
+
+    doActivateControl(toControl);
+
+    m_navigationChanged.notify();
+}
+// KRASKO {END}
 
 void NavigationController::goToControl(MoveDirection direction, INavigationPanel* activePanel)
 {

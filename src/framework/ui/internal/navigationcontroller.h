@@ -31,6 +31,7 @@
 #include "ui/imainwindow.h"
 #include "actions/iactionsdispatcher.h"
 #include "actions/actionable.h"
+#include "appshell/iappshellconfiguration.h" // KRASKO
 
 #include "../inavigationcontroller.h"
 
@@ -40,6 +41,7 @@ class NavigationController : public QObject, public INavigationController, publi
     INJECT(actions::IActionsDispatcher, dispatcher)
     INJECT(framework::IInteractive, interactive)
     INJECT(IMainWindow, mainWindow)
+    INJECT(appshell::IAppShellConfiguration, configuration) // KRASKO
 
 public:
     NavigationController() = default;
@@ -96,7 +98,9 @@ private:
         FirstControl,
         LastControl,
         NextRowControl,
-        PrevRowControl
+        PrevRowControl,
+        NextControl, // KRASKO
+        PrevControl // KRASKO
     };
 
     bool eventFilter(QObject* watched, QEvent* event) override;
@@ -112,6 +116,8 @@ private:
     void goToLastControl();
     void goToNextRowControl();
     void goToPrevRowControl();
+    void goToNextControl(); // KRASKO
+    void goToPrevControl(); // KRASKO
 
     void goToControl(MoveDirection direction, INavigationPanel* activePanel = nullptr);
 

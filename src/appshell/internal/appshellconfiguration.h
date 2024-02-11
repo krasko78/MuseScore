@@ -89,6 +89,13 @@ public:
     io::paths_t sessionProjectsPaths() const override;
     Ret setSessionProjectsPaths(const io::paths_t& paths) override;
 
+    // KRASKO {START} Settings
+    bool navNextPrevPanelGoesToNextPrevControl() const override;
+    void setNavNextPrevPanelGoesToNextPrevControl(bool value) override;
+
+    bool useArrowKeysForNavigation() const override;
+    void setUseArrowKeysForNavigation(bool value) override;
+    // KRASKO {END}
 private:
     std::string utmParameters(const std::string& utmMedium) const;
 

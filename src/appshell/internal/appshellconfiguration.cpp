@@ -36,6 +36,15 @@ using namespace mu::framework;
 
 static const std::string module_name("appshell");
 
+// KRASKO {START} Settings
+// "NavNextPrevPanelGoesToNextPrevControl" - determines whether pressing the shortcuts keys for "nav-next-panel" and "nav-prev-panel"
+// (TAB and SHIFT+TAB) by default) will go to the next/prev control (value: true) or next/prev panel (value: false - the default).
+static const Settings::Key NAV_NEXT_PREV_PANEL_GOES_TO_NEXT_PREV_CONTROL(module_name, "krasko/NavNextPrevPanelGoesToNextPrevControl");
+// "UseArrowKeysForNavigation" - when false, pressing the arrow keys (or nav-up, nav-down, nav-left, nav-right shortcut keys)
+// will navigate between the controls in the current panel (value: true - default) or not (value: false).
+static const Settings::Key USE_ARROW_KEYS_FOR_NAVIGATION(module_name, "krasko/UseArrowKeysForNavigation");
+// KRASKO {END}
+
 static const Settings::Key HAS_COMPLETED_FIRST_LAUNCH_SETUP(module_name, "application/hasCompletedFirstLaunchSetup");
 
 static const Settings::Key STARTUP_MODE_TYPE(module_name, "application/startup/modeStart");
@@ -59,6 +68,13 @@ static const std::string SESSION_RESOURCE_NAME("SESSION");
 
 void AppShellConfiguration::init()
 {
+    // KRASKO {START}
+    // Set all default values to Val() so that these settings are always present
+    // in the settings file even when set to their default values.
+    settings()->setDefaultValue(NAV_NEXT_PREV_PANEL_GOES_TO_NEXT_PREV_CONTROL, Val());
+    settings()->setDefaultValue(USE_ARROW_KEYS_FOR_NAVIGATION, Val());
+    // KRASKO {END}
+
     settings()->setDefaultValue(HAS_COMPLETED_FIRST_LAUNCH_SETUP, Val(false));
 
     settings()->setDefaultValue(STARTUP_MODE_TYPE, Val(StartupModeType::StartEmpty));
@@ -76,6 +92,28 @@ void AppShellConfiguration::setHasCompletedFirstLaunchSetup(bool has)
 {
     settings()->setSharedValue(HAS_COMPLETED_FIRST_LAUNCH_SETUP, Val(has));
 }
+
+// KRASKO {START} Settings
+bool AppShellConfiguration::navNextPrevPanelGoesToNextPrevControl() const
+{
+    return settings()->value(NAV_NEXT_PREV_PANEL_GOES_TO_NEXT_PREV_CONTROL).toBool();
+}
+
+void AppShellConfiguration::setNavNextPrevPanelGoesToNextPrevControl(bool value)
+{
+    settings()->setSharedValue(NAV_NEXT_PREV_PANEL_GOES_TO_NEXT_PREV_CONTROL, Val(value));
+}
+
+bool AppShellConfiguration::useArrowKeysForNavigation() const
+{
+    return settings()->value(USE_ARROW_KEYS_FOR_NAVIGATION).toBool();
+}
+
+void AppShellConfiguration::setUseArrowKeysForNavigation(bool value)
+{
+    settings()->setSharedValue(USE_ARROW_KEYS_FOR_NAVIGATION, Val(value));
+}
+// KRASKO {END}
 
 StartupModeType AppShellConfiguration::startupModeType() const
 {
