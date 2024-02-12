@@ -81,6 +81,9 @@ public:
 
     virtual bool useArrowKeysForNavigation() const = 0;
     virtual void setUseArrowKeysForNavigation(bool value) = 0;
+
+    virtual bool useEditElementKeyToCycleThroughGrips() const = 0;
+    virtual void setUseEditElementKeyToCycleThroughGrips(bool value) = 0;
     // KRASKO {END}
 };
 }

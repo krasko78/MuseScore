@@ -95,6 +95,10 @@ public:
 
     bool useArrowKeysForNavigation() const override;
     void setUseArrowKeysForNavigation(bool value) override;
+
+    bool useEditElementKeyToCycleThroughGrips() const override;
+    void setUseEditElementKeyToCycleThroughGrips(bool value) override;
+
     // KRASKO {END}
 private:
     std::string utmParameters(const std::string& utmMedium) const;

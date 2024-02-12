@@ -1431,7 +1431,12 @@ void NotationActionController::startEditSelectedElement(const ActionData& args)
         PointF cursorPos = !args.empty() ? args.arg<PointF>(0) : PointF();
         interaction->startEditText(element, cursorPos);
     } else if (element->hasGrips()) {
-        interaction->startEditGrip(element, element->defaultGrip());
+        if (!interaction->isGripEditStarted()) { // KRASKO {START}
+            interaction->startEditGrip(element, element->defaultGrip());
+        }
+        else if (appshellConfiguration()->useEditElementKeyToCycleThroughGrips()) {
+            interaction->nextGrip(); // KRASKO {END}
+        }
     } else {
         interaction->startEditElement(element);
     }

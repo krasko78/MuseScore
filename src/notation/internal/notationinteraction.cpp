@@ -2981,7 +2981,6 @@ bool NotationInteraction::handleKeyPress(QKeyEvent* event)
 
     switch (event->key()) {
     case Qt::Key_Tab:
-    case Qt::Key_F2:   // KRASKO: Allow the F2 key to cycle through the grips / handles
         if (!m_editData.element->hasGrips()) {
             return false;
         }
@@ -3172,6 +3171,18 @@ void NotationInteraction::endEditGrip()
     notifyAboutNotationChanged();
 }
 
+bool NotationInteraction::nextGrip() // KRASKO
+{
+    if (!m_editData.element->hasGrips()) {
+        return false;
+    }
+
+    m_editData.element->nextGrip(m_editData);
+
+    notifyAboutNotationChanged();
+    return true;
+}
+
 void NotationInteraction::updateAnchorLines()
 {
     std::vector<LineF> lines;
@@ -3266,7 +3277,7 @@ bool NotationInteraction::isEditAllowed(QKeyEvent* event)
     };
 
     if (editData.element->hasGrips()) {
-        navigationKeys += { Qt::Key_Tab, Qt::Key_Backtab, Qt::Key_F2 };   // KRASKO: Allow the F2 key to cycle through grips / handles
+        navigationKeys += { Qt::Key_Tab, Qt::Key_Backtab };
     }
 
     return navigationKeys.contains(event->key());

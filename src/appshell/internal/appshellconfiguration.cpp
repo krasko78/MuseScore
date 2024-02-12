@@ -37,12 +37,21 @@ using namespace mu::framework;
 static const std::string module_name("appshell");
 
 // KRASKO {START} Settings
+
 // "NavNextPrevPanelGoesToNextPrevControl" - determines whether pressing the shortcuts keys for "nav-next-panel" and "nav-prev-panel"
 // (TAB and SHIFT+TAB) by default) will go to the next/prev control (value: true) or next/prev panel (value: false - the default).
 static const Settings::Key NAV_NEXT_PREV_PANEL_GOES_TO_NEXT_PREV_CONTROL(module_name, "krasko/NavNextPrevPanelGoesToNextPrevControl");
+
 // "UseArrowKeysForNavigation" - when false, pressing the arrow keys (or nav-up, nav-down, nav-left, nav-right shortcut keys)
 // will navigate between the controls in the current panel (value: true - default) or not (value: false).
 static const Settings::Key USE_ARROW_KEYS_FOR_NAVIGATION(module_name, "krasko/UseArrowKeysForNavigation");
+
+// "UseEditElementKeyToCycleThroughGrips" - when true, pressing the "Edit Element" shortcut key (F2 by default)
+// will cycle through the element's grips just like the TAB key if the element already has the grips displayed.
+// This is useful when you want to press the "Edit Element" key to diplay the grips/handles and then continue
+// pressing the same key (instead of TAB) to activate the desired grip/handle.
+static const Settings::Key USE_EDIT_ELEMENT_KEY_TO_CYCLE_THROUGH_GRIPS(module_name, "krasko/UseEditElementKeyToCycleThroughGrips");
+
 // KRASKO {END}
 
 static const Settings::Key HAS_COMPLETED_FIRST_LAUNCH_SETUP(module_name, "application/hasCompletedFirstLaunchSetup");
@@ -69,10 +78,9 @@ static const std::string SESSION_RESOURCE_NAME("SESSION");
 void AppShellConfiguration::init()
 {
     // KRASKO {START}
-    // Set all default values to Val() so that these settings are always present
-    // in the settings file even when set to their default values.
-    settings()->setDefaultValue(NAV_NEXT_PREV_PANEL_GOES_TO_NEXT_PREV_CONTROL, Val());
-    settings()->setDefaultValue(USE_ARROW_KEYS_FOR_NAVIGATION, Val());
+    settings()->setDefaultValue(NAV_NEXT_PREV_PANEL_GOES_TO_NEXT_PREV_CONTROL, Val(false));
+    settings()->setDefaultValue(USE_ARROW_KEYS_FOR_NAVIGATION, Val(true));
+    settings()->setDefaultValue(USE_EDIT_ELEMENT_KEY_TO_CYCLE_THROUGH_GRIPS, Val(false));
     // KRASKO {END}
 
     settings()->setDefaultValue(HAS_COMPLETED_FIRST_LAUNCH_SETUP, Val(false));
@@ -112,6 +120,16 @@ bool AppShellConfiguration::useArrowKeysForNavigation() const
 void AppShellConfiguration::setUseArrowKeysForNavigation(bool value)
 {
     settings()->setSharedValue(USE_ARROW_KEYS_FOR_NAVIGATION, Val(value));
+}
+
+bool AppShellConfiguration::useEditElementKeyToCycleThroughGrips() const
+{
+    return settings()->value(USE_EDIT_ELEMENT_KEY_TO_CYCLE_THROUGH_GRIPS).toBool();
+}
+
+void AppShellConfiguration::setUseEditElementKeyToCycleThroughGrips(bool value)
+{
+    settings()->setSharedValue(USE_EDIT_ELEMENT_KEY_TO_CYCLE_THROUGH_GRIPS, Val(value));
 }
 // KRASKO {END}
 
