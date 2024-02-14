@@ -38,19 +38,23 @@ static const std::string module_name("appshell");
 
 // KRASKO {START} Settings
 
-// "NavNextPrevPanelGoesToNextPrevControl" - determines whether pressing the shortcuts keys for "nav-next-panel" and "nav-prev-panel"
+// NavNextPrevPanelGoesToNextPrevControl - determines whether pressing the shortcuts keys for "nav-next-panel" and "nav-prev-panel"
 // (TAB and SHIFT+TAB) by default) will go to the next/prev control (value: true) or next/prev panel (value: false - the default).
 static const Settings::Key NAV_NEXT_PREV_PANEL_GOES_TO_NEXT_PREV_CONTROL(module_name, "krasko/NavNextPrevPanelGoesToNextPrevControl");
 
-// "UseArrowKeysForNavigation" - when false, pressing the arrow keys (or nav-up, nav-down, nav-left, nav-right shortcut keys)
+// UseArrowKeysForNavigation - when false, pressing the arrow keys (or nav-up, nav-down, nav-left, nav-right shortcut keys)
 // will navigate between the controls in the current panel (value: true - default) or not (value: false).
 static const Settings::Key USE_ARROW_KEYS_FOR_NAVIGATION(module_name, "krasko/UseArrowKeysForNavigation");
 
-// "UseEditElementKeyToCycleThroughGrips" - when true, pressing the "Edit Element" shortcut key (F2 by default)
+// UseEditElementKeyToCycleThroughGrips - when true, pressing the "Edit Element" shortcut key (F2 by default)
 // will cycle through the element's grips just like the TAB key if the element already has the grips displayed.
 // This is useful when you want to press the "Edit Element" key to diplay the grips/handles and then continue
 // pressing the same key (instead of TAB) to activate the desired grip/handle.
 static const Settings::Key USE_EDIT_ELEMENT_KEY_TO_CYCLE_THROUGH_GRIPS(module_name, "krasko/UseEditElementKeyToCycleThroughGrips");
+
+// ExportDialogWillFocusTheExportButton - when true, the Export dialog will focus the Export button on open.
+// The default is false.
+static const Settings::Key EXPORT_DIALOG_WILL_FOCUS_THE_EXPORT_BUTTON(module_name, "krasko/ExportDialogWillFocusTheExportButton");
 
 // KRASKO {END}
 
@@ -81,6 +85,7 @@ void AppShellConfiguration::init()
     settings()->setDefaultValue(NAV_NEXT_PREV_PANEL_GOES_TO_NEXT_PREV_CONTROL, Val(false));
     settings()->setDefaultValue(USE_ARROW_KEYS_FOR_NAVIGATION, Val(true));
     settings()->setDefaultValue(USE_EDIT_ELEMENT_KEY_TO_CYCLE_THROUGH_GRIPS, Val(false));
+    settings()->setDefaultValue(EXPORT_DIALOG_WILL_FOCUS_THE_EXPORT_BUTTON, Val(false));
     // KRASKO {END}
 
     settings()->setDefaultValue(HAS_COMPLETED_FIRST_LAUNCH_SETUP, Val(false));
@@ -130,6 +135,16 @@ bool AppShellConfiguration::useEditElementKeyToCycleThroughGrips() const
 void AppShellConfiguration::setUseEditElementKeyToCycleThroughGrips(bool value)
 {
     settings()->setSharedValue(USE_EDIT_ELEMENT_KEY_TO_CYCLE_THROUGH_GRIPS, Val(value));
+}
+
+bool AppShellConfiguration::exportDialogWillFocusTheExportButton() const
+{
+    return settings()->value(EXPORT_DIALOG_WILL_FOCUS_THE_EXPORT_BUTTON).toBool();
+}
+
+void AppShellConfiguration::setExportDialogWillFocusTheExportButton(bool value)
+{
+    settings()->setSharedValue(EXPORT_DIALOG_WILL_FOCUS_THE_EXPORT_BUTTON, Val(value));
 }
 // KRASKO {END}
 

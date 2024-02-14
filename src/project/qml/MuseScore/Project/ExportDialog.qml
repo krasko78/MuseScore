@@ -47,7 +47,12 @@ StyledDialogView {
     }
 
     onNavigationActivateRequested: {
-        exportScoresListView.focusOnFirst()
+        if (exportModel.focusTheExportButton()) { // KRASKO {START}
+            exportButton.navigation.requestActive(true)
+        }
+        else {
+            exportScoresListView.focusOnFirst()
+        } // KRASKO {END}
     }
 
     onClosed: {
@@ -151,6 +156,7 @@ StyledDialogView {
                     navigationPanel.order: 4
 
                     FlatButton {
+                        id: exportButton // KRASKO
                         text: qsTrc("project/export", "Export…")
                         buttonRole: ButtonBoxModel.AcceptRole
                         buttonId: ButtonBoxModel.Done

@@ -99,6 +99,8 @@ public:
     bool useEditElementKeyToCycleThroughGrips() const override;
     void setUseEditElementKeyToCycleThroughGrips(bool value) override;
 
+    bool exportDialogWillFocusTheExportButton() const override;
+    void setExportDialogWillFocusTheExportButton(bool value) override;
     // KRASKO {END}
 private:
     std::string utmParameters(const std::string& utmMedium) const;

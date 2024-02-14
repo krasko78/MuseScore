@@ -391,6 +391,11 @@ bool ExportDialogModel::exportScores()
     return true;
 }
 
+bool ExportDialogModel::focusTheExportButton() const { // KRASKO
+    return appshellConfiguration()->exportDialogWillFocusTheExportButton();
+}
+
+
 int ExportDialogModel::pdfResolution() const
 {
     return imageExportConfiguration()->exportPdfDpiResolution();

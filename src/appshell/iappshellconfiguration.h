@@ -84,6 +84,9 @@ public:
 
     virtual bool useEditElementKeyToCycleThroughGrips() const = 0;
     virtual void setUseEditElementKeyToCycleThroughGrips(bool value) = 0;
+
+    virtual bool exportDialogWillFocusTheExportButton() const = 0;
+    virtual void setExportDialogWillFocusTheExportButton(bool value) = 0;
     // KRASKO {END}
 };
 }
