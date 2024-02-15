@@ -30,6 +30,7 @@
 #include "draw/fontmetrics.h"
 #include "draw/types/color.h"
 #include "iengravingfontsprovider.h"
+#include "appshell/iappshellconfiguration.h" // KRASKO
 
 #include "engravingitem.h"
 #include "property.h"
@@ -239,6 +240,8 @@ public:
 
 class TextBlock
 {
+    INJECT(appshell::IAppShellConfiguration, appshellConfiguration) // KRASKO
+
 public:
     TextBlock() {}
     bool operator ==(const TextBlock& x) const { return m_fragments == x.m_fragments; }

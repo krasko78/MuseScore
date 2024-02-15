@@ -107,6 +107,9 @@ public:
 
     bool AppShellConfiguration::enableHighPrecisionNudging() const override;
     void AppShellConfiguration::setEnableHighPrecisionNudging(bool value) override;
+
+    bool AppShellConfiguration::textObjectsWillUseTheirFullHeight() const override;
+    void AppShellConfiguration::setTextObjectsWillUseTheirFullHeight(bool value) override;
     // KRASKO {END}
 private:
     std::string utmParameters(const std::string& utmMedium) const;

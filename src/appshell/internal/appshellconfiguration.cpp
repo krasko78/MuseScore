@@ -63,6 +63,10 @@ static const Settings::Key ENABLE_ALT_MODIFIER_KEY(module_name, "krasko/EnableAl
 // EnableHighPrecisionNudging - when true, nudging things such as a grip/handle with the arrow keys
 // will cause the thing to nudge by a smaller distance thus allowing for better control. The default is false.
 static const Settings::Key ENABLE_HIGH_PRECISION_NUDGING(module_name, "krasko/EnableHighPrecisionNudging");
+
+// TextObjectsWillUseTheirFullHeight - when true, the height of any text (i.e. text object) will always be the font's full height.
+// When false (the default), the height will be the actual height of the characters in the text.
+static const Settings::Key TEXT_OBJECTS_WILL_USE_THEIR_FULL_HEIGHT(module_name, "krasko/TextObjectsWillUseTheirFullHeight");
 // KRASKO {END}
 
 static const Settings::Key HAS_COMPLETED_FIRST_LAUNCH_SETUP(module_name, "application/hasCompletedFirstLaunchSetup");
@@ -95,6 +99,7 @@ void AppShellConfiguration::init()
     settings()->setDefaultValue(EXPORT_DIALOG_WILL_FOCUS_THE_EXPORT_BUTTON, Val(false));
     settings()->setDefaultValue(ENABLE_ALT_MODIFIER_KEY, Val(false));
     settings()->setDefaultValue(ENABLE_HIGH_PRECISION_NUDGING, Val(false));
+    settings()->setDefaultValue(TEXT_OBJECTS_WILL_USE_THEIR_FULL_HEIGHT, Val(false));
     // KRASKO {END}
 
     settings()->setDefaultValue(HAS_COMPLETED_FIRST_LAUNCH_SETUP, Val(false));
@@ -174,6 +179,16 @@ bool AppShellConfiguration::enableHighPrecisionNudging() const
 void AppShellConfiguration::setEnableHighPrecisionNudging(bool value)
 {
     settings()->setSharedValue(ENABLE_HIGH_PRECISION_NUDGING, Val(value));
+}
+
+bool AppShellConfiguration::textObjectsWillUseTheirFullHeight() const
+{
+    return settings()->value(TEXT_OBJECTS_WILL_USE_THEIR_FULL_HEIGHT).toBool();
+}
+
+void AppShellConfiguration::setTextObjectsWillUseTheirFullHeight(bool value)
+{
+    settings()->setSharedValue(TEXT_OBJECTS_WILL_USE_THEIR_FULL_HEIGHT, Val(value));
 }
 // KRASKO {END}
 

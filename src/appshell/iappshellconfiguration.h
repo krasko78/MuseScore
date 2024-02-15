@@ -93,6 +93,9 @@ public:
 
     virtual bool enableHighPrecisionNudging() const = 0;
     virtual void setEnableHighPrecisionNudging(bool value) = 0;
+
+    virtual bool textObjectsWillUseTheirFullHeight() const = 0;
+    virtual void setTextObjectsWillUseTheirFullHeight(bool value) = 0;
     // KRASKO {END}
 };
 }
