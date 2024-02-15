@@ -98,18 +98,18 @@ static mu::engraving::KeyboardModifier keyboardModifier(Qt::KeyboardModifiers km
     return mu::engraving::KeyboardModifier(int(km));
 }
 
-static qreal nudgeDistance(const mu::engraving::EditData& editData)
+static qreal nudgeDistance(const mu::engraving::EditData& editData, bool allowSmallerNudge) // KRASKO
 {
     qreal spatium = editData.element->spatium();
 
     if (editData.element->isBeam()) {
         if (editData.modifiers & Qt::ControlModifier) {
-            return spatium;
+            return spatium * (allowSmallerNudge ? 0.25 : 1.0); // KRASKO
         } else if (editData.modifiers & Qt::AltModifier) {
-            return spatium * 4;
+            return spatium * 4 * (allowSmallerNudge ? 0.25 : 1.0); // KRASKO
         }
 
-        return spatium * 0.25;
+        return spatium * 0.25 * (allowSmallerNudge ? 0.25 : 1.0); // KRASKO
     }
 
     if (editData.modifiers & Qt::ControlModifier) {
@@ -121,13 +121,13 @@ static qreal nudgeDistance(const mu::engraving::EditData& editData)
     return spatium * mu::engraving::MScore::nudgeStep;
 }
 
-static qreal nudgeDistance(const mu::engraving::EditData& editData, qreal raster)
+static qreal nudgeDistance(const mu::engraving::EditData& editData, qreal raster, bool allowSmallerNudge) // KRASKO
 {
-    qreal distance = nudgeDistance(editData);
+    qreal distance = nudgeDistance(editData, allowSmallerNudge); // KRASKO
     if (raster > 0) {
         raster = editData.element->spatium() / raster;
-        if (distance < raster) {
-            //distance = raster;   // KRASKO: Allow the distance to stay small enough for fine adjustments
+        if (distance < raster && !allowSmallerNudge) { // KRASKO
+            distance = raster;
         }
     }
 
@@ -2998,16 +2998,16 @@ bool NotationInteraction::handleKeyPress(QKeyEvent* event)
 
         return true;
     case Qt::Key_Left:
-        m_editData.delta = QPointF(-nudgeDistance(m_editData, hRaster), 0);
+        m_editData.delta = QPointF(-nudgeDistance(m_editData, hRaster, appshellConfiguration()->enableHighPrecisionNudging()), 0); // KRASKO
         break;
     case Qt::Key_Right:
-        m_editData.delta = QPointF(nudgeDistance(m_editData, hRaster), 0);
+        m_editData.delta = QPointF(nudgeDistance(m_editData, hRaster, appshellConfiguration()->enableHighPrecisionNudging()), 0); // KRASKO
         break;
     case Qt::Key_Up:
-        m_editData.delta = QPointF(0, -nudgeDistance(m_editData, vRaster));
+        m_editData.delta = QPointF(0, -nudgeDistance(m_editData, vRaster, appshellConfiguration()->enableHighPrecisionNudging())); // KRASKO
         break;
     case Qt::Key_Down:
-        m_editData.delta = QPointF(0, nudgeDistance(m_editData, vRaster));
+        m_editData.delta = QPointF(0, nudgeDistance(m_editData, vRaster, appshellConfiguration()->enableHighPrecisionNudging())); // KRASKO
         break;
     default:
         return false;

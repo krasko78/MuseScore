@@ -101,6 +101,12 @@ public:
 
     bool exportDialogWillFocusTheExportButton() const override;
     void setExportDialogWillFocusTheExportButton(bool value) override;
+
+    bool AppShellConfiguration::enableAltModifierKey() const override;
+    void AppShellConfiguration::setEnableAltModifierKey(bool value) override;
+
+    bool AppShellConfiguration::enableHighPrecisionNudging() const override;
+    void AppShellConfiguration::setEnableHighPrecisionNudging(bool value) override;
     // KRASKO {END}
 private:
     std::string utmParameters(const std::string& utmMedium) const;

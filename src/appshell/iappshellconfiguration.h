@@ -87,6 +87,12 @@ public:
 
     virtual bool exportDialogWillFocusTheExportButton() const = 0;
     virtual void setExportDialogWillFocusTheExportButton(bool value) = 0;
+
+    virtual bool enableAltModifierKey() const = 0;
+    virtual void setEnableAltModifierKey(bool value) = 0;
+
+    virtual bool enableHighPrecisionNudging() const = 0;
+    virtual void setEnableHighPrecisionNudging(bool value) = 0;
     // KRASKO {END}
 };
 }

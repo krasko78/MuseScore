@@ -56,6 +56,13 @@ static const Settings::Key USE_EDIT_ELEMENT_KEY_TO_CYCLE_THROUGH_GRIPS(module_na
 // The default is false.
 static const Settings::Key EXPORT_DIALOG_WILL_FOCUS_THE_EXPORT_BUTTON(module_name, "krasko/ExportDialogWillFocusTheExportButton");
 
+// EnableAltModifierKey - when true, the ALT key will be enabled to participate in some special shortcuts
+// such as nudging (moving a grip / handle). The default is false.
+static const Settings::Key ENABLE_ALT_MODIFIER_KEY(module_name, "krasko/EnableAltModifierKey");
+
+// EnableHighPrecisionNudging - when true, nudging things such as a grip/handle with the arrow keys
+// will cause the thing to nudge by a smaller distance thus allowing for better control. The default is false.
+static const Settings::Key ENABLE_HIGH_PRECISION_NUDGING(module_name, "krasko/EnableHighPrecisionNudging");
 // KRASKO {END}
 
 static const Settings::Key HAS_COMPLETED_FIRST_LAUNCH_SETUP(module_name, "application/hasCompletedFirstLaunchSetup");
@@ -86,6 +93,8 @@ void AppShellConfiguration::init()
     settings()->setDefaultValue(USE_ARROW_KEYS_FOR_NAVIGATION, Val(true));
     settings()->setDefaultValue(USE_EDIT_ELEMENT_KEY_TO_CYCLE_THROUGH_GRIPS, Val(false));
     settings()->setDefaultValue(EXPORT_DIALOG_WILL_FOCUS_THE_EXPORT_BUTTON, Val(false));
+    settings()->setDefaultValue(ENABLE_ALT_MODIFIER_KEY, Val(false));
+    settings()->setDefaultValue(ENABLE_HIGH_PRECISION_NUDGING, Val(false));
     // KRASKO {END}
 
     settings()->setDefaultValue(HAS_COMPLETED_FIRST_LAUNCH_SETUP, Val(false));
@@ -145,6 +154,26 @@ bool AppShellConfiguration::exportDialogWillFocusTheExportButton() const
 void AppShellConfiguration::setExportDialogWillFocusTheExportButton(bool value)
 {
     settings()->setSharedValue(EXPORT_DIALOG_WILL_FOCUS_THE_EXPORT_BUTTON, Val(value));
+}
+
+bool AppShellConfiguration::enableAltModifierKey() const
+{
+    return settings()->value(ENABLE_ALT_MODIFIER_KEY).toBool();
+}
+
+void AppShellConfiguration::setEnableAltModifierKey(bool value)
+{
+    settings()->setSharedValue(ENABLE_ALT_MODIFIER_KEY, Val(value));
+}
+
+bool AppShellConfiguration::enableHighPrecisionNudging() const
+{
+    return settings()->value(ENABLE_HIGH_PRECISION_NUDGING).toBool();
+}
+
+void AppShellConfiguration::setEnableHighPrecisionNudging(bool value)
+{
+    settings()->setSharedValue(ENABLE_HIGH_PRECISION_NUDGING, Val(value));
 }
 // KRASKO {END}
 
