@@ -71,6 +71,10 @@ static const Settings::Key TEXT_OBJECTS_WILL_USE_THEIR_FULL_HEIGHT(module_name, 
 // FixFingeringOnBeamedNotesDistanceToStaff - when true, will fix an issue where fingering on beamed notes
 // would not respect min distance to staff. Default: false.
 static const Settings::Key FIX_FINGERING_ON_BEAMED_NOTES_DISTANCE_TO_STAFF(module_name, "krasko/FixFingeringOnBeamedNotesDistanceToStaff");
+
+// FixExtraSpacingOnMultilineFingering - when true, will fix an issue where multiline fingering has extra spacing above/below.
+// Default: false.
+static const Settings::Key FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING(module_name, "krasko/FixExtraSpacingOnMultilineFingering");
 // KRASKO {END}
 
 static const Settings::Key HAS_COMPLETED_FIRST_LAUNCH_SETUP(module_name, "application/hasCompletedFirstLaunchSetup");
@@ -105,6 +109,7 @@ void AppShellConfiguration::init()
     settings()->setDefaultValue(ENABLE_HIGH_PRECISION_NUDGING, Val(false));
     settings()->setDefaultValue(TEXT_OBJECTS_WILL_USE_THEIR_FULL_HEIGHT, Val(false));
     settings()->setDefaultValue(FIX_FINGERING_ON_BEAMED_NOTES_DISTANCE_TO_STAFF, Val(false));
+    settings()->setDefaultValue(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING, Val(false));
     // KRASKO {END}
 
     settings()->setDefaultValue(HAS_COMPLETED_FIRST_LAUNCH_SETUP, Val(false));
@@ -204,6 +209,16 @@ bool AppShellConfiguration::fixFingeringOnBeamedNotesDistanceToStaff() const
 void AppShellConfiguration::setFixFingeringOnBeamedNotesDistanceToStaff(bool value)
 {
     settings()->setSharedValue(FIX_FINGERING_ON_BEAMED_NOTES_DISTANCE_TO_STAFF, Val(value));
+}
+
+bool AppShellConfiguration::fixExtraSpacingOnMultilineFingering() const
+{
+    return settings()->value(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING).toBool();
+}
+
+void AppShellConfiguration::setFixExtraSpacingOnMultilineFingering(bool value)
+{
+    settings()->setSharedValue(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING, Val(value));
 }
 // KRASKO {END}
 

@@ -113,6 +113,9 @@ public:
 
     bool fixFingeringOnBeamedNotesDistanceToStaff() const override;
     void setFixFingeringOnBeamedNotesDistanceToStaff(bool value) override;
+
+    bool fixExtraSpacingOnMultilineFingering() const override;
+    void setFixExtraSpacingOnMultilineFingering(bool value) override;
     // KRASKO {END}
 private:
     std::string utmParameters(const std::string& utmMedium) const;

@@ -99,6 +99,9 @@ public:
 
     virtual bool fixFingeringOnBeamedNotesDistanceToStaff() const = 0;
     virtual void setFixFingeringOnBeamedNotesDistanceToStaff(bool value) = 0;
+
+    virtual bool fixExtraSpacingOnMultilineFingering() const = 0;
+    virtual void setFixExtraSpacingOnMultilineFingering(bool value) = 0;
     // KRASKO {END}
 };
 }
