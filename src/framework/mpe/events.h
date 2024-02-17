@@ -29,7 +29,6 @@
 
 #include "async/channel.h"
 #include "realfn.h"
-#include "types/val.h"
 
 #include "mpetypes.h"
 #include "soundid.h"
@@ -40,13 +39,8 @@ struct RestEvent;
 using PlaybackEvent = std::variant<NoteEvent, RestEvent>;
 using PlaybackEventList = std::vector<PlaybackEvent>;
 using PlaybackEventsMap = std::map<timestamp_t, PlaybackEventList>;
-
-struct PlaybackParam;
-using PlaybackParamList = std::vector<PlaybackParam>;
-using PlaybackParamMap = std::map<timestamp_t, PlaybackParamList>;
-
-using MainStreamChanges = async::Channel<PlaybackEventsMap, DynamicLevelMap, PlaybackParamMap>;
-using OffStreamChanges = async::Channel<PlaybackEventsMap, PlaybackParamMap>;
+using PlaybackEventsChanges = async::Channel<PlaybackEventsMap>;
+using DynamicLevelChanges = async::Channel<DynamicLevelMap>;
 
 struct ArrangementContext
 {
@@ -379,34 +373,19 @@ static const PlaybackSetupData GENERIC_SETUP_DATA = {
 
 static const String GENERIC_SETUP_DATA_STRING = GENERIC_SETUP_DATA.toString();
 
-struct PlaybackParam {
-    String code;
-    Val val;
-
-    bool operator==(const PlaybackParam& other) const
-    {
-        return code == other.code && val == other.val;
-    }
-};
-
-static const String SOUND_PRESET_PARAM_CODE(u"sound_preset");
-static const String PLAY_TECHNIQUE_PARAM_CODE(u"playing_technique");
-
 struct PlaybackData {
     PlaybackEventsMap originEvents;
     PlaybackSetupData setupData;
+    PlaybackEventsChanges mainStream;
+    PlaybackEventsChanges offStream;
     DynamicLevelMap dynamicLevelMap;
-    PlaybackParamMap paramMap;
-
-    MainStreamChanges mainStream;
-    OffStreamChanges offStream;
+    DynamicLevelChanges dynamicLevelChanges;
 
     bool operator==(const PlaybackData& other) const
     {
         return originEvents == other.originEvents
                && setupData == other.setupData
-               && dynamicLevelMap == other.dynamicLevelMap
-               && paramMap == other.paramMap;
+               && dynamicLevelMap == other.dynamicLevelMap;
     }
 
     bool isValid() const

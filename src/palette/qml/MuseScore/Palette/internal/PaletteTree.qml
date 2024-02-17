@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.15
+import QtQuick 2.8
 import QtQuick.Controls 2.1
 import QtQml.Models 2.2
 
@@ -279,7 +279,7 @@ StyledListView {
             bottomPadding: expanded ? 4 : 0
             property int rowIndex: index
             property int navigationRow: (index + 1) * 10000 // to make unique
-            property var modelIndex: paletteTree.model.modelIndex(index)
+            property var modelIndex: paletteTree.model.modelIndex(index, 0)
 
             Keys.onShortcutOverride: function(event) {
                 switch (event.key) {
@@ -583,10 +583,9 @@ StyledListView {
                     height: implicitHeight
                     border { width: 1; color: ui.theme.strokeColor }
 
-                    PaletteGridView {
+                    Palette {
                         id: mainPalette
-                        anchors.fill: parent
-                        anchors.margins: parent.padding
+                        anchors { fill: parent; margins: parent.padding }
 
                         navigationPanel: keynavTree
                         navigationRow: control.navigationRow + 1

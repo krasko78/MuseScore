@@ -22,6 +22,4 @@ set (MUSICXML_SRC
     ${CMAKE_CURRENT_LIST_DIR}/musicxmlfonthandler.h
     ${CMAKE_CURRENT_LIST_DIR}/musicxmlsupport.cpp
     ${CMAKE_CURRENT_LIST_DIR}/musicxmlsupport.h
-    ${CMAKE_CURRENT_LIST_DIR}/musicxmlvalidation.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/musicxmlvalidation.h
     )

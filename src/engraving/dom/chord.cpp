@@ -271,7 +271,6 @@ Chord::Chord(Segment* parent)
     m_noteType         = NoteType::NORMAL;
     m_stemSlash        = 0;
     m_noStem           = false;
-    m_showStemSlash    = m_noteType == NoteType::ACCIACCATURA;
     m_playEventType    = PlayEventType::Auto;
     m_spaceLw          = 0.;
     m_spaceRw          = 0.;
@@ -313,7 +312,6 @@ Chord::Chord(const Chord& c, bool link)
     m_spanArpeggio   = c.m_spanArpeggio;
     m_graceIndex     = c.m_graceIndex;
     m_noStem         = c.m_noStem;
-    m_showStemSlash  = c.m_showStemSlash;
     m_playEventType  = c.m_playEventType;
     m_stemDirection  = c.m_stemDirection;
     m_noteType       = c.m_noteType;
@@ -341,6 +339,19 @@ Chord::Chord(const Chord& c, bool link)
         if (link) {
             score()->undo(new Link(t, const_cast<TremoloSingleChord*>(c.m_tremoloSingleChord)));
         }
+        add(t);
+    } else if (c.m_tremoloTwoChord) {
+        TremoloTwoChord* t = Factory::copyTremoloTwoChord(*(c.m_tremoloTwoChord));
+        if (link) {
+            score()->undo(new Link(t, const_cast<TremoloTwoChord*>(c.m_tremoloTwoChord)));
+        }
+
+        if (c.m_tremoloTwoChord->chord1() == &c) {
+            t->setChords(this, nullptr);
+        } else {
+            t->setChords(nullptr, this);
+        }
+
         add(t);
     }
 
@@ -2104,10 +2115,9 @@ void Chord::localSpatiumChanged(double oldValue, double newValue)
 PropertyValue Chord::getProperty(Pid propertyId) const
 {
     switch (propertyId) {
-    case Pid::NO_STEM:         return noStem();
-    case Pid::SHOW_STEM_SLASH: return showStemSlash();
-    case Pid::SMALL:           return isSmall();
-    case Pid::STEM_DIRECTION:  return PropertyValue::fromValue<DirectionV>(stemDirection());
+    case Pid::NO_STEM:        return noStem();
+    case Pid::SMALL:          return isSmall();
+    case Pid::STEM_DIRECTION: return PropertyValue::fromValue<DirectionV>(stemDirection());
     case Pid::PLAY: return isChordPlayable();
     default:
         return ChordRest::getProperty(propertyId);
@@ -2121,10 +2131,9 @@ PropertyValue Chord::getProperty(Pid propertyId) const
 PropertyValue Chord::propertyDefault(Pid propertyId) const
 {
     switch (propertyId) {
-    case Pid::NO_STEM:         return false;
-    case Pid::SHOW_STEM_SLASH: return noteType() == NoteType::ACCIACCATURA;
-    case Pid::SMALL:           return false;
-    case Pid::STEM_DIRECTION:  return PropertyValue::fromValue<DirectionV>(DirectionV::AUTO);
+    case Pid::NO_STEM:        return false;
+    case Pid::SMALL:          return false;
+    case Pid::STEM_DIRECTION: return PropertyValue::fromValue<DirectionV>(DirectionV::AUTO);
     case Pid::PLAY: return true;
     default:
         return ChordRest::propertyDefault(propertyId);
@@ -2140,9 +2149,6 @@ bool Chord::setProperty(Pid propertyId, const PropertyValue& v)
     switch (propertyId) {
     case Pid::NO_STEM:
         setNoStem(v.toBool());
-        break;
-    case Pid::SHOW_STEM_SLASH:
-        requestShowStemSlash(v.toBool());
         break;
     case Pid::SMALL:
         setSmall(v.toBool());
@@ -2300,6 +2306,7 @@ void Chord::updateArticulations(const std::set<SymId>& newArticulationIds, Artic
 void Chord::reset()
 {
     undoChangeProperty(Pid::STEM_DIRECTION, DirectionV::AUTO);
+    CompatMidiRender::createPlayEvents(this->score(), this);
     ChordRest::reset();
 }
 
@@ -2560,52 +2567,6 @@ GraceNotesGroup& Chord::graceNotesAfter(bool filterUnplayable) const
 }
 
 //---------------------------------------------------------
-//   setShowStemSlashInAdvance
-//---------------------------------------------------------
-
-void Chord::setShowStemSlashInAdvance()
-{
-    if (m_noteType == NoteType::NORMAL) {
-        return;
-    }
-    if (isGraceBefore()) {
-        GraceNotesGroup& graceBefore = toChord(explicitParent())->graceNotesBefore();
-        Chord* grace = graceBefore.empty() ? nullptr : graceBefore.front();
-        if (grace && grace->beamMode() != BeamMode::NONE && grace->beamMode() != BeamMode::BEGIN) {
-            grace->requestShowStemSlash(showStemSlash());
-        }
-    }
-    if (isGraceAfter()) {
-        GraceNotesGroup& graceAfter = toChord(explicitParent())->graceNotesAfter();
-        Chord* grace = graceAfter.empty() ? nullptr : graceAfter.back();
-        if (grace && grace->beamMode() != BeamMode::NONE) {
-            grace->requestShowStemSlash(showStemSlash());
-        }
-    }
-}
-
-//---------------------------------------------------------
-//   requestShowStemSlash
-//---------------------------------------------------------
-
-void Chord::requestShowStemSlash(bool show)
-{
-    if (m_noteType == NoteType::NORMAL) {
-        return;
-    }
-    if (beam()) {
-        for (ChordRest* chordRest : beam()->elements()) {
-            if (chordRest->isChord()) {
-                Chord* chord = toChord(chordRest);
-                chord->setShowStemSlash(show);
-            }
-        }
-    } else {
-        setShowStemSlash(show);
-    }
-}
-
-//---------------------------------------------------------
 //   sortNotes
 //---------------------------------------------------------
 
@@ -2703,16 +2664,6 @@ bool Chord::containsTieStart() const
     }
 
     return false;
-}
-
-//---------------------------------------------------------
-//   setNoteType
-//---------------------------------------------------------
-
-void Chord::setNoteType(NoteType t)
-{
-    m_noteType = t;
-    setProperty(Pid::SHOW_STEM_SLASH, propertyDefault(Pid::SHOW_STEM_SLASH));
 }
 
 //---------------------------------------------------------
@@ -3264,11 +3215,11 @@ void GraceNotesGroup::addToShape()
         staff_idx_t staffIdx = grace->staffIdx();
         staff_idx_t vStaffIdx = grace->vStaffIdx();
         Shape& s = _appendedSegment->staffShape(staffIdx);
-        s.add(grace->shape(LD_ACCESS::PASS).translate(grace->pos()));
+        s.add(grace->shape(LD_ACCESS::PASS).translated(grace->pos()));
         if (vStaffIdx != staffIdx) {
             // Cross-staff grace notes add their shape to both the origin and the destination staff
             Shape& s2 = _appendedSegment->staffShape(vStaffIdx);
-            s2.add(grace->shape().translate(grace->pos()));
+            s2.add(grace->shape().translated(grace->pos()));
         }
     }
 }

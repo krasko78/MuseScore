@@ -67,7 +67,6 @@ OttavaSegment::OttavaSegment(Ottava* sp, System* parent)
     : TextLineBaseSegment(ElementType::OTTAVA_SEGMENT, sp, parent, ElementFlag::MOVABLE | ElementFlag::ON_STAFF)
 {
     m_text->setTextStyleType(TextStyleType::OTTAVA);
-    m_endText->setTextStyleType(TextStyleType::OTTAVA);
 }
 
 //---------------------------------------------------------
@@ -354,7 +353,7 @@ PropertyValue Ottava::propertyDefault(Pid pid) const
     case Pid::BEGIN_HOOK_HEIGHT:
         return Spatium(.0);
     case Pid::END_TEXT:
-        return String();
+        return String(u"");
     case Pid::PLACEMENT:
         return styleValue(Pid::PLACEMENT, getPropertyStyle(Pid::PLACEMENT));
 

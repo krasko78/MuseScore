@@ -25,7 +25,6 @@
 
 #include <QQmlEngine>
 
-#include "qmllistproperty.h"
 #include "engraving/dom/excerpt.h"
 
 namespace mu::plugins::api {
@@ -99,21 +98,14 @@ extern Excerpt* excerptWrap(mu::engraving::Excerpt* e);
 //---------------------------------------------------------
 
 template<typename T, class Container>
-class QmlExcerptsListAccess : public QmlListProperty<T>
+class QmlExcerptsListAccess : public QQmlListProperty<T>
 {
 public:
     QmlExcerptsListAccess(QObject* obj, Container& container)
-        : QmlListProperty<T>(obj, &container, &count, &at) {}
+        : QQmlListProperty<T>(obj, &container, &count, &at) {}
 
-    static qsizetype count(QQmlListProperty<T>* l)
-    {
-        return static_cast<Container*>(l->data)->size();
-    }
-
-    static T* at(QQmlListProperty<T>* l, qsizetype i)
-    {
-        return excerptWrap<T>(static_cast<Container*>(l->data)->at(i));
-    }
+    static int count(QQmlListProperty<T>* l) { return int(static_cast<Container*>(l->data)->size()); }
+    static T* at(QQmlListProperty<T>* l, int i) { return excerptWrap<T>(static_cast<Container*>(l->data)->at(i)); }
 };
 
 /** \cond PLUGIN_API \private \endcond */

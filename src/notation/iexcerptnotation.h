@@ -39,8 +39,7 @@ public:
     virtual bool isEmpty() const = 0;
 
     virtual QString name() const = 0;
-    virtual void setName(const QString& name) = 0; // not undoable
-    virtual void undoSetName(const QString& name) = 0; // undoable
+    virtual void setName(const QString& name) = 0;
     virtual async::Notification nameChanged() const = 0;
 
     virtual const String& fileName() const = 0;

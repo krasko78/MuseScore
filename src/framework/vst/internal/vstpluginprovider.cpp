@@ -22,8 +22,6 @@
 
 #include "vstpluginprovider.h"
 
-#include "log.h"
-
 using namespace mu::vst;
 
 class VstPluginProvider::Impl : public Steinberg::Vst::PlugProvider
@@ -34,21 +32,7 @@ public:
     Impl(const PluginFactory& factory, const ClassInfo& info)
         : Steinberg::Vst::PlugProvider(factory, info)
     {
-    }
-
-    bool init()
-    {
-        if (!initialize()) {
-            return false;
-        }
-
-        IF_ASSERT_FAILED(controller) {
-            return false;
-        }
-
         controller->queryInterface(Steinberg::Vst::IMidiMapping_iid, (void**)&midiMapping);
-
-        return true;
     }
 
     PluginMidiMappingPtr midiMapping;
@@ -61,11 +45,6 @@ VstPluginProvider::VstPluginProvider(const PluginFactory& factory, const ClassIn
 
 VstPluginProvider::~VstPluginProvider()
 {
-}
-
-bool VstPluginProvider::init()
-{
-    return m_impl->init();
 }
 
 PluginComponentPtr VstPluginProvider::component() const

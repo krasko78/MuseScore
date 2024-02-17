@@ -21,6 +21,7 @@
  */
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import QtQuick.Dialogs 1.3
 import QtQuick.Layouts 1.15
 
 import MuseScore.Ui 1.0
@@ -179,15 +180,22 @@ ColumnLayout {
 
     Component {
         id: colorComp
-        ColorPicker {
+        Rectangle {
+            id: colorControl
             property var val
             signal changed(var newVal)
-
             anchors.fill: parent
             color: val
 
-            onNewColorSelected: function(newColor) {
-                changed(newColor)
+            ColorDialog {
+                id: colorDialog
+                title: "Please choose a color"
+                onAccepted: colorControl.changed(colorDialog.color)
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: colorDialog.open()
             }
         }
     }

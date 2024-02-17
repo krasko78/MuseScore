@@ -930,9 +930,7 @@ void UiTheme::drawRadioButtonIndicator(QPainter* painter, const QRect& rect, con
     QColor borderColor = fontPrimaryColor();
     QColor backgroundColor = textFieldColor();
 
-    if (!styleState.enabled) {
-        borderColor.setAlphaF(itemOpacityDisabled());
-    } else if (styleState.pressed) {
+    if (styleState.pressed) {
         borderColor.setAlphaF(buttonOpacityHit());
     } else if (styleState.hovered) {
         borderColor.setAlphaF(buttonOpacityHover());

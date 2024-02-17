@@ -66,10 +66,8 @@ void ChordArticulationsRenderer::doRender(const EngravingItem* item, const mpe::
     }
 
     for (const Note* note: chord->notes()) {
-        NominalNoteCtx noteCtx = buildNominalNoteCtx(note, ctx);
-
-        if (isNotePlayable(note, noteCtx.chordCtx.commonArticulations)) {
-            doRenderNote(chord, note, std::move(noteCtx), result);
+        if (isNotePlayable(note, ctx.commonArticulations)) {
+            renderNote(chord, note, ctx, result);
         }
     }
 }
@@ -102,14 +100,6 @@ bool ChordArticulationsRenderer::renderChordArticulations(const Chord* chord, co
 void ChordArticulationsRenderer::renderNote(const Chord* chord, const Note* note, const RenderingContext& ctx,
                                             mpe::PlaybackEventList& result)
 {
-    NominalNoteCtx noteCtx = buildNominalNoteCtx(note, ctx);
-
-    doRenderNote(chord, note, std::move(noteCtx), result);
-}
-
-void ChordArticulationsRenderer::doRenderNote(const Chord* chord, const Note* note, NominalNoteCtx&& noteCtx,
-                                              mpe::PlaybackEventList& result)
-{
     Swing::ChordDurationAdjustment swingDurationAdjustment;
 
     if (!chord->tuplet()) {
@@ -119,8 +109,6 @@ void ChordArticulationsRenderer::doRenderNote(const Chord* chord, const Note* no
             swingDurationAdjustment = Swing::applySwing(chord, swing);
         }
     }
-
-    const RenderingContext& ctx = noteCtx.chordCtx;
 
     auto applySwingToNoteCtx = [&swingDurationAdjustment, &ctx](NominalNoteCtx& noteCtx) {
         if (swingDurationAdjustment.isNull()) {
@@ -133,8 +121,12 @@ void ChordArticulationsRenderer::doRenderNote(const Chord* chord, const Note* no
         noteCtx.duration = ctx.nominalDuration * swingDurationAdjustment.durationMultiplier + additionalDuration;
     };
 
+    NominalNoteCtx noteCtx(note, ctx);
+
+    NoteArticulationsParser::buildNoteArticulationMap(note, ctx, noteCtx.chordCtx.commonArticulations);
+
     if (note->tieFor()) {
-        noteCtx.duration = tiedNotesTotalDuration(note->score(), note, noteCtx.duration, ctx.positionTickOffset);
+        noteCtx.duration = tiedNotesTotalDuration(note->score(), note, noteCtx.duration);
         applySwingToNoteCtx(noteCtx);
         result.emplace_back(buildNoteEvent(std::move(noteCtx)));
         return;
@@ -153,12 +145,4 @@ void ChordArticulationsRenderer::doRenderNote(const Chord* chord, const Note* no
     }
 
     result.emplace_back(buildNoteEvent(std::move(noteCtx)));
-}
-
-NominalNoteCtx ChordArticulationsRenderer::buildNominalNoteCtx(const Note* note, const RenderingContext& ctx)
-{
-    NominalNoteCtx noteCtx(note, ctx);
-    NoteArticulationsParser::buildNoteArticulationMap(note, ctx, noteCtx.chordCtx.commonArticulations);
-
-    return noteCtx;
 }

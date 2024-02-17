@@ -26,7 +26,6 @@
 #include <QVariant>
 #include <QMap>
 #include <QStack>
-#include <QEventLoop>
 
 #include "modularity/ioc.h"
 #include "../iinteractiveprovider.h"

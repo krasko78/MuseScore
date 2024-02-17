@@ -43,8 +43,6 @@ using namespace mu::engraving::rendering::dev;
 
 void ScorePageViewLayout::initLayoutContext(const Score* score, LayoutContext& ctx, const Fraction& stick, const Fraction& etick)
 {
-    LAYOUT_CALL();
-
     LayoutState& state = ctx.mutState();
 
     state.setEndTick(etick);
@@ -130,8 +128,6 @@ void ScorePageViewLayout::initLayoutContext(const Score* score, LayoutContext& c
 
 void ScorePageViewLayout::prepareScore(Score* score, const LayoutContext& ctx)
 {
-    LAYOUT_CALL();
-
     if (!ctx.state().isLayoutAll() && ctx.state().curSystem()) {
         system_idx_t systemIndex = mu::indexOf(score->systems(), ctx.state().curSystem());
         score->systems().erase(score->systems().begin() + systemIndex, score->systems().end());
@@ -167,9 +163,6 @@ void ScorePageViewLayout::layoutPageView(Score* score, LayoutContext& ctx, const
 {
     TRACEFUNC;
 
-    LAYOUT_CALL_CLEAR();
-    LAYOUT_CALL();
-
     initLayoutContext(score, ctx, stick, etick);
 
     prepareScore(score, ctx);
@@ -190,25 +183,20 @@ void ScorePageViewLayout::layoutPageView(Score* score, LayoutContext& ctx, const
     doLayout(ctx);
 
     layoutFinished(score, ctx);
-
-    LAYOUT_CALL_PRINT();
 }
 
 void ScorePageViewLayout::doLayout(LayoutContext& ctx)
 {
-    LAYOUT_CALL();
-
-    LayoutState& state = ctx.mutState();
     MeasureLayout::getNextMeasure(ctx);
-    state.setCurSystem(SystemLayout::collectSystem(ctx));
+    ctx.mutState().setCurSystem(SystemLayout::collectSystem(ctx));
 
     const MeasureBase* lmb = nullptr;
     do {
         PageLayout::getNextPage(ctx);
         PageLayout::collectPage(ctx);
 
-        if (state.page() && !state.page()->systems().empty()) {
-            lmb = state.page()->systems().back()->measures().back();
+        if (ctx.state().page() && !ctx.state().page()->systems().empty()) {
+            lmb = ctx.state().page()->systems().back()->measures().back();
         } else {
             lmb = nullptr;
         }
@@ -222,14 +210,12 @@ void ScorePageViewLayout::doLayout(LayoutContext& ctx)
         //    c) this page ends with the same measure as the previous layout
         //    pageOldMeasure will be last measure from previous layout if range was completed on or before this page
         //    it will be nullptr if this page was never laid out or if we collected a system for next page
-    } while (state.curSystem() && !(state.rangeDone() && lmb == state.pageOldMeasure()));
+    } while (ctx.state().curSystem() && !(ctx.state().rangeDone() && lmb == ctx.state().pageOldMeasure()));
     // && page->system(0)->measures().back()->tick() > endTick // FIXME: perhaps the first measure was meant? Or last system?
 }
 
 void ScorePageViewLayout::layoutFinished(Score* score, LayoutContext& ctx)
 {
-    LAYOUT_CALL();
-
     LayoutState& state = ctx.mutState();
 
     if (!state.curSystem()) {

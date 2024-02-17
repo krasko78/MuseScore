@@ -24,6 +24,7 @@
 #include "io/buffer.h"
 
 #include "compat/writescorehook.h"
+#include "infrastructure/mscwriter.h"
 
 #include "rw/mscloader.h"
 #include "rw/xmlreader.h"
@@ -33,6 +34,7 @@
 
 #include "engravingproject.h"
 
+#include "audio.h"
 #include "barline.h"
 #include "excerpt.h"
 #include "factory.h"
@@ -64,6 +66,10 @@ MasterScore::MasterScore(std::weak_ptr<engraving::EngravingProject> project)
     m_expandedRepeatList  = new RepeatList(this);
     m_nonExpandedRepeatList = new RepeatList(this);
     setMasterScore(this);
+
+    m_pos[int(POS::CURRENT)] = Fraction(0, 1);
+    m_pos[int(POS::LEFT)]    = Fraction(0, 1);
+    m_pos[int(POS::RIGHT)]   = Fraction(0, 1);
 
 #if defined(Q_OS_WIN)
     metaTags().insert({ u"platform", u"Microsoft Windows" });
@@ -278,19 +284,8 @@ Score* MasterScore::createScore(const MStyle& s)
 //   setPos
 //---------------------------------------------------------
 
-Fraction MasterScore::loopBoundaryTick(LoopBoundaryType type) const
+void MasterScore::setPos(POS pos, Fraction tick)
 {
-    IF_ASSERT_FAILED(type != LoopBoundaryType::Unknown) {
-        return Fraction();
-    }
-    return m_loopBoundaries[size_t(type)];
-}
-
-void MasterScore::setLoopBoundaryTick(LoopBoundaryType type, Fraction tick)
-{
-    IF_ASSERT_FAILED(type != LoopBoundaryType::Unknown) {
-        return;
-    }
     if (tick < Fraction(0, 1)) {
         tick = Fraction(0, 1);
     }
@@ -299,12 +294,12 @@ void MasterScore::setLoopBoundaryTick(LoopBoundaryType type, Fraction tick)
         tick = lastMeasure()->endTick();
     }
 
-    m_loopBoundaries[size_t(type)] = tick;
+    m_pos[int(pos)] = tick;
     // even though tick position might not have changed, layout might have
     // so we should update cursor here
-    // however, we must be careful not to call setLoopBoundaryTick() again while handling posChanged, or recursion results
+    // however, we must be careful not to call setPos() again while handling posChanged, or recursion results
     for (Score* s : scoreList()) {
-        s->notifyLoopBoundaryTickChanged(type, unsigned(tick.ticks()));
+        s->notifyPosChanged(pos, unsigned(tick.ticks()));
     }
 }
 

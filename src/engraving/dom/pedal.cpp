@@ -26,7 +26,6 @@
 #include "measure.h"
 #include "score.h"
 #include "system.h"
-#include "text.h"
 
 #include "log.h"
 
@@ -66,8 +65,6 @@ const String Pedal::STAR_SYMBOL = u"<sym>keyboardPedalUp</sym>";
 PedalSegment::PedalSegment(Pedal* sp, System* parent)
     : TextLineBaseSegment(ElementType::PEDAL_SEGMENT, sp, parent, ElementFlag::MOVABLE | ElementFlag::ON_STAFF)
 {
-    m_text->setTextStyleType(TextStyleType::PEDAL);
-    m_endText->setTextStyleType(TextStyleType::PEDAL);
 }
 
 //---------------------------------------------------------

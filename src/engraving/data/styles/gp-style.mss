@@ -29,8 +29,5 @@
     <wahShowTabCommon>1</wahShowTabCommon>
     <golpeShowTabSimple>0</golpeShowTabSimple>
     <golpeShowTabCommon>1</golpeShowTabCommon>
-    <tabShowTiedFret>1</tabShowTiedFret>
-    <tabParenthesizeTiedFret>1</tabParenthesizeTiedFret>
-    <parenthesizeTiedFretIfArticulation>1</parenthesizeTiedFretIfArticulation>
   </Style>
 </museScore>

@@ -31,22 +31,22 @@ namespace mu::plugins::api {
 //---------------------------------------------------------
 
 InstrumentListProperty::InstrumentListProperty(Part* p)
-    : QmlListProperty<Instrument>(p, p, &count, &at) {}
+    : QQmlListProperty<Instrument>(p, p, &count, &at) {}
 
 //---------------------------------------------------------
 //   InstrumentListProperty::count
 //---------------------------------------------------------
 
-qsizetype InstrumentListProperty::count(QQmlListProperty<Instrument>* l)
+int InstrumentListProperty::count(QQmlListProperty<Instrument>* l)
 {
-    return static_cast<qsizetype>(static_cast<Part*>(l->data)->part()->instruments().size());
+    return static_cast<int>(static_cast<Part*>(l->data)->part()->instruments().size());
 }
 
 //---------------------------------------------------------
 //   InstrumentListProperty::at
 //---------------------------------------------------------
 
-Instrument* InstrumentListProperty::at(QQmlListProperty<Instrument>* l, qsizetype i)
+Instrument* InstrumentListProperty::at(QQmlListProperty<Instrument>* l, int i)
 {
     Part* part = static_cast<Part*>(l->data);
     const mu::engraving::InstrumentList& il = part->part()->instruments();

@@ -22,10 +22,10 @@
 
 #include "musicxmlwriter.h"
 
+#include "log.h"
+
 #include "engraving/dom/masterscore.h"
 #include "musicxml/exportxml.h"
-
-#include "log.h"
 
 using namespace mu::iex::musicxml;
 using namespace mu::project;
@@ -42,7 +42,7 @@ bool MusicXmlWriter::supportsUnitType(UnitType unitType) const
     return std::find(unitTypes.cbegin(), unitTypes.cend(), unitType) != unitTypes.cend();
 }
 
-mu::Ret MusicXmlWriter::write(notation::INotationPtr notation, io::IODevice& destinationDevice, const Options&)
+mu::Ret MusicXmlWriter::write(notation::INotationPtr notation, QIODevice& destinationDevice, const Options&)
 {
     IF_ASSERT_FAILED(notation) {
         return make_ret(Ret::Code::UnknownError);
@@ -52,12 +52,10 @@ mu::Ret MusicXmlWriter::write(notation::INotationPtr notation, io::IODevice& des
         return make_ret(Ret::Code::UnknownError);
     }
 
-    Ret ret = mu::engraving::saveXml(score, &destinationDevice);
-
-    return ret;
+    return mu::engraving::saveXml(score, &destinationDevice);
 }
 
-mu::Ret MusicXmlWriter::writeList(const notation::INotationPtrList&, io::IODevice&, const Options&)
+mu::Ret MusicXmlWriter::writeList(const notation::INotationPtrList&, QIODevice&, const Options&)
 {
     NOT_SUPPORTED;
     return Ret(Ret::Code::NotSupported);

@@ -38,12 +38,10 @@ StyledPopupView {
 
     showArrow: false
 
-    signal elementRectChanged(var elementRect)
-
-    function updatePosition() {
+    function updatePosition(elementRect) {
         var h = Math.max(root.contentHeight, capoModel.capoIsOn ? 360 : 160)
-        root.x = root.parent.width + 12
-        root.y = (root.parent.y + root.parent.height / 2) - root.parent.y - h / 2
+        root.x = elementRect.x + elementRect.width + 12
+        root.y = elementRect.y - h / 2
     }
 
     ColumnLayout {
@@ -59,7 +57,7 @@ StyledPopupView {
             id: capoModel
 
             onItemRectChanged: function(rect) {
-                root.elementRectChanged(rect)
+                updatePosition(rect)
             }
         }
 

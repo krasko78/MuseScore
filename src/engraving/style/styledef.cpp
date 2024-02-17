@@ -29,7 +29,6 @@
 #include "dom/articulation.h"
 #include "dom/mscore.h"
 #include "dom/realizedharmony.h"
-#include "dom/stafftype.h"
 #include "dom/textbase.h"
 #include "dom/tuplet.h"
 #include "dom/types.h"
@@ -271,10 +270,9 @@ const std::array<StyleDef::StyleValue, size_t(Sid::STYLES)> StyleDef::styleValue
     { Sid::pedalDashGapLen,         "pedalDashGapLen",         4.0 },
     { Sid::pedalHookHeight,         "pedalHookHeight",         Spatium(-1.2) },
     { Sid::pedalFontFace,           "pedalFontFace",           "Edwin" },
-    { Sid::pedalFontSize,           "pedalFontSize",           10.0 },
+    { Sid::pedalFontSize,           "pedalFontSize",           12.0 },
     { Sid::pedalLineSpacing,        "pedalLineSpacing",        1.0 },
     { Sid::pedalFontSpatiumDependent, "pedalFontSpatiumDependent", true },
-    { Sid::pedalMusicalSymbolsScale, "pedalMusicalSymbolsScale", 1.0 }, // percentage of the standard size
     { Sid::pedalFontStyle,          "pedalFontStyle",          int(FontStyle::Normal) },
     { Sid::pedalColor,              "pedalColor",              Color::BLACK },
     { Sid::pedalTextAlign,          "pedalTextAlign",          Align(AlignH::LEFT, AlignV::BASELINE) },
@@ -286,8 +284,7 @@ const std::array<StyleDef::StyleValue, size_t(Sid::STYLES)> StyleDef::styleValue
     { Sid::pedalFrameBgColor,       "pedalFrameBgColor",       Color::transparent },
     { Sid::pedalText,               "pedalText",               String(u"<sym>keyboardPedalPed</sym>") },
     { Sid::pedalHookText,           "pedalHookText",           String() },
-    { Sid::pedalContinueText,       "pedalContinueText",
-      String(u"<sym>keyboardPedalParensLeft</sym><sym>keyboardPedalPed</sym><sym>keyboardPedalParensRight</sym>") },
+    { Sid::pedalContinueText,       "pedalContinueText",       String(u"(<sym>keyboardPedalPed</sym>)") },
     { Sid::pedalContinueHookText,   "pedalContinueHookText",   String() },
     { Sid::pedalEndText,            "pedalEndText",            String() },
     { Sid::pedalRosetteEndText,     "pedalRosetteEndText",     String(u"<sym>keyboardPedalUp</sym>") },
@@ -414,15 +411,12 @@ const std::array<StyleDef::StyleValue, size_t(Sid::STYLES)> StyleDef::styleValue
     { Sid::smallClefMag,            "smallClefMag",            PropertyValue(0.8) },
 
     { Sid::genClef,                 "genClef",                 true },
-    { Sid::hideTabClefAfterFirst,   "hideTabClefAfterFirst",   true },
     { Sid::genKeysig,               "genKeysig",               true },
     { Sid::genCourtesyTimesig,      "genCourtesyTimesig",      true },
     { Sid::genCourtesyKeysig,       "genCourtesyKeysig",       true },
     { Sid::genCourtesyClef,         "genCourtesyClef",         true },
-    { Sid::keySigCourtesyBarlineMode, "keySigCourtesyBarlineMode", PropertyValue(int(CourtesyBarlineMode::DOUBLE_BEFORE_COURTESY)) },
-    { Sid::timeSigCourtesyBarlineMode, "timeSigCourtesyBarlineMode", PropertyValue(int(CourtesyBarlineMode::ALWAYS_SINGLE)) },
     { Sid::swingRatio,              "swingRatio",              PropertyValue(60) },
-    { Sid::swingUnit,               "swingUnit",               PropertyValue(String()) },
+    { Sid::swingUnit,               "swingUnit",               PropertyValue(String(u"")) },
     { Sid::useStandardNoteNames,    "useStandardNoteNames",    true },
     { Sid::useGermanNoteNames,      "useGermanNoteNames",      false },
     { Sid::useFullGermanNoteNames,  "useFullGermanNoteNames",  false },
@@ -481,14 +475,10 @@ const std::array<StyleDef::StyleValue, size_t(Sid::STYLES)> StyleDef::styleValue
     { Sid::SlurEndWidth,            "slurEndWidth",            Spatium(.05) },
     { Sid::SlurMidWidth,            "slurMidWidth",            Spatium(.21) },
     { Sid::SlurDottedWidth,         "slurDottedWidth",         Spatium(.10) },
-    { Sid::TieEndWidth,             "tieEndWidth",             Spatium(.05) },
-    { Sid::TieMidWidth,             "tieMidWidth",             Spatium(.21) },
-    { Sid::TieDottedWidth,          "tieDottedWidth",          Spatium(.10) },
     { Sid::MinTieLength,            "minTieLength",            Spatium(1.0) },
     { Sid::MinStraightGlissandoLength, "minStraightGlissandoLength", Spatium(1.2) },
     { Sid::MinWigglyGlissandoLength, "minWigglyGlissandoLength", Spatium(2.0) },
     { Sid::SlurMinDistance,         "slurMinDistance",         Spatium(0.5) },
-    { Sid::TieMinDistance,          "tieMinDistance",          Spatium(0.5) },
     { Sid::HeaderToLineStartDistance,   "headerSlurTieDistance",   Spatium(1.0) },
 
     { Sid::tiePlacementSingleNote,   "tiePlacementSingleNote", TiePlacement::OUTSIDE },
@@ -587,7 +577,6 @@ const std::array<StyleDef::StyleValue, size_t(Sid::STYLES)> StyleDef::styleValue
     { Sid::ottavaFontSize,          "ottavaFontSize",          10.0 },
     { Sid::ottavaLineSpacing,       "ottavaLineSpacing",       1.0 },
     { Sid::ottavaFontSpatiumDependent, "ottavaFontSpatiumDependent", true },
-    { Sid::ottavaMusicalSymbolsScale, "ottavaMusicalSymbolsScale", 1.0 }, // percentage of the standard size
     { Sid::ottavaFontStyle,         "ottavaFontStyle",         int(FontStyle::Normal) },
     { Sid::ottavaColor,             "ottavaColor",             PropertyValue::fromValue(Color::BLACK) },
     { Sid::ottavaTextAlignAbove,    "ottavaTextAlignAbove",    Align(AlignH::LEFT, AlignV::TOP) },
@@ -630,11 +619,9 @@ const std::array<StyleDef::StyleValue, size_t(Sid::STYLES)> StyleDef::styleValue
     { Sid::tupletFontSize,          "tupletFontSize",          9.0 },
     { Sid::tupletLineSpacing,       "tupletLineSpacing",       1.0 },
     { Sid::tupletFontSpatiumDependent, "tupletFontSpatiumDependent", true },
-    { Sid::tupletMusicalSymbolsScale, "tupletMusicalSymbolsScale", 1.0 }, // percentage of the standard size
     { Sid::tupletFontStyle,         "tupletFontStyle",         int(FontStyle::Italic) },
     { Sid::tupletColor,             "tupletColor",             PropertyValue::fromValue(Color::BLACK) },
     { Sid::tupletAlign,             "tupletAlign",             Align(AlignH::HCENTER, AlignV::VCENTER) },
-    { Sid::tupletUseSymbols,        "tupletUseSymbols",        false },
     { Sid::tupletBracketHookHeight, "tupletBracketHookHeight", Spatium(0.75) },
     { Sid::tupletOffset,            "tupletOffset",            PointF() },
     { Sid::tupletFrameType,         "tupletFrameType",         int(FrameType::NO_FRAME) },
@@ -705,7 +692,7 @@ const std::array<StyleDef::StyleValue, size_t(Sid::STYLES)> StyleDef::styleValue
     { Sid::defaultOffset,                 "defaultOffset",                 PointF() },
     { Sid::defaultOffsetType,             "defaultOffsetType",             int(OffsetType::SPATIUM) },
     { Sid::defaultSystemFlag,             "defaultSystemFlag",             false },
-    { Sid::defaultText,                   "defaultText",                   String() },
+    { Sid::defaultText,                   "defaultText",                   String(u"") },
 
     { Sid::titleFontFace,                 "titleFontFace",                 "Edwin" },
     { Sid::titleFontSize,                 "titleFontSize",                 22.0 },
@@ -838,7 +825,6 @@ const std::array<StyleDef::StyleValue, size_t(Sid::STYLES)> StyleDef::styleValue
     { Sid::harpPedalDiagramFontSize,          "harpPedalDiagramFontSize",          10.0 },
     { Sid::harpPedalDiagramLineSpacing,       "harpPedalDiagramLineSpacing",       1.0 },
     { Sid::harpPedalDiagramFontSpatiumDependent, "harpPedalDiagramFontSpatiumDependent", true },
-    { Sid::harpPedalDiagramMusicalSymbolsScale, "harpPedalDiagramMusicalSymbolsScale", 1.0 }, // percentage of the standard size
     { Sid::harpPedalDiagramFontStyle,         "harpPedalDiagramFontStyle",         int(FontStyle::Normal) },
     { Sid::harpPedalDiagramColor,             "harpPedalDiagramColor",             PropertyValue::fromValue(Color::BLACK) },
     { Sid::harpPedalDiagramAlign,             "harpPedalDiagramAlign",             Align(AlignH::HCENTER, AlignV::VCENTER) },
@@ -1611,13 +1597,7 @@ const std::array<StyleDef::StyleValue, size_t(Sid::STYLES)> StyleDef::styleValue
     { Sid::golpeShowTabSimple, "golpeShowTabSimple", true },
     { Sid::golpeShowTabCommon, "golpeShowTabCommon", true },
 
-    { Sid::tabShowTiedFret, "tabShowTiedFret", int(ShowTiedFret::TIE_AND_FRET) },
-    { Sid::tabParenthesizeTiedFret, "tabParenthesizeTiedFret", int(ParenthesizeTiedFret::START_OF_SYSTEM) },
-    { Sid::parenthesizeTiedFretIfArticulation, "parenthesizeTiedFretIfArticulation", true },
-
     { Sid::chordlineThickness, "chordlineThickness", Spatium(0.16) },
-
-    { Sid::dummyMusicalSymbolsScale, "dummyMusicalSymbolsScale", 1.0 },
 
     { Sid::autoplaceEnabled,              "autoplaceEnabled",              true },
     { Sid::defaultsVersion,               "defaultsVersion",               Constants::MSC_VERSION }

@@ -34,20 +34,15 @@
 
 #include "io/fileinfo.h"
 
-//! NOTE Different platforms have different font metrics, which is why some tests fail
-#ifndef Q_OS_LINUX
-#define DISABLED_SOME_TESTS
-#endif
-
 using namespace mu;
 using namespace mu::framework;
 using namespace mu::iex::musicxml;
 using namespace mu::engraving;
 
 namespace mu::engraving {
-extern bool saveMxl(Score*, const String&);
-extern engraving::Err importMusicXml(MasterScore*, const String&);
-extern engraving::Err importCompressedMusicXml(MasterScore*, const String&);
+extern bool saveMxl(Score*, const QString&);
+extern engraving::Err importMusicXml(MasterScore*, const QString&);
+extern engraving::Err importCompressedMusicXml(MasterScore*, const QString&);
 }
 
 static const String XML_IO_DATA_DIR("data/");
@@ -499,9 +494,6 @@ TEST_F(Musicxml_Tests, directions1) {
 TEST_F(Musicxml_Tests, directions2) {
     mxmlIoTest("testDirections2");
 }
-TEST_F(Musicxml_Tests, displayStepOctave) {
-    mxmlMscxExportTestRef("testDisplayStepOctave");
-}
 TEST_F(Musicxml_Tests, divisionsDefinedTooLate1) {
     mxmlIoTestRef("testDivsDefinedTooLate1");
 }
@@ -628,9 +620,6 @@ TEST_F(Musicxml_Tests, harmony5) {
 TEST_F(Musicxml_Tests, harmony6) {
     mxmlMscxExportTestRef("testHarmony6");
 }
-TEST_F(Musicxml_Tests, harmony8) {
-    mxmlIoTest("testHarmony8");
-}
 TEST_F(Musicxml_Tests, hello) {
     mxmlIoTest("testHello");
 }
@@ -649,18 +638,15 @@ TEST_F(Musicxml_Tests, incompleteTuplet) {
 TEST_F(Musicxml_Tests, incorrectMidiProgram) {
     mxmlIoTestRef("testIncorrectMidiProgram");
 }
-
 TEST_F(Musicxml_Tests, incorrectStaffNumber1) {
     mxmlIoTestRef("testIncorrectStaffNumber1");
 }
 TEST_F(Musicxml_Tests, incorrectStaffNumber2) {
     mxmlIoTestRef("testIncorrectStaffNumber2");
 }
-#ifndef DISABLED_SOME_TESTS
 TEST_F(Musicxml_Tests, inferredSubtitle) {
     mxmlImportTestRef("testInferredSubtitle");
 }
-#endif
 TEST_F(Musicxml_Tests, instrumentChangeMIDIportExport) {
     mxmlMscxExportTestRef("testInstrumentChangeMIDIportExport");
 }
@@ -682,11 +668,9 @@ TEST_F(Musicxml_Tests, keysig1) {
 TEST_F(Musicxml_Tests, keysig2) {
     mxmlIoTest("testKeysig2");
 }
-#ifndef DISABLED_SOME_TESTS
 TEST_F(Musicxml_Tests, layout) {
     mxmlIoTest("testLayout", true);
 }
-#endif
 TEST_F(Musicxml_Tests, lessWhiteSpace) {
     mxmlIoTestRef("testLessWhiteSpace");
 }
@@ -912,14 +896,12 @@ TEST_F(Musicxml_Tests, systemBrackets4) {
 TEST_F(Musicxml_Tests, systemBrackets5) {
     mxmlIoTest("testSystemBrackets1");
 }
-#ifndef DISABLED_SOME_TESTS
 TEST_F(Musicxml_Tests, systemDistance) {
     mxmlMscxExportTestRef("testSystemDistance", true);
 }
 TEST_F(Musicxml_Tests, systemDividers) {
     mxmlIoTest("testSystemDividers", true);
 }
-#endif
 TEST_F(Musicxml_Tests, tablature1) {
     mxmlIoTest("testTablature1");
 }

@@ -23,9 +23,9 @@
 #ifndef MU_NOTATION_CAPOSETTINGSMODEL_H
 #define MU_NOTATION_CAPOSETTINGSMODEL_H
 
-#include <QObject>
+#include "abstractelementpopupmodel.h"
 
-#include "view/abstractelementpopupmodel.h"
+#include <QObject>
 
 namespace mu::engraving {
 class Capo;

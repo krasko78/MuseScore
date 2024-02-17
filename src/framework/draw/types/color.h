@@ -25,8 +25,6 @@
 
 #include <string>
 
-#include "global/types/string.h"
-
 #include "rgba.h"
 
 #ifndef NO_QT_SUPPORT
@@ -57,8 +55,6 @@ public:
 
     std::string toString() const;
     static Color fromString(const std::string& str);
-    static Color fromString(const char* str);
-    static Color fromString(const String& str);
 
     void setNamedColor(const std::string& color);
     void setNamedColor(const char* color);

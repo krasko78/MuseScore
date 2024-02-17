@@ -45,16 +45,16 @@ function accessibleColorDescription(color) {
 }
 
 function ensureContentVisible(flickable, contentRect, margins) {
-    var flickableBottomY = flickable.contentY + flickable.height
+    var flicableBottomY = flickable.contentY + flickable.height
     var contentBottomY = contentRect.y + contentRect.height
 
-    var flickableTopY = flickable.contentY
+    var flicableTopY = flickable.contentY
     var contentTopY = contentRect.y
 
-    if (flickableBottomY < contentBottomY) {
-        flickable.contentY += contentBottomY - flickableBottomY + margins
-    } else if (flickableTopY > contentTopY) {
-        flickable.contentY -= flickableTopY - contentTopY + margins
+    if (flicableBottomY < contentBottomY) {
+        flickable.contentY += contentBottomY - flicableBottomY + margins
+    } else if (flicableTopY > contentTopY) {
+        flickable.contentY -= flicableTopY - contentTopY + margins
     }
 }
 

@@ -29,7 +29,6 @@
 #include "modularity/ioc.h"
 #include "actions/iactionsdispatcher.h"
 #include "playback/iplaybackcontroller.h"
-#include "engraving/rendering/isinglerenderer.h"
 
 namespace mu::engraving {
 class Drumset;
@@ -42,7 +41,6 @@ class DrumsetPalette : public PaletteScrollArea
 
     INJECT(actions::IActionsDispatcher, dispatcher)
     INJECT(playback::IPlaybackController, playback)
-    INJECT(engraving::rendering::ISingleRenderer, engravingRenderer)
 
 public:
     explicit DrumsetPalette(QWidget* parent = nullptr);
@@ -65,11 +63,7 @@ private:
     void mouseMoveEvent(QMouseEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
     void mouseDoubleClickEvent(QMouseEvent* event) override;
-#ifdef MU_QT5_COMPAT
     void enterEvent(QEvent* event) override;
-#else
-    void enterEvent(QEnterEvent* event) override;
-#endif
     void leaveEvent(QEvent* event) override;
 
     int selectedDrumNote();

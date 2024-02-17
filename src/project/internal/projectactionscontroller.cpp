@@ -1568,7 +1568,7 @@ bool ProjectActionsController::checkCanIgnoreError(const Ret& ret, const io::pat
         return askIfUserAgreesToOpenProjectWithIncompatibleVersion(ret.text());
     case engraving::Err::FileTooNew:
         warnFileTooNew(filepath);
-        return configuration()->disableVersionChecking();
+        return false;
     case engraving::Err::FileCorrupted:
         return askIfUserAgreesToOpenCorruptedProject(io::filename(filepath).toString(), ret.text());
     case engraving::Err::FileCriticallyCorrupted:

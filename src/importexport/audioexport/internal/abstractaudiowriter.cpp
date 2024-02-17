@@ -26,7 +26,6 @@
 #include <QFileInfo>
 #include <QThread>
 
-#include "global/containers.h"
 #include "audio/iaudiooutput.h"
 
 #include "log.h"
@@ -47,13 +46,13 @@ bool AbstractAudioWriter::supportsUnitType(UnitType unitType) const
     return std::find(unitTypes.cbegin(), unitTypes.cend(), unitType) != unitTypes.cend();
 }
 
-mu::Ret AbstractAudioWriter::write(INotationPtr, io::IODevice&, const Options& options)
+mu::Ret AbstractAudioWriter::write(INotationPtr, QIODevice&, const Options& options)
 {
     IF_ASSERT_FAILED(unitTypeFromOptions(options) != UnitType::MULTI_PART) {
         return Ret(Ret::Code::NotSupported);
     }
 
-    if (supportsUnitType(mu::value(options, OptionKey::UNIT_TYPE, Val(UnitType::PER_PAGE)).toEnum<UnitType>())) {
+    if (supportsUnitType(options.value(OptionKey::UNIT_TYPE, Val(UnitType::PER_PAGE)).toEnum<UnitType>())) {
         NOT_IMPLEMENTED;
         return Ret(Ret::Code::NotImplemented);
     }
@@ -62,13 +61,13 @@ mu::Ret AbstractAudioWriter::write(INotationPtr, io::IODevice&, const Options& o
     return Ret(Ret::Code::NotSupported);
 }
 
-mu::Ret AbstractAudioWriter::writeList(const INotationPtrList&, io::IODevice&, const Options& options)
+mu::Ret AbstractAudioWriter::writeList(const INotationPtrList&, QIODevice&, const Options& options)
 {
     IF_ASSERT_FAILED(unitTypeFromOptions(options) == UnitType::MULTI_PART) {
         return Ret(Ret::Code::NotSupported);
     }
 
-    if (supportsUnitType(mu::value(options, OptionKey::UNIT_TYPE, Val(UnitType::PER_PAGE)).toEnum<UnitType>())) {
+    if (supportsUnitType(options.value(OptionKey::UNIT_TYPE, Val(UnitType::PER_PAGE)).toEnum<UnitType>())) {
         NOT_IMPLEMENTED;
         return Ret(Ret::Code::NotImplemented);
     }
@@ -87,16 +86,15 @@ mu::framework::Progress* AbstractAudioWriter::progress()
     return &m_progress;
 }
 
-mu::Ret AbstractAudioWriter::doWriteAndWait(INotationPtr notation, io::IODevice& destinationDevice, const audio::SoundTrackFormat& format)
+mu::Ret AbstractAudioWriter::doWriteAndWait(INotationPtr notation, QIODevice& destinationDevice, const audio::SoundTrackFormat& format)
 {
     //!Note Temporary workaround, since QIODevice is the alias for QIODevice, which falls with SIGSEGV
     //!     on any call from background thread. Once we have our own implementation of QIODevice
     //!     we can pass QIODevice directly into IPlayback::IAudioOutput::saveSoundTrack
+    QFile* file = qobject_cast<QFile*>(&destinationDevice);
 
-    QString path = QString::fromStdString(destinationDevice.meta("file_path"));
-    IF_ASSERT_FAILED(!path.isEmpty()) {
-        return make_ret(Ret::Code::InternalError);
-    }
+    QFileInfo info(*file);
+    QString path = info.absoluteFilePath();
 
     m_isCompleted = false;
     m_writeRet = Ret();
@@ -153,7 +151,7 @@ INotationWriter::UnitType AbstractAudioWriter::unitTypeFromOptions(const Options
     }
 
     UnitType defaultUnitType = supported.front();
-    UnitType unitType = mu::value(options, OptionKey::UNIT_TYPE, Val(defaultUnitType)).toEnum<UnitType>();
+    UnitType unitType = options.value(OptionKey::UNIT_TYPE, Val(defaultUnitType)).toEnum<UnitType>();
     if (!supportsUnitType(unitType)) {
         return defaultUnitType;
     }

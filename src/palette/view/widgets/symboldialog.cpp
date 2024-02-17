@@ -82,13 +82,10 @@ SymbolDialog::SymbolDialog(const QString& s, QWidget* parent)
     range = s;          // smufl symbol range
     int idx = 0;
     int currentIndex = 0;
-    Score* score = globalContext()->currentNotation()->elements()->msScore();
-    std::string styleFont = score ? score->style().styleSt(Sid::MusicalSymbolFont).toStdString() : "";
     for (const IEngravingFontPtr& f : engravingFonts()->fonts()) {
         fontList->addItem(QString::fromStdString(f->name()));
-        if (!styleFont.empty() && f->name() == styleFont) {
+        if (f->name() == "Leland" || f->name() == "Bravura") {
             currentIndex = idx;
-            styleFont = "";
         }
         ++idx;
     }

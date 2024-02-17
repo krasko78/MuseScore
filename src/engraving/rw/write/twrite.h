@@ -149,7 +149,6 @@ class StringTunings;
 class System;
 class SystemDivider;
 class SystemText;
-class SoundFlag;
 
 class TempoText;
 class Text;
@@ -287,7 +286,6 @@ public:
     static void write(const System* item, XmlWriter& xml, WriteContext& ctx);
     static void write(const SystemDivider* item, XmlWriter& xml, WriteContext& ctx);
     static void write(const SystemText* item, XmlWriter& xml, WriteContext& ctx);
-    static void write(const SoundFlag* item, XmlWriter& xml, WriteContext& ctx);
 
     static void write(const TempoText* item, XmlWriter& xml, WriteContext& ctx);
     static void write(const Text* item, XmlWriter& xml, WriteContext& ctx);
@@ -307,7 +305,7 @@ public:
 
     static void writeSegments(XmlWriter& xml, WriteContext& ctx, track_idx_t st, track_idx_t et, Segment* sseg, Segment* eseg, bool, bool);
 
-    static void writeProperty(const EngravingItem* item, XmlWriter& xml, Pid pid, bool force = false);
+    static void writeProperty(const EngravingItem* item, XmlWriter& xml, Pid pid);
 
 private:
 
@@ -325,7 +323,6 @@ private:
     static void writeProperties(const Rest* item, XmlWriter& xml, WriteContext& ctx);
 
     static void write(const StaffTextBase* item, XmlWriter& xml, WriteContext& ctx);
-    static void writeProperties(const StaffTextBase* item, XmlWriter& xml, WriteContext& ctx);
     static void writeProperties(const SlurTie* item, XmlWriter& xml, WriteContext& ctx);
     static void writeSlur(const SlurTieSegment* seg, XmlWriter& xml, WriteContext& ctx, int no);
     static void writeProperties(const SLine* item, XmlWriter& xml, WriteContext& ctx);

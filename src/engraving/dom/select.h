@@ -38,8 +38,6 @@ class Segment;
 class Note;
 class Measure;
 class Chord;
-class Tuplet;
-class GuitarBend;
 
 //---------------------------------------------------------
 //   ElementPattern
@@ -226,8 +224,6 @@ private:
     bool canSelectVoice(track_idx_t track) const { return selectionFilter().canSelectVoice(track); }
     void appendFiltered(EngravingItem* e);
     void appendChord(Chord* chord);
-    void appendTupletHierarchy(Tuplet* innermostTuplet);
-    void appendGuitarBend(GuitarBend* guitarBend);
 
     Score* m_score = nullptr;
     SelState m_state = SelState::NONE;

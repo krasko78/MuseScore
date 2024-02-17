@@ -24,11 +24,6 @@
 using namespace mu;
 using namespace mu::midi;
 
-bool MidiConfigurationStub::midiPortIsAvalaible() const
-{
-    return false;
-}
-
 bool MidiConfigurationStub::useRemoteControl() const
 {
     return false;

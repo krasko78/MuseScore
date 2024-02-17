@@ -1178,8 +1178,8 @@ void ChordLayout::layoutStem(Chord* item, LayoutContext& ctx)
 
     item->stem()->mutldata()->setPosX(item->stemPosX());
 
+    // This calls _stem->layout()
     item->stem()->setBaseLength(Millimetre(item->defaultStemLength()));
-    TLayout::layoutItem(item->stem(), ctx);
 
     // And now we need to set the position of the flag.
     if (item->hook()) {
@@ -3514,9 +3514,15 @@ void ChordLayout::layoutNote2(Note* item, LayoutContext& ctx)
                     right = item->tabHeadWidth(tab);
                 }
 
-                e->mutldata()->setPosX(right + parenthesisPadding);
+                if (Note::engravingConfiguration()->tablatureParenthesesZIndexWorkaround() && item->staff()->isTabStaff(e->tick())) {
+                    e->mutldata()->moveX(right + item->symWidth(SymId::noteheadParenthesisRight));
+                } else {
+                    e->mutldata()->setPosX(right + parenthesisPadding);
+                }
             } else if (sym->sym() == SymId::noteheadParenthesisLeft) {
-                e->mutldata()->setPosX(-left - e->width() - parenthesisPadding);
+                if (!Note::engravingConfiguration()->tablatureParenthesesZIndexWorkaround() || !item->staff()->isTabStaff(e->tick())) {
+                    e->mutldata()->setPosX(-left - e->width() - parenthesisPadding);
+                }
             }
         } else if (e->isFingering()) {
             // don't set mag; fingerings should not scale with note

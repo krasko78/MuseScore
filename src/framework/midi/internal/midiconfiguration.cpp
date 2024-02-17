@@ -52,11 +52,6 @@ void MidiConfiguration::init()
     settings()->setDefaultValue(USE_MIDI20_OUTPUT_KEY, Val(true));
 }
 
-bool MidiConfiguration::midiPortIsAvalaible() const
-{
-    return true;
-}
-
 bool MidiConfiguration::useRemoteControl() const
 {
     return settings()->value(USE_REMOTE_CONTROL_KEY).toBool();

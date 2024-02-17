@@ -150,10 +150,8 @@ enum class HDuration : signed char;
 enum class AccidentalType;
 enum class LayoutBreakType;
 
-enum class LoopBoundaryType : signed char {
-    Unknown = -1,
-    LoopIn = 0,
-    LoopOut = 1
+enum class POS : char {
+    CURRENT, LEFT, RIGHT
 };
 
 enum class Pad : char {
@@ -273,8 +271,8 @@ public:
 
     ShadowNote* shadowNote() const;
 
-    mu::async::Channel<LoopBoundaryType, unsigned> loopBoundaryTickChanged() const;
-    void notifyLoopBoundaryTickChanged(LoopBoundaryType type, unsigned ticks);
+    mu::async::Channel<POS, unsigned> posChanged() const;
+    void notifyPosChanged(POS pos, unsigned ticks);
 
     mu::async::Channel<EngravingItem*> elementDestroyed();
 
@@ -301,7 +299,6 @@ public:
 
     void cmdAddBracket();
     void cmdAddParentheses();
-    void cmdAddParentheses(EngravingItem* el);
     void cmdAddBraces();
     void cmdAddFret(int fret);
     void cmdSetBeamMode(BeamMode);
@@ -537,14 +534,12 @@ public:
     bool showUnprintable() const { return m_showUnprintable; }
     bool showFrames() const { return m_showFrames; }
     bool showPageborders() const { return m_showPageborders; }
-    bool showSoundFlags() const { return m_showSoundFlags; }
     bool markIrregularMeasures() const { return m_markIrregularMeasures; }
     bool showInstrumentNames() const { return m_showInstrumentNames; }
     void setShowInvisible(bool v);
     void setShowUnprintable(bool v);
     void setShowFrames(bool v);
     void setShowPageborders(bool v);
-    void setShowSoundFlags(bool v);
     void setMarkIrregularMeasures(bool v);
     void setShowInstrumentNames(bool v) { m_showInstrumentNames = v; }
 
@@ -633,13 +628,15 @@ public:
     TranslatableString getTextStyleUserName(TextStyleType tid);
 
     // These position are in ticks and not uticks
-    Fraction loopInTick() const { return loopBoundaryTick(LoopBoundaryType::LoopIn); }
-    Fraction loopOutTick() const { return loopBoundaryTick(LoopBoundaryType::LoopOut); }
-    void setLoopInTick(const Fraction& tick) { setLoopBoundaryTick(LoopBoundaryType::LoopIn, tick); }
-    void setLoopOutTick(const Fraction& tick) { setLoopBoundaryTick(LoopBoundaryType::LoopOut, tick); }
+    Fraction playPos() const { return pos(POS::CURRENT); }
+    void setPlayPos(const Fraction& tick) { setPos(POS::CURRENT, tick); }
+    Fraction loopInTick() const { return pos(POS::LEFT); }
+    Fraction loopOutTick() const { return pos(POS::RIGHT); }
+    void setLoopInTick(const Fraction& tick) { setPos(POS::LEFT, tick); }
+    void setLoopOutTick(const Fraction& tick) { setPos(POS::RIGHT, tick); }
 
-    Fraction loopBoundaryTick(LoopBoundaryType type) const;
-    void setLoopBoundaryTick(LoopBoundaryType type, Fraction tick);
+    Fraction pos(POS pos) const;
+    void setPos(POS pos, Fraction tick);
 
     bool noteEntryMode() const { return inputState().noteEntryMode(); }
     void setNoteEntryMode(bool val) { inputState().setNoteEntryMode(val); }
@@ -651,6 +648,7 @@ public:
     const InputState& inputState() const { return m_is; }
     InputState& inputState() { return m_is; }
     void setInputState(const InputState& st) { m_is = st; }
+    void setInputTrack(int t) { inputState().setTrack(t); }
 
     void spatiumChanged(double oldValue, double newValue);
     void styleChanged() override;
@@ -857,7 +855,7 @@ public:
     const SpannerMap& spannerMap() const { return m_spanner; }
     bool isSpannerStartEnd(const Fraction& tick, track_idx_t track) const;
     void removeSpanner(Spanner*);
-    void addSpanner(Spanner*, bool computeStartEnd = true);
+    void addSpanner(Spanner*);
     void cmdAddSpanner(Spanner* spanner, const mu::PointF& pos, bool systemStavesOnly = false);
     void cmdAddSpanner(Spanner* spanner, staff_idx_t staffIdx, Segment* startSegment, Segment* endSegment, bool ctrlModifier = false);
     void checkSpanner(const Fraction& startTick, const Fraction& lastTick, bool removeOrphans = true);
@@ -1064,7 +1062,6 @@ private:
     bool m_showUnprintable = true;
     bool m_showFrames = true;
     bool m_showPageborders = false;
-    bool m_showSoundFlags = true;
     bool m_markIrregularMeasures = true;
     bool m_showInstrumentNames = true;
     bool m_printing = false;                // True if we are drawing to a printer
@@ -1092,7 +1089,7 @@ private:
 
     ShadowNote* m_shadowNote = nullptr;
 
-    mu::async::Channel<LoopBoundaryType, unsigned> m_loopBoundaryTickChanged;
+    mu::async::Channel<POS, unsigned> m_posChanged;
 
     PaddingTable m_paddingTable;
     double m_minimumPaddingUnit = 0.0;

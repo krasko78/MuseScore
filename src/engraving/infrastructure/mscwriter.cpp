@@ -192,9 +192,9 @@ void MscWriter::writeAudioFile(const ByteArray& data)
     addFileData(u"audio.ogg", data);
 }
 
-void MscWriter::writeAudioSettingsJsonFile(const ByteArray& data, const io::path_t& pathPrefix)
+void MscWriter::writeAudioSettingsJsonFile(const ByteArray& data)
 {
-    addFileData(pathPrefix.toString() + u"audiosettings.json", data);
+    addFileData(u"audiosettings.json", data);
 }
 
 void MscWriter::writeViewSettingsJsonFile(const ByteArray& data, const io::path_t& pathPrefix)

@@ -194,9 +194,7 @@ bool StaffType::operator==(const StaffType& st) const
     equal &= (m_durationGridYOffset == st.m_durationGridYOffset);
     equal &= (m_durationMetricsValid == st.m_durationMetricsValid);
     equal &= (m_fretBoxH == st.m_fretBoxH);
-    equal &= (m_deadFretBoxH == st.m_deadFretBoxH);
     equal &= (m_fretBoxY == st.m_fretBoxY);
-    equal &= (m_deadFretBoxY == st.m_deadFretBoxY);
     equal &= (m_fretFont == st.m_fretFont);
     equal &= (m_fretFontIdx == st.m_fretFontIdx);
     equal &= (m_fretYOffset == st.m_fretYOffset);
@@ -358,7 +356,7 @@ void StaffType::setDurationMetrics() const
     m_durationMetricsValid = true;
 }
 
-void StaffType::setFretMetrics(const MStyle& style) const
+void StaffType::setFretMetrics() const
 {
     if (m_fretMetricsValid && m_refDPI == DPI) {
         return;
@@ -369,7 +367,7 @@ void StaffType::setFretMetrics(const MStyle& style) const
     // compute vertical displacement
     if (m_useNumbers) {
         // compute total height of used characters
-        String txt;
+        String txt = String();
         for (int idx = 0; idx < 10; idx++) {    // use only first 10 digits
             txt.append(m_fretFonts[m_fretFontIdx].displayDigit[idx]);
         }
@@ -387,25 +385,14 @@ void StaffType::setFretMetrics(const MStyle& style) const
         RectF bx(fm.tightBoundingRect(m_fretFonts[m_fretFontIdx].displayLetter[0]));
         m_fretYOffset = -bx.y() / 2.0;
     }
-
-    // Calculate position for dead fret marks - these must be centred separately based on their glyph
-    RectF deadBb = fm.tightBoundingRect(m_fretFonts[m_fretFontIdx].xChar);
-    double lineThickness = style.styleS(Sid::staffLineWidth).val() * SPATIUM20 * 0.5;
-    m_deadFretYOffset = -deadBb.y() / 2.0 + lineThickness;
-
     // if on string, we are done; if between strings, raise by half line distance
     if (!m_onLines) {
-        double lineAdj = lineDistance().val() * SPATIUM20 * 0.5;
-        m_fretYOffset -= lineAdj;
-        m_deadFretYOffset -= lineAdj;
+        m_fretYOffset -= lineDistance().val() * SPATIUM20 * 0.5;
     }
 
     // from _fretYOffset, compute _fretBoxH and _fretBoxY
     m_fretBoxH = bb.height();
     m_fretBoxY = bb.y() + m_fretYOffset;
-
-    m_deadFretBoxH = deadBb.height();
-    m_deadFretBoxY = deadBb.y() + m_deadFretYOffset;
 
     // keep track of the conditions under which metrics have been computed
     m_refDPI = DPI;
@@ -596,7 +583,7 @@ String StaffType::fretString(int fret, int string, bool deadNote) const
         return unknownFret;
     }
     if (deadNote) {
-        return String(m_fretFonts[m_fretFontIdx].xChar);
+        return m_fretFonts[m_fretFontIdx].deadNoteChar;
     } else {
         bool hasFret;
         String text  = tabBassStringPrefix(string, &hasFret);
@@ -1156,6 +1143,8 @@ static const int _defaultPreset[STAFF_GROUP_MAX] =
   4,                    // default percussion preset is "perc5lines"
   5                     // default tab preset is "tab6StrCommon"
 };
+
+static const String _emptyString = String();
 
 //---------------------------------------------------------
 //   Static functions for StaffType presets

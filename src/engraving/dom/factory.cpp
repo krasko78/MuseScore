@@ -97,7 +97,6 @@
 #include "system.h"
 #include "systemdivider.h"
 #include "systemtext.h"
-#include "soundflag.h"
 #include "tempotext.h"
 #include "text.h"
 #include "textline.h"
@@ -175,7 +174,6 @@ EngravingItem* Factory::doCreateItem(ElementType type, EngravingItem* parent)
     case ElementType::SYSTEM_TEXT:       return new SystemText(parent->isSegment() ? toSegment(parent) : dummy->segment());
     case ElementType::REHEARSAL_MARK:    return new RehearsalMark(parent->isSegment() ? toSegment(parent) : dummy->segment());
     case ElementType::INSTRUMENT_CHANGE: return new InstrumentChange(parent);
-    case ElementType::SOUND_FLAG:        return new SoundFlag(parent);
     case ElementType::STAFFTYPE_CHANGE:  return new StaffTypeChange(parent->isMeasureBase() ? toMeasureBase(parent) : dummy->measure());
     case ElementType::NOTEHEAD:          return new NoteHead(parent->isNote() ? toNote(parent) : dummy->note());
     case ElementType::NOTEDOT: {
@@ -534,9 +532,7 @@ StaffText* Factory::createStaffText(Segment * parent, TextStyleType textStyleTyp
     return staffText;
 }
 
-CREATE_ITEM_IMPL(SoundFlag, ElementType::SOUND_FLAG, EngravingItem, isAccessibleEnabled)
-
-Expression* Factory::createExpression(Segment * parent, bool isAccessibleEnabled)
+Expression* Factory::createExpression(Segment* parent, bool isAccessibleEnabled)
 {
     Expression* expression = new Expression(parent);
     expression->setAccessibleEnabled(isAccessibleEnabled);

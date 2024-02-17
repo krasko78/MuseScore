@@ -88,8 +88,6 @@ protected:
         QString serverCode;
         QUrl serverUrl;
 
-        QUrl serverAvailabilityUrl;
-
         QUrl authorizationUrl;
         QUrl signUpUrl;
         QUrl signInSuccessUrl;

@@ -35,7 +35,6 @@
 #include "style/style.h"
 #include "types/constants.h"
 
-#include "dom/accidental.h"
 #include "dom/arpeggio.h"
 #include "dom/articulation.h"
 #include "dom/bend.h"
@@ -77,17 +76,6 @@
 namespace mu::engraving {
 static PitchWheelSpecs wheelSpec;
 static int LET_RING_MAX_TICKS = Constants::DIVISION * 16;
-std::unordered_map<String,
-                   CompatMidiRendererInternal::Context::BuiltInArticulation> CompatMidiRendererInternal::Context::
-s_builtInArticulationsValues = {
-    { u"staccatissimo", { 1.0, 30 } },
-    { u"staccato", { 1.0, 50 } },
-    { u"portato", { 1.0, 67 } },
-    { u"tenuto", { 1.0, 100 } },
-    { u"accent", { 1.2, 100 } },
-    { u"marcato", { 1.44, 100 } },
-    { u"sforzato", { 1.69, 100 } },
-};
 
 struct CollectNoteParams {
     double velocityMultiplier = 1.;
@@ -124,10 +112,6 @@ static uint32_t getChannel(const Instrument* instr, const Note* note, MidiInstru
 static void fillScoreVelocities(const Score* score, CompatMidiRendererInternal::Context& context);
 static void fillHairpinVelocities(const Hairpin* h, std::unordered_map<staff_idx_t, VelocityMap>& velocitiesByStaff);
 static void fillVoltaVelocities(const Volta* volta, VelocityMap& veloMap);
-
-static double chordVelocityMultiplier(const Chord* chord, const CompatMidiRendererInternal::Context& context);
-static double velocityMultiplierByInstrument(const Instrument* instrument, const String& articulationName,
-                                             const CompatMidiRendererInternal::Context& context);
 
 //---------------------------------------------------------
 //   Converts midi time (noteoff - noteon) to milliseconds
@@ -244,23 +228,6 @@ static void playNote(EventsHolder& events, const Note* note, PlayNoteParams para
     }
 
     events[params.channel].insert(std::pair<int, NPlayEvent>(std::max(0, params.onTime - params.offset), ev));
-    Accidental* acc = note->accidental();
-    if (acc) {
-        AccidentalType type = acc->accidentalType();
-        double cents = Accidental::subtype2centOffset(type);
-        if (!RealIsNull(cents)) {
-            double pwValue = cents / 100.0 * (double)wheelSpec.mLimit / (double)wheelSpec.mAmplitude;
-            PitchWheelRenderer::PitchWheelFunction func;
-            func.mStartTick = params.onTime - params.offset;
-            func.mEndTick = params.offTime - params.offset;
-            auto microtonalPW = [pwValue](uint32_t tick) {
-                UNUSED(tick);
-                return static_cast<int>(std::round(pwValue));
-            };
-            func.func = microtonalPW;
-            pitchWheelRenderer.addPitchWheelFunction(func, params.channel, params.staffIdx, MidiInstrumentEffect::NONE);
-        }
-    }
     // adds portamento for continuous glissando
     for (Spanner* spanner : note->spannerFor()) {
         if (spanner->type() == ElementType::GLISSANDO) {
@@ -686,10 +653,6 @@ static void renderHarmony(EventsHolder& events, Measure const* m, Harmony* h, in
         return;
     }
 
-    if (context.partsWithMutedHarmony.find(h->part()->id().toStdString()) != context.partsWithMutedHarmony.end()) {
-        return;
-    }
-
     Staff* staff = m->score()->staff(h->track() / VOICES);
     const InstrChannel* instrChannel = staff->part()->harmonyChannel();
     IF_ASSERT_FAILED(instrChannel) {
@@ -861,7 +824,16 @@ void CompatMidiRendererInternal::doCollectMeasureEvents(EventsHolder& events, Me
             }
 
             Chord* chord = toChord(cr);
-            double veloMultiplier = NoteEvent::DEFAULT_VELOCITY_MULTIPLIER * chordVelocityMultiplier(chord, m_context);
+
+            Instrument* instr = st1->part()->instrument(tick);
+
+            // Get a velocity multiplier
+            double veloMultiplier = NoteEvent::DEFAULT_VELOCITY_MULTIPLIER;
+            for (Articulation* a : chord->articulations()) {
+                if (a->playArticulation()) {
+                    veloMultiplier *= instr->getVelocityMultiplier(a->articulationName());
+                }
+            }
 
             //
             // Add normal note events
@@ -875,7 +847,6 @@ void CompatMidiRendererInternal::doCollectMeasureEvents(EventsHolder& events, Me
 
             collectGraceBeforeChordEvents(chord, prevChords[voice], events, veloMultiplier, st1, tickOffset, pitchWheelRenderer, effect);
 
-            Instrument* instr = st1->part()->instrument(tick);
             for (const Note* note : chord->notes()) {
                 CollectNoteParams params;
                 params.velocityMultiplier = veloMultiplier;
@@ -1179,11 +1150,7 @@ void CompatMidiRendererInternal::renderScore(EventsHolder& events, const Context
     score->updateSwing();
     score->updateCapo();
 
-    if (!m_context.useDefaultArticulations) {
-        fillArticulationsInfo();
-    }
-
-    CompatMidiRender::createPlayEvents(score, score->firstMeasure(), nullptr, m_context);
+    CompatMidiRender::createPlayEvents(score, score->firstMeasure(), nullptr);
 
     score->updateChannel();
     fillScoreVelocities(score, m_context);
@@ -1199,66 +1166,6 @@ void CompatMidiRendererInternal::renderScore(EventsHolder& events, const Context
 
     EventsHolder pitchWheelEvents = pitchWheelRender.renderPitchWheel();
     events.mergePitchWheelEvents(pitchWheelEvents);
-    if (m_context.applyCaesuras) {
-        m_context.pauseMap->calculate(score);
-    }
-}
-
-void CompatMidiRendererInternal::fillArticulationsInfo()
-{
-    for (const Part* part : score->parts()) {
-        for (const auto& [tick, instr] : part->instruments()) {
-            String instrId = instr->id();
-            for (auto it = Context::s_builtInArticulationsValues.cbegin(); it != Context::s_builtInArticulationsValues.cend(); it++) {
-                const String& articulationName = it->first;
-                const std::vector<MidiArticulation>& instrArticulations = instr->articulation();
-                bool instrHasArticulation
-                    = std::any_of(instrArticulations.begin(),
-                                  instrArticulations.end(), [articulationName](const MidiArticulation& instrArticulation) {
-                    return instrArticulation.name == articulationName;
-                });
-
-                if (!instrHasArticulation) {
-                    m_context.articulationsWithoutValuesByInstrument[instrId].insert(articulationName);
-                }
-            }
-        }
-    }
-}
-
-double chordVelocityMultiplier(const Chord* chord, const CompatMidiRendererInternal::Context& context)
-{
-    double veloMultiplier = 1.0;
-    Instrument* instr = chord->part()->instrument();
-    for (Articulation* a : chord->articulations()) {
-        if (a->playArticulation()) {
-            veloMultiplier *= velocityMultiplierByInstrument(instr, a->articulationName(), context);
-        }
-    }
-
-    return veloMultiplier;
-}
-
-double velocityMultiplierByInstrument(const Instrument* instrument, const String& articulationName,
-                                      const CompatMidiRendererInternal::Context& context)
-{
-    using Ctx = CompatMidiRendererInternal::Context;
-    if (context.useDefaultArticulations) {
-        auto it = Ctx::s_builtInArticulationsValues.find(articulationName);
-        if (it != Ctx::s_builtInArticulationsValues.end()) {
-            return it->second.velocityMultiplier;
-        }
-    } else {
-        auto articulationsForInstrumentIt = context.articulationsWithoutValuesByInstrument.find(instrument->id());
-        if (articulationsForInstrumentIt != context.articulationsWithoutValuesByInstrument.end()) {
-            const auto& articulationsForInstrument = articulationsForInstrumentIt->second;
-            if (articulationsForInstrument.find(articulationName) != articulationsForInstrument.end()) {
-                return Ctx::s_builtInArticulationsValues[articulationName].velocityMultiplier;
-            }
-        }
-    }
-
-    return instrument->getVelocityMultiplier(articulationName);
 }
 
 /* static */
@@ -1376,15 +1283,14 @@ void fillHairpinVelocities(const Hairpin* h, std::unordered_map<staff_idx_t, Vel
 
 void fillScoreVelocities(const Score* score, CompatMidiRendererInternal::Context& context)
 {
-    Score* mainScore = score->masterScore();
-
-    if (!mainScore->firstMeasure()) {
+    if (!score->firstMeasure()) {
         return;
     }
 
-    for (size_t staffIdx = 0; staffIdx < mainScore->nstaves(); staffIdx++) {
-        Staff* st = mainScore->staff(staffIdx);
+    for (size_t staffIdx = 0; staffIdx < score->nstaves(); staffIdx++) {
+        Staff* st = score->staff(staffIdx);
         if (!st->isPrimaryStaff()) {
+            LOGE() << "@# skip";
             continue;
         }
 
@@ -1392,9 +1298,9 @@ void fillScoreVelocities(const Score* score, CompatMidiRendererInternal::Context
         VelocityMap& mult = context.velocityMultiplicationsByStaff[st->idx()];
         Part* prt = st->part();
         size_t partStaves = prt->nstaves();
-        staff_idx_t partStaff = mainScore->staffIdx(prt);
+        staff_idx_t partStaff = score->staffIdx(prt);
 
-        for (Segment* s = mainScore->firstMeasure()->first(); s; s = s->next1()) {
+        for (Segment* s = score->firstMeasure()->first(); s; s = s->next1()) {
             Fraction tick = s->tick();
             for (const EngravingItem* e : s->annotations()) {
                 if (e->staffIdx() != staffIdx) {
@@ -1437,12 +1343,12 @@ void fillScoreVelocities(const Score* score, CompatMidiRendererInternal::Context
                 case DynamicRange::PART:
                     if (dStaffIdx >= partStaff && dStaffIdx < partStaff + partStaves) {
                         for (staff_idx_t i = partStaff; i < partStaff + partStaves; ++i) {
-                            Staff* stp = mainScore->staff(i);
-                            if (!stp->isPrimaryStaff()) {
+                            Staff* st = score->staff(i);
+                            if (!st->isPrimaryStaff()) {
                                 continue;
                             }
 
-                            VelocityMap& stVelo = context.velocitiesByStaff[stp->idx()];
+                            VelocityMap& stVelo = context.velocitiesByStaff[st->idx()];
                             stVelo.addDynamic(tick, v);
                             if (change != 0) {
                                 Fraction etick = tick + d->velocityChangeLength();
@@ -1453,13 +1359,13 @@ void fillScoreVelocities(const Score* score, CompatMidiRendererInternal::Context
                     }
                     break;
                 case DynamicRange::SYSTEM:
-                    for (size_t i = 0; i < mainScore->nstaves(); ++i) {
-                        Staff* sts = mainScore->staff(i);
-                        if (!sts->isPrimaryStaff()) {
+                    for (size_t i = 0; i < score->nstaves(); ++i) {
+                        Staff* st = score->staff(i);
+                        if (!st->isPrimaryStaff()) {
                             continue;
                         }
 
-                        VelocityMap& stVelo = context.velocitiesByStaff[mainScore->staff(i)->idx()];
+                        VelocityMap& stVelo = context.velocitiesByStaff[score->staff(i)->idx()];
                         stVelo.addDynamic(tick, v);
                         if (change != 0) {
                             Fraction etick = tick + d->velocityChangeLength();
@@ -1479,8 +1385,14 @@ void fillScoreVelocities(const Score* score, CompatMidiRendererInternal::Context
                     }
 
                     Chord* chord = toChord(el);
+                    Instrument* instr = chord->part()->instrument();
 
-                    double veloMultiplier = chordVelocityMultiplier(chord, context);
+                    double veloMultiplier = 1.0;
+                    for (Articulation* a : chord->articulations()) {
+                        if (a->playArticulation()) {
+                            veloMultiplier *= instr->getVelocityMultiplier(a->articulationName());
+                        }
+                    }
 
                     if (RealIsEqual(veloMultiplier, 1.0)) {
                         continue;
@@ -1498,7 +1410,7 @@ void fillScoreVelocities(const Score* score, CompatMidiRendererInternal::Context
             }
         }
 
-        for (const auto& sp : mainScore->spannerMap().map()) {
+        for (const auto& sp : score->spannerMap().map()) {
             Spanner* s = sp.second;
             if (s->type() != ElementType::HAIRPIN || sp.second->staffIdx() != staffIdx) {
                 continue;
@@ -1508,14 +1420,14 @@ void fillScoreVelocities(const Score* score, CompatMidiRendererInternal::Context
         }
     }
 
-    for (Staff* st : mainScore->staves()) {
+    for (Staff* st : score->staves()) {
         if (st->isPrimaryStaff()) {
             context.velocitiesByStaff[st->idx()].setup();
             context.velocityMultiplicationsByStaff[st->idx()].setup();
         }
     }
 
-    for (auto it = mainScore->spanner().cbegin(); it != mainScore->spanner().cend(); ++it) {
+    for (auto it = score->spanner().cbegin(); it != score->spanner().cend(); ++it) {
         Spanner* spanner = (*it).second;
         if (!spanner->isVolta()) {
             continue;

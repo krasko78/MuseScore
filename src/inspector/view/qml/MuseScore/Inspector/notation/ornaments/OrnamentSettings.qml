@@ -58,7 +58,6 @@ Column {
             { text: qsTrc("inspector", "Auto (diatonic)"), value: OrnamentTypes.TYPE_AUTO_DIATONIC},
             { text: qsTrc("inspector", "Minor second"), value: OrnamentTypes.TYPE_MINOR_SECOND},
             { text: qsTrc("inspector", "Major second"), value: OrnamentTypes.TYPE_MAJOR_SECOND},
-            { text: qsTrc("inspector", "Augmented second"), value: OrnamentTypes.TYPE_AUGMENTED_SECOND},
         ]
     }
 
@@ -76,7 +75,6 @@ Column {
             { text: qsTrc("inspector", "Auto (diatonic)"), value: OrnamentTypes.TYPE_AUTO_DIATONIC},
             { text: qsTrc("inspector", "Minor second"), value: OrnamentTypes.TYPE_MINOR_SECOND},
             { text: qsTrc("inspector", "Major second"), value: OrnamentTypes.TYPE_MAJOR_SECOND},
-            { text: qsTrc("inspector", "Augmented second"), value: OrnamentTypes.TYPE_AUGMENTED_SECOND},
         ]
     }
 

@@ -37,7 +37,6 @@ InspectorPropertyView {
     property alias measureUnitsSymbol: spinBoxItem.measureUnitsSymbol
     property alias icon: spinBoxItem.icon
     property alias iconMode: spinBoxItem.iconMode
-    property alias wrap: spinBoxItem.wrap
 
     navigationName: "SpinBoxPropertyView"
     navigationRowEnd: spinBoxItem.navigation.row

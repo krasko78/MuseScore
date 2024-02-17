@@ -38,9 +38,6 @@ public:
 
 private:
     static bool renderChordArticulations(const Chord* chord, const RenderingContext& ctx, mpe::PlaybackEventList& result);
-    static void doRenderNote(const Chord* chord, const Note* note, NominalNoteCtx&& noteCtx, mpe::PlaybackEventList& result);
-
-    static NominalNoteCtx buildNominalNoteCtx(const Note* note, const RenderingContext& ctx);
 };
 }
 

@@ -23,12 +23,10 @@
 #ifndef MU_PROJECT_INOTATIONWRITER_H
 #define MU_PROJECT_INOTATIONWRITER_H
 
-#include <map>
+#include "types/ret.h"
+#include "types/val.h"
 
-#include "global/types/ret.h"
-#include "global/types/val.h"
-#include "global/io/iodevice.h"
-#include "global/async/channel.h"
+#include "async/channel.h"
 #include "global/progress.h"
 #include "notation/inotation.h"
 
@@ -52,13 +50,13 @@ public:
         BEATS_COLORS
     };
 
-    using Options = std::map<OptionKey, Val>;
+    using Options = QMap<OptionKey, Val>;
 
     virtual std::vector<UnitType> supportedUnitTypes() const = 0;
     virtual bool supportsUnitType(UnitType unitType) const = 0;
 
-    virtual Ret write(notation::INotationPtr notation, io::IODevice& device, const Options& options = Options()) = 0;
-    virtual Ret writeList(const notation::INotationPtrList& notations, io::IODevice& device, const Options& options = Options()) = 0;
+    virtual Ret write(notation::INotationPtr notation, QIODevice& device, const Options& options = Options()) = 0;
+    virtual Ret writeList(const notation::INotationPtrList& notations, QIODevice& device, const Options& options = Options()) = 0;
 
     virtual framework::Progress* progress() { return nullptr; }
     virtual void abort() {}

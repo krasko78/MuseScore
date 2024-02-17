@@ -284,7 +284,6 @@ public:
     bool isFinalMeasureOfSection() const;
     bool isAnacrusis() const;
     bool isFirstInSystem() const;
-    bool isFirstInSection() const;
 
     bool breakMultiMeasureRest() const { return m_breakMultiMeasureRest; }
     void setBreakMultiMeasureRest(bool val) { m_breakMultiMeasureRest = val; }

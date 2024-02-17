@@ -28,6 +28,9 @@ StyledTextLabel {
     property int iconCode: IconCode.NONE
     readonly property bool isEmpty: iconCode === IconCode.NONE
 
+    height: isEmpty ? 0 : implicitHeight
+    width: isEmpty ? 0 : implicitWidth
+
     font {
         family: ui.theme.iconsFont.family
         pixelSize: ui.theme.iconsFont.pixelSize

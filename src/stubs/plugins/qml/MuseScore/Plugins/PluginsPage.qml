@@ -28,9 +28,6 @@ Rectangle {
     property string selectedCategory: ""
     property string backgroundColor: ui.theme.backgroundPrimaryColor
 
-    property var sideMargin
-    property var navigationSection
-
     function categories() {
         return {}
     }

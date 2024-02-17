@@ -47,11 +47,6 @@
 
 #include "playevent.h"
 
-#ifndef MU_QT5_COMPAT
-Q_MOC_INCLUDE("plugins/api/part.h")
-Q_MOC_INCLUDE("plugins/api/tie.h")
-#endif
-
 namespace mu::plugins::api {
 class FractionWrapper;
 class EngravingItem;

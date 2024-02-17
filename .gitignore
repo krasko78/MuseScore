@@ -67,5 +67,3 @@ VERSION
 *.orig
 
 temp_*
-
-*.local.cmake

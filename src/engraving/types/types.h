@@ -70,6 +70,7 @@ enum class ElementType {
     PART,
     STAFF,
     SCORE,
+    SYMBOL,
     TEXT,
     MEASURE_NUMBER,
     MMREST_RANGE,
@@ -83,11 +84,10 @@ enum class ElementType {
     ARPEGGIO,
     ACCIDENTAL,
     LEDGER_LINE,
-    STEM,   // list STEM before NOTE: notes in TAB might 'break' stems
-    HOOK,   // and this requires stems to be drawn before notes
-    NOTE,   // elements from CLEF to TIMESIG need to be in the order
-    SYMBOL, // in which they appear in a measure
-    CLEF,
+    STEM,  // list STEM before NOTE: notes in TAB might 'break' stems
+    HOOK,  // and this requires stems to be drawn before notes
+    NOTE,  // elements from CLEF to TIMESIG need to be in the order
+    CLEF,  // in which they appear in a measure
     KEYSIG,
     AMBITUS,
     TIMESIG,
@@ -115,7 +115,6 @@ enum class ElementType {
     TEMPO_TEXT,
     STAFF_TEXT,
     SYSTEM_TEXT,
-    SOUND_FLAG,
     PLAYTECH_ANNOTATION,
     CAPO,
     STRING_TUNINGS,

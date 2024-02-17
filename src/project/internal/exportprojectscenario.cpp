@@ -19,16 +19,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "exportprojectscenario.h"
+#include <QFile>
 
-#include "global/io/file.h"
-#include "global/io/fileinfo.h"
+#include "exportprojectscenario.h"
 
 #include "translation.h"
 #include "defer.h"
 #include "log.h"
 
-using namespace mu::io;
 using namespace mu::project;
 using namespace mu::notation;
 using namespace mu::framework;
@@ -131,7 +129,7 @@ bool ExportProjectScenario::exportScores(const notation::INotationPtrList& notat
     masterNotation()->initExcerpts(excerptsToInit);
 
     // Scores that are closed may have never been laid out, so we lay them out now
-    for (const INotationPtr& notation : notations) {
+    for (INotationPtr notation : notations) {
         mu::engraving::Score* score = notation->elements()->msScore();
         if (!score->autoLayoutEnabled()) {
             score->doLayout();
@@ -182,7 +180,7 @@ bool ExportProjectScenario::exportScores(const notation::INotationPtrList& notat
 
     switch (unitType) {
     case INotationWriter::UnitType::PER_PAGE: {
-        for (const INotationPtr& notation : notations) {
+        for (INotationPtr notation : notations) {
             size_t pageCount = notation->elements()->msScore()->pages().size();
             bool isMain = isMainNotation(notation);
 
@@ -194,7 +192,7 @@ bool ExportProjectScenario::exportScores(const notation::INotationPtrList& notat
                                             : completeExportPath(destinationPath, notation, isMain, isExportingOnlyOneScore,
                                                                  static_cast<int>(page));
 
-                auto exportFunction = [writer, notation, options](io::IODevice& destinationDevice) {
+                auto exportFunction = [writer, notation, options](QIODevice& destinationDevice) {
                         return writer->write(notation, destinationDevice, options);
                     };
 
@@ -208,12 +206,12 @@ bool ExportProjectScenario::exportScores(const notation::INotationPtrList& notat
         }
     } break;
     case INotationWriter::UnitType::PER_PART: {
-        for (const INotationPtr& notation : notations) {
+        for (INotationPtr notation : notations) {
             io::path_t definitivePath = isCreatingOnlyOneFile
                                         ? destinationPath
                                         : completeExportPath(destinationPath, notation, isMainNotation(notation), isExportingOnlyOneScore);
 
-            auto exportFunction = [writer, notation, options](IODevice& destinationDevice) {
+            auto exportFunction = [writer, notation, options](QIODevice& destinationDevice) {
                     return writer->write(notation, destinationDevice, options);
                 };
 
@@ -226,7 +224,7 @@ bool ExportProjectScenario::exportScores(const notation::INotationPtrList& notat
         }
     } break;
     case INotationWriter::UnitType::MULTI_PART: {
-        auto exportFunction = [writer, notations, options](IODevice& destinationDevice) {
+        auto exportFunction = [writer, notations, options](QIODevice& destinationDevice) {
                 return writer->writeList(notations, destinationDevice, options);
             };
 
@@ -302,7 +300,7 @@ size_t ExportProjectScenario::exportFileCount(const INotationPtrList& notations,
     case INotationWriter::UnitType::PER_PAGE: {
         size_t count = 0;
 
-        for (const INotationPtr& notation : notations) {
+        for (INotationPtr notation : notations) {
             count += notation->elements()->pages().size();
         }
 
@@ -395,21 +393,20 @@ bool ExportProjectScenario::askForRetry(const QString& filename) const
     return result.standardButton() == IInteractive::Button::Retry;
 }
 
-mu::Ret ExportProjectScenario::doExportLoop(const io::path_t& scorePath, std::function<Ret(io::IODevice&)> exportFunction) const
+mu::Ret ExportProjectScenario::doExportLoop(const io::path_t& scorePath, std::function<Ret(QIODevice&)> exportFunction) const
 {
     IF_ASSERT_FAILED(exportFunction) {
         return make_ret(Ret::Code::InternalError);
     }
 
-    String filename = FileInfo(scorePath).fileName();
+    QString filename = io::filename(scorePath).toQString();
     if (fileSystem()->exists(scorePath) && !shouldReplaceFile(filename)) {
         return make_ret(Ret::Code::InternalError);
     }
 
     while (true) {
-        io::File outputFile(scorePath);
-        outputFile.setMeta("file_path", scorePath.toStdString());
-        if (!outputFile.open(File::WriteOnly)) {
+        QFile outputFile(scorePath.toQString());
+        if (!outputFile.open(QFile::WriteOnly)) {
             if (askForRetry(filename)) {
                 continue;
             } else {
@@ -461,7 +458,7 @@ void ExportProjectScenario::openFolder(const io::path_t& path) const
 std::vector<ViewMode> ExportProjectScenario::viewModes(const notation::INotationPtrList& notations) const
 {
     std::vector<ViewMode> modes;
-    for (const INotationPtr& notation : notations) {
+    for (INotationPtr notation : notations) {
         modes.push_back(notation->painting()->viewMode());
     }
 

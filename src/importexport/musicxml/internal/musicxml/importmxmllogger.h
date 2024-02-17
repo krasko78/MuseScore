@@ -23,11 +23,9 @@
 #ifndef __IMPORTMXMLLOGGER_H__
 #define __IMPORTMXMLLOGGER_H__
 
-#include "global/types/string.h"
+#include <QString>
 
-namespace mu {
-class XmlStreamReader;
-}
+class QXmlStreamReader;
 
 namespace mu::engraving {
 class MxmlLogger
@@ -37,12 +35,12 @@ public:
         MXML_TRACE, MXML_INFO, MXML_ERROR
     };
     MxmlLogger() {}
-    void logDebugTrace(const mu::String& trace, const XmlStreamReader* xmlreader = 0);
-    void logDebugInfo(const String& info, const XmlStreamReader* xmlreader = 0);
-    void logError(const String& error, const XmlStreamReader* xmlreader = 0);
-    void setLoggingLevel(const Level level) { m_level = level; }
+    void logDebugTrace(const QString& trace, const QXmlStreamReader* const xmlreader = 0);
+    void logDebugInfo(const QString& info, const QXmlStreamReader* const xmlreader = 0);
+    void logError(const QString& error, const QXmlStreamReader* const xmlreader = 0);
+    void setLoggingLevel(const Level level) { _level = level; }
 private:
-    Level m_level = Level::MXML_INFO;
+    Level _level = Level::MXML_INFO;
 };
 } // namespace Ms
 

@@ -19,7 +19,6 @@
   <part-list>
     <part-group type="start" number="1">
       <group-symbol>bracket</group-symbol>
-      <group-barline>yes</group-barline>
       </part-group>
     <score-part id="P1">
       <part-name>Backing
@@ -39,7 +38,6 @@ Vocals</part-name>
     <part-group type="stop" number="1"/>
     <part-group type="start" number="1">
       <group-symbol>bracket</group-symbol>
-      <group-barline>yes</group-barline>
       </part-group>
     <score-part id="P2">
       <part-name>Electric
@@ -59,7 +57,6 @@ Gtr. 1</part-abbreviation>
       </score-part>
     <part-group type="start" number="2">
       <group-symbol>square</group-symbol>
-      <group-barline>yes</group-barline>
       </part-group>
     <score-part id="P3">
       <part-name>Electric
@@ -80,7 +77,6 @@ Gtr. 2</part-abbreviation>
     <part-group type="stop" number="2"/>
     <part-group type="start" number="2">
       <group-symbol>none</group-symbol>
-      <group-barline>yes</group-barline>
       </part-group>
     <score-part id="P4">
       <part-name>Acoustic
@@ -102,7 +98,6 @@ Gtr.</part-abbreviation>
     <part-group type="stop" number="1"/>
     <part-group type="start" number="1">
       <group-symbol>bracket</group-symbol>
-      <group-barline>yes</group-barline>
       </part-group>
     <score-part id="P5">
       <part-name>Piano 2</part-name>

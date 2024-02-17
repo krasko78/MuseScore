@@ -23,7 +23,6 @@
 #include "pdfwriter.h"
 
 #include <QPdfWriter>
-#include <QBuffer>
 
 #include "engraving/dom/masterscore.h"
 
@@ -41,7 +40,7 @@ std::vector<INotationWriter::UnitType> PdfWriter::supportedUnitTypes() const
     return { UnitType::PER_PART, UnitType::MULTI_PART };
 }
 
-mu::Ret PdfWriter::write(INotationPtr notation, io::IODevice& destinationDevice, const Options& options)
+mu::Ret PdfWriter::write(INotationPtr notation, QIODevice& destinationDevice, const Options& options)
 {
     UnitType unitType = unitTypeFromOptions(options);
     IF_ASSERT_FAILED(unitType == UnitType::PER_PART) {
@@ -52,11 +51,7 @@ mu::Ret PdfWriter::write(INotationPtr notation, io::IODevice& destinationDevice,
         return make_ret(Ret::Code::UnknownError);
     }
 
-    QByteArray qdata;
-    QBuffer buf(&qdata);
-    buf.open(QIODevice::WriteOnly);
-
-    QPdfWriter pdfWriter(&buf);
+    QPdfWriter pdfWriter(&destinationDevice);
     preparePdfWriter(pdfWriter, notation->projectWorkTitleAndPartName(), notation->painting()->pageSizeInch().toQSizeF());
 
     Painter painter(&pdfWriter, "pdfwriter");
@@ -72,13 +67,10 @@ mu::Ret PdfWriter::write(INotationPtr notation, io::IODevice& destinationDevice,
 
     painter.endDraw();
 
-    ByteArray data = ByteArray::fromQByteArrayNoCopy(qdata);
-    destinationDevice.write(data);
-
     return true;
 }
 
-mu::Ret PdfWriter::writeList(const INotationPtrList& notations, io::IODevice& destinationDevice, const Options& options)
+mu::Ret PdfWriter::writeList(const INotationPtrList& notations, QIODevice& destinationDevice, const Options& options)
 {
     IF_ASSERT_FAILED(!notations.empty()) {
         return make_ret(Ret::Code::UnknownError);
@@ -94,11 +86,7 @@ mu::Ret PdfWriter::writeList(const INotationPtrList& notations, io::IODevice& de
         return make_ret(Ret::Code::UnknownError);
     }
 
-    QByteArray qdata;
-    QBuffer buf(&qdata);
-    buf.open(QIODevice::WriteOnly);
-
-    QPdfWriter pdfWriter(&buf);
+    QPdfWriter pdfWriter(&destinationDevice);
     preparePdfWriter(pdfWriter, firstNotation->projectWorkTitle(), firstNotation->painting()->pageSizeInch().toQSizeF());
 
     Painter painter(&pdfWriter, "pdfwriter");
@@ -110,7 +98,7 @@ mu::Ret PdfWriter::writeList(const INotationPtrList& notations, io::IODevice& de
     opt.deviceDpi = pdfWriter.logicalDpiX();
     opt.onNewPage = [&pdfWriter]() { pdfWriter.newPage(); };
 
-    for (const auto& notation : notations) {
+    for (auto notation : notations) {
         IF_ASSERT_FAILED(notation) {
             return make_ret(Ret::Code::UnknownError);
         }
@@ -125,9 +113,6 @@ mu::Ret PdfWriter::writeList(const INotationPtrList& notations, io::IODevice& de
     }
 
     painter.endDraw();
-
-    ByteArray data = ByteArray::fromQByteArrayNoCopy(qdata);
-    destinationDevice.write(data);
 
     return true;
 }

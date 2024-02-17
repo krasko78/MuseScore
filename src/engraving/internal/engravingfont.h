@@ -75,8 +75,6 @@ public:
     RectF bbox(const SymIdList& s, const mu::SizeF& mag) const override;
     Shape shape(const SymIdList& s, double mag) const override;
     Shape shape(const SymIdList& s, const mu::SizeF& mag) const override;
-    Shape shapeWithCutouts(SymId id, double mag) override;
-    Shape shapeWithCutouts(SymId id, const mu::SizeF& mag) override;
 
     double width(SymId id, double mag) const override;
     double width(const SymIdList&, double mag) const override;
@@ -86,11 +84,11 @@ public:
     PointF smuflAnchor(SymId symId, SmuflAnchorId anchorId, double mag) const override;
 
     // Draw
-    void draw(SymId id, draw::Painter* p, double mag, const PointF& pos, const double angle = 0) const override;
-    void draw(SymId id, draw::Painter* p, const SizeF& mag, const PointF& pos, const double angle = 0) const override;
+    void draw(SymId id, draw::Painter* p, double mag, const PointF& pos) const override;
+    void draw(SymId id, draw::Painter* p, const SizeF& mag, const PointF& pos) const override;
 
-    void draw(const SymIdList& ids, draw::Painter* p, double mag, const PointF& pos, const double angle = 0) const override;
-    void draw(const SymIdList& ids, draw::Painter* p, const SizeF& mag, const PointF& pos, const double angle = 0) const override;
+    void draw(const SymIdList& ids, draw::Painter* p, double mag, const PointF& pos) const override;
+    void draw(const SymIdList& ids, draw::Painter* p, const SizeF& mag, const PointF& pos) const override;
 
     void ensureLoad();
 
@@ -101,7 +99,6 @@ private:
     struct Sym {
         char32_t code;
         RectF bbox;
-        Shape shapeWithCutouts;
         double advance = 0.0;
 
         std::map<SmuflAnchorId, mu::PointF> smuflAnchors;
@@ -123,8 +120,6 @@ private:
     void loadStylisticAlternates(const JsonObject& glyphsWithAlternatesObject);
     void loadEngravingDefaults(const JsonObject& engravingDefaultsObject);
     void computeMetrics(Sym& sym, const Smufl::Code& code);
-
-    void constructShapeWithCutouts(Shape& shape, SymId id);
 
     Sym& sym(SymId id);
     const Sym& sym(SymId id) const;

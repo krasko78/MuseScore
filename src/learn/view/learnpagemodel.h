@@ -23,7 +23,6 @@
 #define MU_LEARN_LEARNPAGEMODEL_H
 
 #include <QObject>
-#include <QVariant>
 
 #include "async/asyncable.h"
 

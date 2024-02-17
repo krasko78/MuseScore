@@ -22,7 +22,6 @@
 #include "pagelayout.h"
 
 #include "realfn.h"
-#include "defer.h"
 
 #include "dom/barline.h"
 #include "dom/beam.h"
@@ -68,20 +67,17 @@ using namespace mu::engraving::rendering::dev;
 
 void PageLayout::getNextPage(LayoutContext& ctx)
 {
-    LayoutState& state = ctx.mutState();
-    DomAccessor& dom = ctx.mutDom();
-
-    if (!state.page() || state.pageIdx() >= dom.npages()) {
-        state.setPage(Factory::createPage(dom.rootItem()));
-        dom.pages().push_back(state.page());
-        state.setPrevSystem(nullptr);
-        state.setPageOldMeasure(nullptr);
+    if (!ctx.state().page() || ctx.state().pageIdx() >= ctx.dom().npages()) {
+        ctx.mutState().setPage(Factory::createPage(ctx.mutDom().rootItem()));
+        ctx.mutDom().pages().push_back(ctx.mutState().page());
+        ctx.mutState().setPrevSystem(nullptr);
+        ctx.mutState().setPageOldMeasure(nullptr);
     } else {
-        state.setPage(dom.pages()[state.pageIdx()]);
-        std::vector<System*>& systems = state.page()->systems();
-        state.setPageOldMeasure(systems.empty() ? nullptr : systems.back()->measures().back());
-        const system_idx_t i = mu::indexOf(systems, state.curSystem());
-        if ((i < systems.size()) && i > 0 && systems[i - 1]->page() == state.page()) {
+        ctx.mutState().setPage(ctx.mutDom().pages()[ctx.state().pageIdx()]);
+        std::vector<System*>& systems = ctx.mutState().page()->systems();
+        ctx.mutState().setPageOldMeasure(systems.empty() ? nullptr : systems.back()->measures().back());
+        const system_idx_t i = mu::indexOf(systems, ctx.state().curSystem());
+        if (i < systems.size() && i > 0 && systems[i - 1]->page() == ctx.state().page()) {
             // Current and previous systems are on the current page.
             // Erase only the current and the following systems
             // as the previous one will not participate in layout.
@@ -89,24 +85,24 @@ void PageLayout::getNextPage(LayoutContext& ctx)
         } else { // system is not on the current page (or will be the first one)
             systems.clear();
         }
-        state.setPrevSystem(systems.empty() ? nullptr : systems.back());
+        ctx.mutState().setPrevSystem(systems.empty() ? nullptr : systems.back());
     }
-    state.page()->mutldata()->setBbox(0.0, 0.0, ctx.conf().loWidth(), ctx.conf().loHeight());
-    state.page()->setNo(state.pageIdx());
+    ctx.mutState().page()->mutldata()->setBbox(0.0, 0.0, ctx.conf().loWidth(), ctx.conf().loHeight());
+    ctx.mutState().page()->setNo(ctx.state().pageIdx());
     double x = 0.0;
     double y = 0.0;
-    if (state.pageIdx()) {
-        const Page* prevPage = dom.pages().at(state.pageIdx() - 1);
+    if (ctx.state().pageIdx()) {
+        Page* prevPage = ctx.mutDom().pages()[ctx.state().pageIdx() - 1];
         if (MScore::verticalOrientation()) {
-            y = prevPage->pos().y() + state.page()->height() + MScore::verticalPageGap;
+            y = prevPage->pos().y() + ctx.state().page()->height() + MScore::verticalPageGap;
         } else {
-            double gap = (state.pageIdx() + ctx.conf().pageNumberOffset())
+            double gap = (ctx.state().pageIdx() + ctx.conf().pageNumberOffset())
                          & 1 ? MScore::horizontalPageGapOdd : MScore::horizontalPageGapEven;
-            x = prevPage->pos().x() + state.page()->width() + gap;
+            x = prevPage->pos().x() + ctx.state().page()->width() + gap;
         }
     }
-    state.setPageIdx(state.pageIdx() + 1);
-    state.page()->setPos(x, y);
+    ctx.mutState().setPageIdx(ctx.state().pageIdx() + 1);
+    ctx.mutState().page()->setPos(x, y);
 }
 
 //---------------------------------------------------------
@@ -117,17 +113,12 @@ void PageLayout::collectPage(LayoutContext& ctx)
 {
     TRACEFUNC;
 
-    Page* page = ctx.mutState().page();
-    const LayoutConfiguration& conf = ctx.conf();
-
-    LAYOUT_CALL() << "page->no: " << page->no();
-
-    const double slb = conf.styleMM(Sid::staffLowerBorder);
-    bool breakPages = conf.viewMode() != LayoutMode::SYSTEM;
-    double footerExtension = page->footerExtension();
-    double headerExtension = page->headerExtension();
-    double headerFooterPadding = conf.styleMM(Sid::staffHeaderFooterPadding);
-    double endY = page->height() - page->bm();
+    const double slb = ctx.conf().styleMM(Sid::staffLowerBorder);
+    bool breakPages = ctx.conf().viewMode() != LayoutMode::SYSTEM;
+    double footerExtension = ctx.state().page()->footerExtension();
+    double headerExtension = ctx.state().page()->headerExtension();
+    double headerFooterPadding = ctx.conf().styleMM(Sid::staffHeaderFooterPadding);
+    double endY = ctx.state().page()->height() - ctx.state().page()->bm();
     double y = 0.0;
 
     System* nextSystem = 0;
@@ -135,20 +126,19 @@ void PageLayout::collectPage(LayoutContext& ctx)
 
     // re-calculate positions for systems before current
     // (they may have been filled on previous layout)
-    size_t pSystems = page->systems().size();
+    size_t pSystems = ctx.state().page()->systems().size();
     if (pSystems > 0) {
-        SystemLayout::restoreLayout2(page->system(0), ctx);
-        y = page->system(0)->y() + page->system(0)->height();
+        SystemLayout::restoreLayout2(ctx.mutState().page()->system(0), ctx);
+        y = ctx.state().page()->system(0)->y() + ctx.state().page()->system(0)->height();
     } else {
-        y = page->tm();
+        y = ctx.state().page()->tm();
     }
-
-    for (size_t i = 1; i < pSystems; ++i) {
-        System* cs = page->system(i);
-        System* ps = page->system(i - 1);
+    for (int i = 1; i < static_cast<int>(pSystems); ++i) {
+        System* cs = ctx.mutState().page()->system(i);
+        System* ps = ctx.mutState().page()->system(i - 1);
         double distance = SystemLayout::minDistance(ps, cs, ctx);
         y += distance;
-        cs->setPos(page->lm(), y);
+        cs->setPos(ctx.state().page()->lm(), y);
         SystemLayout::restoreLayout2(cs, ctx);
         y += cs->height();
     }
@@ -233,9 +223,9 @@ void PageLayout::collectPage(LayoutContext& ctx)
         assert(ctx.state().curSystem() != nextSystem);
         ctx.mutState().setCurSystem(nextSystem);
 
-        bool isPageBreak = !ctx.state().curSystem() || (breakPages && ctx.state().prevSystem()->pageBreak());
+        bool breakPage = !ctx.state().curSystem() || (breakPages && ctx.state().prevSystem()->pageBreak());
 
-        if (!isPageBreak) {
+        if (!breakPage) {
             double dist = SystemLayout::minDistance(ctx.state().prevSystem(), ctx.state().curSystem(), ctx)
                           + ctx.state().curSystem()->height();
             Box* vbox = ctx.state().curSystem()->vbox();
@@ -251,9 +241,9 @@ void PageLayout::collectPage(LayoutContext& ctx)
                 }
                 dist += std::max(margin, slb);
             }
-            isPageBreak = (y + dist) >= endY && breakPages;
+            breakPage = (y + dist) >= endY && breakPages;
         }
-        if (isPageBreak) {
+        if (breakPage) {
             double dist = std::max(ctx.state().prevSystem()->minBottom(), ctx.state().prevSystem()->spacerDistance(false));
             double footerPadding = 0.0;
             // ensure it doesn't collide with footer
@@ -262,7 +252,7 @@ void PageLayout::collectPage(LayoutContext& ctx)
                 dist += footerPadding;
             }
             dist = std::max(dist, slb);
-            layoutPage(ctx, page, endY - (y + dist), footerPadding);
+            layoutPage(ctx, ctx.mutState().page(), endY - (y + dist), footerPadding);
             // if we collected a system we cannot fit onto this page,
             // we need to collect next page in order to correctly set system positions
             if (collected) {
@@ -272,15 +262,8 @@ void PageLayout::collectPage(LayoutContext& ctx)
         }
     }
 
-    // All staves have been hidden, so correct last system's header
-    System* lastSys = ctx.mutState().page()->systems().back();
-    Measure* lastSysMeasure = lastSys->firstMeasure();
-    if (lastSysMeasure) {
-        MeasureLayout::addSystemHeader(lastSysMeasure, false, ctx);
-    }
-
     Fraction stick2 = Fraction(-1, 1);
-    for (System* s : page->systems()) {
+    for (System* s : ctx.mutState().page()->systems()) {
         for (MeasureBase* mb : s->measures()) {
             if (!mb->isMeasure()) {
                 continue;
@@ -395,14 +378,14 @@ void PageLayout::collectPage(LayoutContext& ctx)
     }
 
     if (ctx.conf().isMode(LayoutMode::SYSTEM)) {
-        const System* s = page->systems().back();
+        const System* s = ctx.state().page()->systems().back();
         double height = s ? s->pos().y() + s->height() + s->minBottom() : ctx.state().page()->tm();
-        page->mutldata()->setBbox(0.0, 0.0, ctx.conf().loWidth(), height + ctx.state().page()->bm());
+        ctx.mutState().page()->mutldata()->setBbox(0.0, 0.0, ctx.conf().loWidth(), height + ctx.state().page()->bm());
     }
 
     // HACK: we relayout here cross-staff slurs because only now the information
     // about staff distances is fully available.
-    for (const System* system : page->systems()) {
+    for (const System* system : ctx.state().page()->systems()) {
         long int stick = 0;
         long int etick = 0;
         if (system->firstMeasure()) {
@@ -424,7 +407,7 @@ void PageLayout::collectPage(LayoutContext& ctx)
         }
     }
 
-    page->invalidateBspTree();
+    ctx.mutState().page()->invalidateBspTree();
 }
 
 //---------------------------------------------------------

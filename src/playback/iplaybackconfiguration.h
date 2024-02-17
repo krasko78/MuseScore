@@ -64,9 +64,6 @@ public:
 
     virtual SoundProfileName defaultProfileForNewProjects() const = 0;
     virtual void setDefaultProfileForNewProjects(const SoundProfileName& name) = 0;
-
-    virtual bool isSoundFlagsMultiSelectionEnabled() const = 0;
-    virtual void setIsSoundFlagsMultiSelectionEnabled(bool enabled) = 0;
 };
 }
 

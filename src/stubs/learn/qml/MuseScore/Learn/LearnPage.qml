@@ -26,8 +26,6 @@ import MuseScore.UiComponents 1.0
 Rectangle {
     color: ui.theme.backgroundPrimaryColor
 
-    property var section
-
     StyledTextLabel {
         anchors.centerIn: parent
         text: "Learn Page Stub"

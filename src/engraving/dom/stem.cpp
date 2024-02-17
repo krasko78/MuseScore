@@ -63,6 +63,7 @@ bool Stem::up() const
 void Stem::setBaseLength(Millimetre baseLength)
 {
     m_baseLength = Millimetre(std::abs(baseLength.val()));
+    renderer()->layoutItem(this);
 }
 
 void Stem::spatiumChanged(double oldValue, double newValue)

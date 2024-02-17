@@ -2303,10 +2303,6 @@ void TRead::read(Symbol* sym, XmlReader& e, ReadContext& ctx)
             }
         } else if (tag == "small" || tag == "subtype") {    // obsolete
             e.skipCurrentElement();
-        } else if (tag == "offset" && sym->score()->mscVersion() < 400 && sym->onTabStaff()
-                   && (symId == SymId::noteheadParenthesisLeft || symId == SymId::noteheadParenthesisRight)) {
-            // Reset mu3 TAB parentheses offset
-            e.skipCurrentElement();
         } else if (!TRead::readProperties(static_cast<BSymbol*>(sym), e, ctx)) {
             e.unknown();
         }
@@ -2885,7 +2881,8 @@ void TRead::read(LayoutBreak* b, XmlReader& e, ReadContext& ctx)
             TRead::readProperty(b, e, ctx, Pid::START_WITH_LONG_NAMES);
         } else if (tag == "startWithMeasureOne") {
             TRead::readProperty(b, e, ctx, Pid::START_WITH_MEASURE_ONE);
-        } else if (tag == "firstSystemIndentation") {
+        } else if (tag == "firstSystemIndentation"
+                   || tag == "firstSystemIdentation" /* pre-4.0 typo */) {
             TRead::readProperty(b, e, ctx, Pid::FIRST_SYSTEM_INDENTATION);
         } else if (!readItemProperties(b, e, ctx)) {
             e.unknown();
@@ -3136,11 +3133,7 @@ bool TRead::readProperties(Note* n, XmlReader& e, ReadContext& ctx)
     } else if (tag == "string") {
         n->setString(e.readInt());
     } else if (tag == "ghost") {
-        if (n->score()->mscVersion() < 400) {
-            n->setDeadNote(e.readInt());
-        } else {
-            n->setGhost(e.readInt());
-        }
+        n->setGhost(e.readInt());
     } else if (tag == "dead") {
         n->setDeadNote(e.readInt());
     } else if (tag == "headType") {

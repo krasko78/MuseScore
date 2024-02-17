@@ -22,7 +22,7 @@
 
 #include "importmxmllogger.h"
 
-#include "global/serialization/xmlstreamreader.h"
+#include <QXmlStreamReader>
 
 #include "log.h"
 
@@ -31,13 +31,11 @@ namespace mu::engraving {
 //   xmlLocation
 //---------------------------------------------------------
 
-static String xmlLocation(const XmlStreamReader* xmlreader)
+static QString xmlLocation(const QXmlStreamReader* const xmlreader)
 {
-    String loc;
+    QString loc;
     if (xmlreader) {
-        loc = String(u" at line %1 col %2")
-              .arg(size_t(xmlreader->lineNumber()))
-              .arg(size_t(xmlreader->columnNumber()));
+        loc = QString(" at line %1 col %2").arg(xmlreader->lineNumber()).arg(xmlreader->columnNumber());
     }
     return loc;
 }
@@ -45,25 +43,25 @@ static String xmlLocation(const XmlStreamReader* xmlreader)
 //---------------------------------------------------------
 //   logDebugTrace
 //---------------------------------------------------------
-static void to_xml_log(MxmlLogger::Level level, const String& text, const XmlStreamReader* xmlreader)
+static void to_xml_log(MxmlLogger::Level level, const QString& text, const QXmlStreamReader* const xmlreader)
 {
-    String str;
+    QString str;
     switch (level) {
-    case MxmlLogger::Level::MXML_TRACE: str = u"Trace";
+    case MxmlLogger::Level::MXML_TRACE: str = "Trace";
         break;
-    case MxmlLogger::Level::MXML_INFO: str = u"Info";
+    case MxmlLogger::Level::MXML_INFO: str = "Info";
         break;
-    case MxmlLogger::Level::MXML_ERROR: str = u"Error";
+    case MxmlLogger::Level::MXML_ERROR: str = "Error";
         break;
-    default: str = u"Unknown";
+    default: str = "Unknown";
         break;
     }
 
     str += xmlLocation(xmlreader);
-    str += u": ";
+    str += ": ";
     str += text;
 
-    LOGD() << str;
+    LOGD("%s", qPrintable(str));
 }
 
 //---------------------------------------------------------
@@ -74,9 +72,9 @@ static void to_xml_log(MxmlLogger::Level level, const String& text, const XmlStr
  Log debug (function) trace.
  */
 
-void MxmlLogger::logDebugTrace(const String& trace, const XmlStreamReader* xmlreader)
+void MxmlLogger::logDebugTrace(const QString& trace, const QXmlStreamReader* const xmlreader)
 {
-    if (m_level <= Level::MXML_TRACE) {
+    if (_level <= Level::MXML_TRACE) {
         to_xml_log(Level::MXML_TRACE, trace, xmlreader);
     }
 }
@@ -89,9 +87,9 @@ void MxmlLogger::logDebugTrace(const String& trace, const XmlStreamReader* xmlre
  Log debug \a info (non-fatal events relevant for debugging).
  */
 
-void MxmlLogger::logDebugInfo(const String& info, const XmlStreamReader* xmlreader)
+void MxmlLogger::logDebugInfo(const QString& info, const QXmlStreamReader* const xmlreader)
 {
-    if (m_level <= Level::MXML_INFO) {
+    if (_level <= Level::MXML_INFO) {
         to_xml_log(Level::MXML_INFO, info, xmlreader);
     }
 }
@@ -104,9 +102,9 @@ void MxmlLogger::logDebugInfo(const String& info, const XmlStreamReader* xmlread
  Log \a error (possibly non-fatal but to be reported to the user anyway).
  */
 
-void MxmlLogger::logError(const String& error, const XmlStreamReader* xmlreader)
+void MxmlLogger::logError(const QString& error, const QXmlStreamReader* const xmlreader)
 {
-    if (m_level <= Level::MXML_ERROR) {
+    if (_level <= Level::MXML_ERROR) {
         to_xml_log(Level::MXML_ERROR, error, xmlreader);
     }
 }

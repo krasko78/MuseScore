@@ -54,7 +54,7 @@ ListView {
         appMenuAreaRect: Qt.rect(root.x, root.y, root.width, root.height)
         openedMenuAreaRect: openedArea(menuLoader)
 
-        onOpenMenuRequested: function(menuId) {
+        onOpenMenuRequested: {
             prv.openMenu(menuId)
         }
 
@@ -206,7 +206,7 @@ ListView {
 
         property string menuId: ""
 
-        onHandleMenuItem: function(itemId) {
+        onHandleMenuItem: {
             Qt.callLater(appMenuModel.handleMenuItem, itemId)
         }
 

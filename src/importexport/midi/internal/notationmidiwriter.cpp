@@ -22,11 +22,8 @@
 
 #include "notationmidiwriter.h"
 
-#include <QBuffer>
-
-#include "midiexport/exportmidi.h"
-
 #include "log.h"
+#include "midiexport/exportmidi.h"
 
 using namespace mu::iex::midi;
 using namespace mu::io;
@@ -45,7 +42,7 @@ bool NotationMidiWriter::supportsUnitType(UnitType unitType) const
     return std::find(unitTypes.cbegin(), unitTypes.cend(), unitType) != unitTypes.cend();
 }
 
-mu::Ret NotationMidiWriter::write(INotationPtr notation, io::IODevice& destinationDevice, const Options&)
+mu::Ret NotationMidiWriter::write(INotationPtr notation, QIODevice& destinationDevice, const Options&)
 {
     IF_ASSERT_FAILED(notation) {
         return make_ret(Ret::Code::UnknownError);
@@ -63,20 +60,12 @@ mu::Ret NotationMidiWriter::write(INotationPtr notation, io::IODevice& destinati
     bool isMidiExportRpns = midiImportExportConfiguration()->isMidiExportRpns();
     SynthesizerState synthesizerState = score->synthesizerState();
 
-    QByteArray qdata;
-    QBuffer buf(&qdata);
-    buf.open(QIODevice::WriteOnly);
-
-    bool ok = exportMidi.write(&buf, isPlayRepeatsEnabled, isMidiExportRpns, synthesizerState);
-    if (ok) {
-        ByteArray data = ByteArray::fromQByteArrayNoCopy(qdata);
-        destinationDevice.write(data);
-    }
+    bool ok = exportMidi.write(&destinationDevice, isPlayRepeatsEnabled, isMidiExportRpns, synthesizerState);
 
     return ok ? make_ret(Ret::Code::Ok) : make_ret(Ret::Code::InternalError);
 }
 
-mu::Ret NotationMidiWriter::writeList(const notation::INotationPtrList&, io::IODevice&, const Options&)
+mu::Ret NotationMidiWriter::writeList(const notation::INotationPtrList&, QIODevice&, const Options&)
 {
     NOT_SUPPORTED;
     return Ret(Ret::Code::NotSupported);

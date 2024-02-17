@@ -25,8 +25,8 @@
 #include "engraving/engravingerrors.h"
 
 namespace mu::engraving {
-extern Err importMusicXml(MasterScore*, const String&);
-extern Err importCompressedMusicXml(MasterScore*, const String&);
+extern Err importMusicXml(MasterScore*, const QString&);
+extern Err importCompressedMusicXml(MasterScore*, const QString&);
 }
 
 using namespace mu::iex::musicxml;
@@ -37,9 +37,9 @@ mu::Ret MusicXmlReader::read(MasterScore* score, const io::path_t& path, const O
     Err err = Err::FileUnknownType;
     std::string suffix = mu::io::suffix(path);
     if (suffix == "xml" || suffix == "musicxml") {
-        err = importMusicXml(score, path.toString());
+        err = importMusicXml(score, path.toQString());
     } else if (suffix == "mxl") {
-        err = importCompressedMusicXml(score, path.toString());
+        err = importCompressedMusicXml(score, path.toQString());
     }
     return make_ret(err, path);
 }

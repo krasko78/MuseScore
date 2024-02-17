@@ -119,11 +119,6 @@ void VstPlugin::load()
             return;
         }
 
-        if (!m_pluginProvider->init()) {
-            LOGE() << "Unable to initialize vst plugin provider";
-            return;
-        }
-
         auto controller = m_pluginProvider->controller();
 
         if (!controller) {

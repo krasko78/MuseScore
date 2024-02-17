@@ -39,10 +39,12 @@ class Tuplet;
 //   support enums / structs / classes
 //---------------------------------------------------------
 
-using GraceChordList = std::vector<Chord*>;
-using FiguredBassList = std::vector<FiguredBass*>;
-using Tuplets = std::map<String, Tuplet*>;
-using Beams = std::map<String, Beam*>;
+using GraceChordList = QList<Chord*>;
+using FiguredBassList = QVector<FiguredBass*>;
+//      typedef QList<Chord*> GraceChordList;
+//      typedef QVector<FiguredBass*> FiguredBassList;
+using Tuplets = std::map<QString, Tuplet*>;
+using Beams = QMap<QString, Beam*>;
 
 //---------------------------------------------------------
 //   MxmlStartStop
@@ -83,14 +85,13 @@ struct MusicXmlTupletDesc {
 //---------------------------------------------------------
 
 struct MusicXmlSpannerDesc {
-    SLine* sp = nullptr;
-    ElementType tp = ElementType::INVALID;
-    int nr = 0;
-
+    SLine* _sp;
+    ElementType _tp;
+    int _nr;
     MusicXmlSpannerDesc(SLine* sp, ElementType tp, int nr)
-        : sp(sp), tp(tp), nr(nr) {}
+        : _sp(sp), _tp(tp), _nr(nr) {}
     MusicXmlSpannerDesc(ElementType tp, int nr)
-        : sp(0), tp(tp), nr(nr) {}
+        : _sp(0), _tp(tp), _nr(nr) {}
 };
 
 //---------------------------------------------------------
@@ -98,13 +99,13 @@ struct MusicXmlSpannerDesc {
 //---------------------------------------------------------
 
 struct MusicXmlExtendedSpannerDesc {
-    SLine* sp = nullptr;
-    Fraction tick2 { 0, 0 };
-    track_idx_t track2 = 0;
-    bool isStarted = false;
-    bool isStopped = false;
+    SLine* _sp { nullptr };
+    Fraction _tick2 { 0, 0 };
+    track_idx_t _track2 = 0;
+    bool _isStarted { false };
+    bool _isStopped { false };
     MusicXmlExtendedSpannerDesc() {}
-    String toString() const;
+    QString toString() const;
 };
 
 //---------------------------------------------------------
@@ -120,16 +121,7 @@ public:
     void setExtend(const int no, const track_idx_t track, const Fraction& tick);
 
 private:
-    std::set<Lyrics*> m_lyrics;
-};
-
-struct GraceNoteLyrics {
-    Lyrics* lyric = nullptr;
-    bool extend = false;
-    int no = 0;
-
-    GraceNoteLyrics(Lyrics* lyric, bool extend, int no)
-        : lyric(lyric), extend(extend), no(no) {}
+    QSet<Lyrics*> _lyrics;
 };
 
 //---------------------------------------------------------
@@ -139,18 +131,18 @@ struct GraceNoteLyrics {
 class MusicXMLParserLyric
 {
 public:
-    MusicXMLParserLyric(const LyricNumberHandler lyricNumberHandler, XmlStreamReader& e, Score* score, MxmlLogger* logger);
-    std::set<Lyrics*> extendedLyrics() const { return m_extendedLyrics; }
-    std::map<int, Lyrics*> numberedLyrics() const { return m_numberedLyrics; }
+    MusicXMLParserLyric(const LyricNumberHandler lyricNumberHandler, QXmlStreamReader& e, Score* score, MxmlLogger* logger);
+    QSet<Lyrics*> extendedLyrics() const { return _extendedLyrics; }
+    QMap<int, Lyrics*> numberedLyrics() const { return _numberedLyrics; }
     void parse();
 private:
     void skipLogCurrElem();
-    const LyricNumberHandler m_lyricNumberHandler;
-    XmlStreamReader& m_e;
-    const Score* m_score = nullptr;            // the score
-    MxmlLogger* m_logger = nullptr;            // Error logger
-    std::map<int, Lyrics*> m_numberedLyrics;   // lyrics with valid number
-    std::set<Lyrics*> m_extendedLyrics;        // lyrics with the extend flag set
+    const LyricNumberHandler _lyricNumberHandler;
+    QXmlStreamReader& _e;
+    Score* const _score;                        // the score
+    MxmlLogger* _logger;                        ///< Error logger
+    QMap<int, Lyrics*> _numberedLyrics;   // lyrics with valid number
+    QSet<Lyrics*> _extendedLyrics;        // lyrics with the extend flag set
 };
 
 //---------------------------------------------------------
@@ -161,29 +153,30 @@ private:
 class Notation
 {
 public:
-    Notation(const String& name, const String& parent = {},
-             const SymId& symId = SymId::noSym) { m_name = name; m_parent = parent; m_symId = symId; }
-    void addAttribute(const String& name, const String& value);
-    String attribute(const String& name) const;
-    const std::map<String, String>& attributes() const { return m_attributes; }
-    String name() const { return m_name; }
-    String parent() const { return m_parent; }
-    void setSymId(const SymId& symId) { m_symId = symId; }
-    SymId symId() const { return m_symId; }
-    void setSubType(const String& subType) { m_subType = subType; }
-    String subType() const { return m_subType; }
-    String print() const;
-    void setText(const String& text) { m_text = text; }
-    String text() const { return m_text; }
-    static Notation notationWithAttributes(const String& name, const std::vector<XmlStreamReader::Attribute>& attributes,
-                                           const String& parent = {}, const SymId& symId = SymId::noSym);
+    Notation(const QString& name, const QString& parent = "",
+             const SymId& symId = SymId::noSym) { _name = name; _parent = parent; _symId = symId; }
+    void addAttribute(const QString& name, const QString& value);
+    void addAttribute(const QStringRef name, const QStringRef value);
+    QString attribute(const QString& name) const;
+    std::map<QString, QString> attributes() const { return _attributes; }
+    QString name() const { return _name; }
+    QString parent() const { return _parent; }
+    void setSymId(const SymId& symId) { _symId = symId; }
+    SymId symId() const { return _symId; }
+    void setSubType(const QString& subType) { _subType = subType; }
+    QString subType() const { return _subType; }
+    QString print() const;
+    void setText(const QString& text) { _text = text; }
+    QString text() const { return _text; }
+    static Notation notationWithAttributes(const QString& name, const QXmlStreamAttributes attributes, const QString& parent = "",
+                                           const SymId& symId = SymId::noSym);
 private:
-    String m_name;
-    String m_parent;
-    SymId m_symId = SymId::noSym;
-    String m_subType;
-    String m_text;
-    std::map<String, String> m_attributes;
+    QString _name;
+    QString _parent;
+    SymId _symId { SymId::noSym };
+    QString _subType;
+    QString _text;
+    std::map<QString, QString> _attributes;
 };
 
 //---------------------------------------------------------
@@ -198,7 +191,7 @@ class Trill;
 class MxmlLogger;
 class MusicXMLDelayedDirectionElement;
 
-using DelayedDirectionsList = std::vector<MusicXMLDelayedDirectionElement*>;
+using DelayedDirectionsList = QList<MusicXMLDelayedDirectionElement*>;
 using SlurStack = std::array<SlurDesc, MAX_NUMBER_LEVEL>;
 using TrillStack = std::array<Trill*, MAX_NUMBER_LEVEL>;
 using BracketsStack = std::array<MusicXmlExtendedSpannerDesc, MAX_NUMBER_LEVEL>;
@@ -214,17 +207,17 @@ using SpannerSet = std::set<Spanner*>;
 class MusicXMLParserNotations
 {
 public:
-    MusicXMLParserNotations(XmlStreamReader& e, Score* score, MxmlLogger* logger);
+    MusicXMLParserNotations(QXmlStreamReader& e, Score* score, MxmlLogger* logger);
     void parse();
     void addToScore(ChordRest* const cr, Note* const note, const int tick, SlurStack& slurs, Glissando* glissandi[MAX_NUMBER_LEVEL][2],
                     MusicXmlSpannerMap& spanners, TrillStack& trills, Tie*& tie);
-    String errors() const { return m_errors; }
-    MusicXmlTupletDesc tupletDesc() const { return m_tupletDesc; }
-    String tremoloType() const { return m_tremoloType; }
-    int tremoloNr() const { return m_tremoloNr; }
-    bool mustStopGraceAFter() const { return m_slurStop || m_wavyLineStop; }
+    QString errors() const { return _errors; }
+    MusicXmlTupletDesc tupletDesc() const { return _tupletDesc; }
+    QString tremoloType() const { return _tremoloType; }
+    int tremoloNr() const { return _tremoloNr; }
+    bool mustStopGraceAFter() const { return _slurStop || _wavyLineStop; }
 private:
-    void addError(const String& error);      // Add an error to be shown in the GUI
+    void addError(const QString& error);      ///< Add an error to be shown in the GUI
     void addNotation(const Notation& notation, ChordRest* const cr, Note* const note);
     void addTechnical(const Notation& notation, Note* note);
     void harmonic();
@@ -239,23 +232,23 @@ private:
     void technical();
     void tied();
     void tuplet();
-    XmlStreamReader& m_e;
-    const Score* m_score = nullptr;                         // the score
-    MxmlLogger* m_logger = nullptr;                              // the error logger
-    String m_errors;                    // errors to present to the user
-    MusicXmlTupletDesc m_tupletDesc;
-    String m_dynamicsPlacement;
-    StringList m_dynamicsList;
-    std::vector<Notation> m_notations;
-    SymId m_breath { SymId::noSym };
-    String m_tremoloType;
-    int m_tremoloNr = 0;
-    String m_wavyLineType;
-    int m_wavyLineNo = 0;
-    String m_arpeggioType;
-    bool m_slurStop = false;
-    bool m_slurStart = false;
-    bool m_wavyLineStop = false;
+    QXmlStreamReader& _e;
+    Score* const _score;                        // the score
+    MxmlLogger* _logger;                              // the error logger
+    QString _errors;                    // errors to present to the user
+    MusicXmlTupletDesc _tupletDesc;
+    QString _dynamicsPlacement;
+    QStringList _dynamicsList;
+    std::vector<Notation> _notations;
+    SymId _breath { SymId::noSym };
+    QString _tremoloType;
+    int _tremoloNr { 0 };
+    QString _wavyLineType;
+    int _wavyLineNo { 0 };
+    QString _arpeggioType;
+    bool _slurStop { false };
+    bool _slurStart { false };
+    bool _wavyLineStop { false };
 };
 
 //---------------------------------------------------------
@@ -266,19 +259,19 @@ class MusicXMLParserPass2
 {
 public:
     MusicXMLParserPass2(Score* score, MusicXMLParserPass1& pass1, MxmlLogger* logger);
-    Err parse(const ByteArray& data);
-    String errors() const { return m_errors; }
+    Err parse(QIODevice* device);
+    QString errors() const { return _errors; }
 
     // part specific data interface functions
     void addSpanner(const MusicXmlSpannerDesc& desc);
     MusicXmlExtendedSpannerDesc& getSpanner(const MusicXmlSpannerDesc& desc);
     void clearSpanner(const MusicXmlSpannerDesc& desc);
     void deleteHandledSpanner(SLine* const& spanner);
-    int divs() { return m_divs; }
+    int divs() { return _divs; }
 
 private:
-    void addError(const String& error);      // Add an error to be shown in the GUI
-    void initPartState(const String& partId);
+    void addError(const QString& error);      ///< Add an error to be shown in the GUI
+    void initPartState(const QString& partId);
     SpannerSet findIncompleteSpannersAtPartEnd();
     Err parse();
     void scorePartwise();
@@ -287,33 +280,34 @@ private:
     void part();
     void measChordNote(/*, const MxmlPhase2Note note, ChordRest& currChord */);
     void measChordFlush(/*, ChordRest& currChord */);
-    void measure(const String& partId, const Fraction time);
+    void measure(const QString& partId, const Fraction time);
     void setMeasureRepeats(const staff_idx_t scoreRelStaff, Measure* measure);
-    void attributes(const String& partId, Measure* measure, const Fraction& tick);
+    void attributes(const QString& partId, Measure* measure, const Fraction& tick);
     void measureStyle(Measure* measure);
-    void barline(const String& partId, Measure* measure, const Fraction& tick);
-    void key(const String& partId, Measure* measure, const Fraction& tick);
-    void clef(const String& partId, Measure* measure, const Fraction& tick);
-    void time(const String& partId, Measure* measure, const Fraction& tick);
+    void barline(const QString& partId, Measure* measure, const Fraction& tick);
+    void key(const QString& partId, Measure* measure, const Fraction& tick);
+    void clef(const QString& partId, Measure* measure, const Fraction& tick);
+    void time(const QString& partId, Measure* measure, const Fraction& tick);
     void divisions();
-    Note* note(const String& partId, Measure* measure, const Fraction sTime, const Fraction prevTime, Fraction& missingPrev, Fraction& dura,
-               Fraction& missingCurr, String& currentVoice, GraceChordList& gcl, size_t& gac, Beams& currBeams, FiguredBassList& fbl,
-               int& alt, MxmlTupletStates& tupletStates, Tuplets& tuplets);
+    void transpose(const QString& partId, const Fraction& tick);
+    Note* note(const QString& partId, Measure* measure, const Fraction sTime, const Fraction prevTime, Fraction& missingPrev,
+               Fraction& dura, Fraction& missingCurr, QString& currentVoice, GraceChordList& gcl, int& gac, Beams& currBeams,
+               FiguredBassList& fbl, int& alt, MxmlTupletStates& tupletStates, Tuplets& tuplets);
     void notePrintSpacingNo(Fraction& dura);
     FiguredBassItem* figure(const int idx, const bool paren, FiguredBass* parent);
     FiguredBass* figuredBass();
     FretDiagram* frame();
-    void harmony(const String& partId, Measure* measure, const Fraction& sTime);
+    void harmony(const QString& partId, Measure* measure, const Fraction sTime);
     Accidental* accidental();
-    void beam(std::map<int, String>& beamTypes);
+    void beam(QMap<int, QString>& beamTypes);
     void duration(Fraction& dura);
     void forward(Fraction& dura);
     void backup(Fraction& dura);
     void timeModification(Fraction& timeMod, TDuration& normalType);
     void stem(DirectionV& sd, bool& nost);
-    void doEnding(const String& partId, Measure* measure, const String& number, const String& type, const Color color, const String& text,
-                  const bool print);
-    void staffDetails(const String& partId, Measure* measure = nullptr);
+    void doEnding(const QString& partId, Measure* measure, const QString& number, const QString& type, const QColor color,
+                  const QString& text, const bool print);
+    void staffDetails(const QString& partId, Measure* measure = nullptr);
     void staffTuning(StringData* t);
     void skipLogCurrElem();
 
@@ -323,50 +317,49 @@ private:
 
     // generic pass 2 data
 
-    XmlStreamReader m_e;
-    int m_divs = 0;                        // the current divisions value
-    Score* m_score = nullptr;              // the score
-    MusicXMLParserPass1& m_pass1;          // the pass1 results
-    MxmlLogger* m_logger = nullptr;        // Error logger
-    String m_errors;                       // Errors to present to the user
+    QXmlStreamReader _e;
+    int _divs;                            // the current divisions value
+    Score* const _score;                  // the score
+    MusicXMLParserPass1& _pass1;          // the pass1 results
+    MxmlLogger* _logger;                  ///< Error logger
+    QString _errors;                      ///< Errors to present to the user
 
     // part specific data (TODO: move to part-specific class)
 
     // Measure duration according to last timesig read
     // TODO: store timesigs read in pass 1, use those instead
     // or use score->sigmap() ?
-    Fraction m_timeSigDura;
+    Fraction _timeSigDura;
 
-    SlurStack m_slurs { {} };
-    TrillStack m_trills { {} };            // Current trills
-    BracketsStack m_brackets;
-    OttavasStack m_ottavas;                // Current ottavas
-    HairpinsStack m_hairpins;              // Current hairpins
-    MusicXmlExtendedSpannerDesc m_dummyNewMusicXmlSpannerDesc;
+    SlurStack _slurs { {} };
+    TrillStack _trills { {} };            ///< Current trills
+    BracketsStack _brackets;
+    OttavasStack _ottavas;                ///< Current ottavas
+    HairpinsStack _hairpins;              ///< Current hairpins
+    MusicXmlExtendedSpannerDesc _dummyNewMusicXmlSpannerDesc;
 
-    Glissando* m_glissandi[MAX_NUMBER_LEVEL][2];     // Current slides ([0]) / glissandi ([1])
+    Glissando* _glissandi[MAX_NUMBER_LEVEL][2];     ///< Current slides ([0]) / glissandi ([1])
 
-    Tie* m_tie = nullptr;
-    Volta* m_lastVolta = nullptr;
-    bool m_hasDrumset;                             // drumset defined TODO: move to pass 1
+    Tie* _tie;
+    Volta* _lastVolta;
+    bool _hasDrumset;                             ///< drumset defined TODO: move to pass 1
 
-    MusicXmlSpannerMap m_spanners;
+    MusicXmlSpannerMap _spanners;
 
-    MusicXmlExtendedSpannerDesc m_pedal;           // Current pedal
-    Pedal* m_pedalContinue = nullptr;              // Current pedal type="change" requiring fixup
-    Harmony* m_harmony = nullptr;                  // Current harmony
-    Chord* m_tremStart = nullptr;                  // Starting chord for current tremolo
-    FiguredBass* m_figBass = nullptr;              // Current figured bass element (to attach to next note)
-    int m_multiMeasureRestCount = 0;
-    int m_measureNumber = 0;                       // Current measure number as written in the score
-    MusicXmlLyricsExtend m_extendedLyrics;         // Lyrics with "extend" requiring fixup
-    std::vector<GraceNoteLyrics> m_graceNoteLyrics;   // Lyrics to be moved from grace note to main note
+    MusicXmlExtendedSpannerDesc _pedal;           ///< Current pedal
+    Pedal* _pedalContinue;                        ///< Current pedal type="change" requiring fixup
+    Harmony* _harmony;                            ///< Current harmony
+    Chord* _tremStart;                            ///< Starting chord for current tremolo
+    FiguredBass* _figBass;                        ///< Current figured bass element (to attach to next note)
+    int _multiMeasureRestCount;
+    int _measureNumber;                           ///< Current measure number as written in the score
+    MusicXmlLyricsExtend _extendedLyrics;         ///< Lyrics with "extend" requiring fixup
 
-    MusicXmlSlash m_measureStyleSlash;             // Are we inside a measure to be displayed as slashes?
+    MusicXmlSlash _measureStyleSlash;             ///< Are we inside a measure to be displayed as slashes?
 
-    size_t m_nstaves = 0;                          // Number of staves in current part
-    std::vector<int> m_measureRepeatNumMeasures;
-    std::vector<int> m_measureRepeatCount;
+    size_t _nstaves;                              ///< Number of staves in current part
+    std::vector<int> _measureRepeatNumMeasures;
+    std::vector<int> _measureRepeatCount;
 };
 
 //---------------------------------------------------------
@@ -376,58 +369,56 @@ private:
 class MusicXMLParserDirection
 {
 public:
-    MusicXMLParserDirection(XmlStreamReader& e, Score* score, MusicXMLParserPass1& pass1, MusicXMLParserPass2& pass2, MxmlLogger* logger);
-    void direction(const String& partId, Measure* measure, const Fraction& tick, MusicXmlSpannerMap& spanners,
+    MusicXMLParserDirection(QXmlStreamReader& e, Score* score, MusicXMLParserPass1& pass1, MusicXMLParserPass2& pass2, MxmlLogger* logger);
+    void direction(const QString& partId, Measure* measure, const Fraction& tick, MusicXmlSpannerMap& spanners,
                    DelayedDirectionsList& delayedDirections);
-    double totalY() const { return m_defaultY + m_relativeY; }
+    qreal totalY() const { return _defaultY + _relativeY; }
 
 private:
-    void directionType(std::vector<MusicXmlSpannerDesc>& starts, std::vector<MusicXmlSpannerDesc>& stops);
-    void bracket(const String& type, const int number, std::vector<MusicXmlSpannerDesc>& starts, std::vector<MusicXmlSpannerDesc>& stops);
-    void octaveShift(const String& type, const int number, std::vector<MusicXmlSpannerDesc>& starts,
-                     std::vector<MusicXmlSpannerDesc>& stops);
-    void pedal(const String& type, const int number, std::vector<MusicXmlSpannerDesc>& starts, std::vector<MusicXmlSpannerDesc>& stops);
-    void dashes(const String& type, const int number, std::vector<MusicXmlSpannerDesc>& starts, std::vector<MusicXmlSpannerDesc>& stops);
-    void wedge(const String& type, const int number, std::vector<MusicXmlSpannerDesc>& starts, std::vector<MusicXmlSpannerDesc>& stops);
-    String metronome(double& r);
+    QXmlStreamReader& _e;
+    Score* const _score;                        // the score
+    MusicXMLParserPass1& _pass1;                // the pass1 results
+    MusicXMLParserPass2& _pass2;                // the pass2 results
+    MxmlLogger* _logger;                        ///< Error logger
+
+    QStringList _dynamicsList;
+    QString _enclosure;
+    QString _wordsText;
+    QString _metroText;
+    QString _rehearsalText;
+    QString _dynaVelocity;
+    QString _tempo;
+    QString _sndCoda;
+    QString _sndDacapo;
+    QString _sndDalsegno;
+    QString _sndFine;
+    QString _sndSegno;
+    QString _sndToCoda;
+    bool _hasDefaultY;
+    qreal _defaultY;
+    bool _hasRelativeY;
+    qreal _relativeY;
+    bool hasTotalY() { return _hasRelativeY || _hasDefaultY; }
+    double _tpoMetro;                   // tempo according to metronome
+    double _tpoSound;                   // tempo according to sound
+    QList<EngravingItem*> _elems;
+    Fraction _offset;
+
+    void directionType(QList<MusicXmlSpannerDesc>& starts, QList<MusicXmlSpannerDesc>& stops);
+    void bracket(const QString& type, const int number, QList<MusicXmlSpannerDesc>& starts, QList<MusicXmlSpannerDesc>& stops);
+    void octaveShift(const QString& type, const int number, QList<MusicXmlSpannerDesc>& starts, QList<MusicXmlSpannerDesc>& stops);
+    void pedal(const QString& type, const int number, QList<MusicXmlSpannerDesc>& starts, QList<MusicXmlSpannerDesc>& stops);
+    void dashes(const QString& type, const int number, QList<MusicXmlSpannerDesc>& starts, QList<MusicXmlSpannerDesc>& stops);
+    void wedge(const QString& type, const int number, QList<MusicXmlSpannerDesc>& starts, QList<MusicXmlSpannerDesc>& stops);
+    QString metronome(double& r);
     void sound();
     void dynamics();
     void handleRepeats(Measure* measure, const track_idx_t track, const Fraction tick);
     void handleNmiCmi(Measure* measure, const track_idx_t track, const Fraction tick, DelayedDirectionsList& delayedDirections);
-    String matchRepeat() const;
+    QString matchRepeat() const;
     void skipLogCurrElem();
     bool isLikelyCredit(const Fraction& tick) const;
     bool isLyricBracket() const;
-
-    bool hasTotalY() { return m_hasRelativeY || m_hasDefaultY; }
-
-    XmlStreamReader& m_e;
-    Score* m_score = nullptr;                              // the score
-    MusicXMLParserPass1& m_pass1;                // the pass1 results
-    MusicXMLParserPass2& m_pass2;                // the pass2 results
-    MxmlLogger* m_logger = nullptr;                        // Error logger
-
-    StringList m_dynamicsList;
-    String m_enclosure;
-    String m_wordsText;
-    String m_metroText;
-    String m_rehearsalText;
-    String m_dynaVelocity;
-    String m_tempo;
-    String m_sndCoda;
-    String m_sndDacapo;
-    String m_sndDalsegno;
-    String m_sndFine;
-    String m_sndSegno;
-    String m_sndToCoda;
-    bool m_hasDefaultY = false;
-    double m_defaultY = 0.0;
-    bool m_hasRelativeY = false;
-    double m_relativeY = 0.0;
-    double m_tpoMetro = 0.0;                   // tempo according to metronome
-    double m_tpoSound = 0.0;                   // tempo according to sound
-    std::vector<EngravingItem*> m_elems;
-    Fraction m_offset;
 };
 
 //---------------------------------------------------------
@@ -441,20 +432,20 @@ private:
 class MusicXMLDelayedDirectionElement
 {
 public:
-    MusicXMLDelayedDirectionElement(double totalY, EngravingItem* element, track_idx_t track,
-                                    String placement, Measure* measure, Fraction tick)
-        : m_totalY(totalY),  m_element(element), m_track(track), m_placement(placement),
-        m_measure(measure), m_tick(tick) {}
+    MusicXMLDelayedDirectionElement(qreal totalY, EngravingItem* element, track_idx_t track,
+                                    QString placement, Measure* measure, Fraction tick)
+        : _totalY(totalY),  _element(element), _track(track), _placement(placement),
+        _measure(measure), _tick(tick) {}
     void addElem();
-    double totalY() const { return m_totalY; }
+    qreal totalY() const { return _totalY; }
 
 private:
-    double m_totalY = 0.0;
-    EngravingItem* m_element = nullptr;
-    track_idx_t m_track = 0;
-    String m_placement;
-    Measure* m_measure = nullptr;
-    Fraction m_tick;
+    qreal _totalY;
+    EngravingItem* _element;
+    track_idx_t _track;
+    QString _placement;
+    Measure* _measure;
+    Fraction _tick;
 };
 } // namespace Ms
 #endif

@@ -44,20 +44,15 @@ class EngravingItem;
 struct ShapeElement : public mu::RectF {
 public:
 
-    ShapeElement(const mu::RectF& f, const EngravingItem* p, bool ignoreForLayout)
-        : mu::RectF(f), m_item(p), m_ignoreForLayout(ignoreForLayout) {}
     ShapeElement(const mu::RectF& f, const EngravingItem* p)
         : mu::RectF(f), m_item(p) {}
     ShapeElement(const mu::RectF& f)
         : mu::RectF(f) {}
 
     const EngravingItem* item() const { return m_item; }
-    void setItem(const EngravingItem* item) { m_item = item; }
-    bool ignoreForLayout() const { return m_ignoreForLayout; }
 
 private:
     const EngravingItem* m_item = nullptr;
-    bool m_ignoreForLayout = false;
 };
 
 //---------------------------------------------------------
@@ -79,7 +74,6 @@ public:
         : m_type(t) {}
     Shape(const mu::RectF& r, const EngravingItem* p = nullptr, Type t = Type::Fixed)
         : m_type(t) { setBBox(r, p); }
-    Shape(const std::vector<mu::RectF>& rects, const EngravingItem* p = nullptr);
 
     Type type() const { return m_type; }
     bool isComposite() const { return m_type == Type::Composite; }
@@ -108,10 +102,8 @@ public:
 
     // Composite
     void add(const Shape& s);
-    void add(const ShapeElement& shapeEl);
-    void add(const mu::RectF& r, const EngravingItem* p, bool ignoreForLayout) { add(ShapeElement(r, p, ignoreForLayout)); }
-    void add(const mu::RectF& r, const EngravingItem* p) { add(ShapeElement(r, p)); }
-    void add(const mu::RectF& r) { add(ShapeElement(r)); }
+    void add(const mu::RectF& r, const EngravingItem* p);
+    void add(const mu::RectF& r);
 
     void remove(const mu::RectF&);
     void remove(const Shape&);
@@ -142,8 +134,6 @@ public:
     void translateX(double);
     void translateY(double);
     Shape translated(const mu::PointF&) const;
-    Shape& scale(const mu::SizeF&);
-    Shape scaled(const mu::SizeF&) const;
 
     const mu::RectF& bbox() const;
     double minVerticalDistance(const Shape&) const;

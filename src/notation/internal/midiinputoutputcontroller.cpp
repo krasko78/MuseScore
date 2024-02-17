@@ -30,10 +30,6 @@ using namespace mu::midi;
 
 void MidiInputOutputController::init()
 {
-    if (!midiConfiguration()->midiPortIsAvalaible()) {
-        return;
-    }
-
     checkInputConnection();
     checkOutputConnection();
 

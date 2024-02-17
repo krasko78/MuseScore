@@ -38,7 +38,6 @@ public:
     void resolveImports() override;
     void registerExports() override;
     void registerUiTypes() override;
-    void registerResources() override;
     void onInit(const framework::IApplication::RunMode& mode) override;
 
 private:

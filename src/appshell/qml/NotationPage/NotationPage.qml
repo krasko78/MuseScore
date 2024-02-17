@@ -154,8 +154,8 @@ DockPage {
             ]
 
             PlaybackToolBar {
-                navigationPanelSection: root.topToolKeyNavSec
-                navigationPanelOrder: 3
+                navigationPanel.section: root.topToolKeyNavSec
+                navigationPanel.order: 3
 
                 floating: playbackToolBar.floating
             }

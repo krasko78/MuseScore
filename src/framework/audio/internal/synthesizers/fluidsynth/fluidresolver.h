@@ -44,7 +44,6 @@ public:
     bool hasCompatibleResources(const audio::PlaybackSetupData& setup) const override;
 
     audio::AudioResourceMetaList resolveResources() const override;
-    audio::SoundPresetList resolveSoundPresets(const AudioResourceMeta& resourceMeta) const override;
 
     void refresh() override;
     void clearSources() override;

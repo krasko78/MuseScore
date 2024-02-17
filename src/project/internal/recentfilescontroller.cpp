@@ -21,10 +21,12 @@
  */
 #include "recentfilescontroller.h"
 
-#include "global/concurrency/concurrent.h"
-#include "global/async/async.h"
-#include "global/defer.h"
-#include "global/serialization/json.h"
+#include <QtConcurrent>
+
+#include "async/async.h"
+#include "defer.h"
+
+#include "serialization/json.h"
 
 #include "multiinstances/resourcelockguard.h"
 
@@ -252,7 +254,7 @@ Promise<QPixmap> RecentFilesController::thumbnail(const io::path_t& filePath) co
             return reject(int(Ret::Code::UnknownError), "Invalid file specified");
         }
 
-        Concurrent::run([this, filePath, resolve, reject]() {
+        QtConcurrent::run([this, filePath, resolve, reject]() {
             std::lock_guard lock(m_thumbnailCacheMutex);
 
             DateTime lastModified = fileSystem()->lastModified(filePath);
@@ -281,7 +283,7 @@ Promise<QPixmap> RecentFilesController::thumbnail(const io::path_t& filePath) co
 
 void RecentFilesController::cleanUpThumbnailCache(const RecentFilesList& files)
 {
-    Concurrent::run([this, files] {
+    QtConcurrent::run([this, files] {
         std::lock_guard lock(m_thumbnailCacheMutex);
 
         if (files.empty()) {

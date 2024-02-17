@@ -54,9 +54,6 @@ static const double MINIMUM_Y = -1000000.0;
 
 void Skyline::add(const ShapeElement& r)
 {
-    if (r.ignoreForLayout()) {
-        return;
-    }
     const EngravingItem* item = r.item();
     bool crossSouth = false;
     bool crossNorth = false;
@@ -161,9 +158,6 @@ void SkylineLine::add(const Shape& s)
 
 void SkylineLine::add(const ShapeElement& r)
 {
-    if (r.ignoreForLayout()) {
-        return;
-    }
     if (north) {
         add(r.x(), r.top(), r.width());
     } else {

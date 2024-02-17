@@ -79,21 +79,7 @@ std::string Color::toString() const
 
 Color Color::fromString(const std::string& str)
 {
-    Color c;
-    c.setNamedColor(str);
-    return c;
-}
-
-Color Color::fromString(const char* str)
-{
-    Color c;
-    c.setNamedColor(str);
-    return c;
-}
-
-Color Color::fromString(const String& str)
-{
-    return fromString(str.toStdString());
+    return Color(str.c_str());
 }
 
 bool Color::isValid() const
@@ -158,9 +144,6 @@ void Color::setNamedColor(const std::string& color)
 
 void Color::setNamedColor(const char* color)
 {
-    if (!color) {
-        return;
-    }
     setNamedColor(std::string(color));
 }
 

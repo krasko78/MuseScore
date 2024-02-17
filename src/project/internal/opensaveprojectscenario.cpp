@@ -175,7 +175,7 @@ RetVal<CloudProjectInfo> OpenSaveProjectScenario::askPublishLocation(INotationPr
 
 RetVal<CloudAudioInfo> OpenSaveProjectScenario::askShareAudioLocation(INotationProjectPtr project) const
 {
-    bool isCloudAvailable = audioComService()->authorization()->checkCloudIsAvailable();
+    bool isCloudAvailable = museScoreComService()->authorization()->checkCloudIsAvailable();
     if (!isCloudAvailable) {
         return warnCloudNotAvailableForSharingAudio();
     }

@@ -47,7 +47,6 @@ typedef int (* ms_get_version_revision)();
 
 typedef void* ms_MuseSampler;
 typedef void* ms_PresetList;
-typedef int ms_PresetChange; // added in v0.6
 typedef void* ms_InstrumentList;
 typedef void* ms_InstrumentInfo;
 typedef void* ms_Track;
@@ -189,16 +188,6 @@ typedef struct ms_AuditionStartNoteEvent_2
     double _dynamics;
 } ms_AuditionStartNoteEvent_2;
 
-// Added in v0.6
-typedef struct ms_AuditionStartNoteEvent_3
-{
-    int _pitch; // MIDI pitch
-    int _offset_cents;
-    ms_NoteArticulation _articulation;
-    double _dynamics;
-    const char* _active_presets; // presets that are selected for this note. list is separated by "|"
-} ms_AuditionStartNoteEvent_3;
-
 typedef struct ms_AuditionStopNoteEvent
 {
     int _pitch; // MIDI pitch
@@ -300,13 +289,9 @@ typedef ms_Result (* ms_MuseSampler_add_pitch_bend)(ms_MuseSampler ms, ms_Track 
 typedef ms_Result (* ms_MuseSampler_add_vibrato)(ms_MuseSampler ms, ms_Track track, ms_VibratoInfo info);
 
 typedef ms_Result (* ms_MuseSampler_start_audition_note)(ms_MuseSampler ms, ms_Track track, ms_AuditionStartNoteEvent evt);
-
 // Added in 0.3
 typedef ms_Result (* ms_MuseSampler_start_audition_note_2)(ms_MuseSampler ms, ms_Track track, ms_AuditionStartNoteEvent_2 evt);
 typedef ms_Result (* ms_MuseSampler_stop_audition_note)(ms_MuseSampler ms, ms_Track track, ms_AuditionStopNoteEvent evt);
-
-// Added in 0.6
-typedef ms_Result (* ms_MuseSampler_start_audition_note_3)(ms_MuseSampler ms, ms_Track track, ms_AuditionStartNoteEvent_3 evt);
 
 typedef ms_Result (* ms_MuseSampler_start_liveplay_mode)(ms_MuseSampler ms);
 typedef ms_Result (* ms_MuseSampler_stop_liveplay_mode)(ms_MuseSampler ms);
@@ -325,8 +310,4 @@ typedef void (* ms_MuseSampler_set_playing)(ms_MuseSampler, int playing);
 
 typedef ms_Result (* ms_MuseSampler_all_notes_off)(ms_MuseSampler);
 
-// Added in 0.6
-typedef ms_PresetChange (* ms_MuseSampler_create_preset_change)(ms_MuseSampler ms, ms_Track track, long long location_us);
-
-typedef ms_Result (* ms_MuseSampler_add_preset)(ms_MuseSampler ms, ms_Track track, ms_PresetChange preset_change, const char* preset_name);
 #endif // MU_MUSESAMPLER_APITYPES_H

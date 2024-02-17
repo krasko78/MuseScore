@@ -20,7 +20,6 @@
   <part-list>
     <part-group type="start" number="1">
       <group-symbol>brace</group-symbol>
-      <group-barline>yes</group-barline>
       </part-group>
     <score-part id="P1">
       <part-name>Piccolo</part-name>
@@ -53,7 +52,6 @@
     <part-group type="stop" number="1"/>
     <part-group type="start" number="1">
       <group-symbol>bracket</group-symbol>
-      <group-barline>yes</group-barline>
       </part-group>
     <score-part id="P3">
       <part-name>Treble Flute</part-name>
@@ -86,7 +84,6 @@
     <part-group type="stop" number="1"/>
     <part-group type="start" number="1">
       <group-symbol>line</group-symbol>
-      <group-barline>yes</group-barline>
       </part-group>
     <score-part id="P5">
       <part-name>Oboe</part-name>
@@ -133,7 +130,6 @@
       </score-part>
     <part-group type="start" number="1">
       <group-symbol>square</group-symbol>
-      <group-barline>yes</group-barline>
       </part-group>
     <score-part id="P8">
       <part-name>Violin</part-name>

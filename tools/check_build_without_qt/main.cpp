@@ -7,7 +7,7 @@
 
 #include "importexport/guitarpro/guitarpromodule.h"
 
-int main()
+int main(int argc, char* argv[])
 {
     mu::modularity::ioc()->registerExport<mu::draw::IFontProvider>("test", new mu::draw::FontProviderStub());
 

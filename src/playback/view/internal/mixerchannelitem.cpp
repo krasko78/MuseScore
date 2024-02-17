@@ -216,7 +216,7 @@ void MixerChannelItem::removeBlankSlotsFromEnd(size_t count)
     }
 }
 
-void MixerChannelItem::loadInputParams(const AudioInputParams& newParams)
+void MixerChannelItem::loadInputParams(AudioInputParams&& newParams)
 {
     if (m_outputOnly) {
         return;
@@ -230,7 +230,7 @@ void MixerChannelItem::loadInputParams(const AudioInputParams& newParams)
     m_inputResourceItem->setParams(newParams);
 }
 
-void MixerChannelItem::loadOutputParams(const AudioOutputParams& newParams)
+void MixerChannelItem::loadOutputParams(AudioOutputParams&& newParams)
 {
     if (!RealIsEqual(m_outParams.volume, newParams.volume)) {
         m_outParams.volume = newParams.volume;
@@ -344,7 +344,7 @@ void MixerChannelItem::loadAuxSendItems(const AuxSendsParams& auxSends)
     }
 }
 
-void MixerChannelItem::loadSoloMuteState(const notation::INotationSoloMuteState::SoloMuteState& newState)
+void MixerChannelItem::loadSoloMuteState(project::IProjectAudioSettings::SoloMuteState&& newState)
 {
     if (m_soloMuteState.mute != newState.mute) {
         m_soloMuteState.mute = newState.mute;

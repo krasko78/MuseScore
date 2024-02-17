@@ -36,7 +36,6 @@
 #include "figuredbass.h"
 #include "harmony.h"
 #include "harppedaldiagram.h"
-#include "hook.h"
 #include "instrchange.h"
 #include "keysig.h"
 #include "lyrics.h"
@@ -596,21 +595,13 @@ void ChordRest::removeDeleteBeam(bool beamed)
         Beam* b = m_beam;
         m_beam->remove(this);
         if (b->empty()) {
-            score()->doUndoRemoveElement(b);
+            score()->undoRemoveElement(b);
         } else {
             renderer()->layoutBeam1(b);
         }
     }
     if (!beamed && isChord()) {
-        Chord* c = toChord(this);
-        if (c->shouldHaveHook()) {
-            if (!c->hook()) {
-                c->createHook();
-            }
-        } else if (c->hook()) {
-            score()->doUndoRemoveElement(c->hook());
-        }
-        renderer()->layoutStem(c);
+        renderer()->layoutStem(toChord(this));
     }
 }
 
@@ -1245,7 +1236,7 @@ void ChordRest::checkStaffMoveValidity()
     staff_idx_t minStaff = part()->startTrack() / VOICES;
     staff_idx_t maxStaff = part()->endTrack() / VOICES;
     bool isDestinationValid = targetStaff && targetStaff->visible() && idx >= minStaff && idx < maxStaff
-                              && targetStaffType->group() == baseStaffType->group() && targetStaff->isLinked() == baseStaff->isLinked();
+                              && targetStaffType->group() == baseStaffType->group();
     if (!isDestinationValid) {
         LOGD("staffMove out of scope %zu + %d min %zu max %zu",
              staffIdx(), m_staffMove, minStaff, maxStaff);
@@ -1255,15 +1246,9 @@ void ChordRest::checkStaffMoveValidity()
             // destination staff becomes valid (e.g. unihidden)
             m_storedStaffMove = m_staffMove;
         }
-        setStaffMove(0);
+        undoChangeProperty(Pid::STAFF_MOVE, 0);
     } else if (!m_staffMove && m_storedStaffMove) {
-        setStaffMove(m_storedStaffMove);
-        m_storedStaffMove = 0;
-    }
-
-    if (isDestinationValid) {
-        // Move valid, clear stored move
-        m_storedStaffMove = 0;
+        undoChangeProperty(Pid::STAFF_MOVE, m_storedStaffMove);
     }
 }
 }

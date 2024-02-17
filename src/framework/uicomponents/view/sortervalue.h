@@ -23,6 +23,8 @@
 #define MU_UICOMPONENTS_SORTERVALUE_H
 
 #include <QObject>
+#include <QMetaType>
+#include <QVariant>
 
 namespace mu::uicomponents {
 class SorterValue : public QObject

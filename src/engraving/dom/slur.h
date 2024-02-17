@@ -122,16 +122,6 @@ public:
 
     double scalingFactor() const override;
 
-    /// temporary HACK for correct guitar pro import
-    enum ConnectedElement {
-        NONE,
-        GLISSANDO,
-        HAMMER_ON
-    };
-
-    void setConnectedElement(ConnectedElement el) { m_connectedElement = el; }
-    ConnectedElement connectedElement() const { return m_connectedElement; }
-
 private:
 
     friend class Factory;
@@ -143,8 +133,6 @@ private:
     int m_sourceStemArrangement = -1;
 
     StemFloated m_stemFloated; // end point position is attached to stem but floated towards the note
-
-    ConnectedElement m_connectedElement = ConnectedElement::NONE;
 };
 } // namespace mu::engraving
 #endif

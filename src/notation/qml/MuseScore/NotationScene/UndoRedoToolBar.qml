@@ -28,6 +28,7 @@ import MuseScore.NotationScene 1.0
 Item {
     id: root
 
+
     width: content.width
     height: content.height
 
@@ -49,14 +50,14 @@ Item {
     Row {
         id: content
 
-        readonly property int margin: 6
+        readonly property int padding: 6
 
         //! NOTE padding - 1 to compensate for the dock separator width.
         //! The separator is hidden, but the space for it is still allocated.
         //! That should be solved in KDDW.
-        width: margin - 1 + childrenRect.width + margin
+        width: padding - 1 + childrenRect.width + padding
         height: childrenRect.height
-        x: margin - 1
+        x: padding - 1
 
         spacing: 0
 

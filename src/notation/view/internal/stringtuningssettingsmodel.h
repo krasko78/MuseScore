@@ -23,7 +23,7 @@
 #ifndef MU_NOTATION_STRINGTUNINGSSETTINGSMODEL_H
 #define MU_NOTATION_STRINGTUNINGSSETTINGSMODEL_H
 
-#include "view/abstractelementpopupmodel.h"
+#include "abstractelementpopupmodel.h"
 
 #include "modularity/ioc.h"
 #include "iinstrumentsrepository.h"
@@ -59,7 +59,10 @@ public:
     Q_INVOKABLE void toggleString(int stringIndex);
     Q_INVOKABLE bool setStringValue(int stringIndex, const QString& stringValue);
 
+    Q_INVOKABLE bool canIncreaseStringValue(const QString& stringValue) const;
     Q_INVOKABLE QString increaseStringValue(const QString& stringValue);
+
+    Q_INVOKABLE bool canDecreaseStringValue(const QString& stringValue) const;
     Q_INVOKABLE QString decreaseStringValue(const QString& stringValue);
 
     QVariantList presets(bool withCustom = true) const;
@@ -88,6 +91,8 @@ private:
     void updateCurrentPreset();
 
     void doSetCurrentPreset(const QString& preset);
+
+    QString convertToUnicode(const QString& stringValue) const;
 
     QList<StringTuningsItem*> m_strings;
 

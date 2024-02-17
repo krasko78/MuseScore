@@ -156,7 +156,6 @@ public:
     double maxHeight() const;
 
     PropertyValue getProperty(Pid propertyId) const override;
-    PropertyValue propertyDefault(Pid) const override;
 
     void startEditDrag(EditData&) override;
 
@@ -211,8 +210,6 @@ public:
     EngravingItem* drop(EditData&) override;
     void add(EngravingItem* e) override;
     void remove(EngravingItem* el) override;
-
-    PropertyValue propertyDefault(Pid) const override;
 
     String accessibleExtraInfo() const override;
 

@@ -20,19 +20,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <QTextStream>
 #include <QBuffer>
 #include <QFile>
-#include <QMimeDatabase>
-#include <QMimeType>
-#include <QPaintEngine>
-#include <QPainterPath>
-#include <QTextStream>
-
-#ifdef MU_QT5_COMPAT
 #include <QTextCodec>
-#else
-#include <QStringConverter>
-#endif
+#include <QPainterPath>
+#include <QMimeType>
+#include <QMimeDatabase>
+#include <QPaintEngine>
 
 #include "svggenerator.h"
 #include "types/bytearray.h"
@@ -1082,10 +1077,8 @@ bool SvgPaintEngine::end()
     // Point the stream at the real output device (the .svg file)
     d->stream->setDevice(d->outputDevice);
 
-#ifdef MU_QT5_COMPAT
+#ifndef QT_NO_TEXTCODEC
     d->stream->setCodec(QTextCodec::codecForName("UTF-8"));
-#else
-    d->stream->setEncoding(QStringConverter::Utf8);
 #endif
 
     // Stream our strings out to the device, in order

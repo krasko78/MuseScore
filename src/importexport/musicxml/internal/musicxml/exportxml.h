@@ -23,17 +23,17 @@
 #ifndef MU_IMPORTEXPORT_EXPORTXML_H
 #define MU_IMPORTEXPORT_EXPORTXML_H
 
-#include <sstream>
-
 #include "io/iodevice.h"
-#include "global/types/string.h"
+
+class QIODevice;
+class QString;
 
 namespace mu::engraving {
 class Score;
 
-bool saveMxl(Score*, io::IODevice*);
-bool saveXml(Score*, io::IODevice*);
-bool saveXml(Score*, const String&);
+bool saveMxl(Score*, QIODevice*);
+bool saveXml(Score*, QIODevice*);
+bool saveXml(Score*, const QString&);
 }
 
 #endif // MU_IMPORTEXPORT_EXPORTXML_H

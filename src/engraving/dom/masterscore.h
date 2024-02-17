@@ -22,8 +22,6 @@
 #ifndef MU_ENGRAVING_MASTERSCORE_H
 #define MU_ENGRAVING_MASTERSCORE_H
 
-#include <array>
-
 #include "../infrastructure/ifileinfoprovider.h"
 #include "../infrastructure/geteid.h"
 
@@ -155,9 +153,9 @@ public:
     void updateExpressive(Synthesizer* synth);
     void updateExpressive(Synthesizer* synth, bool expressive, bool force = false);
 
-    using Score::loopBoundaryTick;
-    Fraction loopBoundaryTick(LoopBoundaryType type) const;
-    void setLoopBoundaryTick(LoopBoundaryType type, Fraction tick);
+    using Score::pos;
+    Fraction pos(POS pos) const { return m_pos[int(pos)]; }
+    void setPos(POS pos, Fraction tick);
 
     void addExcerpt(Excerpt*, size_t index = mu::nidx);
     void removeExcerpt(Excerpt*);
@@ -227,7 +225,7 @@ private:
 
     CmdState m_cmdState;       // modified during cmd processing
 
-    std::array<Fraction, 2> m_loopBoundaries; ///< 0 - LoopIn, 1 - LoopOut
+    Fraction m_pos[3];                      ///< 0 - current, 1 - left loop, 2 - right loop
 
     int m_midiPortCount = 0;                           // A count of ALSA midi out ports
     //    QQueue<MidiInputEvent> _midiInputQueue;           // MIDI events that have yet to be processed

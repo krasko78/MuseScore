@@ -20,10 +20,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import QtQuick 2.15
+import QtGraphicalEffects 1.0
 
-import MuseScore.GraphicalEffects 1.0
-
-EffectDropShadow {
+DropShadow {
     color: "#40000000"
     verticalOffset: 4
     radius: 12

@@ -2,7 +2,6 @@ corruption:
 - cbjeukendrup
 crash:
 - RomanPudashkin
-- DmitryArefiev
 engraving:
 - oktophonie
 VST:
@@ -11,6 +10,7 @@ VST:
 - matthewreadbass
 playback:
 - RomanPudashkin
+- DmitryArefiev
 UI:
 - Eism
 accessibility:
@@ -19,6 +19,5 @@ cloud:
 - shoogle
 - cbjeukendrup
 "needs review":
-- bkunda
-regression:
 - DmitryArefiev
+- bkunda

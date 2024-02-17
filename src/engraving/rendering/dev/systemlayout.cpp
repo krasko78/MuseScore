@@ -24,7 +24,6 @@
 #include "systemlayout.h"
 
 #include "realfn.h"
-#include "defer.h"
 
 #include "style/defaultstyle.h"
 
@@ -102,9 +101,6 @@ System* SystemLayout::collectSystem(LayoutContext& ctx)
     }
 
     System* system = getNextSystem(ctx);
-
-    LAYOUT_CALL() << LAYOUT_ITEM_INFO(system);
-
     Fraction lcmTick = ctx.state().curMeasure()->tick();
     SystemLayout::setInstrumentNames(system, ctx, ctx.state().startWithLongNames(), lcmTick);
 
@@ -602,7 +598,7 @@ void SystemLayout::hideEmptyStaves(System* system, LayoutContext& ctx, bool isFi
 
     Fraction stick = system->measures().front()->tick();
     Fraction etick = system->measures().back()->endTick();
-    auto& spanners = ctx.dom().spannerMap().findOverlapping(stick.ticks(), etick.ticks() - 1);
+    auto spanners = ctx.dom().spannerMap().findOverlapping(stick.ticks(), etick.ticks() - 1);
 
     for (const Staff* staff : ctx.dom().staves()) {
         SysStaff* ss  = system->staff(staffIdx);
@@ -615,10 +611,10 @@ void SystemLayout::hideEmptyStaves(System* system, LayoutContext& ctx, bool isFi
                 && !(isFirstSystem && ctx.conf().styleB(Sid::dontHideStavesInFirstSystem))
                 && hideMode != Staff::HideMode::NEVER)) {
             bool hideStaff = true;
-            for (auto& spanner : spanners) {
+            for (auto spanner : spanners) {
                 if (spanner.value->staff() == staff
                     && !spanner.value->systemFlag()
-                    && !(spanner.stop == stick.ticks() && !spanner.value->isSlur())) {
+                    && !spanner.value->isHairpin()) {
                     hideStaff = false;
                     break;
                 }
@@ -833,7 +829,7 @@ void SystemLayout::layoutSystemElements(System* system, LayoutContext& ctx)
 
                         // add element to skyline
                         if (e->addToSkyline()) {
-                            skyline.add(e->shape().translate(e->pos() + p));
+                            skyline.add(e->shape().translated(e->pos() + p));
                             // add grace notes to skyline
                             if (e->isChord()) {
                                 GraceNotesGroup& graceBefore = toChord(e)->graceNotesBefore();
@@ -841,10 +837,10 @@ void SystemLayout::layoutSystemElements(System* system, LayoutContext& ctx)
                                 TLayout::layoutGraceNotesGroup2(&graceBefore, graceBefore.mutldata());
                                 TLayout::layoutGraceNotesGroup2(&graceAfter, graceAfter.mutldata());
                                 if (!graceBefore.empty()) {
-                                    skyline.add(graceBefore.shape().translate(graceBefore.pos() + p));
+                                    skyline.add(graceBefore.shape().translated(graceBefore.pos() + p));
                                 }
                                 if (!graceAfter.empty()) {
-                                    skyline.add(graceAfter.shape().translate(graceAfter.pos() + p));
+                                    skyline.add(graceAfter.shape().translated(graceAfter.pos() + p));
                                 }
                             }
                             // If present, add ornament cue note to skyline
@@ -904,9 +900,9 @@ void SystemLayout::layoutSystemElements(System* system, LayoutContext& ctx)
 
     // ties
     if (ctx.conf().isLinearMode()) {
-        doLayoutTiesLinear(system, ctx);
+        doLayoutTiesLinear(system);
     } else {
-        doLayoutTies(system, sl, stick, etick, ctx);
+        doLayoutTies(system, sl, stick, etick);
     }
     // guitar bends
     layoutGuitarBends(sl, ctx);
@@ -1331,7 +1327,7 @@ void SystemLayout::layoutSystemElements(System* system, LayoutContext& ctx)
     }
 }
 
-void SystemLayout::doLayoutTies(System* system, std::vector<Segment*> sl, const Fraction& stick, const Fraction& etick, LayoutContext& ctx)
+void SystemLayout::doLayoutTies(System* system, std::vector<Segment*> sl, const Fraction& stick, const Fraction& etick)
 {
     UNUSED(etick);
 
@@ -1342,14 +1338,14 @@ void SystemLayout::doLayoutTies(System* system, std::vector<Segment*> sl, const 
             }
             Chord* c = toChord(e);
             for (Chord* ch : c->graceNotes()) {
-                layoutTies(ch, system, stick, ctx);
+                layoutTies(ch, system, stick);
             }
-            layoutTies(c, system, stick, ctx);
+            layoutTies(c, system, stick);
         }
     }
 }
 
-void SystemLayout::doLayoutTiesLinear(System* system, LayoutContext& ctx)
+void SystemLayout::doLayoutTiesLinear(System* system)
 {
     constexpr Fraction start = Fraction(0, 1);
     for (Measure* measure = system->firstMeasure(); measure; measure = measure->nextMeasure()) {
@@ -1363,9 +1359,9 @@ void SystemLayout::doLayoutTiesLinear(System* system, LayoutContext& ctx)
                 }
                 Chord* c = toChord(e);
                 for (Chord* ch : c->graceNotes()) {
-                    layoutTies(ch, system, start, ctx);
+                    layoutTies(ch, system, start);
                 }
-                layoutTies(c, system, start, ctx);
+                layoutTies(c, system, start);
             }
         }
     }
@@ -1559,7 +1555,7 @@ void SystemLayout::processLines(System* system, LayoutContext& ctx, std::vector<
     }
 }
 
-void SystemLayout::layoutTies(Chord* ch, System* system, const Fraction& stick, LayoutContext& ctx)
+void SystemLayout::layoutTies(Chord* ch, System* system, const Fraction& stick)
 {
     SysStaff* staff = system->staff(ch->staffIdx());
     if (!staff->show()) {
@@ -1579,7 +1575,7 @@ void SystemLayout::layoutTies(Chord* ch, System* system, const Fraction& stick, 
         t = note->tieBack();
         if (t) {
             if (t->startNote()->tick() < stick) {
-                TieSegment* ts = SlurTieLayout::tieLayoutBack(t, system, ctx);
+                TieSegment* ts = SlurTieLayout::tieLayoutBack(t, system);
                 if (ts && ts->addToSkyline()) {
                     staff->skyline().add(ts->shape().translate(ts->pos()));
                     stackedBackwardTies.push_back(ts);
@@ -1587,10 +1583,8 @@ void SystemLayout::layoutTies(Chord* ch, System* system, const Fraction& stick, 
             }
         }
     }
-    if (!ch->staffType()->isTabStaff()) {
-        SlurTieLayout::resolveVerticalTieCollisions(stackedForwardTies);
-        SlurTieLayout::resolveVerticalTieCollisions(stackedBackwardTies);
-    }
+    SlurTieLayout::resolveVerticalTieCollisions(stackedForwardTies);
+    SlurTieLayout::resolveVerticalTieCollisions(stackedBackwardTies);
 }
 
 /****************************************************************************
@@ -1602,8 +1596,6 @@ void SystemLayout::layoutTies(Chord* ch, System* system, const Fraction& stick, 
 
 void SystemLayout::updateCrossBeams(System* system, LayoutContext& ctx)
 {
-    LAYOUT_CALL() << LAYOUT_ITEM_INFO(system);
-
     SystemLayout::layout2(system, ctx); // Computes staff distances, essential for the rest of the calculations
     // Update grace cross beams
     for (MeasureBase* mb : system->measures()) {
@@ -1678,7 +1670,7 @@ void SystemLayout::restoreTiesAndBends(System* system, LayoutContext& ctx)
     }
     Fraction stick = system->measures().front()->tick();
     Fraction etick = system->measures().back()->endTick();
-    doLayoutTies(system, segList, stick, etick, ctx);
+    doLayoutTies(system, segList, stick, etick);
     layoutGuitarBends(segList, ctx);
 }
 
@@ -1746,9 +1738,7 @@ void SystemLayout::manageNarrowSpacing(System* system, LayoutContext& ctx, doubl
                 }
 
                 double squeezeFactor2 = ctx.state().segmentShapeSqueezeFactor();
-                double minDist = HorizontalSpacing::minHorizontalCollidingDistance(&segment, nextSeg, squeezeFactor2);
-                minDist = std::max(minDist, 0.0);
-                double margin = segment.width() - minDist;
+                double margin = segment.width() - HorizontalSpacing::minHorizontalCollidingDistance(&segment, nextSeg, squeezeFactor2);
 
                 double reducedMargin = margin * (1 - std::max(squeezeFactor2, squeezeLimit));
                 segment.setWidth(segment.width() - reducedMargin);
@@ -2174,8 +2164,6 @@ Bracket* SystemLayout::createBracket(System* system, LayoutContext& ctx, Bracket
 void SystemLayout::layout2(System* system, LayoutContext& ctx)
 {
     TRACEFUNC;
-    LAYOUT_CALL() << LAYOUT_ITEM_INFO(system);
-
     Box* vb = system->vbox();
     if (vb) {
         TLayout::layoutBox(vb, vb->mutldata(), ctx);
@@ -2348,15 +2336,15 @@ void SystemLayout::restoreLayout2(System* system, LayoutContext& ctx)
     SystemLayout::setMeasureHeight(system, system->systemHeight(), ctx);
 }
 
-void SystemLayout::setMeasureHeight(System* system, double height, const LayoutContext& ctx)
+void SystemLayout::setMeasureHeight(System* system, double height, LayoutContext& ctx)
 {
-    double spatium = system->spatium();
+    double _spatium = system->spatium();
     for (MeasureBase* m : system->measures()) {
         MeasureBase::LayoutData* mldata = m->mutldata();
         if (m->isMeasure()) {
             // note that the factor 2 * _spatium must be corrected for when exporting
             // system distance in MusicXML (issue #24733)
-            mldata->setBbox(0.0, -spatium, m->width(), height + 2.0 * spatium);
+            mldata->setBbox(0.0, -_spatium, m->width(), height + 2.0 * _spatium);
         } else if (m->isHBox()) {
             mldata->setBbox(0.0, 0.0, m->width(), height);
             TLayout::layoutHBox2(toHBox(m), ctx);
@@ -2549,13 +2537,9 @@ void SystemLayout::setInstrumentNames(System* system, LayoutContext& ctx, bool l
 //    bottom   - bottom system
 //---------------------------------------------------------
 
-double SystemLayout::minDistance(const System* top, const System* bottom, const LayoutContext& ctx)
+double SystemLayout::minDistance(const System* top, const System* bottom, LayoutContext& ctx)
 {
     TRACEFUNC;
-
-    const LayoutConfiguration& conf = ctx.conf();
-    const DomAccessor& dom = ctx.dom();
-
     if (top->vbox() && !bottom->vbox()) {
         return std::max(double(top->vbox()->bottomGap()), bottom->minTop());
     } else if (!top->vbox() && bottom->vbox()) {
@@ -2568,23 +2552,24 @@ double SystemLayout::minDistance(const System* top, const System* bottom, const 
         return 0.0;
     }
 
-    double minVerticalDistance = conf.styleMM(Sid::minVerticalDistance);
-    double dist = conf.isVerticalSpreadEnabled() ? conf.styleMM(Sid::minSystemSpread) : conf.styleMM(Sid::minSystemDistance);
+    double minVerticalDistance = ctx.conf().styleMM(Sid::minVerticalDistance);
+    double dist = ctx.conf().isVerticalSpreadEnabled() ? ctx.conf().styleMM(Sid::minSystemSpread) : ctx.conf().styleMM(
+        Sid::minSystemDistance);
     size_t firstStaff = 0;
     size_t lastStaff = 0;
 
     for (firstStaff = 0; firstStaff < top->staves().size() - 1; ++firstStaff) {
-        if (dom.staff(firstStaff)->show() && bottom->staff(firstStaff)->show()) {
+        if (ctx.dom().staff(firstStaff)->show() && bottom->staff(firstStaff)->show()) {
             break;
         }
     }
     for (lastStaff = top->staves().size() - 1; lastStaff > 0; --lastStaff) {
-        if (dom.staff(lastStaff)->show() && top->staff(lastStaff)->show()) {
+        if (ctx.dom().staff(lastStaff)->show() && top->staff(lastStaff)->show()) {
             break;
         }
     }
 
-    const Staff* staff = dom.staff(firstStaff);
+    const Staff* staff = ctx.dom().staff(firstStaff);
     double userDist = staff ? staff->userDist() : 0.0;
     dist = std::max(dist, userDist);
     top->setFixedDownDistance(false);
@@ -2592,7 +2577,7 @@ double SystemLayout::minDistance(const System* top, const System* bottom, const 
     for (const MeasureBase* mb1 : top->measures()) {
         if (mb1->isMeasure()) {
             const Measure* m = toMeasure(mb1);
-            const Spacer* sp = m->vspacerDown(lastStaff);
+            Spacer* sp = m->vspacerDown(lastStaff);
             if (sp) {
                 if (sp->spacerType() == SpacerType::FIXED) {
                     dist = sp->gap();
@@ -2608,14 +2593,14 @@ double SystemLayout::minDistance(const System* top, const System* bottom, const 
         for (const MeasureBase* mb2 : bottom->measures()) {
             if (mb2->isMeasure()) {
                 const Measure* m = toMeasure(mb2);
-                const Spacer* sp = m->vspacerUp(firstStaff);
+                Spacer* sp = m->vspacerUp(firstStaff);
                 if (sp) {
                     dist = std::max(dist, sp->gap().val());
                 }
             }
         }
 
-        const SysStaff* sysStaff = top->staff(lastStaff);
+        SysStaff* sysStaff = top->staff(lastStaff);
         double sld = sysStaff ? sysStaff->skyline().minDistance(bottom->staff(firstStaff)->skyline()) : 0;
         sld -= sysStaff ? sysStaff->bbox().height() - minVerticalDistance : 0;
         dist = std::max(dist, sld);

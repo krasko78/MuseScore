@@ -59,11 +59,6 @@ public:
     {
         notation::EngravingItem* element = nullptr;
         notation::Staff* staff = nullptr;
-
-        bool operator ==(const HitElementContext& other) const
-        {
-            return element == other.element && staff == other.staff;
-        }
     };
 
     virtual const HitElementContext& hitElementContext() const = 0;
@@ -143,7 +138,6 @@ public:
     virtual async::Notification textEditingStarted() const = 0;
     virtual async::Notification textEditingChanged() const = 0;
     virtual async::Channel<TextBase*> textEditingEnded() const = 0;
-    virtual async::Channel<TextBase*> textAdded() const = 0;
 
     // Display
     virtual async::Channel<ScoreConfigType> scoreConfigChanged() const = 0;

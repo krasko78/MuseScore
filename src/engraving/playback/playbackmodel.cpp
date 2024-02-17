@@ -37,8 +37,6 @@
 
 #include "log.h"
 
-#include <limits>
-
 using namespace mu;
 using namespace mu::engraving;
 using namespace mu::mpe;
@@ -120,7 +118,7 @@ void PlaybackModel::reload()
     update(tickFrom, tickTo, trackFrom, trackTo);
 
     for (auto& pair : m_playbackDataMap) {
-        pair.second.mainStream.send(pair.second.originEvents, pair.second.dynamicLevelMap, pair.second.paramMap);
+        pair.second.mainStream.send(pair.second.originEvents);
     }
 
     m_dataChanged.notify();
@@ -223,10 +221,6 @@ void PlaybackModel::triggerEventsForItems(const std::vector<const EngravingItem*
     constexpr dynamic_level_t actualDynamicLevel = dynamicLevelFromType(mpe::DynamicType::Natural);
     duration_t actualDuration = MScore::defaultPlayDuration * 1000;
 
-    const PlaybackContext& ctx = m_playbackCtxMap[trackId];
-
-    int minTick = std::numeric_limits<int>::min();
-
     for (const EngravingItem* item : playableItems) {
         if (item->isHarmony()) {
             m_renderer.renderChordSymbol(toHarmony(item), actualTimestamp, actualDuration, profile, result);
@@ -234,14 +228,13 @@ void PlaybackModel::triggerEventsForItems(const std::vector<const EngravingItem*
         }
 
         int utick = repeats.tick2utick(item->tick().ticks());
-        minTick = std::min(utick, minTick);
+        const PlaybackContext& ctx = m_playbackCtxMap[trackId];
 
         m_renderer.render(item, actualTimestamp, actualDuration, actualDynamicLevel, ctx.persistentArticulationType(utick), profile,
                           result);
     }
 
-    PlaybackParamMap params = ctx.playbackParamMap(m_score, minTick);
-    trackPlaybackData.offStream.send(std::move(result), std::move(params));
+    trackPlaybackData.offStream.send(std::move(result));
 }
 
 void PlaybackModel::triggerMetronome(int tick)
@@ -253,7 +246,7 @@ void PlaybackModel::triggerMetronome(int tick)
 
     PlaybackEventsMap result;
     m_renderer.renderMetronome(m_score, tick, 0, result);
-    trackPlaybackData->second.offStream.send(std::move(result), {});
+    trackPlaybackData->second.offStream.send(std::move(result));
 }
 
 InstrumentTrackIdSet PlaybackModel::existingTrackIdSet() const
@@ -331,7 +324,6 @@ void PlaybackModel::updateContext(const InstrumentTrackId& trackId)
 
     PlaybackData& trackData = m_playbackDataMap[trackId];
     trackData.dynamicLevelMap = ctx.dynamicLevelMap(m_score);
-    trackData.paramMap = ctx.playbackParamMap(m_score);
 }
 
 void PlaybackModel::processSegment(const int tickPositionOffset, const Segment* segment, const std::set<staff_idx_t>& staffIdxSet,
@@ -515,11 +507,9 @@ bool PlaybackModel::hasToReloadTracks(const ScoreChangesRange& changesRange) con
         ElementType::HAIRPIN_SEGMENT,
         ElementType::HARMONY,
         ElementType::STAFF_TEXT,
-        ElementType::SOUND_FLAG,
         ElementType::MEASURE_REPEAT,
         ElementType::GUITAR_BEND,
         ElementType::GUITAR_BEND_SEGMENT,
-        ElementType::BREATH,
     };
 
     for (const ElementType type : REQUIRED_TYPES) {
@@ -715,7 +705,8 @@ void PlaybackModel::notifyAboutChanges(const InstrumentTrackIdSet& oldTracks, co
             continue;
         }
 
-        search->second.mainStream.send(search->second.originEvents, search->second.dynamicLevelMap, search->second.paramMap);
+        search->second.mainStream.send(search->second.originEvents);
+        search->second.dynamicLevelChanges.send(search->second.dynamicLevelMap);
     }
 
     for (auto it = m_playbackDataMap.cbegin(); it != m_playbackDataMap.cend(); ++it) {
@@ -867,7 +858,8 @@ InstrumentTrackId PlaybackModel::idKey(const EngravingItem* item) const
         return chordSymbolsTrackId(item->part()->id());
     }
 
-    return makeInstrumentTrackId(item);
+    return { item->part()->id(),
+             item->part()->instrumentId(item->tick()).toStdString() };
 }
 
 InstrumentTrackId PlaybackModel::idKey(const std::vector<const EngravingItem*>& items) const

@@ -585,27 +585,6 @@ int string2pitch(const String& s)
     return (octave + 1) * PITCH_DELTA_OCTAVE + pitchIndex;
 }
 
-String convertPitchStringFlatsAndSharpsToUnicode(const String& str)
-{
-    if (str.isEmpty()) {
-        return String();
-    }
-
-    String value = String(str[0]);
-    for (size_t i = 1; i < str.size(); ++i) {
-        Char symbol = str.at(i).toLower();
-        if (symbol == u'b') {
-            value.append(u'♭');
-        } else if (symbol == u'#') {
-            value.append(u'♯');
-        } else {
-            value.append(symbol);
-        }
-    }
-
-    return value;
-}
-
 /*!
  * An array of all supported interval sorted by size.
  *
@@ -1095,9 +1074,9 @@ int chromaticPitchSteps(const Note* noteL, const Note* noteR, const int nominalD
     //  ... 8 is the bottom line.
     int lineL = noteL->line();
     if (lineL == INVALID_LINE) {
-        int absLine = absStep(noteL->tpc(), noteL->epitch());
+        int relLine = absStep(noteL->tpc(), noteL->epitch());
         ClefType clef = noteL->staff()->clef(noteL->tick());
-        lineL = relStep(absLine, clef);
+        lineL = relStep(relLine, clef);
     }
 
     // we use line - deltastep, because lines are oriented from top to bottom, while step is oriented from bottom to top.
@@ -1378,7 +1357,10 @@ bool isFirstSystemKeySig(const KeySig* ks)
 
 String bendAmountToString(int fulls, int quarts)
 {
-    String string = (fulls != 0 || quarts == 0) ? String::number(fulls) : String();
+    String string = String::number(fulls);
+    if (fulls == 0 && quarts != 0) {
+        string = u"";
+    }
 
     switch (quarts) {
     case 1:
@@ -1395,20 +1377,5 @@ String bendAmountToString(int fulls, int quarts)
     }
 
     return string;
-}
-
-InstrumentTrackId makeInstrumentTrackId(const EngravingItem* item)
-{
-    const Part* part = item->part();
-    if (!part) {
-        return InstrumentTrackId();
-    }
-
-    mu::engraving::InstrumentTrackId trackId {
-        part->id(),
-        part->instrumentId(item->tick()).toStdString()
-    };
-
-    return trackId;
 }
 }

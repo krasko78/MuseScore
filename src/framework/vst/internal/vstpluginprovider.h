@@ -32,8 +32,6 @@ public:
     VstPluginProvider(const PluginFactory& factory, const ClassInfo& info);
     ~VstPluginProvider();
 
-    bool init();
-
     PluginComponentPtr component() const;
     PluginControllerPtr controller() const;
     PluginMidiMappingPtr midiMapping() const;

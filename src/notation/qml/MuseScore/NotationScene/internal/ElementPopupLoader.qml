@@ -26,10 +26,10 @@ import MuseScore.Ui 1.0
 import MuseScore.UiComponents 1.0
 import MuseScore.NotationScene 1.0
 
-import MuseScore.Playback 1.0
-
 Item {
     id: container
+
+    anchors.fill: parent
 
     property var popup: loader.item
     property bool isPopupOpened: Boolean(popup) && popup.isOpened
@@ -52,7 +52,6 @@ Item {
             case Notation.TYPE_HARP_DIAGRAM: return harpPedalComp
             case Notation.TYPE_CAPO: return capoComp
             case Notation.TYPE_STRING_TUNINGS: return stringTuningsComp
-            case Notation.TYPE_SOUND_FLAG: return soundFlagComp
             }
 
             return null
@@ -67,15 +66,6 @@ Item {
             loader.active = false
 
             Qt.callLater(container.closed)
-        }
-
-        function updateContainerPosition(elementRect) {
-            container.x = elementRect.x
-            container.y = elementRect.y
-            container.height = elementRect.height
-            container.width = elementRect.width
-
-            loader.item.updatePosition()
         }
     }
 
@@ -97,17 +87,12 @@ Item {
     Loader {
         id: loader
 
-        anchors.fill: parent
         active: false
 
         function createPopup(comp, elementRect) {
             loader.sourceComponent = comp
-            loader.item.parent = container
-
-            prv.updateContainerPosition(elementRect)
-            loader.item.elementRectChanged.connect(function(elementRect) {
-                prv.updateContainerPosition(elementRect)
-            })
+            loader.item.parent = loader
+            loader.item.updatePosition(elementRect)
 
             //! NOTE: All navigation panels in popups must be in the notation view section.
             //        This is necessary so that popups do not activate navigation in the new section,
@@ -142,15 +127,6 @@ Item {
     Component {
         id: stringTuningsComp
         StringTuningsPopup {
-            onClosed: {
-                prv.unloadPopup()
-            }
-        }
-    }
-
-    Component {
-        id: soundFlagComp
-        SoundFlagPopup {
             onClosed: {
                 prv.unloadPopup()
             }

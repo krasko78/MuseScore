@@ -132,7 +132,7 @@ std::string XmlReader::attribute(std::string_view name) const
     return attributeValue(name).toString().toStdString();
 }
 
-QStringView XmlReader::attributeValue(std::string_view name) const
+QStringRef XmlReader::attributeValue(std::string_view name) const
 {
     return m_reader->attributes().value(name.data());
 }

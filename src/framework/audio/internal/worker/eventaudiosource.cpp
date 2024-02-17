@@ -37,15 +37,16 @@ EventAudioSource::EventAudioSource(const TrackId trackId, const mpe::PlaybackDat
 {
     ONLY_AUDIO_WORKER_THREAD;
 
-    m_playbackData.offStream.onReceive(this, [onOffStreamReceived, trackId](const PlaybackEventsMap&, const PlaybackParamMap&) {
+    m_playbackData.offStream.onReceive(this, [onOffStreamReceived, trackId](const PlaybackEventsMap&) {
         onOffStreamReceived(trackId);
     });
 
-    m_playbackData.mainStream.onReceive(this, [this](const PlaybackEventsMap& events, const DynamicLevelMap& dynamics,
-                                                     const PlaybackParamMap& params) {
+    m_playbackData.mainStream.onReceive(this, [this](const PlaybackEventsMap& events) {
         m_playbackData.originEvents = events;
-        m_playbackData.dynamicLevelMap = dynamics;
-        m_playbackData.paramMap = params;
+    });
+
+    m_playbackData.dynamicLevelChanges.onReceive(this, [this](const DynamicLevelMap& changes) {
+        m_playbackData.dynamicLevelMap = changes;
     });
 }
 
@@ -53,6 +54,7 @@ EventAudioSource::~EventAudioSource()
 {
     m_playbackData.offStream.resetOnReceive(this);
     m_playbackData.mainStream.resetOnReceive(this);
+    m_playbackData.dynamicLevelChanges.resetOnReceive(this);
 }
 
 bool EventAudioSource::isActive() const

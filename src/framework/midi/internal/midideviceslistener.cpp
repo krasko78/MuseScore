@@ -51,8 +51,6 @@ void MidiDevicesListener::stop()
     }
 
     m_isRunning = false;
-    m_runningCv.notify_all();
-
     m_devicesUpdateThread->join();
     m_devicesUpdateThread = nullptr;
 }
@@ -64,14 +62,12 @@ mu::async::Notification MidiDevicesListener::devicesChanged() const
 
 void MidiDevicesListener::th_updateDevices()
 {
-    std::unique_lock<std::mutex> lock(m_mutex);
-
     while (m_isRunning) {
         MidiDeviceList devices = m_actualDevicesCallback();
 
         th_setDevices(devices);
 
-        m_runningCv.wait_for(lock, std::chrono::milliseconds(5000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(5000));
     }
 }
 
