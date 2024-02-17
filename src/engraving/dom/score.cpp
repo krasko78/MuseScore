@@ -46,7 +46,6 @@
 #include "bracket.h"
 #include "breath.h"
 #include "capo.h"
-#include "compat/midi/compatmidirender.h"
 #include "chord.h"
 #include "clef.h"
 #include "excerpt.h"
@@ -98,7 +97,6 @@
 #include "undo.h"
 #include "utils.h"
 #include "volta.h"
-#include "hairpin.h"
 
 #ifndef ENGRAVING_NO_ACCESSIBILITY
 #include "accessibility/accessibleitem.h"
@@ -266,14 +264,14 @@ Score::~Score()
     delete m_rootItem;
 }
 
-mu::async::Channel<POS, unsigned> Score::posChanged() const
+mu::async::Channel<LoopBoundaryType, unsigned> Score::loopBoundaryTickChanged() const
 {
-    return m_posChanged;
+    return m_loopBoundaryTickChanged;
 }
 
-void Score::notifyPosChanged(POS pos, unsigned ticks)
+void Score::notifyLoopBoundaryTickChanged(LoopBoundaryType type, unsigned ticks)
 {
-    m_posChanged.send(pos, ticks);
+    m_loopBoundaryTickChanged.send(type, ticks);
 }
 
 mu::async::Channel<EngravingItem*> Score::elementDestroyed()
@@ -727,6 +725,16 @@ void Score::setShowFrames(bool v)
 void Score::setShowPageborders(bool v)
 {
     m_showPageborders = v;
+}
+
+void Score::setShowSoundFlags(bool v)
+{
+    if (m_showSoundFlags == v) {
+        return;
+    }
+
+    m_showSoundFlags = v;
+    setLayoutAll();
 }
 
 //---------------------------------------------------------
@@ -1500,22 +1508,8 @@ void Score::addElement(EngravingItem* element)
 
     case ElementType::CHORD:
         setPlaylistDirty();
-        // create playlist does not work here bc. tremolos may not be complete
-        // createPlayEvents(toChord(element));
         break;
 
-    case ElementType::NOTE:
-    case ElementType::TREMOLO_SINGLECHORD:
-    case ElementType::TREMOLO_TWOCHORD:
-    case ElementType::ARTICULATION:
-    case ElementType::ORNAMENT:
-    case ElementType::ARPEGGIO:
-    {
-        if (parent && parent->isChord()) {
-            CompatMidiRender::createPlayEvents(this, toChord(parent));
-        }
-    }
-    break;
     case ElementType::HARMONY:
         element->part()->updateHarmonyChannels(true);
         break;
@@ -1707,18 +1701,6 @@ void Score::removeElement(EngravingItem* element)
     }
     break;
 
-    case ElementType::TREMOLO_SINGLECHORD:
-    case ElementType::TREMOLO_TWOCHORD:
-    case ElementType::ARTICULATION:
-    case ElementType::ORNAMENT:
-    case ElementType::ARPEGGIO:
-    {
-        EngravingItem* cr = element->parentItem();
-        if (cr->isChord()) {
-            CompatMidiRender::createPlayEvents(this, toChord(cr));
-        }
-    }
-    break;
     case ElementType::HARMONY:
         element->part()->updateHarmonyChannels(true, true);
         break;
@@ -1732,7 +1714,8 @@ void Score::doUndoRemoveElement(EngravingItem* element)
 {
     if (element->generated()) {
         removeElement(element);
-        element->deleteLater();
+        //! HACK: don't delete as it may still be used in Inspector
+        // element->deleteLater();
     } else {
         undo(new RemoveElement(element));
     }
@@ -3314,6 +3297,8 @@ static void onFocusedItemChanged(EngravingItem* item)
 
         accRoot->setFocusedElement(nullptr);
     }
+#else
+    UNUSED(item);
 #endif
 }
 
@@ -3352,14 +3337,6 @@ void Score::select(const std::vector<EngravingItem*>& items, SelectType type, st
 
 void Score::doSelect(EngravingItem* e, SelectType type, staff_idx_t staffIdx)
 {
-    // Move the playhead to the selected element's preferred play position.
-    if (e) {
-        const auto playTick = e->playTick();
-        if (masterScore()->playPos() != playTick) {
-            masterScore()->setPlayPos(playTick);
-        }
-    }
-
     if (MScore::debugMode) {
         LOGD("select element <%s> type %d(state %d) staff %zu",
              e ? e->typeName() : "", int(type), int(selection().state()), e ? e->staffIdx() : -1);
@@ -3614,15 +3591,6 @@ void Score::selectRange(EngravingItem* e, staff_idx_t staffIdx)
     }
 
     m_selection.setActiveTrack(activeTrack);
-
-    // doing this in note entry mode can clear selection
-    if (m_selection.startSegment() && !noteEntryMode()) {
-        Fraction tick = m_selection.startSegment()->tick();
-        if (masterScore()->playPos() != tick) {
-            masterScore()->setPlayPos(tick);
-        }
-    }
-
     m_selection.updateSelectedElements();
 }
 
@@ -4239,6 +4207,8 @@ void Score::cmdSelectSection()
     }
 
     m_selection.setRange(toMeasure(sm)->first(), toMeasure(em)->last(), 0, nstaves());
+    setUpdateAll();
+    update();
 }
 
 //---------------------------------------------------------
@@ -4330,12 +4300,14 @@ void Score::appendMeasures(int n)
 //   addSpanner
 //---------------------------------------------------------
 
-void Score::addSpanner(Spanner* s)
+void Score::addSpanner(Spanner* s, bool computeStartEnd)
 {
     m_spanner.addSpanner(s);
     s->added();
-    s->computeStartElement();
-    s->computeEndElement();
+    if (computeStartEnd) {
+        s->computeStartElement();
+        s->computeEndElement();
+    }
 }
 
 //---------------------------------------------------------
@@ -5214,16 +5186,20 @@ void Score::changeSelectedNotesVoice(voice_idx_t voice)
                 if (dstChord != dstCR) {
                     undoAddCR(dstChord, m, s->tick());
                 }
-                // reconnect the tie to this note, if any
-                Tie* tie = note->tieBack();
-                if (tie) {
-                    undoChangeSpannerElements(tie, tie->startNote(), newNote);
+                for (EngravingObject* linked : note->linkList()) {
+                    Note* linkedNote = toNote(linked);
+                    // reconnect the tie to this note, if any
+                    Tie* tie = linkedNote->tieBack();
+                    if (tie) {
+                        undoChangeSpannerElements(tie, tie->startNote(), newNote->findLinkedInStaff(linkedNote->staff()));
+                    }
+                    // reconnect the tie from this note, if any
+                    tie = linkedNote->tieFor();
+                    if (tie) {
+                        undoChangeSpannerElements(tie, newNote->findLinkedInStaff(linkedNote->staff()), tie->endNote());
+                    }
                 }
-                // reconnect the tie from this note, if any
-                tie = note->tieFor();
-                if (tie) {
-                    undoChangeSpannerElements(tie, newNote, tie->endNote());
-                }
+
                 // remove original note
                 if (notes > 1) {
                     undoRemoveElement(note);
@@ -5882,8 +5858,8 @@ const CmdState& Score::cmdState() const { return m_masterScore->cmdState(); }
 void Score::addLayoutFlags(LayoutFlags f) { m_masterScore->addLayoutFlags(f); }
 void Score::setInstrumentsChanged(bool v) { m_masterScore->setInstrumentsChanged(v); }
 
-Fraction Score::pos(POS pos) const { return m_masterScore->pos(pos); }
-void Score::setPos(POS pos, Fraction tick) { m_masterScore->setPos(pos, tick); }
+Fraction Score::loopBoundaryTick(LoopBoundaryType type) const { return m_masterScore->loopBoundaryTick(type); }
+void Score::setLoopBoundaryTick(LoopBoundaryType type, Fraction tick) { m_masterScore->setLoopBoundaryTick(type, tick); }
 
 //---------------------------------------------------------
 //   ScoreLoad::_loading
