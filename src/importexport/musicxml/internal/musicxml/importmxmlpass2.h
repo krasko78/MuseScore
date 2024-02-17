@@ -123,6 +123,15 @@ private:
     std::set<Lyrics*> m_lyrics;
 };
 
+struct GraceNoteLyrics {
+    Lyrics* lyric = nullptr;
+    bool extend = false;
+    int no = 0;
+
+    GraceNoteLyrics(Lyrics* lyric, bool extend, int no)
+        : lyric(lyric), extend(extend), no(no) {}
+};
+
 //---------------------------------------------------------
 //   MusicXMLParserLyric
 //---------------------------------------------------------
@@ -152,7 +161,7 @@ private:
 class Notation
 {
 public:
-    Notation(const String& name, const String& parent = u"",
+    Notation(const String& name, const String& parent = {},
              const SymId& symId = SymId::noSym) { m_name = name; m_parent = parent; m_symId = symId; }
     void addAttribute(const String& name, const String& value);
     String attribute(const String& name) const;
@@ -167,7 +176,7 @@ public:
     void setText(const String& text) { m_text = text; }
     String text() const { return m_text; }
     static Notation notationWithAttributes(const String& name, const std::vector<XmlStreamReader::Attribute>& attributes,
-                                           const String& parent = u"", const SymId& symId = SymId::noSym);
+                                           const String& parent = {}, const SymId& symId = SymId::noSym);
 private:
     String m_name;
     String m_parent;
@@ -351,6 +360,7 @@ private:
     int m_multiMeasureRestCount = 0;
     int m_measureNumber = 0;                       // Current measure number as written in the score
     MusicXmlLyricsExtend m_extendedLyrics;         // Lyrics with "extend" requiring fixup
+    std::vector<GraceNoteLyrics> m_graceNoteLyrics;   // Lyrics to be moved from grace note to main note
 
     MusicXmlSlash m_measureStyleSlash;             // Are we inside a measure to be displayed as slashes?
 

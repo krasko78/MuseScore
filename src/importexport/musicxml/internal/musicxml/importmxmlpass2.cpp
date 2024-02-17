@@ -796,7 +796,7 @@ static String nextPartOfFormattedString(XmlStreamReader& e)
         if (ok && (lines > 0)) {    // 1, 2, or 3 underlines are imported as single underline
             importedtext += u"<u>";
         } else {
-            underline = u"";
+            underline.clear();
         }
     }
     if (!strike.empty()) {
@@ -805,11 +805,11 @@ static String nextPartOfFormattedString(XmlStreamReader& e)
         if (ok && (lines > 0)) {    // 1, 2, or 3 strikes are imported as single strike
             importedtext += u"<s>";
         } else {
-            strike = u"";
+            strike.clear();
         }
     }
     if (txt == syms) {
-        txt.replace(String(u"\r"), String(u""));     // convert Windows line break \r\n -> \n
+        txt.replace(String(u"\r"), String());     // convert Windows line break \r\n -> \n
         importedtext += txt.toXmlEscaped();
     } else {
         // <sym> replacement made, should be no need for line break or other conversions
@@ -873,6 +873,19 @@ static void addLyrics(MxmlLogger* logger, const XmlStreamReader* const xmlreader
         addLyric(logger, xmlreader, cr, lyric, lyricNo, extendedLyrics);
         if (mu::contains(extLyrics, lyric)) {
             extendedLyrics.addLyric(lyric);
+        }
+    }
+}
+
+static void addGraceNoteLyrics(const std::map<int, Lyrics*>& numberedLyrics, std::set<Lyrics*> extendedLyrics,
+                               std::vector<GraceNoteLyrics>& gnLyrics)
+{
+    for (const auto lyricNo : mu::keys(numberedLyrics)) {
+        const auto lyric = numberedLyrics.at(lyricNo);
+        if (lyric) {
+            bool extend = mu::contains(extendedLyrics, lyric);
+            const GraceNoteLyrics gnl = GraceNoteLyrics(lyric, extend, lyricNo);
+            gnLyrics.push_back(gnl);
         }
     }
 }
@@ -1078,6 +1091,8 @@ static void addFermataToChord(const Notation& notation, ChordRest* cr)
     }
     if (!direction.empty()) {
         na->setPlacement(direction == "inverted" ? PlacementV::BELOW : PlacementV::ABOVE);
+    } else {
+        na->setPlacement(na->propertyDefault(Pid::PLACEMENT).value<PlacementV>());
     }
     setElementPropertyFlags(na, Pid::PLACEMENT, direction);
     if (cr->segment() == nullptr && cr->isGrace()) {
@@ -1526,6 +1541,7 @@ void MusicXMLParserPass2::initPartState(const String& partId)
     m_multiMeasureRestCount = -1;
     m_measureStyleSlash = MusicXmlSlash::NONE;
     m_extendedLyrics.init();
+    m_graceNoteLyrics.clear();
 
     m_nstaves = m_pass1.getPart(partId)->nstaves();
     m_measureRepeatNumMeasures.assign(m_nstaves, 0);
@@ -2607,7 +2623,7 @@ void MusicXMLParserPass2::staffDetails(const String& partId, Measure* measure)
             // this doesn't apply to a measure, so we'll assume the entire staff has to be hidden.
             m_score->staff(staffIdx)->setVisible(false);
         }
-    } else if (visible == u"yes" || visible == u"") {
+    } else if (visible == u"yes" || visible.empty()) {
         if (measure) {
             m_score->staff(staffIdx)->setVisible(true);
             measure->setStaffVisible(staffIdx, true);
@@ -2878,7 +2894,7 @@ void MusicXMLParserDirection::direction(const String& partId,
                 String rawWordsText = m_wordsText;
                 static const std::regex re("(<.*?>)");
                 rawWordsText.remove(re);
-                String sep = !m_metroText.empty() && !m_wordsText.empty() && rawWordsText.back() != ' ' ? u" " : u"";
+                String sep = !m_metroText.empty() && !m_wordsText.empty() && rawWordsText.back() != ' ' ? u" " : String();
                 t->setXmlText(m_wordsText + sep + m_metroText);
                 ((TempoText*)t)->setTempo(m_tpoSound);
                 ((TempoText*)t)->setFollowText(true);
@@ -2922,7 +2938,7 @@ void MusicXMLParserDirection::direction(const String& partId,
                 }
             }
 
-            if (placement == u"" && hasTotalY()) {
+            if (placement.empty() && hasTotalY()) {
                 placement = totalY() < 0 ? u"above" : u"below";
             }
             if (hasTotalY()) {
@@ -3318,7 +3334,7 @@ void MusicXMLParserDirection::handleRepeats(Measure* measure, const track_idx_t 
             tb->setTrack(track);
             if (!m_wordsText.empty()) {
                 tb->setXmlText(m_wordsText);
-                m_wordsText = u"";
+                m_wordsText.clear();
             } else {
                 tb->setVisible(false);
             }
@@ -3407,7 +3423,7 @@ void MusicXMLParserDirection::bracket(const String& type, const int number,
             if (!m_wordsText.empty()) {
                 // TextLine supports only limited formatting, remove all (compatible with 1.3)
                 textLine->setBeginText(MScoreTextToMXML::toPlainText(m_wordsText));
-                m_wordsText = u"";
+                m_wordsText.clear();
             }
 
             if (lineType == "solid") {
@@ -3472,7 +3488,7 @@ void MusicXMLParserDirection::dashes(const String& type, const int number,
         if (!m_wordsText.empty()) {
             // TextLine supports only limited formatting, remove all (compatible with 1.3)
             b->setBeginText(MScoreTextToMXML::toPlainText(m_wordsText));
-            m_wordsText = u"";
+            m_wordsText.clear();
         }
 
         b->setBeginHookType(HookType::NONE);
@@ -3558,7 +3574,7 @@ void MusicXMLParserDirection::pedal(const String& type, const int /* number */,
     // We have found that many exporters omit "sign" even when one is originally present,
     // therefore we will default to "yes", even though this is technically against the spec.
     bool overrideDefaultSign = true; // TODO: set this flag based on the exporting software
-    if (sign == u"") {
+    if (sign.empty()) {
         if (line != "yes" || (overrideDefaultSign && type == "start")) {
             sign = u"yes";                           // MusicXML 2.0 compatibility
         } else if (line == "yes") {
@@ -3866,7 +3882,7 @@ static bool determineBarLineType(const String& barStyle, const String& repeat,
         type = BarLineType::HEAVY;
     } else if (barStyle == u"none") {
         visible = false;
-    } else if (barStyle == u"") {
+    } else if (barStyle.empty()) {
         if (repeat == u"backward") {
             type = BarLineType::END_REPEAT;
         } else if (repeat == u"forward") {
@@ -3950,6 +3966,9 @@ void MusicXMLParserPass2::barline(const String& partId, Measure* measure, const 
             }
             if (fermataType == u"inverted") {
                 fermata->setPlacement(PlacementV::BELOW);
+            } else if (fermataType == u"") {
+                LOGI() << "Set placement: " << (int)fermata->propertyDefault(Pid::PLACEMENT).value<PlacementV>();
+                fermata->setPlacement(fermata->propertyDefault(Pid::PLACEMENT).value<PlacementV>());
             }
         } else if (m_e.name() == "repeat") {
             repeat = m_e.attribute("direction");
@@ -4185,9 +4204,9 @@ static void flushAlteredTone(KeySigEvent& kse, String& step, String& alt, String
     }
 
     // clean up
-    step = u"";
-    alt  = u"";
-    acc  = u"";
+    step.clear();
+    alt.clear();
+    acc.clear();
 }
 
 //---------------------------------------------------------
@@ -4592,7 +4611,7 @@ static bool isWholeMeasureRest(const bool rest, const String& type, const Fracti
         return false;
     }
 
-    return (type == u"" && dura == mDura)
+    return (type.empty() && dura == mDura)
            || (type == u"whole" && dura == mDura && dura != Fraction(1, 1));
 }
 
@@ -4614,7 +4633,7 @@ static TDuration determineDuration(const bool rest, const String& type, const in
     if (rest) {
         if (isWholeMeasureRest(rest, type, dura, mDura)) {
             res.setType(DurationType::V_MEASURE);
-        } else if (type == u"") {
+        } else if (type.empty()) {
             // If no type, set duration type based on duration.
             // Note that sometimes unusual duration (e.g. 261/256) are found.
             res.setVal(dura.ticks());
@@ -4876,7 +4895,7 @@ static void addTremolo(ChordRest* cr,
     if (tremoloNr) {
         //LOGD("tremolo %d type '%s' ticks %d tremStart %p", tremoloNr, muPrintable(tremoloType), ticks, _tremStart);
         if (tremoloNr == 1 || tremoloNr == 2 || tremoloNr == 3 || tremoloNr == 4) {
-            if (tremoloType == u"" || tremoloType == u"single") {
+            if (tremoloType.empty() || tremoloType == u"single") {
                 TremoloType type = TremoloType::INVALID_TREMOLO;
                 switch (tremoloNr) {
                 case 1: type = TremoloType::R8;
@@ -5095,12 +5114,8 @@ Note* MusicXMLParserPass2::note(const String& partId,
             m_e.skipCurrentElement();  // skip but don't log
         } else if (m_e.name() == "lyric") {
             // lyrics on grace notes not (yet) supported by MuseScore
-            if (!grace) {
-                lyric.parse();
-            } else {
-                m_logger->logDebugInfo(u"ignoring lyrics on grace notes", &m_e);
-                skipLogCurrElem();
-            }
+            // add to main note instead
+            lyric.parse();
         } else if (m_e.name() == "notations") {
             notations.parse();
             addError(notations.errors());
@@ -5436,14 +5451,30 @@ Note* MusicXMLParserPass2::note(const String& partId,
         }
     }
 
+    // Add all lyrics from grace notes attached to this chord
+    if (c && !c->graceNotes().empty() && !m_graceNoteLyrics.empty()) {
+        for (GraceNoteLyrics gnl : m_graceNoteLyrics) {
+            if (gnl.lyric) {
+                addLyric(m_logger, &m_e, cr, gnl.lyric, gnl.no, m_extendedLyrics);
+                if (gnl.extend) {
+                    m_extendedLyrics.addLyric(gnl.lyric);
+                }
+            }
+        }
+        m_graceNoteLyrics.clear();
+    }
+
     // add lyrics found by lyric
-    if (cr) {
+    if (cr && !grace) {
         // add lyrics and stop corresponding extends
         addLyrics(m_logger, &m_e, cr, lyric.numberedLyrics(), lyric.extendedLyrics(), m_extendedLyrics);
         if (rest) {
             // stop all extends
             m_extendedLyrics.setExtend(-1, cr->track(), cr->tick());
         }
+    } else if (c && grace) {
+        // Add grace note lyrics to main chord later
+        addGraceNoteLyrics(lyric.numberedLyrics(), lyric.extendedLyrics(), m_graceNoteLyrics);
     }
 
     // add figured bass element
@@ -5836,7 +5867,7 @@ void MusicXMLParserPass2::harmony(const String& partId, Measure* measure, const 
                     // attributes: print-style
                     step = m_e.readText();
                     if (m_e.hasAttribute("text")) {
-                        if (m_e.attribute("text") == u"") {
+                        if (m_e.attribute("text").empty()) {
                             invalidRoot = true;
                         }
                     }
@@ -6211,7 +6242,7 @@ static void addSlur(const Notation& notation, SlurStack& slurs, ChordRest* cr, c
                 newSlur->setStyleType(SlurStyleType::Dashed);
             } else if (lineType == u"dotted") {
                 newSlur->setStyleType(SlurStyleType::Dotted);
-            } else if (lineType == u"solid" || lineType == u"") {
+            } else if (lineType == u"solid" || lineType.empty()) {
                 newSlur->setStyleType(SlurStyleType::Solid);
             }
             const Color color = Color::fromString(notation.attribute(u"color"));
@@ -6227,7 +6258,7 @@ static void addSlur(const Notation& notation, SlurStack& slurs, ChordRest* cr, c
                     newSlur->setSlurDirection(DirectionV::UP);
                 } else if (orientation == u"under" || placement == u"below") {
                     newSlur->setSlurDirection(DirectionV::DOWN);
-                } else if (orientation == u"" || placement == u"") {
+                } else if (orientation.empty() || placement.empty()) {
                     // ignore
                 } else {
                     logger->logError(String(u"unknown slur orientation/placement: %1/%2").arg(orientation).arg(placement), xmlreader);
@@ -6685,7 +6716,7 @@ static void addTie(const Notation& notation, const Score* score, Note* note, con
     const String placement = notation.attribute(u"placement");
     const String lineType = notation.attribute(u"line-type");
 
-    if (type == u"") {
+    if (type.empty()) {
         // ignore, nothing to do
     } else if (type == u"start") {
         if (tie) {
@@ -6706,7 +6737,7 @@ static void addTie(const Notation& notation, const Score* score, Note* note, con
                 tie->setSlurDirection(DirectionV::UP);
             } else if (orientation == u"under" || placement == u"below") {
                 tie->setSlurDirection(DirectionV::DOWN);
-            } else if (orientation == u"" || placement == u"") {
+            } else if (orientation.empty() || placement.empty()) {
                 // ignore
             } else {
                 logger->logError(String(u"unknown tied orientation/placement: %1/%2").arg(orientation).arg(placement), xmlreader);
@@ -6717,7 +6748,7 @@ static void addTie(const Notation& notation, const Score* score, Note* note, con
             tie->setStyleType(SlurStyleType::Dashed);
         } else if (lineType == u"dotted") {
             tie->setStyleType(SlurStyleType::Dotted);
-        } else if (lineType == u"solid" || lineType == u"") {
+        } else if (lineType == u"solid" || lineType.empty()) {
             tie->setStyleType(SlurStyleType::Solid);
         }
         tie = nullptr;
@@ -6982,14 +7013,14 @@ void MusicXMLParserNotations::addNotation(const Notation& notation, ChordRest* c
         String placement = notation.attribute(u"placement");
         if (notation.name() == u"fermata") {
             if (!notationType.empty() && notationType != u"upright" && notationType != u"inverted") {
-                notationType = String();
+                notationType.clear();
                 m_logger->logError(String(u"unknown fermata type %1").arg(notationType), &m_e);
             }
             addFermataToChord(notation, cr);
         } else {
             if (notation.name() == u"strong-accent") {
                 if (!notationType.empty() && notationType != u"up" && notationType != u"down") {
-                    notationType = String();
+                    notationType.clear();
                     m_logger->logError(String(u"unknown %1 type %2").arg(notation.name(), notationType), &m_e);
                 }
             } else if (notation.name() == u"harmonic" || notation.name() == u"delayed-turn"
@@ -6998,12 +7029,12 @@ void MusicXMLParserNotations::addNotation(const Notation& notation, ChordRest* c
                     // TODO: actually this should be offset a bit to the right
                 }
                 if (placement != u"above" && placement != u"below") {
-                    placement = String();
+                    placement.clear();
                     m_logger->logError(String(u"unknown %1 placement %2").arg(notation.name(), placement), &m_e);
                 }
             } else {
-                notationType = String();           // TODO: Check for other symbols that have type
-                placement = String();           // TODO: Check for other symbols that have placement
+                notationType.clear();           // TODO: Check for other symbols that have type
+                placement.clear();           // TODO: Check for other symbols that have placement
             }
             addArticulationToChord(notation, cr);
         }
@@ -7161,7 +7192,7 @@ void MusicXMLParserNotations::tuplet()
         m_tupletDesc.direction = DirectionV::UP;
     } else if (tupletPlacement == u"below") {
         m_tupletDesc.direction = DirectionV::DOWN;
-    } else if (tupletPlacement == u"") {
+    } else if (tupletPlacement.empty()) {
         // ignore
     } else {
         m_logger->logError(String(u"unknown tuplet placement: %1").arg(tupletPlacement), &m_e);

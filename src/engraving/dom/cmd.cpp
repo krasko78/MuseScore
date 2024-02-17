@@ -464,10 +464,6 @@ void Score::update(bool resetCmdState, bool layoutAllParts)
             }
             m_updateState.refresh = RectF();
         }
-        const InputState& is = inputState();
-        if (is.noteEntryMode() && is.segment()) {
-            setPlayPos(is.segment()->tick());
-        }
         if (playlistDirty()) {
             masterScore()->setPlaylistClean();
         }
@@ -1758,7 +1754,6 @@ void Score::changeCRlen(ChordRest* cr, const Fraction& dstF, bool fillWithRest)
             break;
         }
         Segment* s = m1->first(SegmentType::ChordRest);
-        expandVoice(s, track);
         cr1 = toChordRest(s->element(track));
     }
     connectTies();
@@ -2994,7 +2989,7 @@ void Score::cmdMirrorNoteHead()
         if (e->isNote()) {
             Note* note = toNote(e);
             if (note->staff() && note->staff()->isTabStaff(note->chord()->tick())) {
-                e->undoChangeProperty(Pid::GHOST, !note->ghost());
+                e->undoChangeProperty(Pid::DEAD, !note->deadNote());
             } else {
                 DirectionH d = note->userMirror();
                 if (d == DirectionH::AUTO) {
@@ -3099,21 +3094,26 @@ void Score::cmdAddBracket()
 void Score::cmdAddParentheses()
 {
     for (EngravingItem* el : selection().elements()) {
-        if (el->type() == ElementType::NOTE) {
-            Note* n = toNote(el);
-            n->setHeadHasParentheses(true);
-        } else if (el->type() == ElementType::ACCIDENTAL) {
-            Accidental* acc = toAccidental(el);
-            acc->undoChangeProperty(Pid::ACCIDENTAL_BRACKET, int(AccidentalBracket::PARENTHESIS));
-        } else if (el->type() == ElementType::HARMONY) {
-            Harmony* h = toHarmony(el);
-            h->setLeftParen(true);
-            h->setRightParen(true);
-            h->render();
-        } else if (el->type() == ElementType::TIMESIG) {
-            TimeSig* ts = toTimeSig(el);
-            ts->setLargeParentheses(true);
-        }
+        cmdAddParentheses(el);
+    }
+}
+
+void Score::cmdAddParentheses(EngravingItem* el)
+{
+    if (el->type() == ElementType::NOTE) {
+        Note* n = toNote(el);
+        n->undoChangeProperty(Pid::HEAD_HAS_PARENTHESES, !n->headHasParentheses());
+    } else if (el->type() == ElementType::ACCIDENTAL) {
+        Accidental* acc = toAccidental(el);
+        acc->undoChangeProperty(Pid::ACCIDENTAL_BRACKET, int(AccidentalBracket::PARENTHESIS));
+    } else if (el->type() == ElementType::HARMONY) {
+        Harmony* h = toHarmony(el);
+        h->setLeftParen(true);
+        h->setRightParen(true);
+        h->render();
+    } else if (el->type() == ElementType::TIMESIG) {
+        TimeSig* ts = toTimeSig(el);
+        ts->setLargeParentheses(true);
     }
 }
 
@@ -4648,7 +4648,7 @@ void Score::cmdAddPitch(int step, bool addFlag, bool insert)
             Chord* chord  = selectedNote->chord();
             Segment* seg  = chord->segment();
             pos.segment   = seg;
-            pos.staffIdx  = selectedNote->track() / VOICES;
+            pos.staffIdx  = chord->vStaffIdx();
             ClefType clef = staff(pos.staffIdx)->clef(seg->tick());
             pos.line      = relStep(step, clef);
             bool error;

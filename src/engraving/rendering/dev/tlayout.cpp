@@ -2432,7 +2432,7 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                     double d = sk.minDistance(ss->skyline().north());
                     double yd = 0.0;
                     if (d > 0.0 && item->isStyled(Pid::MIN_DISTANCE)) {
-                        yd -= d /*+ item->lineHeight() * .25*/; // KRASKO: Fixed increased distance below fingering when its height was more than one line of text
+                        yd -= d + item->ldata()->bbox().height() * .25;
                     }
                     // force extra space above staff & chord (but not other fingerings)
                     double top = 0.0;
@@ -2440,16 +2440,8 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                         top = stem->y() + stem->ldata()->bbox().top();
                     } else {
                         const Note* un = chord->upNote();
-                        if (!appshellConfiguration()->fixFingeringOnBeamedNotesDistanceToStaff()) { // KRASKO: {START} Fingering on beamed notes should respect the min ditance to staff
-                            top = std::min(0.0, un->y() + un->ldata()->bbox().top());
-                        }
-                        else {
-                            top = un->y() + un->ldata()->bbox().top();
-                        }
+                        top = std::min(0.0, un->y() + un->ldata()->bbox().top());
                     }
-                    if (appshellConfiguration()->fixFingeringOnBeamedNotesDistanceToStaff()) {
-                        top = std::min(0.0, top);
-                    } // KRASKO: {END}
                     top -= md;
                     double diff = (ldata->bbox().bottom() + ldata->pos().y() + yd + note->y()) - top;
                     if (diff > 0.0) {
@@ -2476,7 +2468,7 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                     double d = ss->skyline().south().minDistance(sk);
                     double yd = 0.0;
                     if (d > 0.0 && item->isStyled(Pid::MIN_DISTANCE)) {
-                        yd += d /*+ item->lineHeight() * .25*/; // KRASKO: Fixed increased distance above fingering when its height was more than one line of text
+                        yd += d + item->ldata()->bbox().height() * .25;
                     }
                     // force extra space below staff & chord (but not other fingerings)
                     double bottom;
@@ -2484,16 +2476,8 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                         bottom = stem->y() + stem->ldata()->bbox().bottom();
                     } else {
                         const Note* dn = chord->downNote();
-                        if (!appshellConfiguration()->fixFingeringOnBeamedNotesDistanceToStaff()) { // KRASKO: {START} Fingering on beamed notes should respect the min ditance to staff
-                            bottom = std::max(vStaff->staffHeight(), dn->y() + dn->ldata()->bbox().bottom());
-                        }
-                        else {
-                            bottom = dn->y() + dn->ldata()->bbox().bottom();
-                        }
+                        bottom = std::max(vStaff->staffHeight(), dn->y() + dn->ldata()->bbox().bottom());
                     }
-                    if (!appshellConfiguration()->fixFingeringOnBeamedNotesDistanceToStaff()) {
-                        bottom = std::max(vStaff->staffHeight(), bottom); // KRASKO: {END}
-                    } // KRASKO: {END}
                     bottom += md;
                     double diff = bottom - (ldata->bbox().top() + ldata->pos().y() + yd + note->y());
                     if (diff > 0.0) {
@@ -4346,19 +4330,21 @@ void TLayout::layoutNote(const Note* item, Note::LayoutData* ldata)
             }
         }
 
-        if ((item->ghost() && !Note::engravingConfiguration()->tablatureParenthesesZIndexWorkaround())) {
-            const_cast<Note*>(item)->setFretString(String(u"(%1)").arg(item->fretString()));
+        if (item->ghost()) {
+            const_cast<Note*>(item)->setHeadHasParentheses(true, /* addToLinked= */ false, /* generated= */ true);
+        } else {
+            const_cast<Note*>(item)->setHeadHasParentheses(false, /* addToLinked= */ false);
         }
 
         double w = item->tabHeadWidth(tab);     // !! use _fretString
         double mags = item->magS();
-        noteBBox = RectF(0, tab->fretBoxY() * mags, w, tab->fretBoxH() * mags);
 
-        if (item->ghost() && Note::engravingConfiguration()->tablatureParenthesesZIndexWorkaround()) {
-            noteBBox.setWidth(w + item->symWidth(SymId::noteheadParenthesisLeft) + item->symWidth(SymId::noteheadParenthesisRight));
-        } else {
-            noteBBox.setWidth(w);
-        }
+        const MStyle& style = item->style();
+
+        double y = item->deadNote() ? tab->deadFretBoxY(style) : tab->fretBoxY(style);
+        double height = item->deadNote() ? tab->deadFretBoxH(style) : tab->fretBoxH(style);
+
+        noteBBox = RectF(0, y * mags, w, height * mags);
     } else {
         if (item->deadNote()) {
             const_cast<Note*>(item)->setHeadGroup(NoteHeadGroup::HEAD_CROSS);
@@ -5160,10 +5146,6 @@ void TLayout::layoutStaffText(const StaffText* item, StaffText::LayoutData* ldat
     LAYOUT_CALL_ITEM(item);
     layoutBaseTextBase(item, ldata);
 
-    if (item->soundFlag() && item->score()->showSoundFlags()) {
-        layoutSoundFlag(item->soundFlag(), item->soundFlag()->mutldata());
-    }
-
     if (item->autoplace()) {
         const Segment* s = toSegment(item->explicitParent());
         const Measure* m = s->measure();
@@ -5173,6 +5155,10 @@ void TLayout::layoutStaffText(const StaffText* item, StaffText::LayoutData* ldat
     }
 
     Autoplace::autoplaceSegmentElement(item, ldata);
+
+    if (SoundFlag* flag = item->soundFlag()) {
+        layoutSoundFlag(flag, flag->mutldata());
+    }
 }
 
 void TLayout::layoutStaffTypeChange(const StaffTypeChange* item, StaffTypeChange::LayoutData* ldata, const LayoutConfiguration& conf)
@@ -5431,16 +5417,27 @@ void TLayout::layoutSoundFlag(const SoundFlag* item, SoundFlag::LayoutData* ldat
 {
     LAYOUT_CALL_ITEM(item);
 
-    if (!item->score()->showSoundFlags()) {
+    const Score* score = item->score();
+    if (score && !score->showSoundFlags()) {
         return;
     }
 
-    StaffText* staffText = toStaffText(item->parentItem());
-    RectF parentBbox = staffText->ldata()->bbox();
+    const StaffText* staffText = toStaffText(item->parentItem());
+    if (!staffText) {
+        return;
+    }
 
-    double iconHeight = parentBbox.height() * 1.5;
+    draw::FontMetrics fontMetrics = draw::FontMetrics(staffText->font());
+    double iconHeight = (fontMetrics.xHeight() + fontMetrics.descent()) * 2;
+
+    RectF parentBbox = staffText->ldata()->bbox();
+    RectF iconBBox = RectF(parentBbox.x(), parentBbox.y(), iconHeight, iconHeight);
+
+    iconBBox.moveCenter(parentBbox.center());
+
+    // <icon><space><text>
     double space = iconHeight / 6.0;
-    RectF iconBBox = RectF(parentBbox.x() - (iconHeight + space), parentBbox.y() - space, iconHeight, iconHeight);
+    iconBBox.setX(parentBbox.x() - iconBBox.width() - space);
 
     ldata->setBbox(iconBBox);
 }
@@ -5458,7 +5455,17 @@ void TLayout::layoutSymbol(const Symbol* item, Symbol::LayoutData* ldata, const 
         return;
     }
 
-    ldata->setBbox(item->scoreFont() ? item->scoreFont()->bbox(item->sym(), item->magS()) : item->symBbox(item->sym()));
+    if (item->parentItem()->isNote()) {
+        double parenScale
+            = (item->onTabStaff()
+               && (item->sym() == SymId::noteheadParenthesisLeft || item->sym() == SymId::noteheadParenthesisRight)) ? 0.8 : 1;
+        ldata->setMag(item->parentItem()->mag() * parenScale);
+    } else if (item->staff()) {
+        ldata->setMag(item->staff()->staffMag(item->tick()));
+    }
+    ldata->setBbox(item->scoreFont()
+                   ? item->scoreFont()->bbox(item->sym(), item->magS() * item->symbolsSize())
+                   : item->symBbox(item->sym()));
     double w = ldata->bbox().width();
     PointF p;
     if (item->align() == AlignV::BOTTOM) {
@@ -5474,12 +5481,6 @@ void TLayout::layoutSymbol(const Symbol* item, Symbol::LayoutData* ldata, const 
         p.setX(-(w * .5));
     }
     ldata->setPos(p);
-
-    if (item->parentItem()->isNote()) {
-        ldata->setMag(item->parentItem()->mag());
-    } else if (item->staff()) {
-        ldata->setMag(item->staff()->staffMag(item->tick()));
-    }
 
     // see BSymbol::add
     for (EngravingItem* e : item->leafs()) {

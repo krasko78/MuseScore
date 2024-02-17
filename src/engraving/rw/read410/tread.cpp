@@ -2462,6 +2462,8 @@ void TRead::read(Symbol* sym, XmlReader& e, ReadContext& ctx)
             sym->setSym(symId);
         } else if (tag == "font") {
             fontName = e.readText();
+        } else if (readProperty(sym, tag, e, ctx, Pid::SYMBOLS_SIZE)) {
+        } else if (readProperty(sym, tag, e, ctx, Pid::SYMBOL_ANGLE)) {
         } else if (tag == "Symbol") {
             Symbol* s = new Symbol(sym);
             TRead::read(s, e, ctx);
@@ -2497,15 +2499,8 @@ void TRead::read(SoundFlag* item, XmlReader& xml, ReadContext&)
 
         if (tag == "presets") {
             item->setSoundPresets(xml.readText().split(u","));
-        } else if (tag == "Params") {
-            SoundFlag::Params params;
-
-            while (xml.readNextStartElement()) {
-                String paramKey = String::fromStdString(std::string(xml.name()));
-                params.insert_or_assign(std::move(paramKey), Val(xml.readText().toStdString()));
-            }
-
-            item->setParams(params);
+        } else if (tag == "playingTechniques") {
+            item->setPlayingTechniques(xml.readText().split(u","));
         } else {
             xml.unknown();
         }
