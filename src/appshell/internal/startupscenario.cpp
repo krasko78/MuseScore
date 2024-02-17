@@ -191,7 +191,7 @@ void StartupScenario::restoreLastSession()
     bool restore = true;
 
     StartupModeType modeType = resolveStartupModeType();
-    if (modeType != StartupModeType::ContinueLastSession) {
+    if (!configuration()->autoRestoreSessionAfterCrash() || modeType != StartupModeType::ContinueLastSession) {
         IInteractive::Result result = interactive()->question(trc("appshell", "The previous session quit unexpectedly."),
                                                               trc("appshell", "Do you want to restore the session?"),
                                                               { IInteractive::Button::No, IInteractive::Button::Yes });

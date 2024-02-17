@@ -102,6 +102,9 @@ public:
 
     virtual bool fixExtraSpacingOnMultilineFingering() const = 0;
     virtual void setFixExtraSpacingOnMultilineFingering(bool value) = 0;
+
+    virtual bool autoRestoreSessionAfterCrash() const = 0;
+    virtual void setAutoRestoreSessionAfterCrash(bool value) = 0;
     // KRASKO {END}
 };
 }

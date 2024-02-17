@@ -75,6 +75,10 @@ static const Settings::Key FIX_FINGERING_ON_BEAMED_NOTES_DISTANCE_TO_STAFF(modul
 // FixExtraSpacingOnMultilineFingering - when true, will fix an issue where multiline fingering has extra spacing above/below.
 // Default: false.
 static const Settings::Key FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING(module_name, "krasko/FixExtraSpacingOnMultilineFingering");
+
+// AutoRestoreSessionAfterCrash - when true, the previous session will be automatically restored (without asking the user)
+// after a crash provided Preferences -> General -> Program start is set to "Continue last session". Default: false.
+static const Settings::Key AUTO_RESTORE_SESSION_AFTER_CRASH(module_name, "krasko/AutoRestoreSessionAfterCrash");
 // KRASKO {END}
 
 static const Settings::Key HAS_COMPLETED_FIRST_LAUNCH_SETUP(module_name, "application/hasCompletedFirstLaunchSetup");
@@ -110,6 +114,7 @@ void AppShellConfiguration::init()
     settings()->setDefaultValue(TEXT_OBJECTS_WILL_USE_THEIR_FULL_HEIGHT, Val(false));
     settings()->setDefaultValue(FIX_FINGERING_ON_BEAMED_NOTES_DISTANCE_TO_STAFF, Val(false));
     settings()->setDefaultValue(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING, Val(false));
+    settings()->setDefaultValue(AUTO_RESTORE_SESSION_AFTER_CRASH, Val(false));
     // KRASKO {END}
 
     settings()->setDefaultValue(HAS_COMPLETED_FIRST_LAUNCH_SETUP, Val(false));
@@ -219,6 +224,16 @@ bool AppShellConfiguration::fixExtraSpacingOnMultilineFingering() const
 void AppShellConfiguration::setFixExtraSpacingOnMultilineFingering(bool value)
 {
     settings()->setSharedValue(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING, Val(value));
+}
+
+bool AppShellConfiguration::autoRestoreSessionAfterCrash() const
+{
+    return settings()->value(AUTO_RESTORE_SESSION_AFTER_CRASH).toBool();
+}
+
+void AppShellConfiguration::setAutoRestoreSessionAfterCrash(bool value)
+{
+    settings()->setSharedValue(AUTO_RESTORE_SESSION_AFTER_CRASH, Val(value));
 }
 // KRASKO {END}
 

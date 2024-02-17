@@ -116,6 +116,9 @@ public:
 
     bool fixExtraSpacingOnMultilineFingering() const override;
     void setFixExtraSpacingOnMultilineFingering(bool value) override;
+
+    bool autoRestoreSessionAfterCrash() const override;
+    void setAutoRestoreSessionAfterCrash(bool value) override;
     // KRASKO {END}
 private:
     std::string utmParameters(const std::string& utmMedium) const;
