@@ -2440,9 +2440,16 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                         top = stem->y() + stem->ldata()->bbox().top();
                     } else {
                         const Note* un = chord->upNote();
-                        top = un->y() + un->ldata()->bbox().top(); // KRASKO: {START} Fingering on beamed notes should respect the min ditance to staff
+                        if (!appshellConfiguration()->fixFingeringOnBeamedNotesDistanceToStaff()) { // KRASKO: {START} Fingering on beamed notes should respect the min ditance to staff
+                            top = std::min(0.0, un->y() + un->ldata()->bbox().top());
+                        }
+                        else {
+                            top = un->y() + un->ldata()->bbox().top();
+                        }
                     }
-                    top = std::min(0.0, top); // KRASKO: {END}
+                    if (appshellConfiguration()->fixFingeringOnBeamedNotesDistanceToStaff()) {
+                        top = std::min(0.0, top);
+                    } // KRASKO: {END}
                     top -= md;
                     double diff = (ldata->bbox().bottom() + ldata->pos().y() + yd + note->y()) - top;
                     if (diff > 0.0) {
@@ -2477,9 +2484,16 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                         bottom = stem->y() + stem->ldata()->bbox().bottom();
                     } else {
                         const Note* dn = chord->downNote();
-                        bottom = dn->y() + dn->ldata()->bbox().bottom(); // KRASKO: {START} Fingering on beamed notes should respect the min ditance to staff
+                        if (!appshellConfiguration()->fixFingeringOnBeamedNotesDistanceToStaff()) { // KRASKO: {START} Fingering on beamed notes should respect the min ditance to staff
+                            bottom = std::max(vStaff->staffHeight(), dn->y() + dn->ldata()->bbox().bottom());
+                        }
+                        else {
+                            bottom = dn->y() + dn->ldata()->bbox().bottom();
+                        }
                     }
-                    bottom = std::max(vStaff->staffHeight(), bottom); // KRASKO: {END}
+                    if (!appshellConfiguration()->fixFingeringOnBeamedNotesDistanceToStaff()) {
+                        bottom = std::max(vStaff->staffHeight(), bottom); // KRASKO: {END}
+                    } // KRASKO: {END}
                     bottom += md;
                     double diff = bottom - (ldata->bbox().top() + ldata->pos().y() + yd + note->y());
                     if (diff > 0.0) {

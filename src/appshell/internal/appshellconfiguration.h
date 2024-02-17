@@ -102,14 +102,17 @@ public:
     bool exportDialogWillFocusTheExportButton() const override;
     void setExportDialogWillFocusTheExportButton(bool value) override;
 
-    bool AppShellConfiguration::enableAltModifierKey() const override;
-    void AppShellConfiguration::setEnableAltModifierKey(bool value) override;
+    bool enableAltModifierKey() const override;
+    void setEnableAltModifierKey(bool value) override;
 
-    bool AppShellConfiguration::enableHighPrecisionNudging() const override;
-    void AppShellConfiguration::setEnableHighPrecisionNudging(bool value) override;
+    bool enableHighPrecisionNudging() const override;
+    void setEnableHighPrecisionNudging(bool value) override;
 
-    bool AppShellConfiguration::textObjectsWillUseTheirFullHeight() const override;
-    void AppShellConfiguration::setTextObjectsWillUseTheirFullHeight(bool value) override;
+    bool textObjectsWillUseTheirFullHeight() const override;
+    void setTextObjectsWillUseTheirFullHeight(bool value) override;
+
+    bool fixFingeringOnBeamedNotesDistanceToStaff() const override;
+    void setFixFingeringOnBeamedNotesDistanceToStaff(bool value) override;
     // KRASKO {END}
 private:
     std::string utmParameters(const std::string& utmMedium) const;

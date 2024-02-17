@@ -96,6 +96,9 @@ public:
 
     virtual bool textObjectsWillUseTheirFullHeight() const = 0;
     virtual void setTextObjectsWillUseTheirFullHeight(bool value) = 0;
+
+    virtual bool fixFingeringOnBeamedNotesDistanceToStaff() const = 0;
+    virtual void setFixFingeringOnBeamedNotesDistanceToStaff(bool value) = 0;
     // KRASKO {END}
 };
 }

@@ -67,6 +67,10 @@ static const Settings::Key ENABLE_HIGH_PRECISION_NUDGING(module_name, "krasko/En
 // TextObjectsWillUseTheirFullHeight - when true, the height of any text (i.e. text object) will always be the font's full height.
 // When false (the default), the height will be the actual height of the characters in the text.
 static const Settings::Key TEXT_OBJECTS_WILL_USE_THEIR_FULL_HEIGHT(module_name, "krasko/TextObjectsWillUseTheirFullHeight");
+
+// FixFingeringOnBeamedNotesDistanceToStaff - when true, will fix an issue where fingering on beamed notes
+// would not respect min distance to staff. Default: false.
+static const Settings::Key FIX_FINGERING_ON_BEAMED_NOTES_DISTANCE_TO_STAFF(module_name, "krasko/FixFingeringOnBeamedNotesDistanceToStaff");
 // KRASKO {END}
 
 static const Settings::Key HAS_COMPLETED_FIRST_LAUNCH_SETUP(module_name, "application/hasCompletedFirstLaunchSetup");
@@ -100,6 +104,7 @@ void AppShellConfiguration::init()
     settings()->setDefaultValue(ENABLE_ALT_MODIFIER_KEY, Val(false));
     settings()->setDefaultValue(ENABLE_HIGH_PRECISION_NUDGING, Val(false));
     settings()->setDefaultValue(TEXT_OBJECTS_WILL_USE_THEIR_FULL_HEIGHT, Val(false));
+    settings()->setDefaultValue(FIX_FINGERING_ON_BEAMED_NOTES_DISTANCE_TO_STAFF, Val(false));
     // KRASKO {END}
 
     settings()->setDefaultValue(HAS_COMPLETED_FIRST_LAUNCH_SETUP, Val(false));
@@ -189,6 +194,16 @@ bool AppShellConfiguration::textObjectsWillUseTheirFullHeight() const
 void AppShellConfiguration::setTextObjectsWillUseTheirFullHeight(bool value)
 {
     settings()->setSharedValue(TEXT_OBJECTS_WILL_USE_THEIR_FULL_HEIGHT, Val(value));
+}
+
+bool AppShellConfiguration::fixFingeringOnBeamedNotesDistanceToStaff() const
+{
+    return settings()->value(FIX_FINGERING_ON_BEAMED_NOTES_DISTANCE_TO_STAFF).toBool();
+}
+
+void AppShellConfiguration::setFixFingeringOnBeamedNotesDistanceToStaff(bool value)
+{
+    settings()->setSharedValue(FIX_FINGERING_ON_BEAMED_NOTES_DISTANCE_TO_STAFF, Val(value));
 }
 // KRASKO {END}
 

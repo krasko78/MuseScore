@@ -24,6 +24,8 @@
 
 #include "layoutcontext.h"
 
+#include "appshell/iappshellconfiguration.h" // KRASKO
+
 #include "../../dom/accidental.h"
 #include "../../dom/actionicon.h"
 #include "../../dom/ambitus.h"
@@ -185,6 +187,8 @@ class WhammyBarSegment;
 namespace mu::engraving::rendering::dev {
 class TLayout
 {
+    INJECT_STATIC(appshell::IAppShellConfiguration, appshellConfiguration) // KRASKO
+
 public:
 
     static void layoutItem(EngravingItem* item, LayoutContext& ctx);  // factory
