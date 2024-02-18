@@ -2497,8 +2497,8 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                             bottom = dn->y() + dn->ldata()->bbox().bottom();
                         }
                     }
-                    if (!appshellConfiguration()->fixFingeringOnBeamedNotesDistanceToStaff()) {
-                        bottom = std::max(vStaff->staffHeight(), bottom); // KRASKO: {END}
+                    if (appshellConfiguration()->fixFingeringOnBeamedNotesDistanceToStaff()) {
+                        bottom = std::max(vStaff->staffHeight(), bottom);
                     } // KRASKO: {END}
                     bottom += md;
                     double diff = bottom - (ldata->bbox().top() + ldata->pos().y() + yd + note->y());
