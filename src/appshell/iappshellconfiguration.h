@@ -111,6 +111,9 @@ public:
 
     virtual bool enableSameColorSelection() const = 0;
     virtual void setEnableSameColorSelection(bool value) = 0;
+
+    virtual bool fixEndlessLoopInGuitarBendsLayout() const = 0;
+    virtual void setFixEndlessLoopInGuitarBendsLayout(bool value) = 0;
     // KRASKO {END}
 };
 }

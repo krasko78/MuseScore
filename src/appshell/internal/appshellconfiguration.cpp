@@ -87,6 +87,10 @@ static const Settings::Key FIX_LOST_TRILL_COLOR_ON_SCORE_OPEN(module_name, "kras
 // EnableSameColorSelection - when true, will display "Same color" checkbox on the Select More... dialog.
 // Default: false.
 static const Settings::Key ENABLE_SAME_COLOR_SELECTION(module_name, "krasko/EnableSameColorSelection");
+
+// FixEndlessLoopInGuitarBendsLayout - when true, will fix an endless loop when laying out guitar bends.
+// Default: false.
+static const Settings::Key FIX_ENDLESS_LOOP_IN_GUITAR_BENDS_LAYOUT(module_name, "krasko/FixEndlessLoopInGuitarBendsLayout");
 // KRASKO {END}
 
 static const Settings::Key HAS_COMPLETED_FIRST_LAUNCH_SETUP(module_name, "application/hasCompletedFirstLaunchSetup");
@@ -125,6 +129,7 @@ void AppShellConfiguration::init()
     settings()->setDefaultValue(AUTO_RESTORE_SESSION_AFTER_CRASH, Val(false));
     settings()->setDefaultValue(FIX_LOST_TRILL_COLOR_ON_SCORE_OPEN, Val(false));
     settings()->setDefaultValue(ENABLE_SAME_COLOR_SELECTION, Val(false));
+    settings()->setDefaultValue(FIX_ENDLESS_LOOP_IN_GUITAR_BENDS_LAYOUT, Val(false));
     // KRASKO {END}
 
     settings()->setDefaultValue(HAS_COMPLETED_FIRST_LAUNCH_SETUP, Val(false));
@@ -264,6 +269,16 @@ bool AppShellConfiguration::enableSameColorSelection() const
 void AppShellConfiguration::setEnableSameColorSelection(bool value)
 {
     settings()->setSharedValue(ENABLE_SAME_COLOR_SELECTION, Val(value));
+}
+
+bool AppShellConfiguration::fixEndlessLoopInGuitarBendsLayout() const
+{
+    return settings()->value(FIX_ENDLESS_LOOP_IN_GUITAR_BENDS_LAYOUT).toBool();
+}
+
+void AppShellConfiguration::setFixEndlessLoopInGuitarBendsLayout(bool value)
+{
+    settings()->setSharedValue(FIX_ENDLESS_LOOP_IN_GUITAR_BENDS_LAYOUT, Val(value));
 }
 // KRASKO {END}
 

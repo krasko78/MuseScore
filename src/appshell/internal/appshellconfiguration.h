@@ -125,6 +125,9 @@ public:
 
     bool enableSameColorSelection() const override;
     void setEnableSameColorSelection(bool value) override;
+
+    bool fixEndlessLoopInGuitarBendsLayout() const override;
+    void setFixEndlessLoopInGuitarBendsLayout(bool value) override;
     // KRASKO {END}
 private:
     std::string utmParameters(const std::string& utmMedium) const;
