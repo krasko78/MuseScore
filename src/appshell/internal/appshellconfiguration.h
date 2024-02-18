@@ -122,6 +122,9 @@ public:
 
     bool fixLostTrillColorOnScoreOpen() const override;
     void setFixLostTrillColorOnScoreOpen(bool value) override;
+
+    bool enableSameColorSelection() const override;
+    void setEnableSameColorSelection(bool value) override;
     // KRASKO {END}
 private:
     std::string utmParameters(const std::string& utmMedium) const;

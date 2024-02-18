@@ -64,6 +64,8 @@ SelectDialog::SelectDialog(QWidget* parent)
 
     sameDuration->setEnabled(m_element->isRest());
 
+    sameColor->setVisible(appshellConfiguration()->enableSameColorSelection()); // KRASKO
+
     connect(buttonBox, &QDialogButtonBox::clicked, this, &SelectDialog::buttonClicked);
 
     WidgetStateStore::restoreGeometry(this);
