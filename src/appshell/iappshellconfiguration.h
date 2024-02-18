@@ -114,6 +114,9 @@ public:
 
     virtual bool fixEndlessLoopInGuitarBendsLayout() const = 0;
     virtual void setFixEndlessLoopInGuitarBendsLayout(bool value) = 0;
+
+    virtual bool fixNonWorkingLeadingSpaceOnClefChange() const = 0;
+    virtual void setFixNonWorkingLeadingSpaceOnClefChange(bool value) = 0;
     // KRASKO {END}
 };
 }

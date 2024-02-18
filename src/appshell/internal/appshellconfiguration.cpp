@@ -91,6 +91,10 @@ static const Settings::Key ENABLE_SAME_COLOR_SELECTION(module_name, "krasko/Enab
 // FixEndlessLoopInGuitarBendsLayout - when true, will fix an endless loop when laying out guitar bends.
 // Default: false.
 static const Settings::Key FIX_ENDLESS_LOOP_IN_GUITAR_BENDS_LAYOUT(module_name, "krasko/FixEndlessLoopInGuitarBendsLayout");
+
+// FixNonWorkingLeadingSpaceOnClefChange - when true, will make MuseScore respect the leading space on a clef
+// added to change clef. Normal clefs at the start of a staff are not affected. Default: false.
+static const Settings::Key FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE(module_name, "krasko/FixNonWorkingLeadingSpaceOnClefChange");
 // KRASKO {END}
 
 static const Settings::Key HAS_COMPLETED_FIRST_LAUNCH_SETUP(module_name, "application/hasCompletedFirstLaunchSetup");
@@ -130,6 +134,7 @@ void AppShellConfiguration::init()
     settings()->setDefaultValue(FIX_LOST_TRILL_COLOR_ON_SCORE_OPEN, Val(false));
     settings()->setDefaultValue(ENABLE_SAME_COLOR_SELECTION, Val(false));
     settings()->setDefaultValue(FIX_ENDLESS_LOOP_IN_GUITAR_BENDS_LAYOUT, Val(false));
+    settings()->setDefaultValue(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE, Val(false));
     // KRASKO {END}
 
     settings()->setDefaultValue(HAS_COMPLETED_FIRST_LAUNCH_SETUP, Val(false));
@@ -279,6 +284,16 @@ bool AppShellConfiguration::fixEndlessLoopInGuitarBendsLayout() const
 void AppShellConfiguration::setFixEndlessLoopInGuitarBendsLayout(bool value)
 {
     settings()->setSharedValue(FIX_ENDLESS_LOOP_IN_GUITAR_BENDS_LAYOUT, Val(value));
+}
+
+bool AppShellConfiguration::fixNonWorkingLeadingSpaceOnClefChange() const
+{
+    return settings()->value(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE).toBool();
+}
+
+void AppShellConfiguration::setFixNonWorkingLeadingSpaceOnClefChange(bool value)
+{
+    settings()->setSharedValue(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE, Val(value));
 }
 // KRASKO {END}
 

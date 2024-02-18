@@ -128,6 +128,9 @@ public:
 
     bool fixEndlessLoopInGuitarBendsLayout() const override;
     void setFixEndlessLoopInGuitarBendsLayout(bool value) override;
+
+    bool fixNonWorkingLeadingSpaceOnClefChange() const override;
+    void setFixNonWorkingLeadingSpaceOnClefChange(bool value) override;
     // KRASKO {END}
 private:
     std::string utmParameters(const std::string& utmMedium) const;
