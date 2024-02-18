@@ -105,6 +105,9 @@ public:
 
     virtual bool autoRestoreSessionAfterCrash() const = 0;
     virtual void setAutoRestoreSessionAfterCrash(bool value) = 0;
+
+    virtual bool fixLostTrillColorOnScoreOpen() const = 0;
+    virtual void setFixLostTrillColorOnScoreOpen(bool value) = 0;
     // KRASKO {END}
 };
 }

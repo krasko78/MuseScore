@@ -79,6 +79,10 @@ static const Settings::Key FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING(module_name,
 // AutoRestoreSessionAfterCrash - when true, the previous session will be automatically restored (without asking the user)
 // after a crash provided Preferences -> General -> Program start is set to "Continue last session". Default: false.
 static const Settings::Key AUTO_RESTORE_SESSION_AFTER_CRASH(module_name, "krasko/AutoRestoreSessionAfterCrash");
+
+// FixLostTrillColorOnScoreOpen - when true, will fix an issue where a trill color is not respected after opening a score.
+// Default: false.
+static const Settings::Key FIX_LOST_TRILL_COLOR_ON_SCORE_OPEN(module_name, "krasko/FixLostTrillColorOnScoreOpen");
 // KRASKO {END}
 
 static const Settings::Key HAS_COMPLETED_FIRST_LAUNCH_SETUP(module_name, "application/hasCompletedFirstLaunchSetup");
@@ -115,6 +119,7 @@ void AppShellConfiguration::init()
     settings()->setDefaultValue(FIX_FINGERING_ON_BEAMED_NOTES_DISTANCE_TO_STAFF, Val(false));
     settings()->setDefaultValue(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING, Val(false));
     settings()->setDefaultValue(AUTO_RESTORE_SESSION_AFTER_CRASH, Val(false));
+    settings()->setDefaultValue(FIX_LOST_TRILL_COLOR_ON_SCORE_OPEN, Val(false));
     // KRASKO {END}
 
     settings()->setDefaultValue(HAS_COMPLETED_FIRST_LAUNCH_SETUP, Val(false));
@@ -234,6 +239,16 @@ bool AppShellConfiguration::autoRestoreSessionAfterCrash() const
 void AppShellConfiguration::setAutoRestoreSessionAfterCrash(bool value)
 {
     settings()->setSharedValue(AUTO_RESTORE_SESSION_AFTER_CRASH, Val(value));
+}
+
+bool AppShellConfiguration::fixLostTrillColorOnScoreOpen() const
+{
+    return settings()->value(FIX_LOST_TRILL_COLOR_ON_SCORE_OPEN).toBool();
+}
+
+void AppShellConfiguration::setFixLostTrillColorOnScoreOpen(bool value)
+{
+    settings()->setSharedValue(FIX_LOST_TRILL_COLOR_ON_SCORE_OPEN, Val(value));
 }
 // KRASKO {END}
 

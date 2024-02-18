@@ -119,6 +119,9 @@ public:
 
     bool autoRestoreSessionAfterCrash() const override;
     void setAutoRestoreSessionAfterCrash(bool value) override;
+
+    bool fixLostTrillColorOnScoreOpen() const override;
+    void setFixLostTrillColorOnScoreOpen(bool value) override;
     // KRASKO {END}
 private:
     std::string utmParameters(const std::string& utmMedium) const;

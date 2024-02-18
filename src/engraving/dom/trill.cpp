@@ -256,7 +256,7 @@ LineSegment* Trill::createLineSegment(System* parent)
 {
     TrillSegment* seg = new TrillSegment(this, parent);
     seg->setTrack(track());
-    seg->setColor(lineColor()); // or seg->setColor(getProperty(Pid::COLOR).value<mu::draw::Color>()); // KRASKO: Fix ignored color after opening score
+    seg->setColor(!appshellConfiguration()->fixLostTrillColorOnScoreOpen() ? color() : lineColor()); // KRASKO
     seg->initElementStyle(&trillSegmentStyle);
     return seg;
 }
