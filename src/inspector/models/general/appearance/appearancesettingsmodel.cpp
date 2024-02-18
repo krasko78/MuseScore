@@ -304,3 +304,9 @@ void AppearanceSettingsModel::updateIsVerticalOffsetAvailable()
     }
     setIsVerticalOffsetAvailable(isAvailable);
 }
+
+double AppearanceSettingsModel::step() const // KRASKO
+{
+    return appshellConfiguration()->stepForSpinupControlsOnAppearanceTabOfPropertiesPanel();
+}
+

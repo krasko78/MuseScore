@@ -131,6 +131,9 @@ public:
 
     bool fixNonWorkingLeadingSpaceOnClefChange() const override;
     void setFixNonWorkingLeadingSpaceOnClefChange(bool value) override;
+
+    double stepForSpinupControlsOnAppearanceTabOfPropertiesPanel() const override;
+    void setStepForSpinupControlsOnAppearanceTabOfPropertiesPanel(double value) override;
     // KRASKO {END}
 private:
     std::string utmParameters(const std::string& utmMedium) const;

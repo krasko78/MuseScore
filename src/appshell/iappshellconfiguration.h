@@ -117,6 +117,9 @@ public:
 
     virtual bool fixNonWorkingLeadingSpaceOnClefChange() const = 0;
     virtual void setFixNonWorkingLeadingSpaceOnClefChange(bool value) = 0;
+
+    virtual double stepForSpinupControlsOnAppearanceTabOfPropertiesPanel() const = 0;
+    virtual void setStepForSpinupControlsOnAppearanceTabOfPropertiesPanel(double value) = 0;
     // KRASKO {END}
 };
 }

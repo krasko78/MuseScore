@@ -31,6 +31,7 @@ InspectorPropertyView {
     property alias horizontalOffsetControl: horizontalOffsetControl
     property alias verticalOffsetControl: verticalOffsetControl
     property bool isVerticalOffsetAvailable: true
+    property double step // KRASKO
 
     titleText: qsTrc("inspector", "Offset")
 
@@ -50,7 +51,7 @@ InspectorPropertyView {
 
             width: parent.width / 2 - row.spacing / 2
 
-            step: 0.1 // KRASKO: Set increment/decrement step to 0.1 for finer adjustments
+            step: root.step // KRASKO
             navigation.name: "HorizontalOffsetControl"
             navigation.panel: root.navigationPanel
             navigation.row: root.navigationRowStart + 1
@@ -73,7 +74,7 @@ InspectorPropertyView {
 
             width: parent.width / 2 - row.spacing / 2
 
-            step: 0.1 // KRASKO: Set increment/decrement step to 0.1 for finer adjustments
+            step: root.step // KRASKO
             navigation.name: "VerticalOffsetControl"
             navigation.panel: root.navigationPanel
             navigation.row: root.navigationRowStart + 2

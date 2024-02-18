@@ -95,6 +95,10 @@ static const Settings::Key FIX_ENDLESS_LOOP_IN_GUITAR_BENDS_LAYOUT(module_name, 
 // FixNonWorkingLeadingSpaceOnClefChange - when true, will make MuseScore respect the leading space on a clef
 // added to change clef. Normal clefs at the start of a staff are not affected. Default: false.
 static const Settings::Key FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE(module_name, "krasko/FixNonWorkingLeadingSpaceOnClefChange");
+
+// StepForSpinupControlsOnAppearanceTabOfPropertiesPanel - specifies the step of spin up controls on the Appearance popup
+// of the Properties panel such as the Offset, Leading space, Min distance, etc. Default: 0.5.
+static const Settings::Key STEP_FOR_SPINUP_CONTROLS_ON_APPEARANCE_TAB_OF_PROPERTIES_PANEL(module_name, "krasko/StepForSpinupControlsOnAppearanceTabOfPropertiesPanel");
 // KRASKO {END}
 
 static const Settings::Key HAS_COMPLETED_FIRST_LAUNCH_SETUP(module_name, "application/hasCompletedFirstLaunchSetup");
@@ -135,6 +139,7 @@ void AppShellConfiguration::init()
     settings()->setDefaultValue(ENABLE_SAME_COLOR_SELECTION, Val(false));
     settings()->setDefaultValue(FIX_ENDLESS_LOOP_IN_GUITAR_BENDS_LAYOUT, Val(false));
     settings()->setDefaultValue(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE, Val(false));
+    settings()->setDefaultValue(STEP_FOR_SPINUP_CONTROLS_ON_APPEARANCE_TAB_OF_PROPERTIES_PANEL, Val(0.5));
     // KRASKO {END}
 
     settings()->setDefaultValue(HAS_COMPLETED_FIRST_LAUNCH_SETUP, Val(false));
@@ -294,6 +299,16 @@ bool AppShellConfiguration::fixNonWorkingLeadingSpaceOnClefChange() const
 void AppShellConfiguration::setFixNonWorkingLeadingSpaceOnClefChange(bool value)
 {
     settings()->setSharedValue(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE, Val(value));
+}
+
+double AppShellConfiguration::stepForSpinupControlsOnAppearanceTabOfPropertiesPanel() const
+{
+    return settings()->value(STEP_FOR_SPINUP_CONTROLS_ON_APPEARANCE_TAB_OF_PROPERTIES_PANEL).toDouble();
+}
+
+void AppShellConfiguration::setStepForSpinupControlsOnAppearanceTabOfPropertiesPanel(double value)
+{
+    settings()->setSharedValue(STEP_FOR_SPINUP_CONTROLS_ON_APPEARANCE_TAB_OF_PROPERTIES_PANEL, Val(value));
 }
 // KRASKO {END}
 
