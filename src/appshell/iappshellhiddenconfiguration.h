@@ -32,9 +32,6 @@ class IAppShellHiddenConfiguration : MODULE_EXPORT_INTERFACE
 public:
     // ------------------------------------------------------------------------------------------------------------------------
 
-    virtual bool fixEndlessLoopInGuitarBendsLayout() const = 0;
-    virtual void setFixEndlessLoopInGuitarBendsLayout(bool value) = 0;
-
     virtual bool fixLostTrillColorOnScoreOpen() const = 0;
     virtual void setFixLostTrillColorOnScoreOpen(bool value) = 0;
 

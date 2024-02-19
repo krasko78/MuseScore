@@ -29,11 +29,6 @@ static const std::string module_name_appshell_2("appshell_2");
 
 // ------------------------------------------------------------------------------------------------------------------------
 
-static const Settings::Key FIX_ENDLESS_LOOP_IN_GUITAR_BENDS_LAYOUT(module_name_appshell_2,
-    "krasko/FixEndlessLoopInGuitarBendsLayout");
-        //  When true, will fix an endless loop when laying out guitar bends. Causes MuseScore to hang.
-        //  Default: true.
-
 static const Settings::Key FIX_LOST_TRILL_COLOR_ON_SCORE_OPEN(module_name_appshell_2,
     "krasko/FixLostTrillColorOnScoreOpen");
         //  When true, will fix an issue where a trill color (and possibly other elements' color) is not respected
@@ -128,7 +123,6 @@ static const Settings::Key FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING(module_name_
 
 void AppShellHiddenConfiguration::init()
 {
-    settings()->setDefaultValue(FIX_ENDLESS_LOOP_IN_GUITAR_BENDS_LAYOUT, Val(true));
     settings()->setDefaultValue(FIX_LOST_TRILL_COLOR_ON_SCORE_OPEN, Val(true));
     settings()->setDefaultValue(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE, Val(true));
 
@@ -171,10 +165,6 @@ void AppShellHiddenConfiguration::setDouble(const Settings::Key& key, const doub
 
 
 // ------------------------------------------------------------------------------------------------------------------------
-
-bool AppShellHiddenConfiguration::fixEndlessLoopInGuitarBendsLayout() const { return getBool(FIX_ENDLESS_LOOP_IN_GUITAR_BENDS_LAYOUT); }
-void AppShellHiddenConfiguration::setFixEndlessLoopInGuitarBendsLayout(bool value) { setBool(FIX_ENDLESS_LOOP_IN_GUITAR_BENDS_LAYOUT, value); }
-
 
 bool AppShellHiddenConfiguration::fixLostTrillColorOnScoreOpen() const { return getBool(FIX_LOST_TRILL_COLOR_ON_SCORE_OPEN); }
 void AppShellHiddenConfiguration::setFixLostTrillColorOnScoreOpen(bool value) { setBool(FIX_LOST_TRILL_COLOR_ON_SCORE_OPEN, value); }

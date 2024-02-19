@@ -1402,15 +1402,7 @@ void SystemLayout::layoutGuitarBends(const std::vector<Segment*>& sl, LayoutCont
                 TLayout::layoutGuitarBend(bendBack, ctx);
             }
 
-            Note* startOfTie = note;
-            if (appshellHiddenConfiguration()->fixEndlessLoopInGuitarBendsLayout()) { // KRASKO: Fixed an infinite loop
-                startOfTie = note->firstTiedNote();
-            }
-            else {
-                while (startOfTie->tieBack() && startOfTie->tieBack()->startNote()) {
-                    startOfTie = startOfTie->tieBack()->startNote();
-                }
-            }
+            Note* startOfTie = note->firstTiedNote();
             if (startOfTie != note) {
                 GuitarBend* bendBack2 = startOfTie->bendBack();
                 if (bendBack2) {

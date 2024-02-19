@@ -36,9 +36,6 @@ public:
 
     // ------------------------------------------------------------------------------------------------------------------------
 
-    bool fixEndlessLoopInGuitarBendsLayout() const override;
-    void setFixEndlessLoopInGuitarBendsLayout(bool value) override;
-
     bool fixLostTrillColorOnScoreOpen() const override;
     void setFixLostTrillColorOnScoreOpen(bool value) override;
 
