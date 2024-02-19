@@ -2978,8 +2978,8 @@ bool NotationInteraction::needStartEditGrip(QKeyEvent* event) const
 
 bool NotationInteraction::handleKeyPress(QKeyEvent* event)
 {
-    if (event->modifiers() & Qt::KeyboardModifier::AltModifier) {
-        //return false;   // KRASKO: Enable the ALT modifier for nudging (of e.g. slurs/ties)
+    if (event->modifiers() & Qt::KeyboardModifier::AltModifier && !appshellHiddenConfiguration()->enableAltModifierKey()) { // KRASKO
+        return false;
     }
 
     if (m_editData.element->isTextBase()) {
@@ -3276,8 +3276,8 @@ bool NotationInteraction::isEditAllowed(QKeyEvent* event)
         return true;
     }
 
-    if (event->modifiers() & Qt::KeyboardModifier::AltModifier) {
-        //return false;   // KRASKO: Enable the ALT modifier for nudging (of e.g. slurs/ties)
+    if (event->modifiers() & Qt::KeyboardModifier::AltModifier && !appshellHiddenConfiguration()->enableAltModifierKey()) { // KRASKO
+        return false;
     }
 
     if (editData.element->isTextBase()) {
