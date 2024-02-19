@@ -24,7 +24,7 @@
 #define MU_ENGRAVING_TRILL_H
 
 #include "line.h"
-#include "appshell/iappshellconfiguration.h" // KRASKO
+#include "appshell/iappshellhiddenconfiguration.h" // KRASKO
 
 namespace mu::engraving {
 class Trill;
@@ -74,7 +74,7 @@ class Trill final : public SLine
 {
     OBJECT_ALLOCATOR(engraving, Trill)
     DECLARE_CLASSOF(ElementType::TRILL)
-    INJECT(appshell::IAppShellConfiguration, appshellConfiguration) // KRASKO
+    INJECT(appshell::IAppShellHiddenConfiguration, appshellHiddenConfiguration) // KRASKO
 
 public:
     Trill(EngravingItem* parent);

@@ -40,7 +40,7 @@
 #include "iprojectconfiguration.h"
 #include "internal/iexportprojectscenario.h"
 #include "types/projecttypes.h"
-#include "appshell/iappshellconfiguration.h" // KRASKO
+#include "appshell/iappshellhiddenconfiguration.h" // KRASKO
 
 class QItemSelectionModel;
 
@@ -59,7 +59,7 @@ class ExportDialogModel : public QAbstractListModel, public async::Asyncable
     INJECT(iex::audioexport::IAudioExportConfiguration, audioExportConfiguration)
     INJECT(iex::mei::IMeiConfiguration, meiConfiguration)
     INJECT(IExportProjectScenario, exportProjectScenario)
-    INJECT(appshell::IAppShellConfiguration, appshellConfiguration) // KRASKO
+    INJECT(appshell::IAppShellHiddenConfiguration, appshellHiddenConfiguration) // KRASKO
 
     Q_PROPERTY(int selectionLength READ selectionLength NOTIFY selectionChanged)
 

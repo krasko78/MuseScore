@@ -89,52 +89,6 @@ public:
     io::paths_t sessionProjectsPaths() const override;
     Ret setSessionProjectsPaths(const io::paths_t& paths) override;
 
-    // KRASKO {START} Settings
-    bool navNextPrevPanelGoesToNextPrevControl() const override;
-    void setNavNextPrevPanelGoesToNextPrevControl(bool value) override;
-
-    bool useArrowKeysForNavigation() const override;
-    void setUseArrowKeysForNavigation(bool value) override;
-
-    bool useEditElementKeyToCycleThroughGrips() const override;
-    void setUseEditElementKeyToCycleThroughGrips(bool value) override;
-
-    bool exportDialogWillFocusTheExportButton() const override;
-    void setExportDialogWillFocusTheExportButton(bool value) override;
-
-    bool enableAltModifierKey() const override;
-    void setEnableAltModifierKey(bool value) override;
-
-    bool enableHighPrecisionNudging() const override;
-    void setEnableHighPrecisionNudging(bool value) override;
-
-    bool textObjectsWillUseTheirFullHeight() const override;
-    void setTextObjectsWillUseTheirFullHeight(bool value) override;
-
-    bool fixFingeringOnBeamedNotesDistanceToStaff() const override;
-    void setFixFingeringOnBeamedNotesDistanceToStaff(bool value) override;
-
-    bool fixExtraSpacingOnMultilineFingering() const override;
-    void setFixExtraSpacingOnMultilineFingering(bool value) override;
-
-    bool autoRestoreSessionAfterCrash() const override;
-    void setAutoRestoreSessionAfterCrash(bool value) override;
-
-    bool fixLostTrillColorOnScoreOpen() const override;
-    void setFixLostTrillColorOnScoreOpen(bool value) override;
-
-    bool enableSameColorSelection() const override;
-    void setEnableSameColorSelection(bool value) override;
-
-    bool fixEndlessLoopInGuitarBendsLayout() const override;
-    void setFixEndlessLoopInGuitarBendsLayout(bool value) override;
-
-    bool fixNonWorkingLeadingSpaceOnClefChange() const override;
-    void setFixNonWorkingLeadingSpaceOnClefChange(bool value) override;
-
-    double stepForSpinupControlsOnAppearanceTabOfPropertiesPanel() const override;
-    void setStepForSpinupControlsOnAppearanceTabOfPropertiesPanel(double value) override;
-    // KRASKO {END}
 private:
     std::string utmParameters(const std::string& utmMedium) const;
 

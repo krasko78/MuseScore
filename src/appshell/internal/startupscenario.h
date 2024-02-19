@@ -31,6 +31,7 @@
 #include "actions/iactionsdispatcher.h"
 #include "multiinstances/imultiinstancesprovider.h"
 #include "iappshellconfiguration.h"
+#include "iappshellhiddenconfiguration.h" // KRASKO
 #include "isessionsmanager.h"
 #include "project/iprojectautosaver.h"
 
@@ -41,6 +42,7 @@ class StartupScenario : public IStartupScenario, public async::Asyncable
     INJECT(actions::IActionsDispatcher, dispatcher)
     INJECT(mi::IMultiInstancesProvider, multiInstancesProvider)
     INJECT(IAppShellConfiguration, configuration)
+    INJECT(IAppShellHiddenConfiguration, appshellHiddenConfiguration) // KRASKO
     INJECT(ISessionsManager, sessionsManager)
     INJECT(project::IProjectAutoSaver, projectAutoSaver)
 

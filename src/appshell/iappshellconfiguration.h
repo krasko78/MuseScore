@@ -74,53 +74,6 @@ public:
 
     virtual io::paths_t sessionProjectsPaths() const = 0;
     virtual Ret setSessionProjectsPaths(const io::paths_t& paths) = 0;
-
-    // KRASKO {START} Settings
-    virtual bool navNextPrevPanelGoesToNextPrevControl() const = 0;
-    virtual void setNavNextPrevPanelGoesToNextPrevControl(bool value) = 0;
-
-    virtual bool useArrowKeysForNavigation() const = 0;
-    virtual void setUseArrowKeysForNavigation(bool value) = 0;
-
-    virtual bool useEditElementKeyToCycleThroughGrips() const = 0;
-    virtual void setUseEditElementKeyToCycleThroughGrips(bool value) = 0;
-
-    virtual bool exportDialogWillFocusTheExportButton() const = 0;
-    virtual void setExportDialogWillFocusTheExportButton(bool value) = 0;
-
-    virtual bool enableAltModifierKey() const = 0;
-    virtual void setEnableAltModifierKey(bool value) = 0;
-
-    virtual bool enableHighPrecisionNudging() const = 0;
-    virtual void setEnableHighPrecisionNudging(bool value) = 0;
-
-    virtual bool textObjectsWillUseTheirFullHeight() const = 0;
-    virtual void setTextObjectsWillUseTheirFullHeight(bool value) = 0;
-
-    virtual bool fixFingeringOnBeamedNotesDistanceToStaff() const = 0;
-    virtual void setFixFingeringOnBeamedNotesDistanceToStaff(bool value) = 0;
-
-    virtual bool fixExtraSpacingOnMultilineFingering() const = 0;
-    virtual void setFixExtraSpacingOnMultilineFingering(bool value) = 0;
-
-    virtual bool autoRestoreSessionAfterCrash() const = 0;
-    virtual void setAutoRestoreSessionAfterCrash(bool value) = 0;
-
-    virtual bool fixLostTrillColorOnScoreOpen() const = 0;
-    virtual void setFixLostTrillColorOnScoreOpen(bool value) = 0;
-
-    virtual bool enableSameColorSelection() const = 0;
-    virtual void setEnableSameColorSelection(bool value) = 0;
-
-    virtual bool fixEndlessLoopInGuitarBendsLayout() const = 0;
-    virtual void setFixEndlessLoopInGuitarBendsLayout(bool value) = 0;
-
-    virtual bool fixNonWorkingLeadingSpaceOnClefChange() const = 0;
-    virtual void setFixNonWorkingLeadingSpaceOnClefChange(bool value) = 0;
-
-    virtual double stepForSpinupControlsOnAppearanceTabOfPropertiesPanel() const = 0;
-    virtual void setStepForSpinupControlsOnAppearanceTabOfPropertiesPanel(double value) = 0;
-    // KRASKO {END}
 };
 }
 

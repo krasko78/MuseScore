@@ -39,7 +39,7 @@
 #include "engraving/dom/elementgroup.h"
 #include "scorecallbacks.h"
 
-#include "appshell/iappshellconfiguration.h" // KRASKO
+#include "appshell/iappshellhiddenconfiguration.h" // KRASKO
 
 namespace mu::engraving {
 class Lasso;
@@ -56,7 +56,7 @@ class NotationInteraction : public INotationInteraction, public async::Asyncable
     INJECT(ISelectInstrumentsScenario, selectInstrumentScenario)
     INJECT(framework::IInteractive, interactive)
     INJECT(engraving::rendering::ISingleRenderer, engravingRenderer)
-    INJECT(appshell::IAppShellConfiguration, appshellConfiguration) // KRASKO
+    INJECT(appshell::IAppShellHiddenConfiguration, appshellHiddenConfiguration) // KRASKO
 
 public:
     NotationInteraction(Notation* notation, INotationUndoStackPtr undoStack);

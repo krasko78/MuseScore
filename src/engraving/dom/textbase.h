@@ -30,7 +30,7 @@
 #include "draw/fontmetrics.h"
 #include "draw/types/color.h"
 #include "iengravingfontsprovider.h"
-#include "appshell/iappshellconfiguration.h" // KRASKO
+#include "appshell/iappshellhiddenconfiguration.h" // KRASKO
 
 #include "engravingitem.h"
 #include "property.h"
@@ -240,7 +240,7 @@ public:
 
 class TextBlock
 {
-    INJECT(appshell::IAppShellConfiguration, appshellConfiguration) // KRASKO
+    INJECT(appshell::IAppShellHiddenConfiguration, appshellHiddenConfiguration) // KRASKO
 
 public:
     TextBlock() {}

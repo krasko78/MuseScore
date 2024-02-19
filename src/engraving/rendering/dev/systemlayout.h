@@ -28,7 +28,7 @@
 #include "layoutcontext.h"
 
 #include "modularity/ioc.h" // KRASKO
-#include "appshell/iappshellconfiguration.h" // KRASKO
+#include "appshell/iappshellhiddenconfiguration.h" // KRASKO
 
 namespace mu::engraving {
 class Chord;
@@ -44,7 +44,7 @@ class BracketItem;
 namespace mu::engraving::rendering::dev {
 class SystemLayout
 {
-    INJECT_STATIC(appshell::IAppShellConfiguration, appshellConfiguration) // KRASKO
+    INJECT_STATIC(appshell::IAppShellHiddenConfiguration, appshellHiddenConfiguration) // KRASKO
 public:
     static System* collectSystem(LayoutContext& ctx);
     static void layoutSystemElements(System* system, LayoutContext& ctx);

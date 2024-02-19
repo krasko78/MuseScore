@@ -31,6 +31,7 @@ namespace mu::appshell {
 class ApplicationActionController;
 class ApplicationUiActions;
 class AppShellConfiguration;
+class AppShellHiddenConfiguration; // KRASKO
 class SessionsManager;
 #ifdef Q_OS_MAC
 class MacOSScrollingHook;
@@ -57,6 +58,7 @@ private:
     std::shared_ptr<ApplicationActionController> m_applicationActionController;
     std::shared_ptr<ApplicationUiActions> m_applicationUiActions;
     std::shared_ptr<AppShellConfiguration> m_appShellConfiguration;
+    std::shared_ptr<AppShellHiddenConfiguration> m_appShellHiddenConfiguration; // KRASKO
     std::shared_ptr<SessionsManager> m_sessionsManager;
 
     #ifdef Q_OS_MAC

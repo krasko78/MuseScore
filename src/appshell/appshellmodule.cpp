@@ -32,6 +32,7 @@
 #include "internal/applicationuiactions.h"
 #include "internal/applicationactioncontroller.h"
 #include "internal/appshellconfiguration.h"
+#include "internal/appshellhiddenconfiguration.h" // KRASKO
 #include "internal/startupscenario.h"
 #include "internal/applicationactioncontroller.h"
 #include "internal/sessionsmanager.h"
@@ -97,6 +98,7 @@ void AppShellModule::registerExports()
     m_applicationActionController = std::make_shared<ApplicationActionController>();
     m_applicationUiActions = std::make_shared<ApplicationUiActions>(m_applicationActionController);
     m_appShellConfiguration = std::make_shared<AppShellConfiguration>();
+    m_appShellHiddenConfiguration = std::make_shared<AppShellHiddenConfiguration>(); // KRASKO
     m_sessionsManager = std::make_shared<SessionsManager>();
 
     #ifdef Q_OS_MAC
@@ -106,6 +108,7 @@ void AppShellModule::registerExports()
     DockSetup::registerExports();
 
     ioc()->registerExport<IAppShellConfiguration>(moduleName(), m_appShellConfiguration);
+    ioc()->registerExport<IAppShellHiddenConfiguration>(moduleName(), m_appShellHiddenConfiguration); // KRASKO
     ioc()->registerExport<IApplicationActionController>(moduleName(), m_applicationActionController);
     ioc()->registerExport<IStartupScenario>(moduleName(), new StartupScenario());
     ioc()->registerExport<ISessionsManager>(moduleName(), m_sessionsManager);
@@ -204,6 +207,7 @@ void AppShellModule::onInit(const IApplication::RunMode& mode)
     DockSetup::onInit();
 
     m_appShellConfiguration->init();
+    m_appShellHiddenConfiguration->init(); // KRASKO
     m_applicationActionController->init();
     m_applicationUiActions->init();
     m_sessionsManager->init();

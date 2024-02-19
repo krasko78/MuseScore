@@ -23,7 +23,7 @@
 #define MU_ENGRAVING_HORIZONTALSPACINGUTILS_DEV_H
 
 #include <modularity/ioc.h> // KRASKO
-#include "appshell/iappshellconfiguration.h" // KRASKO
+#include "appshell/iappshellhiddenconfiguration.h" // KRASKO
 
 namespace mu::engraving {
 class Chord;
@@ -41,7 +41,7 @@ enum class KerningType;
 namespace mu::engraving::rendering::dev {
 class HorizontalSpacing
 {
-    INJECT_STATIC(appshell::IAppShellConfiguration, appshellConfiguration) // KRASKO
+    INJECT_STATIC(appshell::IAppShellHiddenConfiguration, appshellHiddenConfiguration) // KRASKO
 public:
 
     static double minHorizontalDistance(const Shape& f, const Shape& s, double spatium, double squeezeFactor = 1.0);

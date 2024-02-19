@@ -277,8 +277,8 @@ void NavigationController::init()
 {
     dispatcher()->reg(this, "nav-next-section", [this]() { navigateTo(NavigationType::NextSection); });
     dispatcher()->reg(this, "nav-prev-section", [this]() { navigateTo(NavigationType::PrevSection); });
-    dispatcher()->reg(this, "nav-next-panel", [this]() { navigateTo(configuration()->navNextPrevPanelGoesToNextPrevControl() ? NavigationType::NextControl : NavigationType::NextPanel); }); // KRASKO
-    dispatcher()->reg(this, "nav-prev-panel", [this]() { navigateTo(configuration()->navNextPrevPanelGoesToNextPrevControl() ? NavigationType::PrevControl : NavigationType::PrevPanel); }); // KRASKO
+    dispatcher()->reg(this, "nav-next-panel", [this]() { navigateTo(appshellHiddenConfiguration()->navNextPrevPanelNavigatesToNextPrevControl() ? NavigationType::NextControl : NavigationType::NextPanel); }); // KRASKO
+    dispatcher()->reg(this, "nav-prev-panel", [this]() { navigateTo(appshellHiddenConfiguration()->navNextPrevPanelNavigatesToNextPrevControl() ? NavigationType::PrevControl : NavigationType::PrevPanel); }); // KRASKO
     //! NOTE Same as panel at the moment
     dispatcher()->reg(this, "nav-next-tab", [this]() { navigateTo(NavigationType::NextPanel); });
     dispatcher()->reg(this, "nav-prev-tab", [this]() { navigateTo(NavigationType::PrevPanel); });
@@ -850,7 +850,7 @@ void NavigationController::onRight()
         }
     }
 
-    if (configuration()->useArrowKeysForNavigation()) { // KRASKO
+    if (!appshellHiddenConfiguration()->disableArrowKeysForNavigation()) { // KRASKO
         goToControl(MoveDirection::Right, activePanel);
     }
 }
@@ -877,7 +877,7 @@ void NavigationController::onLeft()
         }
     }
 
-    if (configuration()->useArrowKeysForNavigation()) { // KRASKO
+    if (!appshellHiddenConfiguration()->disableArrowKeysForNavigation()) { // KRASKO
         goToControl(MoveDirection::Left, activePanel);
     }
 }
@@ -904,7 +904,7 @@ void NavigationController::onDown()
         }
     }
 
-    if (configuration()->useArrowKeysForNavigation()) { // KRASKO
+    if (!appshellHiddenConfiguration()->disableArrowKeysForNavigation()) { // KRASKO
         goToControl(MoveDirection::Down, activePanel);
     }
 }
@@ -931,7 +931,7 @@ void NavigationController::onUp()
         }
     }
 
-    if (configuration()->useArrowKeysForNavigation()) { // KRASKO
+    if (!appshellHiddenConfiguration()->disableArrowKeysForNavigation()) { // KRASKO
         goToControl(MoveDirection::Up, activePanel);
     }
 }

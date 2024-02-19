@@ -3007,16 +3007,16 @@ bool NotationInteraction::handleKeyPress(QKeyEvent* event)
 
         return true;
     case Qt::Key_Left:
-        m_editData.delta = QPointF(-nudgeDistance(m_editData, hRaster, appshellConfiguration()->enableHighPrecisionNudging()), 0); // KRASKO
+        m_editData.delta = QPointF(-nudgeDistance(m_editData, hRaster, appshellHiddenConfiguration()->enableHighPrecisionNudging()), 0); // KRASKO
         break;
     case Qt::Key_Right:
-        m_editData.delta = QPointF(nudgeDistance(m_editData, hRaster, appshellConfiguration()->enableHighPrecisionNudging()), 0); // KRASKO
+        m_editData.delta = QPointF(nudgeDistance(m_editData, hRaster, appshellHiddenConfiguration()->enableHighPrecisionNudging()), 0); // KRASKO
         break;
     case Qt::Key_Up:
-        m_editData.delta = QPointF(0, -nudgeDistance(m_editData, vRaster, appshellConfiguration()->enableHighPrecisionNudging())); // KRASKO
+        m_editData.delta = QPointF(0, -nudgeDistance(m_editData, vRaster, appshellHiddenConfiguration()->enableHighPrecisionNudging())); // KRASKO
         break;
     case Qt::Key_Down:
-        m_editData.delta = QPointF(0, nudgeDistance(m_editData, vRaster, appshellConfiguration()->enableHighPrecisionNudging())); // KRASKO
+        m_editData.delta = QPointF(0, nudgeDistance(m_editData, vRaster, appshellHiddenConfiguration()->enableHighPrecisionNudging())); // KRASKO
         break;
     default:
         return false;

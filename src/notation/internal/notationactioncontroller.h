@@ -25,7 +25,7 @@
 #include "async/asyncable.h"
 #include "actions/actionable.h"
 #include "actions/actiontypes.h"
-#include "appshell/iappshellconfiguration.h" // KRASKO
+#include "appshell/iappshellhiddenconfiguration.h" // KRASKO
 
 #include "modularity/ioc.h"
 #include "iinteractive.h"
@@ -50,7 +50,7 @@ class NotationActionController : public actions::Actionable, public async::Async
     INJECT(playback::IPlaybackController, playbackController)
     INJECT(INotationConfiguration, configuration)
     INJECT(engraving::IEngravingConfiguration, engravingConfiguration)
-    INJECT(appshell::IAppShellConfiguration, appshellConfiguration) // KRASKO
+    INJECT(appshell::IAppShellHiddenConfiguration, appshellHiddenConfiguration) // KRASKO
 
 public:
     void init();

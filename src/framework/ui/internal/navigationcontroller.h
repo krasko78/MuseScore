@@ -31,7 +31,7 @@
 #include "ui/imainwindow.h"
 #include "actions/iactionsdispatcher.h"
 #include "actions/actionable.h"
-#include "appshell/iappshellconfiguration.h" // KRASKO
+#include "appshell/iappshellhiddenconfiguration.h" // KRASKO
 
 #include "../inavigationcontroller.h"
 
@@ -41,7 +41,7 @@ class NavigationController : public QObject, public INavigationController, publi
     INJECT(actions::IActionsDispatcher, dispatcher)
     INJECT(framework::IInteractive, interactive)
     INJECT(IMainWindow, mainWindow)
-    INJECT(appshell::IAppShellConfiguration, configuration) // KRASKO
+    INJECT(appshell::IAppShellHiddenConfiguration, appshellHiddenConfiguration) // KRASKO
 
 public:
     NavigationController() = default;

@@ -1060,7 +1060,7 @@ void TextBlock::layout(const TextBase* t)
                 x += w;
             }
 
-            m_bbox   |= (appshellConfiguration()->textObjectsWillUseTheirFullHeight()
+            m_bbox   |= (appshellHiddenConfiguration()->textObjectsWillUseTheirFontHeight()
                            ? fm.boundingRect(f.text) : fm.tightBoundingRect(f.text)
                         ).translated(f.pos);   // KRASKO
             mu::draw::Font font = f.font(t);

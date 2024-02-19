@@ -307,6 +307,6 @@ void AppearanceSettingsModel::updateIsVerticalOffsetAvailable()
 
 double AppearanceSettingsModel::step() const // KRASKO
 {
-    return appshellConfiguration()->stepForSpinupControlsOnAppearanceTabOfPropertiesPanel();
+    return appshellHiddenConfiguration()->stepForSpinControlsOnAppearanceTab();
 }
 
