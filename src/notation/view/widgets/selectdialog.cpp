@@ -74,15 +74,13 @@ SelectDialog::SelectDialog(QWidget* parent)
     setFocus();
 }
 
+#ifdef MU_QT5_COMPAT
 SelectDialog::SelectDialog(const SelectDialog& other)
     : QDialog(other.parentWidget())
 {
 }
 
-int SelectDialog::metaTypeId()
-{
-    return QMetaType::type("SelectDialog");
-}
+#endif
 
 //---------------------------------------------------------
 //   setPattern
