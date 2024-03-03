@@ -25,8 +25,6 @@
 #include <settings.h>
 #include "iappshellhiddenconfiguration.h"
 
-using namespace mu::framework;
-
 namespace mu::appshell {
 class AppShellHiddenConfiguration : public IAppShellHiddenConfiguration
 {

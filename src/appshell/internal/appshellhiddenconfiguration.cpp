@@ -22,8 +22,8 @@
 #include "appshellhiddenconfiguration.h"
 #include "settings.h"
 
+using namespace mu;
 using namespace mu::appshell;
-using namespace mu::framework;
 
 static const std::string module_name_appshell_2("appshell_2");
 
