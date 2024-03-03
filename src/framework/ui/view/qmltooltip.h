@@ -48,6 +48,7 @@ public:
 
 private slots:
     void doShow();
+    void onItemDestruction();
     void doHide();
 
 signals:

@@ -52,12 +52,16 @@ void QmlToolTip::show(QQuickItem* item, const QString& title, const QString& des
     bool toolTipNotOpened = m_item == nullptr;
     bool openTimerStarted = m_openTimer.isActive();
 
+    if (!toolTipNotOpened) { // KRASKO
+        disconnect(m_item, &QObject::destroyed, this, &QmlToolTip::onItemDestruction);
+    }
+
     m_item = item;
     m_shouldBeClosed = false;
 
-    if (toolTipNotOpened || openTimerStarted) {
-        connect(m_item, &QObject::destroyed, this, &QmlToolTip::doHide);
+    connect(m_item, &QObject::destroyed, this, &QmlToolTip::onItemDestruction); // KRASKO
 
+    if (toolTipNotOpened || openTimerStarted) {
         m_openTimer.start(INTERVAL);
     } else {
         doShow();
@@ -106,6 +110,14 @@ void QmlToolTip::doShow()
     emit showToolTip(m_item, m_title, m_description, m_shortcut);
 }
 
+void QmlToolTip::onItemDestruction()
+{
+    if (sender() == m_item) { // KRASKO
+        m_shouldBeClosed = true;
+        doHide();
+    }
+}
+
 void QmlToolTip::doHide()
 {
     if (!m_shouldBeClosed) {
@@ -113,7 +125,7 @@ void QmlToolTip::doHide()
     }
 
     if (m_item) {
-        disconnect(m_item, &QObject::destroyed, this, &QmlToolTip::doHide);
+        disconnect(m_item, &QObject::destroyed, this, &QmlToolTip::onItemDestruction);
     }
 
     m_openTimer.stop();
