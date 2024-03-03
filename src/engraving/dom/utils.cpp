@@ -206,7 +206,7 @@ Segment* Score::tick2segment(const Fraction& tick, bool first) const
 /// the first segment *before* this tick position
 //---------------------------------------------------------
 
-Segment* Score::tick2leftSegment(const Fraction& tick, bool useMMrest, bool anySegmentType) const
+Segment* Score::tick2leftSegment(const Fraction& tick, bool useMMrest, SegmentType segmentType) const
 {
     Measure* m = useMMrest ? tick2measureMM(tick) : tick2measure(tick);
     if (m == 0) {
@@ -215,7 +215,6 @@ Segment* Score::tick2leftSegment(const Fraction& tick, bool useMMrest, bool anyS
     }
 
     // loop over all segments
-    SegmentType segmentType = anySegmentType ? SegmentType::All : SegmentType::ChordRest;
     Segment* ps = 0;
     for (Segment* s = m->first(segmentType); s; s = s->next(segmentType)) {
         if (tick < s->tick()) {
@@ -267,23 +266,6 @@ BeatType Score::tick2beatType(const Fraction& tick) const
     }
 
     return timeSig.rtick2beatType(rtick);
-}
-
-//---------------------------------------------------------
-//   getStaff
-//---------------------------------------------------------
-
-int getStaff(System* system, const PointF& p)
-{
-    PointF pp = p - system->page()->pos() - system->pos();
-    for (size_t i = 0; i < system->page()->score()->nstaves(); ++i) {
-        double sp = system->spatium();
-        RectF r = system->bboxStaff(static_cast<int>(i)).adjusted(0.0, -sp, 0.0, sp);
-        if (r.contains(pp)) {
-            return static_cast<int>(i);
-        }
-    }
-    return -1;
 }
 
 //---------------------------------------------------------

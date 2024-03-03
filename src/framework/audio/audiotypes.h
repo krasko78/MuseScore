@@ -24,16 +24,16 @@
 #define MU_AUDIO_AUDIOTYPES_H
 
 #include <variant>
-#include <memory>
 #include <set>
 #include <string>
 
-#include "types/string.h"
-#include "realfn.h"
+#include "global/realfn.h"
+#include "global/types/string.h"
+#include "global/async/channel.h"
+#include "global/io/iodevice.h"
+#include "global/io/path.h"
+
 #include "mpe/events.h"
-#include "io/iodevice.h"
-#include "async/channel.h"
-#include "io/path.h"
 
 namespace mu::audio {
 using msecs_t = int64_t;
@@ -268,7 +268,9 @@ struct AudioOutputParams {
     volume_db_t volume = 0.f;
     balance_t balance = 0.f;
     AuxSendsParams auxSends;
+    bool solo = false;
     bool muted = false;
+    bool forceMute = false;
 
     bool operator ==(const AudioOutputParams& other) const
     {
@@ -276,7 +278,9 @@ struct AudioOutputParams {
                && RealIsEqual(volume, other.volume)
                && RealIsEqual(balance, other.balance)
                && auxSends == other.auxSends
-               && muted == other.muted;
+               && solo == other.solo
+               && muted == other.muted
+               && forceMute == other.forceMute;
     }
 };
 

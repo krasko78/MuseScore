@@ -985,6 +985,7 @@ void TLayout::layoutBarLine(const BarLine* item, BarLine::LayoutData* ldata, con
     if (item->staff() && item->segment()) {
         if ((!item->staff()->staffTypeForElement(item)->showBarlines() && item->segment()->segmentType() == SegmentType::EndBarLine)
             || (item->staff()->hideSystemBarLine() && item->segment()->segmentType() == SegmentType::BeginBarLine)) {
+            ldata->setPos(PointF());
             ldata->setBbox(RectF());
             ldata->setIsSkipDraw(true);
             return;
@@ -4292,12 +4293,6 @@ void TLayout::layoutMMRest(const MMRest* item, MMRest::LayoutData* ldata, const 
 
         ldata->restSyms = restSyms;
         ldata->symsWidth = symsWidth;
-
-        //double symHeight = item->symBbox(ldata->restSyms.at(0)).height();
-        //ldata->setBbox(RectF((ldata->restWidth() - ldata->symsWidth) * .5, -item->spatium(), ldata->symsWidth, symHeight));
-    } else { // H-bar
-        //double vStrokeHeight = ctx.conf().styleMM(Sid::mmRestHBarVStrokeHeight);
-        //ldata->setBbox(RectF(0.0, -(vStrokeHeight * .5), ldata->restWidth(), vStrokeHeight));
     }
 
     // Only need to set y position here; x position is handled in MeasureLayout::layoutMeasureElements()
@@ -5444,21 +5439,21 @@ void TLayout::layoutSoundFlag(const SoundFlag* item, SoundFlag::LayoutData* ldat
         return;
     }
 
-    const StaffText* staffText = toStaffText(item->parentItem());
-    if (!staffText) {
+    const EngravingItem* parent = toStaffText(item->parentItem());
+    if (!parent) {
         return;
     }
 
-    draw::FontMetrics fontMetrics = draw::FontMetrics(staffText->font());
-    double iconHeight = (fontMetrics.xHeight() + fontMetrics.descent()) * 2;
+    double spatium = item->spatium();
+    double iconHeight = spatium * 3.0;
 
-    RectF parentBbox = staffText->ldata()->bbox();
+    RectF parentBbox = parent->ldata()->bbox();
     RectF iconBBox = RectF(parentBbox.x(), parentBbox.y(), iconHeight, iconHeight);
 
     iconBBox.moveCenter(parentBbox.center());
 
     // <icon><space><text>
-    double space = iconHeight / 6.0;
+    double space = spatium / 2.0;
     iconBBox.setX(parentBbox.x() - iconBBox.width() - space);
 
     ldata->setBbox(iconBBox);
@@ -6282,7 +6277,8 @@ void TLayout::layoutTrillSegment(TrillSegment* item, LayoutContext& ctx)
 {
     LAYOUT_CALL_ITEM(item);
     TrillSegment::LayoutData* ldata = item->mutldata();
-    EngravingItem* startItem = item->trill()->startElement();
+    Trill* trill = item->trill();
+    EngravingItem* startItem = trill->startElement();
     Chord* startChord = startItem && startItem->isChord() ? toChord(startItem) : nullptr;
     if (startChord) {
         // Semi-hack: spanners don't have staffMove property, so we change
@@ -6297,8 +6293,7 @@ void TLayout::layoutTrillSegment(TrillSegment* item, LayoutContext& ctx)
         ldata->setPosY(item->staff() ? item->staff()->staffHeight() : 0.0);
     }
 
-    bool accidentalGoesBelow = item->trill()->trillType() == TrillType::DOWNPRALL_LINE;
-    Trill* trill = item->trill();
+    bool accidentalGoesBelow = trill->trillType() == TrillType::DOWNPRALL_LINE;
     Ornament* ornament = trill->ornament();
     if (ornament) {
         if (item->isSingleBeginType()) {
@@ -6316,7 +6311,7 @@ void TLayout::layoutTrillSegment(TrillSegment* item, LayoutContext& ctx)
     }
 
     if (item->isSingleType() || item->isBeginType()) {
-        switch (item->trill()->trillType()) {
+        switch (trill->trillType()) {
         case TrillType::TRILL_LINE:
             item->symbolLine(SymId::ornamentTrill, SymId::wiggleTrill);
             break;
@@ -6332,7 +6327,7 @@ void TLayout::layoutTrillSegment(TrillSegment* item, LayoutContext& ctx)
                              SymId::ornamentZigZagLineNoRightEnd, SymId::ornamentZigZagLineWithRightEnd);
             break;
         }
-        Accidental* a = item->trill()->accidental();
+        Accidental* a = trill->accidental();
         if (a) {
             double vertMargin = 0.35 * item->spatium();
             RectF box = item->symBbox(item->symbols().front());
@@ -6347,11 +6342,21 @@ void TLayout::layoutTrillSegment(TrillSegment* item, LayoutContext& ctx)
             a->setParent(item);
         }
     } else {
-        item->symbolLine(SymId::wiggleTrill, SymId::wiggleTrill);
+        switch (trill->trillType()) {
+        case TrillType::TRILL_LINE:
+        case TrillType::PRALLPRALL_LINE:
+            item->symbolLine(SymId::wiggleTrill, SymId::wiggleTrill);
+            break;
+        case TrillType::UPPRALL_LINE:
+        case TrillType::DOWNPRALL_LINE:
+            item->symbolLine(SymId::ornamentZigZagLineNoRightEnd,
+                             SymId::ornamentZigZagLineNoRightEnd, SymId::ornamentZigZagLineWithRightEnd);
+            break;
+        }
     }
 
     if (item->isStyled(Pid::OFFSET)) {
-        item->roffset() = item->trill()->propertyDefault(Pid::OFFSET).value<PointF>();
+        item->roffset() = trill->propertyDefault(Pid::OFFSET).value<PointF>();
     }
 
     Autoplace::autoplaceSpannerSegment(item, ldata, ctx.conf().spatium());

@@ -23,25 +23,26 @@
 
 #include <cmath>
 
-#include "log.h"
-
 #include "engraving/dom/chordrest.h"
+#include "engraving/dom/factory.h"
 #include "engraving/dom/instrument.h"
+#include "engraving/dom/linkedobjects.h"
 #include "engraving/dom/masterscore.h"
 #include "engraving/dom/measure.h"
 #include "engraving/dom/page.h"
 #include "engraving/dom/part.h"
 #include "engraving/dom/repeatlist.h"
 #include "engraving/dom/segment.h"
+#include "engraving/dom/soundflag.h"
 #include "engraving/dom/staff.h"
-#include "engraving/dom/system.h"
+#include "engraving/dom/stafftext.h"
 #include "engraving/dom/tempo.h"
 #include "engraving/dom/tempotext.h"
-#include "engraving/dom/stafftext.h"
-#include "engraving/dom/soundflag.h"
 #include "engraving/dom/utils.h"
 
 #include "notationerrors.h"
+
+#include "log.h"
 
 using namespace mu;
 using namespace mu::notation;
@@ -440,6 +441,44 @@ void NotationPlayback::addSoundFlags(const engraving::InstrumentTrackIdSet& trac
         score()->update();
         m_notationChanged.notify();
     }
+}
+
+void NotationPlayback::clearSoundFlags(const engraving::InstrumentTrackIdSet& trackIdSet)
+{
+    TRACEFUNC;
+
+    std::vector<StaffText*> staffTextList = collectStaffText(trackIdSet, true /*withSoundFlags*/);
+    if (staffTextList.empty()) {
+        return;
+    }
+
+    for (StaffText* staffText : staffTextList) {
+        SoundFlag* soundFlag = staffText->soundFlag();
+        IF_ASSERT_FAILED(soundFlag) {
+            continue;
+        }
+        soundFlag->clear();
+
+        const LinkedObjects* links = staffText->links();
+        if (!links) {
+            continue;
+        }
+
+        for (EngravingObject* obj : *links) {
+            if (obj && obj->isStaffText()) {
+                soundFlag = toStaffText(obj)->soundFlag();
+                IF_ASSERT_FAILED(soundFlag) {
+                    continue;
+                }
+                soundFlag->clear();
+            }
+        }
+    }
+
+    score()->update();
+
+    m_playbackModel.reload();
+    m_notationChanged.notify();
 }
 
 void NotationPlayback::removeSoundFlags(const InstrumentTrackIdSet& trackIdSet)

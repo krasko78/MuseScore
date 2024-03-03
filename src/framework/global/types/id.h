@@ -19,8 +19,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef MU_FRAMEWORK_ID_H
-#define MU_FRAMEWORK_ID_H
+#ifndef MU_GLOBAL_ID_H
+#define MU_GLOBAL_ID_H
 
 #include <cstdint>
 #include <vector>
@@ -31,7 +31,6 @@
 #endif
 
 #include "global/logstream.h"
-#include "types/string.h"
 
 namespace mu {
 class ID
@@ -77,24 +76,6 @@ inline bool containsId(const IDList& list, const ID& id)
 {
     return std::find(list.cbegin(), list.cend(), id) != list.cend();
 }
-
-#ifndef NO_QT_SUPPORT
-
-#ifdef MU_QT5_COMPAT
-inline uint qHash(const ID& id)
-{
-    return ::qHash(id.toUint64());
-}
-
-#else
-inline size_t qHash(const ID& id)
-{
-    return ::qHash(id.toUint64());
-}
-
-#endif // MU_QT5_COMPAT
-
-#endif // NO_QT_SUPPORT
 }
 
 inline mu::logger::Stream& operator<<(mu::logger::Stream& s, const mu::ID& v)
@@ -103,4 +84,4 @@ inline mu::logger::Stream& operator<<(mu::logger::Stream& s, const mu::ID& v)
     return s;
 }
 
-#endif // MU_FRAMEWORK_ID_H
+#endif // MU_GLOBAL_ID_H

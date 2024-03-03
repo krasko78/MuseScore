@@ -24,6 +24,8 @@
 
 #include "async/asyncable.h"
 
+#include "global/types/version.h"
+
 #include "modularity/ioc.h"
 #include "iinteractive.h"
 #include "network/inetworkmanagercreator.h"
@@ -36,7 +38,7 @@
 namespace mu::update {
 class UpdateService : public IUpdateService, public async::Asyncable
 {
-    INJECT(framework::IInteractive, interactive)
+    INJECT(IInteractive, interactive)
     INJECT(network::INetworkManagerCreator, networkManagerCreator)
     INJECT(IUpdateConfiguration, configuration)
     INJECT(io::IFileSystem, fileSystem)
@@ -47,14 +49,17 @@ public:
 
     RetVal<io::path_t> downloadRelease() override;
     void cancelUpdate() override;
-    framework::Progress updateProgress() override;
+    mu::Progress updateProgress() override;
 
 private:
+    RetVal<ReleaseInfo> parseRelease(const QByteArray& json) const;
+
     std::string platformFileSuffix() const;
     ISystemInfo::CpuArchitecture assetArch(const QString& asset) const;
-
-    RetVal<ReleaseInfo> parseRelease(const QByteArray& json) const;
     QJsonObject resolveReleaseAsset(const QJsonObject& release) const;
+
+    PrevReleasesNotesList previousReleasesNotes(const Version& updateVersion) const;
+    PrevReleasesNotesList parsePreviousReleasesNotes(const QByteArray& json) const;
 
     void clear();
 
@@ -62,7 +67,7 @@ private:
     io::path_t m_installatorPath;
 
     network::INetworkManagerPtr m_networkManager;
-    framework::Progress m_updateProgress;
+    mu::Progress m_updateProgress;
 };
 }
 

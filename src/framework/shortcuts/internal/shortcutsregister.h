@@ -22,6 +22,8 @@
 #ifndef MU_SHORTCUTS_SHORTCUTSREGISTER_H
 #define MU_SHORTCUTS_SHORTCUTSREGISTER_H
 
+#include <unordered_map>
+
 #include "../ishortcutsregister.h"
 #include "modularity/ioc.h"
 #include "ishortcutsconfiguration.h"
@@ -30,7 +32,7 @@
 #include "io/ifilesystem.h"
 #include "multiinstances/imultiinstancesprovider.h"
 
-namespace mu::framework {
+namespace mu::deprecated {
 class XmlReader;
 class XmlWriter;
 }
@@ -73,10 +75,10 @@ public:
 private:
 
     bool readFromFile(ShortcutList& shortcuts, const io::path_t& path) const;
-    Shortcut readShortcut(framework::XmlReader& reader) const;
+    Shortcut readShortcut(deprecated::XmlReader& reader) const;
 
     bool writeToFile(const ShortcutList& shortcuts, const io::path_t& path) const;
-    void writeShortcut(framework::XmlWriter& writer, const Shortcut& shortcut) const;
+    void writeShortcut(deprecated::XmlWriter& writer, const Shortcut& shortcut) const;
 
     void mergeShortcuts(ShortcutList& shortcuts, const ShortcutList& defaultShortcuts) const;
     void mergeAdditionalShortcuts(ShortcutList& shortcuts);
@@ -88,28 +90,12 @@ private:
 
     ShortcutList m_shortcuts;
     ShortcutList m_defaultShortcuts;
-    QHash<std::string, ShortcutList> m_additionalShortcutsHash;
+    std::unordered_map<std::string, ShortcutList> m_additionalShortcutsMap;
     async::Notification m_shortcutsChanged;
 
     bool m_isActive = true;
     async::Notification m_activeChanged;
 };
-}
-
-namespace std {
-#ifdef MU_QT5_COMPAT
-inline uint qHash(const std::string& key, uint seed = 0)
-{
-    return ::qHash(QByteArray::fromRawData(key.data(), static_cast<int>(key.length())), seed);
-}
-
-#else
-inline size_t qHash(const std::string& key, uint seed = 0)
-{
-    return ::qHash(QByteArray::fromRawData(key.data(), static_cast<int>(key.length())), seed);
-}
-
-#endif
 }
 
 #endif // MU_SHORTCUTS_SHORTCUTSREGISTER_H

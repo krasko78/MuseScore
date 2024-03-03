@@ -795,25 +795,25 @@ public:
     UNDO_CHANGED_OBJECTS({ score })
 };
 
-class ChangeStyleVal : public UndoCommand
+class ChangeStyleValues : public UndoCommand
 {
-    OBJECT_ALLOCATOR(engraving, ChangeStyleVal)
-
-    Score* score = nullptr;
-    Sid idx;
-    PropertyValue value;
-
-    void flip(EditData*) override;
+    OBJECT_ALLOCATOR(engraving, ChangeStyleValues)
 
 public:
-    ChangeStyleVal(Score* s, Sid i, const PropertyValue& v)
-        : score(s), idx(i), value(v) {}
+    ChangeStyleValues(Score* s, std::unordered_map<Sid, PropertyValue> values)
+        : m_score(s), m_values(std::move(values)) {}
 
-    Sid id() const { return idx; }
+    const std::unordered_map<Sid, PropertyValue>& values() const { return m_values; }
 
-    UNDO_TYPE(CommandType::ChangeStyleVal)
-    UNDO_NAME("ChangeStyleVal")
-    UNDO_CHANGED_OBJECTS({ score })
+    UNDO_TYPE(CommandType::ChangeStyleValues)
+    UNDO_NAME("ChangeStyleValues")
+    UNDO_CHANGED_OBJECTS({ m_score })
+
+private:
+    void flip(EditData*) override;
+
+    Score* m_score = nullptr;
+    std::unordered_map<Sid, PropertyValue> m_values;
 };
 
 class ChangePageNumberOffset : public UndoCommand
@@ -829,7 +829,6 @@ public:
     ChangePageNumberOffset(Score* s, int po)
         : score(s), pageOffset(po) {}
 
-    UNDO_TYPE(CommandType::ChangeStyleVal)
     UNDO_NAME("ChangePageNumberOffset")
     UNDO_CHANGED_OBJECTS({ score })
 };
@@ -1556,7 +1555,7 @@ class MoveTremolo : public UndoCommand
     Fraction chord1Tick;
     Fraction chord2Tick;
     TremoloTwoChord* trem = nullptr;
-    int track = 0;
+    track_idx_t track = 0;
 
     Chord* oldC1 = nullptr;
     Chord* oldC2 = nullptr;
@@ -1565,7 +1564,7 @@ class MoveTremolo : public UndoCommand
     void redo(EditData*) override;
 
 public:
-    MoveTremolo(Score* s, Fraction c1, Fraction c2, TremoloTwoChord* tr, int t)
+    MoveTremolo(Score* s, Fraction c1, Fraction c2, TremoloTwoChord* tr, track_idx_t t)
         : score(s), chord1Tick(c1), chord2Tick(c2), trem(tr), track(t) {}
 
     UNDO_TYPE(CommandType::MoveTremolo)

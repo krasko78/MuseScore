@@ -36,7 +36,6 @@
 using namespace mu::instrumentsscene;
 using namespace mu::notation;
 using namespace mu::uicomponents;
-using namespace mu::framework;
 
 using ItemType = InstrumentsTreeItemType::ItemType;
 
@@ -276,16 +275,16 @@ void InstrumentsPanelTreeModel::updateSelectedRows()
         return;
     }
 
-    QSet<ID> selectedPartIdSet;
+    std::vector<ID> selectedPartIds;
     for (const EngravingItem* element : selectedElements) {
         if (!element->part()) {
             continue;
         }
 
-        selectedPartIdSet << element->part()->id();
+        selectedPartIds.push_back(element->part()->id());
     }
 
-    for (const ID& selectedPartId : selectedPartIdSet) {
+    for (const ID& selectedPartId : selectedPartIds) {
         AbstractInstrumentsPanelTreeItem* item = m_rootItem->childAtId(selectedPartId);
 
         if (item) {

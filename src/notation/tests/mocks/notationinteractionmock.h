@@ -202,6 +202,7 @@ public:
     MOCK_METHOD(void, resetTextStyleOverrides, (), (override));
     MOCK_METHOD(void, resetBeamMode, (), (override));
     MOCK_METHOD(void, resetShapesAndPosition, (), (override));
+    MOCK_METHOD(void, resetToDefaultLayout, (), (override));
 
     MOCK_METHOD(ScoreConfig, scoreConfig, (), (const, override));
     MOCK_METHOD(void, setScoreConfig, (const ScoreConfig&), (override));

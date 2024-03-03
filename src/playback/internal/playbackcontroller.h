@@ -54,7 +54,7 @@ class PlaybackController : public IPlaybackController, public actions::Actionabl
     INJECT_STATIC(notation::INotationConfiguration, notationConfiguration)
     INJECT_STATIC(audio::IPlayback, playback)
     INJECT_STATIC(ISoundProfilesRepository, profilesRepo)
-    INJECT_STATIC(framework::IInteractive, interactive)
+    INJECT_STATIC(IInteractive, interactive)
 
 public:
     void init();
@@ -111,7 +111,7 @@ public:
     double tempoMultiplier() const override;
     void setTempoMultiplier(double multiplier) override;
 
-    framework::Progress loadingProgress() const override;
+    mu::Progress loadingProgress() const override;
 
     void applyProfile(const SoundProfileName& profileName) override;
 
@@ -138,13 +138,16 @@ private:
     bool loopBoundariesSet() const;
 
     void onNotationChanged();
+    void onPartChanged(const engraving::Part* part);
 
     void onSelectionChanged();
     void seekListSelection();
     void seekRangeSelection();
 
     void addSoundFlagsToExistingTracks();
-    void updateSoundFlags(const mu::engraving::InstrumentTrackId& trackId, audio::AudioSourceType sourceType);
+    void updateSoundFlagsForExistingTracks();
+    void updateSoundFlags(const mu::engraving::InstrumentTrackId& trackId, const audio::AudioResourceMeta& oldMeta,
+                          const audio::AudioResourceMeta& newMeta);
     void addSoundFlagIfNeed(mu::engraving::StaffText* staffText);
 
     void togglePlay();
@@ -188,7 +191,9 @@ private:
     void setupSequenceTracks();
     void setupSequencePlayer();
 
-    void updateMuteStates();
+    void initMuteStates();
+
+    void updateSoloMuteStates();
     void updateAuxMuteStates();
 
     void setCurrentPlaybackTime(audio::msecs_t msecs);
@@ -233,11 +238,12 @@ private:
     InstrumentTrackIdMap m_instrumentTrackIdMap;
     AuxTrackIdMap m_auxTrackIdMap;
 
-    framework::Progress m_loadingProgress;
+    mu::Progress m_loadingProgress;
     size_t m_loadingTrackCount = 0;
 
     bool m_isExportingAudio = false;
     bool m_isRangeSelection = false;
+    bool m_blockSoundFlagsUpdate = false;
 };
 }
 

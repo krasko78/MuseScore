@@ -72,6 +72,7 @@
 #include "stem.h"
 #include "stringdata.h"
 #include "system.h"
+#include "spacer.h"
 #include "tie.h"
 #include "timesig.h"
 
@@ -126,6 +127,54 @@ static std::pair<int, int> changedTicksRange(const CmdState& cmdState, const std
     }
 
     return { startTick, endTick };
+}
+
+//---------------------------------------------------------
+//    For use with Score::scanElements.
+//    Reset positions and autoplacement for the given
+//    element.
+//---------------------------------------------------------
+
+static void resetElementPosition(void*, EngravingItem* e)
+{
+    if (e->generated()) {
+        return;
+    }
+
+    e->undoResetProperty(Pid::AUTOPLACE);
+    e->undoResetProperty(Pid::OFFSET);
+    e->setOffsetChanged(false);
+    if (e->isSpanner()) {
+        e->undoResetProperty(Pid::OFFSET2);
+    }
+}
+
+static void resetTextProperties(void*, EngravingItem* e)
+{
+    if (e->generated() || !e->isTextBase()) {
+        return;
+    }
+
+    static const std::vector<Pid> TEXT_STYLE_TO_RESET {
+        Pid::FONT_FACE,
+        Pid::FONT_SIZE,
+        Pid::FONT_STYLE,
+        Pid::SIZE_SPATIUM_DEPENDENT,
+        Pid::FRAME_TYPE,
+        Pid::TEXT_LINE_SPACING,
+        Pid::FRAME_FG_COLOR,
+        Pid::FRAME_BG_COLOR,
+        Pid::FRAME_WIDTH,
+        Pid::FRAME_PADDING,
+        Pid::FRAME_ROUND,
+        Pid::ALIGN
+    };
+
+    for (Pid pid : TEXT_STYLE_TO_RESET) {
+        // TODO: use undoResetProperty: https://github.com/musescore/MuseScore/issues/16516
+        // But for now, we'll use resetPropety since undoResetProperty leads to various problems
+        e->resetProperty(pid);
+    }
 }
 
 //---------------------------------------------------------
@@ -2439,6 +2488,144 @@ void Score::cmdAddStretch(double val)
     }
 }
 
+void Score::cmdResetToDefaultLayout()
+{
+    TRACEFUNC;
+
+    StyleIdSet dontResetTheseStyles {
+        Sid::lyricsPlacement,
+        Sid::repeatBarTips,
+        Sid::startBarlineSingle,
+        Sid::startBarlineMultiple,
+        Sid::dividerLeft,
+        Sid::dividerRightY,
+        Sid::useStraightNoteFlags,
+        Sid::mrNumberSeries,
+        Sid::mrNumberEveryXMeasures,
+        Sid::mrNumberSeriesWithParentheses,
+        Sid::oneMeasureRepeatShow1,
+        Sid::fourMeasureRepeatShowExtenders,
+        Sid::useWideBeams,
+        Sid::hairpinPlacement,
+        Sid::pedalPlacement,
+        Sid::trillPlacement,
+        Sid::vibratoPlacement,
+        Sid::harmonyPlacement,
+        Sid::romanNumeralPlacement,
+        Sid::nashvilleNumberPlacement,
+        Sid::harmonyVoiceLiteral,
+        Sid::harmonyVoicing,
+        Sid::harmonyDuration,
+        Sid::capoPosition,
+        Sid::fretNumPos,
+        Sid::fretPlacement,
+        Sid::fretStrings,
+        Sid::fretFrets,
+        Sid::fretNut,
+        Sid::fretOrientation,
+        Sid::showPageNumber,
+        Sid::showPageNumberOne,
+        Sid::pageNumberOddEven,
+        Sid::showMeasureNumber,
+        Sid::showMeasureNumberOne,
+        Sid::measureNumberInterval,
+        Sid::measureNumberSystem,
+        Sid::measureNumberAllStaves,
+        Sid::genClef,
+        Sid::hideTabClefAfterFirst,
+        Sid::genKeysig,
+        Sid::genCourtesyTimesig,
+        Sid::genCourtesyKeysig,
+        Sid::genCourtesyClef,
+        Sid::swingRatio,
+        Sid::swingUnit,
+        Sid::useStandardNoteNames,
+        Sid::useGermanNoteNames,
+        Sid::useFullGermanNoteNames,
+        Sid::useSolfeggioNoteNames,
+        Sid::useFrenchNoteNames,
+        Sid::automaticCapitalization,
+        Sid::lowerCaseMinorChords,
+        Sid::lowerCaseBassNotes,
+        Sid::allCapsNoteNames,
+        Sid::chordStyle,
+        Sid::chordsXmlFile,
+        Sid::chordDescriptionFile,
+        Sid::concertPitch,
+        Sid::createMultiMeasureRests,
+        Sid::minEmptyMeasures,
+        Sid::hideEmptyStaves,
+        Sid::dontHideStavesInFirstSystem,
+        Sid::enableIndentationOnFirstSystem,
+        Sid::firstSystemIndentationValue,
+        Sid::hideInstrumentNameIfOneInstrument,
+        Sid::gateTime,
+        Sid::tenutoGateTime,
+        Sid::staccatoGateTime,
+        Sid::slurGateTime,
+        Sid::SectionPause,
+        Sid::showHeader,
+        Sid::headerFirstPage,
+        Sid::headerOddEven,
+        Sid::evenHeaderL,
+        Sid::evenHeaderC,
+        Sid::evenHeaderR,
+        Sid::oddHeaderL,
+        Sid::oddHeaderC,
+        Sid::oddHeaderR,
+        Sid::showFooter,
+        Sid::footerFirstPage,
+        Sid::footerOddEven,
+        Sid::evenFooterL,
+        Sid::evenFooterC,
+        Sid::evenFooterR,
+        Sid::oddFooterL,
+        Sid::oddFooterC,
+        Sid::oddFooterR,
+        Sid::tupletOufOfStaff,
+        Sid::tupletDirection,
+        Sid::tupletBracketType,
+        Sid::dynamicsPlacement,
+        Sid::textLinePlacement,
+        Sid::harpPedalDiagramPlacement,
+        Sid::harpPedalTextDiagramPlacement,
+        Sid::expressionPlacement,
+        Sid::tupletNumberType,
+        Sid::mmRestShowMeasureNumberRange,
+        Sid::mmRestRangeBracketType,
+        Sid::mmRestRangeVPlacement,
+        Sid::staffTextPlacement,
+        Sid::repeatLeftPlacement,
+        Sid::repeatRightPlacement,
+        Sid::instrumentChangePlacement,
+        Sid::stickingPlacement,
+        Sid::letRingPlacement,
+        Sid::palmMutePlacement,
+        Sid::pageWidth,
+        Sid::pageHeight,
+        Sid::pagePrintableWidth,
+        Sid::pageEvenTopMargin,
+        Sid::pageEvenBottomMargin,
+        Sid::pageEvenLeftMargin,
+        Sid::pageOddTopMargin,
+        Sid::pageOddBottomMargin,
+        Sid::pageOddLeftMargin,
+        Sid::pageTwosided,
+        Sid::spatium,
+        Sid::concertPitch,
+        Sid::createMultiMeasureRests
+    };
+
+    auto resetPositionAndTextProperties = [](void* ptr, EngravingItem* e) {
+        resetElementPosition(ptr, e);
+        resetTextProperties(ptr, e);
+    };
+
+    cmdResetMeasuresLayout();
+    scanElements(nullptr, resetPositionAndTextProperties);
+    cmdResetAllStyles(dontResetTheseStyles);
+}
+
 //---------------------------------------------------------
 //   cmdResetBeamMode
 //---------------------------------------------------------
@@ -2479,33 +2666,65 @@ void Score::cmdResetBeamMode()
 
 void Score::cmdResetTextStyleOverrides()
 {
-    static const std::vector<Pid> propertiesToReset {
-        Pid::FONT_FACE,
-        Pid::FONT_SIZE,
-        Pid::FONT_STYLE,
-        Pid::SIZE_SPATIUM_DEPENDENT,
-        Pid::FRAME_TYPE,
-        Pid::TEXT_LINE_SPACING,
-        Pid::FRAME_FG_COLOR,
-        Pid::FRAME_BG_COLOR,
-        Pid::FRAME_WIDTH,
-        Pid::FRAME_PADDING,
-        Pid::FRAME_ROUND,
-        Pid::ALIGN
-    };
+    TRACEFUNC;
 
-    for (Page* page : pages()) {
-        auto elements = page->elements();
+    scanElements(nullptr, resetTextProperties);
+}
 
-        for (EngravingItem* element : elements) {
-            if (!element || !element->isTextBase()) {
-                continue;
-            }
+void Score::cmdResetAllStyles(const StyleIdSet& exceptTheseOnes)
+{
+    TRACEFUNC;
 
-            for (Pid propertyId : propertiesToReset) {
-                element->resetProperty(propertyId);
+    int beginIdx = int(Sid::NOSTYLE) + 1;
+    int endIdx = int(Sid::STYLES);
+
+    StyleIdSet stylesToReset;
+
+    for (int idx = beginIdx; idx < endIdx; idx++) {
+        Sid styleId = Sid(idx);
+        if (!mu::contains(exceptTheseOnes, styleId)) {
+            stylesToReset.insert(styleId);
+        }
+    }
+
+    score()->resetStyleValues(stylesToReset);
+}
+
+// Removes system/page breaks and spacers
+void Score::cmdResetMeasuresLayout()
+{
+    TRACEFUNC;
+
+    std::vector<EngravingItem*> itemsToRemove;
+
+    for (MeasureBase* mb = first(); mb; mb = mb->next()) {
+        if (mb->isMeasure()) {
+            mb->undoResetProperty(Pid::USER_STRETCH);
+
+            for (const MStaff* staff : toMeasure(mb)->mstaves()) {
+                if (Spacer* spacer = staff->vspacerDown()) {
+                    itemsToRemove.push_back(spacer);
+                }
+
+                if (Spacer* spacer = staff->vspacerUp()) {
+                    itemsToRemove.push_back(spacer);
+                }
             }
         }
+
+        if (!mb->lineBreak() && !mb->pageBreak()) {
+            continue;
+        }
+
+        for (EngravingItem* item : mb->el()) {
+            if (item->isLayoutBreak()) {
+                itemsToRemove.push_back(item);
+            }
+        }
+    }
+
+    for (EngravingItem* item : itemsToRemove) {
+        undoRemoveElement(item);
     }
 }
 
@@ -2545,32 +2764,10 @@ void Score::cmdResetNoteAndRestGroupings()
     }
 }
 
-//---------------------------------------------------------
-//   resetElementShapePosition
-//    For use with Score::scanElements.
-//    Reset positions and autoplacement for the given
-//    element.
-//---------------------------------------------------------
-
-static void resetElementPosition(void*, EngravingItem* e)
-{
-    if (e->generated()) {
-        return;
-    }
-    e->undoResetProperty(Pid::AUTOPLACE);
-    e->undoResetProperty(Pid::OFFSET);
-    e->setOffsetChanged(false);
-    if (e->isSpanner()) {
-        e->undoResetProperty(Pid::OFFSET2);
-    }
-}
-
-//---------------------------------------------------------
-//   cmdResetAllPositions
-//---------------------------------------------------------
-
 void Score::cmdResetAllPositions(bool undoable)
 {
+    TRACEFUNC;
+
     if (undoable) {
         startCmd();
     }
@@ -2579,10 +2776,6 @@ void Score::cmdResetAllPositions(bool undoable)
         endCmd();
     }
 }
-
-//---------------------------------------------------------
-//   resetAutoplace
-//---------------------------------------------------------
 
 void Score::resetAutoplace()
 {
@@ -3834,6 +4027,161 @@ void Score::cmdSlashRhythm()
 }
 
 //---------------------------------------------------------
+//   setChord
+//    return segment of last created chord
+//---------------------------------------------------------
+static Segment* setChord(Score* score, Segment* segment, track_idx_t track, const Chord* chordTemplate, Fraction dur)
+{
+    assert(segment->segmentType() == SegmentType::ChordRest);
+
+    Fraction tick = segment->tick();
+    Chord* nr     = nullptr;   //current added chord used so we can select the last added chord and so we can apply ties
+    std::vector<Tie*> tie(chordTemplate->notes().size());   //keep pointer to a tie for each note in the chord in case we need to tie notes
+    ChordRest* cr = toChordRest(segment->element(track));   //chord rest under the segment for the specified track
+
+    bool addTie = false;
+
+    Measure* measure = nullptr;
+    //keep creating chords and tieing them until we created the full duration asked for (dur)
+    for (;;) {
+        if (track % VOICES) {
+            score->expandVoice(segment, track);
+        }
+
+        Tuplet* t = cr ? cr->tuplet() : 0;
+        Fraction tDur = segment->ticks();
+        Segment* seg = segment->next();
+
+        //we need to get a correct subduration so that makeGap can function properly
+        //since makeGap() takes "normal" duration rather than actual length
+        while (seg) {
+            if (seg->segmentType() == SegmentType::ChordRest) {
+                //design choice made to keep multiple notes across a tuplet as tied single notes rather than combining them
+                //since it's arguably more readable, but the other code is still here (commented)
+                ChordRest* testCr = toChordRest(seg->element(track));
+
+                //code here allows us to combine tuplet realization together which I have opted not to do for readability (of the music)
+                //if (!!t ^ (testCr && testCr->tuplet())) //stop if we started with a tuplet and reach something that's not a tuplet,
+                //      break;                          //or start with not a tuplet and reach a tuplet
+
+                if (testCr && testCr->tuplet()) {       //stop on tuplet
+                    break;
+                }
+                tDur += seg->ticks();
+            }
+            if (tDur >= dur) {       //do not go further than the duration asked for
+                tDur = dur;
+                break;
+            }
+            seg = seg->next();       //iterate only across measure (hence usage of next() rather than next1())
+        }
+        if (t) {
+            tDur *= t->ratio();       //scale by tuplet ratio to get "normal" length rather than actual length when dealing with tuplets
+        }
+        // the returned gap ends at the measure boundary or at tuplet end
+        Fraction dd = score->makeGap(segment, track, tDur, t);
+
+        if (dd.isZero()) {
+            LOGD("cannot get gap at %d type: %d/%d", tick.ticks(), dur.numerator(),
+                 dur.denominator());
+            break;
+        }
+
+        measure = segment->measure();
+        std::vector<TDuration> dl = toDurationList(dd, true);
+        size_t n = dl.size();
+        //add chord, tieing when necessary within measure
+        for (size_t i = 0; i < n; ++i) {
+            const TDuration& d = dl[i];
+
+            //create new chord from template and add it
+            Chord* chord = Factory::copyChord(*chordTemplate);
+            nr = chord;
+
+            chord->setTrack(track);
+            chord->setDurationType(d);
+            chord->setTicks(d.fraction());
+            chord->setTuplet(t);
+            score->undoAddCR(chord, measure, tick);
+            //if there is something to tie, complete tie backwards
+            //and add the tie to score
+            const std::vector<Note*> notes = chord->notes();
+            if (addTie) {
+                for (size_t j = 0; j < notes.size(); ++j) {
+                    tie[j]->setEndNote(notes[j]);
+                    notes[j]->setTieBack(tie[j]);
+                    score->undoAddElement(tie[j]);
+                }
+                addTie = false;
+            }
+            //if we're not the last element in the duration list,
+            //set tie forward
+            if (i + 1 < n) {
+                for (size_t j = 0; j < notes.size(); ++j) {
+                    tie[j] = Factory::createTie(score->dummy());
+                    tie[j]->setStartNote(notes[j]);
+                    tie[j]->setTick(tie[j]->startNote()->tick());
+                    tie[j]->setTrack(track);
+                    notes[j]->setTieFor(tie[j]);
+                    addTie = true;
+                }
+            }
+            score->setPlayChord(true);
+            segment = chord->segment();
+            tick += chord->actualTicks();
+        }
+
+        //subtract the duration already realized and move on
+        if (t) {
+            dur -= dd / t->ratio();
+        } else {
+            dur -= dd;
+        }
+        //we are done when there is no duration left to realize
+        if (dur.isZero()) {
+            break;
+        }
+
+        //go to next segment unless we are at the score (which means we will just be done there)
+        Segment* nseg = score->tick2segment(tick, false, SegmentType::ChordRest);
+        if (!nseg) {
+            LOGD("reached end of score");
+            break;
+        }
+        segment = nseg;
+
+        cr = toChordRest(segment->element(track));
+
+        if (!cr) {
+            if (track % VOICES) {
+                cr = score->addRest(segment, track, TDuration(DurationType::V_MEASURE), 0);
+            } else {
+                LOGD("no rest in voice 0");
+                break;
+            }
+        }
+        //
+        //  Note does not fit on current measure, create Tie to
+        //  next part of note
+        std::vector<Note*> notes = nr->notes();
+        for (size_t i = 0; i < notes.size(); ++i) {
+            tie[i] = Factory::createTie(score->dummy());
+            tie[i]->setStartNote(notes[i]);
+            tie[i]->setTick(tie[i]->startNote()->tick());
+            tie[i]->setTrack(notes[i]->track());
+            notes[i]->setTieFor(tie[i]);
+        }
+    }
+    if (!tie.empty()) {
+        score->connectTies();
+    }
+    if (nr) {
+        score->select(nr, SelectType::SINGLE, 0);
+    }
+    return segment;
+}
+
+//---------------------------------------------------------
 //   cmdRealizeChordSymbols
 ///   Realize selected chord symbols into notes on the staff.
 ///
@@ -3894,165 +4242,9 @@ void Score::cmdRealizeChordSymbols(bool literal, Voicing voicing, HDuration dura
             note->setNval(nval, tick);
         }
 
-        setChord(seg, h->track(), chord, duration);     //add chord using template
+        setChord(this, seg, h->track(), chord, duration);     //add chord using template
         delete chord;
     }
-}
-
-//---------------------------------------------------------
-//   setChord
-//    return segment of last created chord
-//---------------------------------------------------------
-Segment* Score::setChord(Segment* segment, track_idx_t track, const Chord* chordTemplate, Fraction dur, DirectionV stemDirection)
-{
-    assert(segment->segmentType() == SegmentType::ChordRest);
-
-    Fraction tick = segment->tick();
-    Chord* nr     = nullptr;   //current added chord used so we can select the last added chord and so we can apply ties
-    std::vector<Tie*> tie(chordTemplate->notes().size());   //keep pointer to a tie for each note in the chord in case we need to tie notes
-    ChordRest* cr = toChordRest(segment->element(track));   //chord rest under the segment for the specified track
-
-    bool addTie = false;
-
-    Measure* measure = nullptr;
-    //keep creating chords and tieing them until we created the full duration asked for (dur)
-    for (;;) {
-        if (track % VOICES) {
-            expandVoice(segment, track);
-        }
-
-        Tuplet* t = cr ? cr->tuplet() : 0;
-        Fraction tDur = segment->ticks();
-        Segment* seg = segment->next();
-
-        //we need to get a correct subduration so that makeGap can function properly
-        //since makeGap() takes "normal" duration rather than actual length
-        while (seg) {
-            if (seg->segmentType() == SegmentType::ChordRest) {
-                //design choice made to keep multiple notes across a tuplet as tied single notes rather than combining them
-                //since it's arguably more readable, but the other code is still here (commented)
-                ChordRest* testCr = toChordRest(seg->element(track));
-
-                //code here allows us to combine tuplet realization together which I have opted not to do for readability (of the music)
-                //if (!!t ^ (testCr && testCr->tuplet())) //stop if we started with a tuplet and reach something that's not a tuplet,
-                //      break;                          //or start with not a tuplet and reach a tuplet
-
-                if (testCr && testCr->tuplet()) {       //stop on tuplet
-                    break;
-                }
-                tDur += seg->ticks();
-            }
-            if (tDur >= dur) {       //do not go further than the duration asked for
-                tDur = dur;
-                break;
-            }
-            seg = seg->next();       //iterate only across measure (hence usage of next() rather than next1())
-        }
-        if (t) {
-            tDur *= t->ratio();       //scale by tuplet ratio to get "normal" length rather than actual length when dealing with tuplets
-        }
-        // the returned gap ends at the measure boundary or at tuplet end
-        Fraction dd = makeGap(segment, track, tDur, t);
-
-        if (dd.isZero()) {
-            LOGD("cannot get gap at %d type: %d/%d", tick.ticks(), dur.numerator(),
-                 dur.denominator());
-            break;
-        }
-
-        measure = segment->measure();
-        std::vector<TDuration> dl = toDurationList(dd, true);
-        size_t n = dl.size();
-        //add chord, tieing when necessary within measure
-        for (size_t i = 0; i < n; ++i) {
-            const TDuration& d = dl[i];
-
-            //create new chord from template and add it
-            Chord* chord = Factory::copyChord(*chordTemplate);
-            nr = chord;
-
-            chord->setTrack(track);
-            chord->setDurationType(d);
-            chord->setTicks(d.fraction());
-            chord->setStemDirection(stemDirection);
-            chord->setTuplet(t);
-            undoAddCR(chord, measure, tick);
-            //if there is something to tie, complete tie backwards
-            //and add the tie to score
-            const std::vector<Note*> notes = chord->notes();
-            if (addTie) {
-                for (size_t j = 0; j < notes.size(); ++j) {
-                    tie[j]->setEndNote(notes[j]);
-                    notes[j]->setTieBack(tie[j]);
-                    undoAddElement(tie[j]);
-                }
-                addTie = false;
-            }
-            //if we're not the last element in the duration list,
-            //set tie forward
-            if (i + 1 < n) {
-                for (size_t j = 0; j < notes.size(); ++j) {
-                    tie[j] = Factory::createTie(this->dummy());
-                    tie[j]->setStartNote(notes[j]);
-                    tie[j]->setTick(tie[j]->startNote()->tick());
-                    tie[j]->setTrack(track);
-                    notes[j]->setTieFor(tie[j]);
-                    addTie = true;
-                }
-            }
-            setPlayChord(true);
-            segment = chord->segment();
-            tick += chord->actualTicks();
-        }
-
-        //subtract the duration already realized and move on
-        if (t) {
-            dur -= dd / t->ratio();
-        } else {
-            dur -= dd;
-        }
-        //we are done when there is no duration left to realize
-        if (dur.isZero()) {
-            break;
-        }
-
-        //go to next segment unless we are at the score (which means we will just be done there)
-        Segment* nseg = tick2segment(tick, false, SegmentType::ChordRest);
-        if (!nseg) {
-            LOGD("reached end of score");
-            break;
-        }
-        segment = nseg;
-
-        cr = toChordRest(segment->element(track));
-
-        if (!cr) {
-            if (track % VOICES) {
-                cr = addRest(segment, track, TDuration(DurationType::V_MEASURE), 0);
-            } else {
-                LOGD("no rest in voice 0");
-                break;
-            }
-        }
-        //
-        //  Note does not fit on current measure, create Tie to
-        //  next part of note
-        std::vector<Note*> notes = nr->notes();
-        for (size_t i = 0; i < notes.size(); ++i) {
-            tie[i] = Factory::createTie(this->dummy());
-            tie[i]->setStartNote(notes[i]);
-            tie[i]->setTick(tie[i]->startNote()->tick());
-            tie[i]->setTrack(notes[i]->track());
-            notes[i]->setTieFor(tie[i]);
-        }
-    }
-    if (!tie.empty()) {
-        connectTies();
-    }
-    if (nr) {
-        select(nr, SelectType::SINGLE, 0);
-    }
-    return segment;
 }
 
 //---------------------------------------------------------
@@ -4071,18 +4263,20 @@ void Score::cmdResequenceRehearsalMarks()
         return;
     }
 
-    RehearsalMark* last = 0;
+    RehearsalMark* last = nullptr;
     for (Segment* s = selection().startSegment(); s && s != selection().endSegment(); s = s->next1()) {
         for (EngravingItem* e : s->annotations()) {
             if (e->type() == ElementType::REHEARSAL_MARK) {
                 RehearsalMark* rm = toRehearsalMark(e);
-                if (last) {
-                    String rmText = nextRehearsalMarkText(last, rm);
-                    for (EngravingObject* le : rm->linkList()) {
-                        le->undoChangeProperty(Pid::TEXT, rmText);
+                if (rm->isTopSystemObject()) {
+                    if (last) {
+                        String rmText = nextRehearsalMarkText(last, rm);
+                        for (EngravingObject* le : rm->linkList()) {
+                            le->undoChangeProperty(Pid::TEXT, rmText);
+                        }
                     }
+                    last = rm;
                 }
-                last = rm;
             }
         }
     }
@@ -4485,7 +4679,7 @@ void Score::cmdToggleMmrest()
 {
     bool val = !style().styleB(Sid::createMultiMeasureRests);
     deselectAll();
-    undo(new ChangeStyleVal(this, Sid::createMultiMeasureRests, val));
+    undoChangeStyleVal(Sid::createMultiMeasureRests, val);
 }
 
 //---------------------------------------------------------
@@ -4496,7 +4690,7 @@ void Score::cmdToggleHideEmpty()
 {
     bool val = !style().styleB(Sid::hideEmptyStaves);
     deselectAll();
-    undo(new ChangeStyleVal(this, Sid::hideEmptyStaves, val));
+    undoChangeStyleVal(Sid::hideEmptyStaves, val);
 }
 
 //---------------------------------------------------------

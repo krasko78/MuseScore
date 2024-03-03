@@ -22,6 +22,8 @@
 
 #include "soundtrackwriter.h"
 
+#include "global/defer.h"
+
 #include "internal/worker/audioengine.h"
 #include "internal/encoders/mp3encoder.h"
 #include "internal/encoders/oggencoder.h"
@@ -30,7 +32,7 @@
 
 #include "audioerrors.h"
 
-#include "defer.h"
+#include "log.h"
 
 using namespace mu;
 using namespace mu::audio;
@@ -110,7 +112,7 @@ void SoundTrackWriter::abort()
     m_isAborted = true;
 }
 
-framework::Progress SoundTrackWriter::progress()
+mu::Progress SoundTrackWriter::progress()
 {
     return m_progress;
 }

@@ -40,7 +40,7 @@ IF "%GENERATOR_NAME%"=="" (
 )
 
 IF "%GENERATOR_NAME%"=="" (
-   ECHO "No supported version of Microsoft Visual Studio (2017, 2019 or 2022) found."
+   ECHO "No supported version of Microsoft Visual Studio (2019 or 2022) found."
    GOTO :END
 )
 
@@ -143,7 +143,7 @@ IF /I "%1"=="clean" (
    REM Usage: CALL :FIND_GENERATOR
    REM Detects the highest supported VS version installed and sets GENERATOR_NAME to the appropriate CMake generator name.
 
-   REM vswhere.exe is a helper utility that is automatically installed with VS2017 and later (and always at a fixed location).
+   REM vswhere.exe is a helper utility that is always installed at a fixed location since VS2017.
    SET VSWHERE="%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
    IF NOT EXIST %VSWHERE% EXIT /B !ERRORLEVEL!
 
@@ -182,10 +182,6 @@ IF NOT "%MSCORE_STABLE_BUILD%" == "" (
     IF NOT "%CRASH_LOG_SERVER_URL%" == "" (
         SET CRASH_REPORT_URL_OPT=-DMUE_CRASH_REPORT_URL=%CRASH_LOG_SERVER_URL% -DBUILD_CRASH_REPORTER=ON
     )
-
-    IF NOT "%YOUTUBE_API_KEY%" == "" (
-        SET YOUTUBE_API_KEY_OPT=-DMUE_LEARN_YOUTUBE_API_KEY=%YOUTUBE_API_KEY%
-    )
 )
 
 IF "%MUSESCORE_BUILD_MODE%" == "" (
@@ -208,7 +204,7 @@ REM -DCMAKE_BUILD_NUMBER=%BUILD_NUMBER% -DCMAKE_BUILD_AUTOUPDATE=%BUILD_AUTOUPDA
       REM and run CMake again automatically with the same options as before.
    ) ELSE (
       echo Building CMake configuration...
-      cmake -G "%GENERATOR_NAME%" -A "%PLATFORM_NAME%" -DCMAKE_INSTALL_PREFIX=../%INSTALL_FOLDER% -DCMAKE_BUILD_TYPE=%CONFIGURATION_STR% -DMUSESCORE_BUILD_MODE=%MUSESCORE_BUILD_MODE% -DMUSESCORE_REVISION=%MUSESCORE_REVISION% -DMUE_COMPILE_BUILD_64=%BUILD_64% -DCMAKE_BUILD_NUMBER=%BUILD_NUMBER% -DBUILD_AUTOUPDATE=%BUILD_AUTOUPDATE% %BUILD_VST_OPT% %VST3_SDK_PATH_OPT% %CRASH_REPORT_URL_OPT% %YOUTUBE_API_KEY_OPT% %WIN_PORTABLE_OPT% ..
+      cmake -G "%GENERATOR_NAME%" -A "%PLATFORM_NAME%" -DCMAKE_INSTALL_PREFIX=../%INSTALL_FOLDER% -DCMAKE_BUILD_TYPE=%CONFIGURATION_STR% -DMUSESCORE_BUILD_MODE=%MUSESCORE_BUILD_MODE% -DMUSESCORE_REVISION=%MUSESCORE_REVISION% -DMUE_COMPILE_BUILD_64=%BUILD_64% -DCMAKE_BUILD_NUMBER=%BUILD_NUMBER% -DBUILD_AUTOUPDATE=%BUILD_AUTOUPDATE% %BUILD_VST_OPT% %VST3_SDK_PATH_OPT% %CRASH_REPORT_URL_OPT% %WIN_PORTABLE_OPT% ..
       IF !ERRORLEVEL! NEQ 0 (
          set OLD_ERRORLEVEL=!ERRORLEVEL!
          del /f "CMakeCache.txt"

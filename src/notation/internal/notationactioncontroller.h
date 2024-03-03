@@ -46,7 +46,7 @@ class NotationActionController : public actions::Actionable, public async::Async
     INJECT(ui::IUiActionsRegister, actionRegister)
     INJECT(context::IGlobalContext, globalContext)
     INJECT(context::IUiContextResolver, uiContextResolver)
-    INJECT(framework::IInteractive, interactive)
+    INJECT(IInteractive, interactive)
     INJECT(playback::IPlaybackController, playbackController)
     INJECT(INotationConfiguration, configuration)
     INJECT(engraving::IEngravingConfiguration, engravingConfiguration)
@@ -115,7 +115,7 @@ private:
 
     void insertClef(mu::engraving::ClefType type);
 
-    framework::IInteractive::Result showErrorMessage(const std::string& message) const;
+    IInteractive::Result showErrorMessage(const std::string& message) const;
 
     bool isElementsSelected(const std::vector<ElementType>& elementsTypes) const;
 

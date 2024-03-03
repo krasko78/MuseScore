@@ -1014,10 +1014,9 @@ bool Score::rewriteMeasures(Measure* fm, Measure* lm, const Fraction& ns, staff_
                         if (trem->chord2() == chord) {
                             continue;
                         }
-                        auto newP = std::tuple<Fraction, Fraction, TremoloTwoChord*, track_idx_t>(
-                            cr->tick(),
-                            trem->chord2()->segment()->tick(), trem,
-                            track);
+
+                        std::tuple<Fraction, Fraction, TremoloTwoChord*, track_idx_t> newP
+                            = { cr->tick(), trem->chord2()->segment()->tick(), trem, track };
                         tremoloChordTicks.push_back(newP);
                     }
                 }
@@ -1126,7 +1125,7 @@ bool Score::rewriteMeasures(Measure* fm, Measure* lm, const Fraction& ns, staff_
         Fraction chord1Tick = std::get<0>(tremPair);
         Fraction chord2Tick = std::get<1>(tremPair);
         TremoloTwoChord* trem = std::get<2>(tremPair);
-        int track = std::get<3>(tremPair);
+        track_idx_t track = std::get<3>(tremPair);
 
         undo(new MoveTremolo(trem->score(), chord1Tick, chord2Tick, trem, track));
     }
@@ -4787,18 +4786,18 @@ void Score::undoPropertyChanged(EngravingObject* e, Pid t, const PropertyValue& 
     }
 }
 
-//---------------------------------------------------------
-//   undoChangeStyleVal
-//---------------------------------------------------------
-
 void Score::undoChangeStyleVal(Sid idx, const PropertyValue& v)
 {
-    undo(new ChangeStyleVal(this, idx, v));
+    std::unordered_map<Sid, PropertyValue> map;
+    map.emplace(idx, v);
+
+    undo(new ChangeStyleValues(this, std::move(map)));
 }
 
-//---------------------------------------------------------
-//   undoChangePageNumberOffset
-//---------------------------------------------------------
+void Score::undoChangeStyleValues(std::unordered_map<Sid, PropertyValue> values)
+{
+    undo(new ChangeStyleValues(this, std::move(values)));
+}
 
 void Score::undoChangePageNumberOffset(int po)
 {
@@ -5083,6 +5082,7 @@ void Score::undoChangeClef(Staff* ostaff, EngravingItem* e, ClefType ct, bool fo
         }
     }
 
+    bool concertPitch = score()->style().styleB(Sid::concertPitch);
     Clef* gclef = 0;
     Fraction tick = e->tick();
     Fraction rtick = e->rtick();
@@ -5131,7 +5131,6 @@ void Score::undoChangeClef(Staff* ostaff, EngravingItem* e, ClefType ct, bool fo
                 cp = ct;
                 tp = ct;
             } else {
-                bool concertPitch = clef->concertPitch();
                 if (concertPitch) {
                     cp = ct;
                     tp = clef->transposingClef();
@@ -5163,10 +5162,10 @@ void Score::undoChangeClef(Staff* ostaff, EngravingItem* e, ClefType ct, bool fo
                 clef->setScore(score);
             } else {
                 clef = Factory::createClef(score->dummy()->segment());
+                clef->setClefType(ct);
                 gclef = clef;
             }
             clef->setTrack(track);
-            clef->setClefType(ct);
             clef->setParent(destSeg);
             clef->setIsHeader(st == SegmentType::HeaderClef);
             score->doUndoAddElement(clef);

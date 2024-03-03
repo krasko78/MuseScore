@@ -40,7 +40,6 @@
 #endif
 
 using namespace mu;
-using namespace mu::framework;
 using namespace mu::iex::musicxml;
 using namespace mu::engraving;
 
@@ -373,6 +372,9 @@ TEST_F(Musicxml_Tests, accidentals2) {
 TEST_F(Musicxml_Tests, accidentals3) {
     mxmlIoTest("testAccidentals3");
 }
+TEST_F(Musicxml_Tests, arpCrossVoice) {
+    mxmlImportTestRef("testArpCrossVoice");
+}
 TEST_F(Musicxml_Tests, arpGliss1) {
     mxmlIoTest("testArpGliss1");
 }
@@ -460,6 +462,9 @@ TEST_F(Musicxml_Tests, clefs1) {
 TEST_F(Musicxml_Tests, clefs2) {
     mxmlIoTest("testClefs2");
 }
+TEST_F(Musicxml_Tests, codaHBox) {
+    mxmlImportTestRef("testCodaHBox");
+}
 TEST_F(Musicxml_Tests, colorExport) {
     mxmlMscxExportTestRef("testColorExport");
 }
@@ -468,6 +473,9 @@ TEST_F(Musicxml_Tests, colors) {
 }
 TEST_F(Musicxml_Tests, completeMeasureRests) {
     mxmlIoTest("testCompleteMeasureRests");
+}
+TEST_F(Musicxml_Tests, copyrightScale) {
+    mxmlImportTestRef("testCopyrightScale");
 }
 TEST_F(Musicxml_Tests, cueGraceNotes1) {
     mxmlImportTestRef("testCueGraceNotes");
@@ -543,6 +551,9 @@ TEST_F(Musicxml_Tests, dynamics2) {
 }
 TEST_F(Musicxml_Tests, dynamics3) {
     mxmlIoTestRef("testDynamics3");
+}
+TEST_F(Musicxml_Tests, elision) {
+    mxmlImportTestRef("testElision");
 }
 TEST_F(Musicxml_Tests, emptyMeasure) {
     mxmlIoTestRef("testEmptyMeasure");
@@ -657,9 +668,11 @@ TEST_F(Musicxml_Tests, incorrectStaffNumber2) {
     mxmlIoTestRef("testIncorrectStaffNumber2");
 }
 #ifndef DISABLED_SOME_TESTS
+#ifndef MU_QT5_COMPAT
 TEST_F(Musicxml_Tests, inferredSubtitle) {
     mxmlImportTestRef("testInferredSubtitle");
 }
+#endif
 #endif
 TEST_F(Musicxml_Tests, instrumentChangeMIDIportExport) {
     mxmlMscxExportTestRef("testInstrumentChangeMIDIportExport");
@@ -708,6 +721,9 @@ TEST_F(Musicxml_Tests, lyricBracket) {
 TEST_F(Musicxml_Tests, lyricColor) {
     mxmlIoTest("testLyricColor");
 }
+TEST_F(Musicxml_Tests, lyricPos) {
+    mxmlImportTestRef("testLyricPos");
+}
 TEST_F(Musicxml_Tests, lyrics1) {
     mxmlIoTestRef("testLyrics1");
 }
@@ -716,6 +732,12 @@ TEST_F(Musicxml_Tests, lyricExtension1) {
 }
 TEST_F(Musicxml_Tests, lyricExtension2) {
     mxmlImportTestRef("testLyricExtensions");
+}
+TEST_F(Musicxml_Tests, lyricExtension3) {
+    mxmlIoTest("testLyricExtension2");
+}
+TEST_F(Musicxml_Tests, lyricExtension4) {
+    mxmlImportTestRef("testLyricExtension2");
 }
 TEST_F(Musicxml_Tests, lyricsVoice2a) {
     mxmlIoTest("testLyricsVoice2a");
@@ -801,6 +823,9 @@ TEST_F(Musicxml_Tests, noteAttributes2) {
 TEST_F(Musicxml_Tests, noteAttributes3) {
     mxmlIoTest("testNoteAttributes3");
 }
+TEST_F(Musicxml_Tests, noteAttributes4) {
+    mxmlImportTestRef("testNoteAttributes2");
+}
 TEST_F(Musicxml_Tests, noteColor) {
     mxmlIoTest("testNoteColor");
 }
@@ -863,6 +888,12 @@ TEST_F(Musicxml_Tests, restsTypeWhole) {
 }
 TEST_F(Musicxml_Tests, secondVoiceMelismata) {
     mxmlImportTestRef("testSecondVoiceMelismata");
+}
+TEST_F(Musicxml_Tests, sibMetronomeMarks) {
+    mxmlImportTestRef("testSibMetronomeMarks");
+}
+TEST_F(Musicxml_Tests, sibOttavas) {
+    mxmlImportTestRef("testSibOttavas");
 }
 TEST_F(Musicxml_Tests, slurTieDirection) {
     mxmlIoTest("testSlurTieDirection");

@@ -80,9 +80,9 @@ static std::string resolveAuxTrackTitle(aux_channel_idx_t index, const AudioOutp
     return mu::mtrc("playback", "Aux %1").arg(index + 1).toStdString();
 }
 
-static bool supportsSoundFlags(AudioSourceType type)
+static bool supportsSoundFlags(AudioResourceType type)
 {
-    return type == AudioSourceType::MuseSampler;
+    return type == AudioResourceType::MuseSamplerSoundPack;
 }
 
 void PlaybackController::init()
@@ -400,7 +400,7 @@ void PlaybackController::addSoundFlagsToExistingTracks()
     for (const InstrumentTrackId& trackId : notationPlayback->existingTrackIdSet()) {
         const AudioInputParams& params = audioSettings()->trackInputParams(trackId);
 
-        if (supportsSoundFlags(params.type())) {
+        if (supportsSoundFlags(params.resourceMeta.type)) {
             trackIdSet.insert(trackId);
         }
     }
@@ -410,19 +410,69 @@ void PlaybackController::addSoundFlagsToExistingTracks()
     }
 }
 
-void PlaybackController::updateSoundFlags(const mu::engraving::InstrumentTrackId& trackId, AudioSourceType sourceType)
+void PlaybackController::updateSoundFlagsForExistingTracks()
 {
     TRACEFUNC;
+
+    if (m_blockSoundFlagsUpdate) {
+        return;
+    }
 
     INotationPlaybackPtr notationPlayback = this->notationPlayback();
     if (!notationPlayback) {
         return;
     }
 
-    if (supportsSoundFlags(sourceType)) {
-        notationPlayback->addSoundFlags({ trackId });
-    } else {
+    InstrumentTrackIdSet addSoundFlagsTrackIdSet;
+    InstrumentTrackIdSet removeSoundFlagsTrackIdSet;
+
+    for (const InstrumentTrackId& trackId : notationPlayback->existingTrackIdSet()) {
+        const AudioInputParams& params = audioSettings()->trackInputParams(trackId);
+
+        if (supportsSoundFlags(params.resourceMeta.type)) {
+            addSoundFlagsTrackIdSet.insert(trackId);
+        } else {
+            removeSoundFlagsTrackIdSet.insert(trackId);
+        }
+    }
+
+    if (!addSoundFlagsTrackIdSet.empty()) {
+        notationPlayback->addSoundFlags(addSoundFlagsTrackIdSet);
+    }
+
+    if (!removeSoundFlagsTrackIdSet.empty()) {
+        notationPlayback->removeSoundFlags(removeSoundFlagsTrackIdSet);
+    }
+}
+
+void PlaybackController::updateSoundFlags(const mu::engraving::InstrumentTrackId& trackId,
+                                          const AudioResourceMeta& oldMeta,
+                                          const AudioResourceMeta& newMeta)
+{
+    TRACEFUNC;
+
+    if (m_blockSoundFlagsUpdate) {
+        return;
+    }
+
+    if (oldMeta.type == newMeta.type && oldMeta.id == newMeta.id) {
+        return;
+    }
+
+    INotationPlaybackPtr notationPlayback = this->notationPlayback();
+    if (!notationPlayback) {
+        return;
+    }
+
+    if (!supportsSoundFlags(newMeta.type)) {
         notationPlayback->removeSoundFlags({ trackId });
+        return;
+    }
+
+    if (oldMeta.type == newMeta.type) { // same audio source but different sounds
+        notationPlayback->clearSoundFlags({ trackId });
+    } else {
+        notationPlayback->addSoundFlags({ trackId });
     }
 }
 
@@ -436,7 +486,7 @@ void PlaybackController::addSoundFlagIfNeed(mu::engraving::StaffText* staffText)
     mu::engraving::InstrumentTrackId trackId = mu::engraving::makeInstrumentTrackId(staffText);
     const AudioInputParams& params = audioSettings()->trackInputParams(trackId);
 
-    if (supportsSoundFlags(params.type())) {
+    if (supportsSoundFlags(params.resourceMeta.type)) {
         notationPlayback->addSoundFlag(staffText);
     }
 }
@@ -491,6 +541,31 @@ void PlaybackController::onNotationChanged()
     });
 }
 
+void PlaybackController::onPartChanged(const Part* part)
+{
+    if (!m_notation->hasVisibleParts()) {
+        pause();
+    }
+    m_isPlayAllowedChanged.notify();
+
+    if (!configuration()->muteHiddenInstruments()) {
+        return;
+    }
+
+    for (const InstrumentTrackId& instrumentTrackId : part->instrumentTrackIdList()) {
+        auto soloMuteState = trackSoloMuteState(instrumentTrackId);
+        soloMuteState.mute = !part->show();
+        setTrackSoloMuteState(instrumentTrackId, soloMuteState);
+    }
+
+    if (part->hasChordSymbol()) {
+        InstrumentTrackId chordSymbolsTrackId = notationPlayback()->chordSymbolsTrackId(part->id());
+        auto chordsSoloMuteState = trackSoloMuteState(chordSymbolsTrackId);
+        chordsSoloMuteState.mute = !part->show();
+        setTrackSoloMuteState(chordSymbolsTrackId, chordsSoloMuteState);
+    }
+}
+
 void PlaybackController::onSelectionChanged()
 {
     INotationSelectionPtr selection = this->selection();
@@ -500,7 +575,7 @@ void PlaybackController::onSelectionChanged()
     if (!m_isRangeSelection) {
         if (selectionTypeChanged) {
             updateLoop();
-            updateMuteStates();
+            updateSoloMuteStates();
         }
 
         if (!isLoopEnabled()) {
@@ -513,7 +588,7 @@ void PlaybackController::onSelectionChanged()
     playback()->player()->resetLoop(m_currentSequenceId);
 
     seekRangeSelection();
-    updateMuteStates();
+    updateSoloMuteStates();
 }
 
 void PlaybackController::togglePlay()
@@ -938,7 +1013,7 @@ void PlaybackController::doAddTrack(const InstrumentTrackId& instrumentTrackId, 
         audioSettings()->setTrackInputParams(instrumentTrackId, appliedParams.in);
         audioSettings()->setTrackOutputParams(instrumentTrackId, appliedParams.out);
 
-        updateMuteStates();
+        updateSoloMuteStates();
 
         onFinished();
 
@@ -982,7 +1057,7 @@ void PlaybackController::addAuxTrack(aux_channel_idx_t index, const TrackAddFini
 
         audioSettings()->setAuxOutputParams(index, appliedParams);
 
-        updateMuteStates();
+        updateSoloMuteStates();
         onFinished();
 
         m_trackAdded.send(trackId);
@@ -1061,7 +1136,7 @@ void PlaybackController::removeNonExistingTracks()
         }
     }
 
-    updateMuteStates();
+    updateSoloMuteStates();
 }
 
 void PlaybackController::removeTrack(const InstrumentTrackId& instrumentTrackId)
@@ -1123,12 +1198,10 @@ void PlaybackController::subscribeOnAudioParamsChanges()
         });
 
         if (search != m_instrumentTrackIdMap.end()) {
-            bool audioSourceChanged = audioSettings()->trackInputParams(search->first).type() != params.type();
-            audioSettings()->setTrackInputParams(search->first, params);
+            const AudioResourceMeta& oldMeta = audioSettings()->trackInputParams(search->first).resourceMeta;
+            updateSoundFlags(search->first, oldMeta, params.resourceMeta);
 
-            if (audioSourceChanged) {
-                updateSoundFlags(search->first, params.type());
-            }
+            audioSettings()->setTrackInputParams(search->first, params);
         }
     });
 
@@ -1223,12 +1296,12 @@ void PlaybackController::setupSequenceTracks()
             }
         }
 
-        updateMuteStates();
+        updateSoloMuteStates();
     });
 
     audioSettings()->auxSoloMuteStateChanged().onReceive(
         this, [this](aux_channel_idx_t, const notation::INotationSoloMuteState::SoloMuteState&) {
-        updateMuteStates();
+        updateSoloMuteStates();
     });
 
     m_isPlayAllowedChanged.notify();
@@ -1260,7 +1333,33 @@ void PlaybackController::setupSequencePlayer()
     });
 }
 
-void PlaybackController::updateMuteStates()
+void PlaybackController::initMuteStates()
+{
+    if (!m_notation) {
+        return;
+    }
+
+    INotationPartsPtr notationParts = m_notation->parts();
+
+    for (const InstrumentTrackId& instrumentTrackId : notationPlayback()->existingTrackIdSet()) {
+        if (!mu::contains(m_instrumentTrackIdMap, instrumentTrackId)) {
+            continue;
+        }
+
+        if (instrumentTrackId == notationPlayback()->metronomeTrackId()) {
+            continue;
+        }
+
+        // If the part doesn't exist for this notation, mute it
+        if (!notationParts->part(instrumentTrackId.partId)) {
+            INotationSoloMuteState::SoloMuteState soloMuteState;
+            soloMuteState.mute = true;
+            m_notation->soloMuteState()->setTrackSoloMuteState(instrumentTrackId, soloMuteState);
+        }
+    }
+}
+
+void PlaybackController::updateSoloMuteStates()
 {
     if (!audioSettings() || !playback() || !m_notation) {
         return;
@@ -1278,7 +1377,6 @@ void PlaybackController::updateMuteStates()
         }
     }
 
-    INotationPartsPtr notationParts = m_notation->parts();
     InstrumentTrackIdSet allowedInstrumentTrackIdSet = instrumentTrackIdSetForRangePlayback();
     bool isRangePlaybackMode = !m_isExportingAudio && selection()->isRange() && !allowedInstrumentTrackIdSet.empty();
 
@@ -1291,25 +1389,24 @@ void PlaybackController::updateMuteStates()
             continue;
         }
 
-        const Part* part = notationParts->part(instrumentTrackId.partId);
-        bool isPartVisible = part && part->show();
-
+        // 1. Recall the solo-mute state for this notation
         auto soloMuteState = m_notation->soloMuteState()->trackSoloMuteState(instrumentTrackId);
 
-        bool shouldBeMuted = soloMuteState.mute
-                             || (hasSolo && !soloMuteState.solo)
-                             || (!isPartVisible);
-
-        if (notationPlayback()->isChordSymbolsTrack(instrumentTrackId) && !shouldBeMuted) {
-            shouldBeMuted = !notationConfiguration()->isPlayChordSymbolsEnabled();
+        // 2. Evaluate "force mute" (disabling the mute button)
+        bool shouldForceMute = hasSolo && !soloMuteState.solo;
+        if (notationPlayback()->isChordSymbolsTrack(instrumentTrackId) && !shouldForceMute) {
+            shouldForceMute = !notationConfiguration()->isPlayChordSymbolsEnabled();
         }
 
-        if (isRangePlaybackMode && !shouldBeMuted) {
-            shouldBeMuted = !mu::contains(allowedInstrumentTrackIdSet, instrumentTrackId);
+        if (isRangePlaybackMode && !shouldForceMute) {
+            shouldForceMute = !mu::contains(allowedInstrumentTrackIdSet, instrumentTrackId);
         }
 
+        // 3. Update params for playback / mixer
         AudioOutputParams params = trackOutputParams(instrumentTrackId);
-        params.muted = shouldBeMuted;
+        params.solo = soloMuteState.solo;
+        params.muted = soloMuteState.mute || shouldForceMute;
+        params.forceMute = shouldForceMute;
 
         audio::TrackId trackId = m_instrumentTrackIdMap.at(instrumentTrackId);
         playback()->audioOutput()->setOutputParams(m_currentSequenceId, trackId, std::move(params));
@@ -1423,7 +1520,7 @@ void PlaybackController::setTempoMultiplier(double multiplier)
     }
 }
 
-mu::framework::Progress PlaybackController::loadingProgress() const
+mu::Progress PlaybackController::loadingProgress() const
 {
     return m_loadingProgress;
 }
@@ -1440,6 +1537,12 @@ void PlaybackController::applyProfile(const SoundProfileName& profileName)
     if (!profile.isValid()) {
         return;
     }
+
+    m_blockSoundFlagsUpdate = true;
+    DEFER {
+        m_blockSoundFlagsUpdate = false;
+        updateSoundFlagsForExistingTracks();
+    };
 
     const InstrumentTrackId& metronomeTrackId = notationPlayback()->metronomeTrackId();
 
@@ -1474,25 +1577,33 @@ void PlaybackController::setNotation(notation::INotationPtr notation)
         pause();
     }
     m_isPlayAllowedChanged.notify();
-    updateMuteStates();
+
+    // All invisible tracks should be muted in newly opened notations (initMuteStates)
+    // Once the mute state has been edited, this "custom state" will be recalled from then onwards
+    bool emptyMuteStates = true;
+    InstrumentTrackIdSet existingTrackIdSet = notationPlayback()->existingTrackIdSet();
+    for (const InstrumentTrackId& instrumentTrackId : existingTrackIdSet) {
+        if (m_notation->soloMuteState()->trackSoloMuteStateExists(instrumentTrackId)) {
+            emptyMuteStates = false;
+            break;
+        }
+    }
+
+    if (emptyMuteStates) {
+        initMuteStates();
+    }
+
+    updateSoloMuteStates();
 
     INotationPartsPtr notationParts = m_notation->parts();
     NotifyList<const Part*> partList = notationParts->partList();
 
-    partList.onItemAdded(this, [this](const Part*) {
-        if (!m_notation->hasVisibleParts()) {
-            pause();
-        }
-        m_isPlayAllowedChanged.notify();
-        updateMuteStates();
+    partList.onItemAdded(this, [this](const Part* part) {
+        onPartChanged(part);
     });
 
-    partList.onItemChanged(this, [this](const Part*) {
-        if (!m_notation->hasVisibleParts()) {
-            pause();
-        }
-        m_isPlayAllowedChanged.notify();
-        updateMuteStates();
+    partList.onItemChanged(this, [this](const Part* part) {
+        onPartChanged(part);
     });
 
     notationPlayback()->loopBoundariesChanged().onNotify(this, [this]() {
@@ -1517,14 +1628,14 @@ void PlaybackController::setNotation(notation::INotationPtr notation)
 
     m_notation->soloMuteState()->trackSoloMuteStateChanged().onReceive(
         this, [this](const InstrumentTrackId&, const notation::INotationSoloMuteState::SoloMuteState&) {
-        updateMuteStates();
+        updateSoloMuteStates();
     });
 }
 
 void PlaybackController::setIsExportingAudio(bool exporting)
 {
     m_isExportingAudio = exporting;
-    updateMuteStates();
+    updateSoloMuteStates();
 }
 
 bool PlaybackController::canReceiveAction(const actions::ActionCode&) const

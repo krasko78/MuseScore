@@ -38,9 +38,8 @@
 #include "pluginterfaces/gui/iplugviewcontentscalesupport.h"
 #include "pluginterfaces/vst/ivstaudioprocessor.h"
 #include "pluginterfaces/vst/ivsteditcontroller.h"
-#include "pluginterfaces/vst/ivstmidicontrollers.h"
+#include "pluginterfaces/vst/ivstmidicontrollers.h" // IWYU pragma: export
 
-#include "framework/midi/miditypes.h"
 #include "io/path.h"
 #include "log.h"
 

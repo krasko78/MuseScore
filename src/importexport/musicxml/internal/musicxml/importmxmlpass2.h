@@ -117,7 +117,7 @@ public:
     MusicXmlLyricsExtend() {}
     void init();
     void addLyric(Lyrics* const lyric);
-    void setExtend(const int no, const track_idx_t track, const Fraction& tick);
+    void setExtend(const int no, const track_idx_t track, const Fraction& tick, const Lyrics* prevAddedLyrics);
 
 private:
     std::set<Lyrics*> m_lyrics;
@@ -145,6 +145,7 @@ public:
     void parse();
 private:
     void skipLogCurrElem();
+    void readElision(String& formattedText);
     const LyricNumberHandler m_lyricNumberHandler;
     XmlStreamReader& m_e;
     const Score* m_score = nullptr;            // the score
@@ -217,7 +218,7 @@ public:
     MusicXMLParserNotations(XmlStreamReader& e, Score* score, MxmlLogger* logger);
     void parse();
     void addToScore(ChordRest* const cr, Note* const note, const int tick, SlurStack& slurs, Glissando* glissandi[MAX_NUMBER_LEVEL][2],
-                    MusicXmlSpannerMap& spanners, TrillStack& trills, Tie*& tie);
+                    MusicXmlSpannerMap& spanners, TrillStack& trills, Tie*& tie, ArpeggioMap& arpMap);
     String errors() const { return m_errors; }
     MusicXmlTupletDesc tupletDesc() const { return m_tupletDesc; }
     String tremoloType() const { return m_tremoloType; }
@@ -227,6 +228,7 @@ private:
     void addError(const String& error);      // Add an error to be shown in the GUI
     void addNotation(const Notation& notation, ChordRest* const cr, Note* const note);
     void addTechnical(const Notation& notation, Note* note);
+    void arpeggio();
     void harmonic();
     void articulations();
     void dynamics();
@@ -239,6 +241,7 @@ private:
     void technical();
     void tied();
     void tuplet();
+    void otherNotation();
     XmlStreamReader& m_e;
     const Score* m_score = nullptr;                         // the score
     MxmlLogger* m_logger = nullptr;                              // the error logger
@@ -253,6 +256,7 @@ private:
     String m_wavyLineType;
     int m_wavyLineNo = 0;
     String m_arpeggioType;
+    int m_arpeggioNo = 0;
     bool m_slurStop = false;
     bool m_slurStart = false;
     bool m_wavyLineStop = false;
@@ -276,6 +280,9 @@ public:
     void deleteHandledSpanner(SLine* const& spanner);
     int divs() { return m_divs; }
 
+    SLine* delayedOttava() { return m_delayedOttava; }
+    void setDelayedOttava(SLine* ottava) { m_delayedOttava = ottava; }
+
 private:
     void addError(const String& error);      // Add an error to be shown in the GUI
     void initPartState(const String& partId);
@@ -298,7 +305,7 @@ private:
     void divisions();
     Note* note(const String& partId, Measure* measure, const Fraction sTime, const Fraction prevTime, Fraction& missingPrev, Fraction& dura,
                Fraction& missingCurr, String& currentVoice, GraceChordList& gcl, size_t& gac, Beams& currBeams, FiguredBassList& fbl,
-               int& alt, MxmlTupletStates& tupletStates, Tuplets& tuplets);
+               int& alt, MxmlTupletStates& tupletStates, Tuplets& tuplets, ArpeggioMap& arpMap);
     void notePrintSpacingNo(Fraction& dura);
     FiguredBassItem* figure(const int idx, const bool paren, FiguredBass* parent);
     FiguredBass* figuredBass();
@@ -357,6 +364,7 @@ private:
     Harmony* m_harmony = nullptr;                  // Current harmony
     Chord* m_tremStart = nullptr;                  // Starting chord for current tremolo
     FiguredBass* m_figBass = nullptr;              // Current figured bass element (to attach to next note)
+    SLine* m_delayedOttava = nullptr;              // Current delayed ottava
     int m_multiMeasureRestCount = 0;
     int m_measureNumber = 0;                       // Current measure number as written in the score
     MusicXmlLyricsExtend m_extendedLyrics;         // Lyrics with "extend" requiring fixup
@@ -392,8 +400,10 @@ private:
     String metronome(double& r);
     void sound();
     void dynamics();
+    void otherDirection();
     void handleRepeats(Measure* measure, const track_idx_t track, const Fraction tick);
     void handleNmiCmi(Measure* measure, const track_idx_t track, const Fraction tick, DelayedDirectionsList& delayedDirections);
+    void handleTempo();
     String matchRepeat() const;
     void skipLogCurrElem();
     bool isLikelyCredit(const Fraction& tick) const;

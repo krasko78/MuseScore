@@ -26,7 +26,7 @@
 
 static const mu::Char SUFFIX_DELIMITER = '-';
 
-using namespace mu::framework;
+using namespace mu;
 
 static std::array<int, 3> parseVersion(const mu::String& versionString, bool& ok)
 {
@@ -96,6 +96,11 @@ Version::Version(const mu::String& versionStr)
     }
 
     setSuffix(versionStr.right(versionStr.size() - versionStr.indexOf(SUFFIX_DELIMITER) - 1));
+}
+
+Version::Version(const std::string& versionStr)
+    : Version(mu::String::fromStdString(versionStr))
+{
 }
 
 int Version::majorVersion() const

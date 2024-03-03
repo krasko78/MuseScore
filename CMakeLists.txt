@@ -97,7 +97,6 @@ option(MUE_BUILD_INSPECTOR_MODULE "Build inspector module" ON)
 option(MUE_BUILD_INSTRUMENTSSCENE_MODULE "Build instruments scene module" ON)
 option(MUE_BUILD_LANGUAGES_MODULE "Build languages module" ON)
 option(MUE_BUILD_LEARN_MODULE "Build learn module" ON)
-set(MUE_LEARN_YOUTUBE_API_KEY "" CACHE STRING "YouTube API key")
 option(MUE_BUILD_MULTIINSTANCES_MODULE "Build multiinstances module" ON)
 option(MUE_BUILD_NOTATION_MODULE "Build notation module" ON)
 option(MUE_BUILD_NOTATION_TESTS "Build notation tests" ON)
@@ -140,6 +139,7 @@ option(MUE_COMPILE_USE_UNITY "Use unity build." ON)
 option(MUE_COMPILE_USE_CCACHE "Try use ccache" ON)
 option(MUE_COMPILE_USE_SHARED_LIBS_IN_DEBUG "Build shared libs if possible in debug" OFF)
 option(MUE_COMPILE_USE_SYSTEM_FREETYPE "Try use system freetype" OFF) # Important for the maintainer of Linux distributions
+option(MUE_COMPILE_USE_QTFONTMETRICS "Use Qt font metrics" ON)
 
 # === Debug ===
 option(MUE_ENABLE_LOGGER_DEBUGLEVEL "Enable logging debug level" ON)

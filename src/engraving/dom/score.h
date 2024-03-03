@@ -329,8 +329,11 @@ public:
     bool makeMeasureRepeatGroup(Measure*, int numMeasures, staff_idx_t staffIdx);
     void cmdFlip();
     void resetUserStretch();
+    void cmdResetToDefaultLayout();
     void cmdResetBeamMode();
     void cmdResetTextStyleOverrides();
+    void cmdResetAllStyles(const StyleIdSet& exceptTheseOnes = {});
+    void cmdResetMeasuresLayout();
     bool canInsertClef(ClefType) const;
     void cmdInsertClef(ClefType);
     void removeChordRest(ChordRest* cr, bool clearSegment);
@@ -410,6 +413,7 @@ public:
     void undoRemoveBracket(Bracket*);
     void undoInsertTime(const Fraction& tick, const Fraction& len);
     void undoChangeStyleVal(Sid idx, const PropertyValue& v);
+    void undoChangeStyleValues(std::unordered_map<Sid, PropertyValue> values);
     void undoChangePageNumberOffset(int po);
     void undoChangeParent(EngravingItem* element, EngravingItem* parent, staff_idx_t _staff);
 
@@ -422,7 +426,6 @@ public:
     Segment* setNoteRest(Segment*, track_idx_t track, NoteVal nval, Fraction, DirectionV stemDirection = DirectionV::AUTO,
                          bool forceAccidental = false, const std::set<SymId>& articulationIds = {}, bool rhythmic = false,
                          InputState* externalInputState = nullptr);
-    Segment* setChord(Segment*, track_idx_t track, const Chord* chordTemplate, Fraction, DirectionV stemDirection = DirectionV::AUTO);
     void changeCRlen(ChordRest* cr, const TDuration&);
     void changeCRlen(ChordRest* cr, const Fraction&, bool fillWithRest=true);
     void createCRSequence(const Fraction& f, ChordRest* cr, const Fraction& tick);
@@ -580,7 +583,7 @@ public:
     Segment* tick2segmentMM(const Fraction& tick, bool first, SegmentType st) const;
     Segment* tick2segmentMM(const Fraction& tick) const;
     Segment* tick2segmentMM(const Fraction& tick, bool first) const;
-    Segment* tick2leftSegment(const Fraction& tick, bool useMMrest = false, bool anySegmentType = false) const;
+    Segment* tick2leftSegment(const Fraction& tick, bool useMMrest = false, SegmentType st = SegmentType::ChordRest) const;
     Segment* tick2rightSegment(const Fraction& tick, bool useMMrest = false) const;
     Segment* tick2leftSegmentMM(const Fraction& tick) { return tick2leftSegment(tick, /* useMMRest */ true); }
 
@@ -627,6 +630,7 @@ public:
     PageSizeSetAccessor pageSize() { return PageSizeSetAccessor(m_style); }
 
     void resetStyleValue(Sid styleToReset);
+    void resetStyleValues(const StyleIdSet& styleIdSet);
 
     void setStyle(const MStyle& s, const bool overlap = false);
     bool loadStyle(const String&, bool ign = false, const bool overlap = false);
@@ -657,7 +661,7 @@ public:
     void spatiumChanged(double oldValue, double newValue);
     void styleChanged() override;
 
-    void cmdPaste(const IMimeData* ms, MuseScoreView* view, Fraction scale = Fraction(1, 1));
+    std::vector<EngravingItem*> cmdPaste(const IMimeData* ms, MuseScoreView* view, Fraction scale = Fraction(1, 1));
     bool pasteStaff(XmlReader&, Segment* dst, staff_idx_t staffIdx, Fraction scale = Fraction(1, 1));
     void pasteSymbols(XmlReader& e, ChordRest* dst);
 

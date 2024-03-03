@@ -441,6 +441,7 @@ private:
     const Ottava* m_ottavas[MAX_NUMBER_LEVEL];
     const Trill* m_trills[MAX_NUMBER_LEVEL];
     std::vector<const Jump*> m_jumpElements;
+    ArpeggioMap m_measArpeggios;
     int m_div = 0;
     double m_millimeters = 0.0;
     int m_tenths = 0;
@@ -3488,9 +3489,28 @@ void ExportMusicXml::chordAttributes(Chord* chord, Notations& notations, Technic
 //   <arpeggiate direction="up"/>
 //   </notations>
 
-static void arpeggiate(Arpeggio* arp, bool front, bool back, XmlWriter& xml, Notations& notations)
+static void arpeggiate(Arpeggio* arp, bool front, bool back, XmlWriter& xml, Notations& notations, ArpeggioMap& arps,
+                       bool spanArp = false)
 {
     if (!ExportMusicXml::canWrite(arp)) {
+        return;
+    }
+    bool found = false;
+    int arpNo = 1;
+
+    // Number arpeggios spanning multiple voices correctly
+    const std::vector<MusicXmlArpeggioDesc> foundArps = mu::values(arps, arp->tick().ticks());
+    for (const MusicXmlArpeggioDesc arpDesc : foundArps) {
+        if (arpDesc.arp == arp) {
+            found = true;
+            arpNo = arpDesc.no;
+        } else {
+            arpNo = std::max(arpNo, arpDesc.no) + 1;
+        }
+    }
+
+    if (!found && spanArp) {
+        LOGD("span arpeggio without main arpeggio found at tick %d", arp->tick().ticks());
         return;
     }
 
@@ -3498,26 +3518,26 @@ static void arpeggiate(Arpeggio* arp, bool front, bool back, XmlWriter& xml, Not
     switch (arp->arpeggioType()) {
     case ArpeggioType::NORMAL:
         notations.tag(xml, arp);
-        tagName = u"arpeggiate";
+        tagName = u"arpeggiate number=\"" + String::number(arpNo) + u"\"";
         break;
     case ArpeggioType::UP:                  // fall through
     case ArpeggioType::UP_STRAIGHT:         // not supported by MusicXML, export as normal arpeggio
         notations.tag(xml, arp);
-        tagName = u"arpeggiate direction=\"up\"";
+        tagName = u"arpeggiate direction=\"up\" number=\"" + String::number(arpNo) + u"\"";
         break;
     case ArpeggioType::DOWN:                  // fall through
     case ArpeggioType::DOWN_STRAIGHT:         // not supported by MusicXML, export as normal arpeggio
         notations.tag(xml, arp);
-        tagName = u"arpeggiate direction=\"down\"";
+        tagName = u"arpeggiate direction=\"down\" number=\"" + String::number(arpNo) + u"\"";
         break;
     case ArpeggioType::BRACKET:
         if (front) {
             notations.tag(xml, arp);
-            tagName = u"non-arpeggiate type=\"bottom\"";
+            tagName = u"non-arpeggiate type=\"bottom\" number=\"" + String::number(arpNo) + u"\"";
         }
         if (back) {
             notations.tag(xml, arp);
-            tagName = u"non-arpeggiate type=\"top\"";
+            tagName = u"non-arpeggiate type=\"top\" number=\"" + String::number(arpNo) + u"\"";
         }
         break;
     default:
@@ -3529,6 +3549,10 @@ static void arpeggiate(Arpeggio* arp, bool front, bool back, XmlWriter& xml, Not
         tagName += color2xml(arp);
         tagName += ExportMusicXml::positioningAttributes(arp);
         xml.tagRaw(tagName);
+        if (!found) {
+            MusicXmlArpeggioDesc arpDesc(arp, arpNo);
+            arps.insert(std::pair<int, MusicXmlArpeggioDesc>(arp->tick().ticks(), arpDesc));
+        }
     }
 }
 
@@ -3609,30 +3633,24 @@ static void writeBeam(XmlWriter& xml, ChordRest* const cr, Beam* const b)
         LOGD("Beam::writeMusicXml(): cannot find ChordRest");
         return;
     }
-    int blp = -1;   // beam level previous chord
-    int blc = -1;   // beam level current chord
-    int bln = -1;   // beam level next chord
-    BeamMode bmc = BeamMode::AUTO; // beam mode current chord
-    BeamMode bmn = BeamMode::AUTO; // beam mode next chord
-    // find beam level previous chord
+    int blp = -1;   // beam level previous chord or rest
+    int blc = -1;   // beam level current chord or rest
+    int bln = -1;   // beam level next chord or rest
+    BeamMode bmc = BeamMode::AUTO; // beam mode current chord or rest
+    BeamMode bmn = BeamMode::AUTO; // beam mode next chord or rest
+    // find beam level previous chord or rest
     for (size_t i = idx - 1; blp == -1 && i != mu::nidx; --i) {
         const auto crst = elements[i];
-        if (crst->isChord()) {
-            blp = toChord(crst)->beams();
-        }
+        blp = crst->beams();
     }
-    // find beam level current chord
-    if (cr->isChord()) {
-        blc = toChord(cr)->beams();
-        bmc = toChord(cr)->beamMode();
-    }
-    // find beam level next chord
+    // find beam level current chord or rest
+    blc = cr->beams();
+    bmc = cr->beamMode();
+    // find beam level next chord or rest
     for (size_t i = idx + 1; bln == -1 && i < elements.size(); ++i) {
         const auto crst = elements[i];
-        if (crst->isChord()) {
-            bln = toChord(crst)->beams();
-            bmn = toChord(crst)->beamMode();
-        }
+        bln = crst->beams();
+        bmn = crst->beamMode();
     }
     // find beam type and write
     for (int i = 1; i <= blc; ++i) {
@@ -3656,7 +3674,7 @@ static void writeBeam(XmlWriter& xml, ChordRest* const cr, Beam* const b)
         } else if (blp >= i && bln >= i) {
             text = u"continue";
         }
-        if (text != "") {
+        if (!text.empty()) {
             String tag = u"beam";
             tag += String(u" number=\"%1\"").arg(i);
             if (text == u"begin") {
@@ -4227,7 +4245,9 @@ void ExportMusicXml::chord(Chord* chord, staff_idx_t staff, const std::vector<Ly
 
         technical.etag(m_xml);
         if (chord->arpeggio()) {
-            arpeggiate(chord->arpeggio(), note == nl.front(), note == nl.back(), m_xml, notations);
+            arpeggiate(chord->arpeggio(), note == nl.front(), note == nl.back(), m_xml, notations, m_measArpeggios);
+        } else if (chord->spanArpeggio()) {
+            arpeggiate(chord->spanArpeggio(), note == nl.front(), note == nl.back(), m_xml, notations, m_measArpeggios, /*spanArp=*/ true);
         }
         for (Spanner* spanner : note->spannerFor()) {
             if (spanner->type() == ElementType::GLISSANDO && ExportMusicXml::canWrite(spanner)) {
@@ -4375,6 +4395,10 @@ void ExportMusicXml::rest(Rest* rest, staff_idx_t staff, const std::vector<Lyric
 
     if (staff) {
         m_xml.tag("staff", static_cast<int>(staff));
+    }
+
+    if (rest->beam()) {
+        writeBeam(m_xml, rest, rest->beam());
     }
 
     Notations notations;
@@ -5598,6 +5622,9 @@ void ExportMusicXml::lyrics(const std::vector<Lyrics*>& ll, const track_idx_t tr
                 lyricXml += positioningAttributes(l);
                 if (!l->visible()) {
                     lyricXml += u" print-object=\"no\"";
+                }
+                if (l->placeAbove()) {
+                    lyricXml += u" placement=\"above\"";
                 }
                 m_xml.startElementRaw(lyricXml);
                 LyricsSyllabic syl = (l)->syllabic();
@@ -7726,6 +7753,7 @@ void ExportMusicXml::writeMeasureStaves(const Measure* m,
     const Measure* const origM = m;
     m_tboxesAboveWritten = false;
     m_tboxesBelowWritten = false;
+    m_measArpeggios.clear();
 
     for (staff_idx_t staffIdx = startStaff; staffIdx < endStaff; ++staffIdx) {
         // some staves may need to make m point somewhere else, so just in case, ensure start in same place

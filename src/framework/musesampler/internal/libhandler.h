@@ -257,7 +257,7 @@ public:
     MuseSamplerLibHandler(const io::path_t& path)
     {
         // The specific versions supported, based on known functions/etc:
-        const framework::Version minimumSupported{ 0, 2, 2 };
+        const mu::Version minimumSupported{ 0, 2, 2 };
         constexpr int maximumMajorVersion = 0;
 
         m_lib = loadLib(path);
@@ -279,9 +279,9 @@ public:
             return;
         }
 
-        framework::Version current(getVersionMajor(),
-                                   getVersionMinor(),
-                                   getVersionRevision());
+        mu::Version current(getVersionMajor(),
+                            getVersionMinor(),
+                            getVersionRevision());
         if (current < minimumSupported) {
             LOGE() << "MuseSampler " << current.toString() << " is not supported (too old -- update MuseSampler); ignoring";
             return;
@@ -302,6 +302,8 @@ public:
         bool at_least_v_0_4 = (versionMajor == 0 && versionMinor >= 4) || versionMajor > 0;
         bool at_least_v_0_5 = (versionMajor == 0 && versionMinor >= 5) || versionMajor > 0;
         bool at_least_v_0_6 = (versionMajor == 0 && versionMinor >= 6) || versionMajor > 0;
+
+        m_supportsMultipleTracks = at_least_v_0_6;
 
         containsInstrument = (ms_contains_instrument)getLibFunc(m_lib, "ms_contains_instrument");
         getMatchingInstrumentId = (ms_get_matching_instrument_id)getLibFunc(m_lib, "ms_get_matching_instrument_id");
@@ -554,6 +556,13 @@ public:
                && allNotesOff;
     }
 
+    //! NOTE: There was a bug in ms_MuseSampler_add_track
+    //! that prevented adding more than 1 track (fixed in v0.6)
+    bool supportsMultipleTracks() const
+    {
+        return m_supportsMultipleTracks;
+    }
+
 private:
     void printApiStatus() const
     {
@@ -613,6 +622,7 @@ private:
     }
 
     MuseSamplerLib m_lib = nullptr;
+    bool m_supportsMultipleTracks = false;
 };
 #endif
 
