@@ -240,6 +240,7 @@ public:
     Q_INVOKABLE bool removeCustomPalette(const QPersistentModelIndex&);
 
     Q_INVOKABLE bool resetPalette(const QModelIndex&);
+    Q_INVOKABLE void setFilter(const QString&); // KRASKO
 
     Q_INVOKABLE bool savePalette(const QModelIndex&);
     Q_INVOKABLE bool loadPalette(const QModelIndex&);
