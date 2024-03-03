@@ -624,7 +624,7 @@ void PaletteProvider::setSearching(bool searching)
 
     if (!searching) {
         if (m_searchFilterModel) {
-            m_searchFilterModel->setFilterFixedString("");
+            //m_searchFilterModel->setFilterFixedString(""); // KRASKO: keep the last search results
         }
     }
 
