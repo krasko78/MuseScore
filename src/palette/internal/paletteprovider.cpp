@@ -600,7 +600,7 @@ void PaletteProvider::init()
 
     m_searchFilterModel = new PaletteCellFilterProxyModel(this);
     m_searchFilterModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
-    //m_searchFilterModel->setSourceModel(m_masterPaletteModel); // KRASKO: The model will be set in setFilter() as soon as their is a filter
+    //m_searchFilterModel->setSourceModel(m_masterPaletteModel); // KRASKO: The model will be set in setFilter() as soon as there is a filter
 
     m_visibilityFilterModel = new QSortFilterProxyModel(this);
     m_visibilityFilterModel->setFilterRole(PaletteTreeModel::VisibleRole);
