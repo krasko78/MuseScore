@@ -106,6 +106,7 @@ public:
     async::Notification dragChanged() const override;
 
     bool isDragCopyStarted() const override;
+    bool dragCopyAllowed(const EngravingItem* element) const override;
     void startDragCopy(const EngravingItem* element, QObject* dragSource) override;
     void endDragCopy() override;
 
@@ -151,7 +152,6 @@ public:
     async::Notification textEditingStarted() const override;
     async::Notification textEditingChanged() const override;
     async::Channel<TextBase*> textEditingEnded() const override;
-    async::Channel<TextBase*> textAdded() const override;
 
     // Grip edit
     bool isGripEditStarted() const override;

@@ -78,6 +78,12 @@ void NotationViewInputController::init()
             setViewMode(ViewMode::PAGE);
         });
 
+        if (globalConfiguration()->devModeEnabled()) {
+            dispatcher()->reg(this, "view-mode-float", [this]() {
+                setViewMode(ViewMode::FLOAT);
+            });
+        }
+
         dispatcher()->reg(this, "view-mode-continuous", [this]() {
             setViewMode(ViewMode::LINE);
         });
@@ -605,7 +611,9 @@ void NotationViewInputController::mousePressEvent(QMouseEvent* event)
     }
 
     if (keyState == (Qt::ShiftModifier | Qt::ControlModifier)) {
-        viewInteraction()->startDragCopy(hitElement, m_view->asItem());
+        if (viewInteraction()->dragCopyAllowed(hitElement)) {
+            viewInteraction()->startDragCopy(hitElement, m_view->asItem());
+        }
         return;
     }
 
@@ -794,7 +802,7 @@ void NotationViewInputController::startDragElements(ElementType elementsType, co
         return;
     }
 
-    std::vector<EngravingItem*> elements = viewInteraction()->selection()->elements();
+    const std::vector<EngravingItem*>& elements = viewInteraction()->selection()->elements();
     if (elements.empty()) {
         return;
     }

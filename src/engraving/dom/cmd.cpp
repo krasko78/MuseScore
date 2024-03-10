@@ -747,7 +747,7 @@ void Score::addInterval(int val, const std::vector<Note*>& nl)
         int ntpc2;
         bool accidental = m_is.noteEntryMode() && m_is.accidentalType() != AccidentalType::NONE;
         bool forceAccidental = false;
-        if (abs(valTmp) != 7 || accidental) {
+        if (std::abs(valTmp) != 7 || accidental) {
             int line      = on->line() - valTmp;
             Fraction tick      = chord->tick();
             Staff* estaff = staff(on->staffIdx() + chord->staffMove());
@@ -2782,39 +2782,6 @@ void Score::resetAutoplace()
     TRACEFUNC;
 
     scanElements(nullptr, resetElementPosition);
-}
-
-//---------------------------------------------------------
-//   resetDefaults
-//    Resets slur and tie positioning. Used in score migration.
-//---------------------------------------------------------
-
-void Score::resetSlurTieDefaults()
-{
-    TRACEFUNC;
-
-    for (System* sys : systems()) {
-        for (SpannerSegment* spannerSegment : sys->spannerSegments()) {
-            if (spannerSegment->isSlurTieSegment()) {
-                bool retainDirection = true;
-                SlurTieSegment* slurTieSegment = toSlurTieSegment(spannerSegment);
-                if (slurTieSegment->slurTie()->isTie()) {
-                    Tie* tie = toTie(slurTieSegment->slurTie());
-                    if (tie->isInside()) {
-                        retainDirection = false;
-                    }
-                }
-                auto dir = slurTieSegment->slurTie()->slurDirection();
-                bool autoplace = slurTieSegment->slurTie()->autoplace();
-                slurTieSegment->reset();
-                if (retainDirection) {
-                    slurTieSegment->slurTie()->setSlurDirection(dir);
-                }
-                slurTieSegment->slurTie()->setAutoplace(autoplace);
-            }
-        }
-    }
-    doLayout();
 }
 
 //---------------------------------------------------------

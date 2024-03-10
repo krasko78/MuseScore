@@ -978,6 +978,7 @@ void SingleLayout::layout(GradualTempoChangeSegment* item, const Context& ctx)
 void SingleLayout::layout(GuitarBend*, const Context&)
 {
     NOT_IMPLEMENTED;
+    //! NOTE: Bends can be removed from disallowed elements in NotationInteraction::dragCopyAllowed once this has been implemented
 }
 
 void SingleLayout::layout(GuitarBendSegment*, const Context&)
@@ -1151,7 +1152,7 @@ void SingleLayout::layout(KeySig* item, const Context& ctx)
     if (item->isCustom() && !item->isAtonal()) {
         double accidentalGap = ctx.style().styleS(Sid::keysigAccidentalDistance).val();
         // add standard key accidentals first, if necessary
-        for (int i = 1; i <= abs(key) && abs(key) <= 7; ++i) {
+        for (int i = 1; i <= std::abs(key) && std::abs(key) <= 7; ++i) {
             bool drop = false;
             for (const CustDef& cd: item->customKeyDefs()) {
                 int degree = item->degInKey(cd.degree);
@@ -2024,12 +2025,12 @@ void SingleLayout::layoutTextLineBaseSegment(TextLineBaseSegment* item, const Co
         double endHookWidth = 0.0;
 
         if (tl->beginHookType() == HookType::HOOK_45) {
-            beginHookWidth = fabs(beginHookHeight * .4);
+            beginHookWidth = std::fabs(beginHookHeight * .4);
             pp1.rx() += beginHookWidth;
         }
 
         if (tl->endHookType() == HookType::HOOK_45) {
-            endHookWidth = fabs(endHookHeight * .4);
+            endHookWidth = std::fabs(endHookHeight * .4);
             pp2.rx() -= endHookWidth;
         }
 

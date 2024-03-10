@@ -1131,17 +1131,30 @@ bool NotationInteraction::isDragCopyStarted() const
     return m_drag != nullptr;
 }
 
+bool NotationInteraction::dragCopyAllowed(const EngravingItem* element) const
+{
+    if (!element) {
+        return false;
+    }
+
+    switch (element->type()) {
+    case ElementType::MEASURE:
+    case ElementType::NOTE:
+    case ElementType::VBOX:
+    // TODO: Bends can't be copy-dragged until corresponding SingleLayout::layout and SingleDraw::draw methods have been implemented
+    case ElementType::GUITAR_BEND:
+    case ElementType::GUITAR_BEND_SEGMENT:
+    case ElementType::GUITAR_BEND_HOLD:
+    case ElementType::GUITAR_BEND_HOLD_SEGMENT:
+    case ElementType::GUITAR_BEND_TEXT:
+        return false;
+    default: return true;
+    }
+}
+
 //! NOTE: Copied from ScoreView::cloneElement
 void NotationInteraction::startDragCopy(const EngravingItem* element, QObject* dragSource)
 {
-    if (!element) {
-        return;
-    }
-
-    if (element->isMeasure() || element->isNote() || element->isVBox()) {
-        return;
-    }
-
     if (isDragStarted()) {
         endDragCopy();
     }
@@ -1496,10 +1509,6 @@ bool NotationInteraction::drop(const PointF& pos, Qt::KeyboardModifiers modifier
                 accepted = true;
                 break;
             }
-        }
-
-        if (dropElement && dropElement->isTextBase()) {
-            m_textAdded.send(toTextBase(dropElement));
         }
 
         score()->addRefresh(el->canvasBoundingRect());
@@ -1987,10 +1996,6 @@ void NotationInteraction::applyDropPaletteElement(mu::engraving::Score* score, m
                 rollback();
                 return;
             }
-        }
-
-        if (el && el->isTextBase()) {
-            m_textAdded.send(toTextBase(el));
         }
 
         if (el && !score->inputState().noteEntryMode()) {
@@ -3145,11 +3150,6 @@ mu::async::Channel<TextBase*> NotationInteraction::textEditingEnded() const
     return m_textEditingEnded;
 }
 
-async::Channel<TextBase*> NotationInteraction::textAdded() const
-{
-    return m_textAdded;
-}
-
 mu::async::Channel<ScoreConfigType> NotationInteraction::scoreConfigChanged() const
 {
     return m_scoreConfigChanged;
@@ -3480,7 +3480,7 @@ mu::Ret NotationInteraction::canAddBoxes() const
         return make_ok();
     }
 
-    static const std::vector<ElementType> boxesTypes {
+    static const ElementTypeSet BOX_TYPES {
         ElementType::VBOX, ElementType::HBOX, ElementType::TBOX
     };
 
@@ -3489,7 +3489,7 @@ mu::Ret NotationInteraction::canAddBoxes() const
             return make_ok();
         }
 
-        if (std::find(boxesTypes.cbegin(), boxesTypes.cend(), element->type()) != boxesTypes.cend()) {
+        if (mu::contains(BOX_TYPES, element->type())) {
             return make_ok();
         }
     }
@@ -3519,14 +3519,14 @@ void NotationInteraction::addBoxes(BoxType boxType, int count, AddBoxesTarget ta
             break;
         }
 
-        auto elements = selection()->elements();
+        const std::vector<EngravingItem*>& elements = selection()->elements();
         IF_ASSERT_FAILED(!elements.empty()) {
             // This would contradict the fact that selection()->isNone() == false at this point
             return;
         }
 
-        for (mu::engraving::EngravingItem* item : elements) {
-            mu::engraving::MeasureBase* itemMeasure = item->findMeasureBase();
+        for (const EngravingItem* item : elements) {
+            const MeasureBase* itemMeasure = item->findMeasureBase();
             if (!itemMeasure) {
                 continue;
             }
@@ -3731,13 +3731,7 @@ void NotationInteraction::pasteSelection(const Fraction& scale)
     } else {
         const QMimeData* mimeData = QApplication::clipboard()->mimeData();
         QMimeDataAdapter ma(mimeData);
-        std::vector<EngravingItem*> pastedElements = score()->cmdPaste(&ma, nullptr, scale);
-
-        for (EngravingItem* element : pastedElements) {
-            if (element->isTextBase()) {
-                m_textAdded.send(toTextBase(element));
-            }
-        }
+        score()->cmdPaste(&ma, nullptr, scale);
     }
 
     apply();
@@ -4272,7 +4266,6 @@ void NotationInteraction::addText(TextStyleType type, EngravingItem* item)
     }
 
     apply();
-    m_textAdded.send(text);
     showItem(text);
 
     if (!text->isInstrumentChange()) {
@@ -4408,12 +4401,12 @@ void NotationInteraction::removeSelectedMeasures()
         firstMeasure = measureRange.startMeasure;
         lastMeasure = measureRange.endMeasure;
     } else {
-        auto elements = selection()->elements();
+        const std::vector<EngravingItem*>& elements = selection()->elements();
         if (elements.empty()) {
             return;
         }
 
-        for (auto element : elements) {
+        for (EngravingItem* element : elements) {
             mu::engraving::MeasureBase* elementMeasure = element->findMeasureBase();
 
             if (!firstMeasure || firstMeasure->index() > elementMeasure->index()) {

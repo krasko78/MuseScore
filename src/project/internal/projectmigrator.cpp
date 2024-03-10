@@ -165,8 +165,8 @@ Ret ProjectMigrator::migrateProject(engraving::EngravingProjectPtr project, cons
 
     if (ok && m_resetStyleSettings) {
         resetStyleSettings(score);
+        score->setLayoutAll();
     }
-    score->setResetDefaults(); // some defaults need to be reset on first layout
     score->endCmd();
 
     return ok ? make_ret(Ret::Code::Ok) : make_ret(Ret::Code::InternalError);
