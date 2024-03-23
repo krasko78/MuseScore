@@ -81,7 +81,7 @@ public:
 signals:
     void initedChanged();
 
-    void iconRectChanged();
+    void iconRectChanged(const QRect& rect);
 
     void titleChanged();
 
@@ -94,6 +94,8 @@ signals:
     void contextMenuModelChanged();
 
 private:
+    void load();
+
     project::IProjectAudioSettingsPtr audioSettings() const;
     const audio::AudioInputParams& currentAudioInputParams() const;
 
@@ -104,7 +106,10 @@ private:
     void setAvailableSoundPresets(const audio::SoundPresetList& presets);
     void loadAvailablePlayingTechniques();
 
-    uicomponents::MenuItem* buildMenuItem(const QString& actionCode, const TranslatableString& title);
+    uicomponents::MenuItem* buildMenuItem(const QString& actionCode, const TranslatableString& title, bool enabled = true);
+
+    QString defaultPresetCode() const;
+    QString defaultPlayingTechniqueCode() const;
 
     bool updateStaffText();
 

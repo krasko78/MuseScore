@@ -59,7 +59,9 @@ void QmlToolTip::show(QQuickItem* item, const QString& title, const QString& des
     m_item = item;
     m_shouldBeClosed = false;
 
-    connect(m_item, &QObject::destroyed, this, &QmlToolTip::onItemDestruction); // KRASKO
+    if (m_item) {
+        connect(m_item, &QObject::destroyed, this, &QmlToolTip::onItemDestruction);
+    }
 
     if (toolTipNotOpened || openTimerStarted) {
         m_openTimer.start(INTERVAL);
@@ -102,8 +104,7 @@ void QmlToolTip::doShow()
     }
 
     if (m_shouldBeClosed) {
-        m_item = nullptr;
-        m_shouldBeClosed = false;
+        clear();
         return;
     }
 
@@ -124,17 +125,10 @@ void QmlToolTip::doHide()
         return;
     }
 
-    if (m_item) {
-        disconnect(m_item, &QObject::destroyed, this, &QmlToolTip::onItemDestruction);
-    }
-
     m_openTimer.stop();
     m_closeTimer.stop();
 
-    m_item = nullptr;
-    m_title = QString();
-    m_description = QString();
-    m_shortcut = QString();
+    clear();
 
     emit hideToolTip();
 }
@@ -147,4 +141,18 @@ bool QmlToolTip::eventFilter(QObject*, QEvent* event)
     }
 
     return false;
+}
+
+void QmlToolTip::clear()
+{
+    if (m_item) {
+        disconnect(m_item, &QObject::destroyed, this, &QmlToolTip::onItemDestruction);
+    }
+
+    m_item = nullptr;
+    m_title = QString();
+    m_description = QString();
+    m_shortcut = QString();
+
+    m_shouldBeClosed = false;
 }

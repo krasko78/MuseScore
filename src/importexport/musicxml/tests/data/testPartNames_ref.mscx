@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="4.20">
+<museScore version="4.40">
   <Score>
     <Division>480</Division>
     <Style>
@@ -12,6 +12,7 @@
       <pageEvenBottomMargin>0.590551</pageEvenBottomMargin>
       <pageOddTopMargin>0.590551</pageOddTopMargin>
       <pageOddBottomMargin>0.590551</pageOddBottomMargin>
+      <romanNumeralFontFace>Edwin</romanNumeralFontFace>
       <nashvilleNumberFontSize>10</nashvilleNumberFontSize>
       <tupletFontSize>10</tupletFontSize>
       <fingeringFontSize>10</fingeringFontSize>
@@ -825,6 +826,7 @@
             <Lyrics>
               <ticks>26880</ticks>
               <ticks_f>56/4</ticks_f>
+              <offset x="0" y="-1.7145"/>
               <text>yes!</text>
               </Lyrics>
             <Note>
@@ -1233,6 +1235,7 @@
             <Lyrics>
               <ticks>26880</ticks>
               <ticks_f>56/4</ticks_f>
+              <offset x="0" y="-1.7145"/>
               <text>no</text>
               </Lyrics>
             <Note>

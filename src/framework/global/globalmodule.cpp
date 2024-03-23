@@ -43,6 +43,13 @@
 
 #include "io/internal/filesystem.h"
 
+#include "api/internal/apiregister.h"
+#include "api/iapiregister.h"
+#include "api/logapi.h"
+#include "api/interactiveapi.h"
+#include "api/filesystemapi.h"
+#include "api/processapi.h"
+
 #include "diagnostics/idiagnosticspathsregister.h"
 
 #include "log.h"
@@ -71,6 +78,20 @@ void GlobalModule::registerExports()
     ioc()->registerExport<IFileSystem>(moduleName(), new FileSystem());
     ioc()->registerExport<ICryptographicHash>(moduleName(), new CryptographicHash());
     ioc()->registerExport<IProcess>(moduleName(), new Process());
+    ioc()->registerExport<api::IApiRegister>(moduleName(), new api::ApiRegister());
+}
+
+void GlobalModule::registerApi()
+{
+    using namespace mu::api;
+
+    auto api = ioc()->resolve<IApiRegister>(moduleName());
+    if (api) {
+        api->regApiCreator(moduleName(), "api.log", new ApiCreator<LogApi>());
+        api->regApiCreator(moduleName(), "api.interactive", new api::ApiCreator<InteractiveApi>());
+        api->regApiCreator(moduleName(), "api.process", new ApiCreator<ProcessApi>());
+        api->regApiCreator(moduleName(), "api.filesystem", new ApiCreator<FileSystemApi>());
+    }
 }
 
 void GlobalModule::onPreInit(const IApplication::RunMode& mode)

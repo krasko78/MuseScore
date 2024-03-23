@@ -1218,7 +1218,7 @@ static bool convertArticulationToSymId(const String& mxmlName, SymId& id)
         map[u"up-bow"]           = SymId::stringsUpBow;
         map[u"down-bow"]         = SymId::stringsDownBow;
         map[u"detached-legato"]  = SymId::articTenutoStaccatoAbove;
-        map[u"spiccato"]         = SymId::articStaccatissimoAbove;
+        map[u"spiccato"]         = SymId::articStaccatissimoStrokeAbove;
         map[u"snap-pizzicato"]   = SymId::pluckedSnapPizzicatoAbove;
         map[u"schleifer"]        = SymId::ornamentPrecompSlide;
         map[u"open"]             = SymId::brassMuteOpen;
@@ -2322,6 +2322,7 @@ void MusicXMLParserPass2::measure(const String& partId, const Fraction time)
     Tuplets tuplets;         // Current tuplet for each voice in the current part
     DelayedDirectionsList delayedDirections; // Directions to be added to score *after* collecting all and sorting
     ArpeggioMap arpMap;
+    DelayedArpMap delayedArps;
 
     // collect candidates for courtesy accidentals to work out at measure end
     std::map<Note*, int> alterMap;
@@ -2352,7 +2353,7 @@ void MusicXMLParserPass2::measure(const String& partId, const Fraction time)
             // note: chord and grace note handling done in note()
             // dura > 0 iff valid rest or first note of chord found
             Note* n = note(partId, measure, time + mTime, time + prevTime, missingPrev, dura, missingCurr, cv, gcl, gac, beams, fbl, alt,
-                           tupletStates, tuplets, arpMap);
+                           tupletStates, tuplets, arpMap, delayedArps);
             if (n && !n->chord()->isGrace()) {
                 prevChord = n->chord();          // remember last non-grace chord
             }
@@ -3064,8 +3065,12 @@ void MusicXMLParserDirection::direction(const String& partId,
         } else {
             String spannerPlacement = placement;
             // Case-based defaults
-            if (spannerPlacement.empty() && desc.sp->isHairpin()) {
-                spannerPlacement = isVocalStaff ? u"above" : u"below";
+            if (spannerPlacement.empty()) {
+                if (desc.sp->isHairpin()) {
+                    spannerPlacement = isVocalStaff ? u"above" : u"below";
+                } else {
+                    spannerPlacement = totalY() < 0 ? u"above" : u"below";
+                }
             }
             if (spdesc.isStopped) {
                 m_pass2.addSpanner(desc);
@@ -5208,7 +5213,7 @@ Note* MusicXMLParserPass2::note(const String& partId,
                                 FiguredBassList& fbl,
                                 int& alt,
                                 MxmlTupletStates& tupletStates,
-                                Tuplets& tuplets, ArpeggioMap& arpMap)
+                                Tuplets& tuplets, ArpeggioMap& arpMap, DelayedArpMap& delayedArps)
 {
     if (m_e.asciiAttribute("print-spacing") == "no") {
         notePrintSpacingNo(dura);
@@ -5545,7 +5550,7 @@ Note* MusicXMLParserPass2::note(const String& partId,
 
     // handle notations
     if (cr) {
-        notations.addToScore(cr, note, noteStartTime.ticks(), m_slurs, m_glissandi, m_spanners, m_trills, m_tie, arpMap);
+        notations.addToScore(cr, note, noteStartTime.ticks(), m_slurs, m_glissandi, m_spanners, m_trills, m_tie, arpMap, delayedArps);
 
         // if no tie added yet, convert the "tie" into "tied" and add it.
         if (note && !note->tieFor() && !tieType.empty()) {
@@ -6269,6 +6274,8 @@ void MusicXMLParserLyric::parse()
     const Color lyricColor = Color::fromString(m_e.asciiAttribute("color").ascii());
     const bool printLyric = m_e.asciiAttribute("print-object") != "no";
     const String placement = m_e.attribute("placement");
+    double relX = m_e.doubleAttribute("relative-x") / 10 * DPMM;
+    double relY = m_e.doubleAttribute("relative-y") / 10 * DPMM;
     String extendType;
     String formattedText;
 
@@ -6326,6 +6333,14 @@ void MusicXMLParserLyric::parse()
     if (!placement.empty()) {
         lyric->setPlacement(placement == "above" ? PlacementV::ABOVE : PlacementV::BELOW);
         lyric->setPropertyFlags(Pid::PLACEMENT, PropertyFlags::UNSTYLED);
+    }
+
+    if (relX != 0 || relY != 0) {
+        PointF offset = lyric->offset();
+        offset.setX(relX != 0 ? relX : lyric->offset().x());
+        offset.setY(relY != 0 ? relY : lyric->offset().y());
+        lyric->setOffset(offset);
+        lyric->setPropertyFlags(Pid::OFFSET, PropertyFlags::UNSTYLED);
     }
 
     const auto l = lyric.release();
@@ -6837,9 +6852,23 @@ static void addGlissandoSlide(const Notation& notation, Note* note,
 //   addArpeggio
 //---------------------------------------------------------
 
-static void addArpeggio(ChordRest* cr, const String& arpeggioType, const int arpeggioNo, ArpeggioMap& arpMap,
-                        MxmlLogger* logger, const XmlStreamReader* const xmlreader)
+static void addArpeggio(ChordRest* cr, String& arpeggioType, int arpeggioNo, ArpeggioMap& arpMap,
+                        MxmlLogger* logger, const XmlStreamReader* const xmlreader, DelayedArpMap& delayedArps)
 {
+    if (cr->isRest() && !arpeggioType.empty()) {
+        // If the arpeggio is attached to a rest, store to add to the next available chord
+        DelayedArpeggio delayedArp(arpeggioType, arpeggioNo);
+        delayedArps.insert(std::pair<int, DelayedArpeggio>(cr->tick().ticks(), delayedArp));
+    } else {
+        // Retrieve stored arpeggio to add to this chord
+        DelayedArpeggio delayedArp = mu::value(delayedArps, cr->tick().ticks(), DelayedArpeggio(u"", 0));
+        if (!delayedArp.m_arpeggioType.empty()) {
+            arpeggioType = delayedArp.m_arpeggioType;
+            arpeggioNo = delayedArp.m_arpeggioNo;
+            delayedArps.erase(cr->tick().ticks());
+        }
+    }
+
     // If no current arpeggio with same number add new
     // If not, expand span
     // no support for arpeggio on rest
@@ -7265,9 +7294,9 @@ void MusicXMLParserNotations::addNotation(const Notation& notation, ChordRest* c
 
 void MusicXMLParserNotations::addToScore(ChordRest* const cr, Note* const note, const int tick, SlurStack& slurs,
                                          Glissando* glissandi[MAX_NUMBER_LEVEL][2], MusicXmlSpannerMap& spanners,
-                                         TrillStack& trills, Tie*& tie, ArpeggioMap& arpMap)
+                                         TrillStack& trills, Tie*& tie, ArpeggioMap& arpMap, DelayedArpMap& delayedArps)
 {
-    addArpeggio(cr, m_arpeggioType, m_arpeggioNo, arpMap, m_logger, &m_e);
+    addArpeggio(cr, m_arpeggioType, m_arpeggioNo, arpMap, m_logger, &m_e, delayedArps);
     addBreath(cr, cr->tick(), m_breath);
     addWavyLine(cr, Fraction::fromTicks(tick), m_wavyLineNo, m_wavyLineType, spanners, trills, m_logger, &m_e);
 

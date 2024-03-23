@@ -185,9 +185,14 @@ RetVal<io::path_t> InteractiveProvider::selectDirectory(const std::string& title
 RetVal<Val> InteractiveProvider::open(const UriQuery& q)
 {
     m_openingUriQuery = q;
+    RetVal<OpenData> openedRet;
+
+    //! NOTE Currently, extensions do not replace the default functionality
+    //! But in the future, we may allow extensions to replace the current functionality
+    //! (first check for the presence of an extension with this uri,
+    //! and if it is found, then open it)
 
     ContainerMeta openMeta = uriRegister()->meta(q.uri());
-    RetVal<OpenData> openedRet;
     switch (openMeta.type) {
     case ContainerType::QWidgetDialog:
         openedRet = openWidgetDialog(q);
@@ -196,8 +201,15 @@ RetVal<Val> InteractiveProvider::open(const UriQuery& q)
     case ContainerType::QmlDialog:
         openedRet = openQml(q);
         break;
-    case ContainerType::Undefined:
-        openedRet.ret = make_ret(Ret::Code::UnknownError);
+    case ContainerType::Undefined: {
+        //! NOTE Not found default, try extension
+        extensions::Manifest ext = extensionsProvider()->manifest(q.uri());
+        if (ext.isValid()) {
+            openedRet = openExtensionDialog(q);
+        } else {
+            openedRet.ret = make_ret(Ret::Code::UnknownError);
+        }
+    }
     }
 
     if (!openedRet.ret) {
@@ -314,6 +326,22 @@ void InteractiveProvider::closeObject(const ObjectInfo& obj)
     case ContainerType::Undefined:
         break;
     }
+}
+
+void InteractiveProvider::fillExtData(QmlLaunchData* data, const UriQuery& q) const
+{
+    static Uri VIEWER_URI = Uri("musescore://extensions/viewer");
+
+    ContainerMeta meta = uriRegister()->meta(VIEWER_URI);
+    data->setValue("path", meta.qmlPath);
+    data->setValue("type", meta.type);
+
+    QVariantMap params;
+    params["uri"] = QString::fromStdString(q.toString());
+
+    data->setValue("sync", params.value("sync", false));
+    data->setValue("modal", params.value("modal", ""));
+    data->setValue("params", params);
 }
 
 void InteractiveProvider::fillData(QmlLaunchData* data, const UriQuery& q) const
@@ -549,6 +577,23 @@ RetVal<Val> InteractiveProvider::toRetVal(const QVariant& jsrv) const
     rv.val = Val::fromQVariant(val);
 
     return rv;
+}
+
+RetVal<InteractiveProvider::OpenData> InteractiveProvider::openExtensionDialog(const UriQuery& q)
+{
+    notifyAboutCurrentUriWillBeChanged();
+
+    QmlLaunchData data;
+    fillExtData(&data, q);
+
+    emit fireOpen(&data);
+
+    RetVal<OpenData> result;
+    result.ret = toRet(data.value("ret"));
+    result.val.sync = data.value("sync").toBool();
+    result.val.objectId = data.value("objectId").toString();
+
+    return result;
 }
 
 RetVal<InteractiveProvider::OpenData> InteractiveProvider::openWidgetDialog(const UriQuery& q)

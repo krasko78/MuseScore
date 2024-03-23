@@ -66,7 +66,13 @@ PlaybackParamMap PlaybackContext::playbackParamMap(const Score* score, const int
     mu::mpe::PlaybackParamMap result;
 
     auto it = mu::findLessOrEqual(m_playbackParamMap, nominalPositionTick);
-    for (; it != m_playbackParamMap.end(); ++it) {
+    if (it == m_playbackParamMap.end()) {
+        return result;
+    }
+
+    auto endIt = m_playbackParamMap.upper_bound(nominalPositionTick);
+
+    for (; it != endIt; ++it) {
         result.insert_or_assign(timestampFromTicks(score, it->first), it->second);
     }
 
@@ -122,6 +128,20 @@ void PlaybackContext::clear()
     m_dynamicsMap.clear();
     m_playTechniquesMap.clear();
     m_playbackParamMap.clear();
+}
+
+bool PlaybackContext::hasSoundFlags() const
+{
+    for (const auto& pair : m_playbackParamMap) {
+        for (const mpe::PlaybackParam& param : pair.second) {
+            if (param.code == mpe::SOUND_PRESET_PARAM_CODE
+                || param.code == mpe::PLAY_TECHNIQUE_PARAM_CODE) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 dynamic_level_t PlaybackContext::nominalDynamicLevel(const int positionTick) const
@@ -190,6 +210,10 @@ void PlaybackContext::updatePlayTechMap(const PlayTechAnnotation* annotation, co
 
 void PlaybackContext::updatePlaybackParamMap(const SoundFlag* flag, const int segmentPositionTick)
 {
+    if (!flag->play()) {
+        return;
+    }
+
     if (flag->soundPresets().empty() && flag->playingTechnique().empty()) {
         return;
     }

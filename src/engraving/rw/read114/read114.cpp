@@ -82,6 +82,7 @@
 #include "dom/timesig.h"
 #include "dom/tremolotwochord.h"
 #include "dom/tremolosinglechord.h"
+#include "dom/trill.h"
 #include "dom/tuplet.h"
 #include "dom/utils.h"
 #include "dom/volta.h"
@@ -2342,15 +2343,16 @@ static void readBox(XmlReader& e, ReadContext& ctx, Box* b)
     b->setBoxHeight(Spatium(0));       // override default set in constructor
     b->setBoxWidth(Spatium(0));
     b->setAutoSizeEnabled(false);
+    System* bSystem = b->system() ? b->system() : ctx.dummy()->system();
 
     while (e.readNextStartElement()) {
         const AsciiStringView tag(e.name());
         if (tag == "HBox") {
-            HBox* hb = Factory::createHBox(b->system());
+            HBox* hb = Factory::createHBox(bSystem);
             readBox(e, ctx, hb);
             b->add(hb);
         } else if (tag == "VBox") {
-            VBox* vb = Factory::createVBox(b->system());
+            VBox* vb = Factory::createVBox(bSystem);
             readBox(e, ctx, vb);
             b->add(vb);
         } else if (!readBoxProperties(e, ctx, b)) {
@@ -2945,6 +2947,8 @@ Err Read114::readScore(Score* score, XmlReader& e, ReadInOutData* out)
             } else if (tag == "Pedal") {
                 readPedal114(e, ctx, toPedal(s));
             } else if (tag == "Trill") {
+                Ornament* ornament = Factory::createOrnament(score->dummy()->chord());
+                toTrill(s)->setOrnament(ornament);
                 Read206::readTrill206(e, ctx, toTrill(s));
             } else {
                 assert(tag == "HairPin");
@@ -3232,6 +3236,20 @@ Err Read114::readScore(Score* score, XmlReader& e, ReadInOutData* out)
     masterScore->updateChannel();
 
     CompatUtils::assignInitialPartToExcerpts(masterScore->excerpts());
+
+    // Cleanup invalid spanners
+    std::vector<Spanner*> invalidSpanners;
+    auto spanners = score->spanner();
+    for (auto iter = spanners.begin(); iter != spanners.end(); ++iter) {
+        Spanner* spanner = (*iter).second;
+        bool invalid = spanner->tick().negative() || spanner->track() == mu::nidx;
+        if (invalid) {
+            invalidSpanners.push_back(spanner);
+        }
+    }
+    for (Spanner* invalidSpanner : invalidSpanners) {
+        score->removeElement(invalidSpanner);
+    }
 
     return Err::NoError;
 }

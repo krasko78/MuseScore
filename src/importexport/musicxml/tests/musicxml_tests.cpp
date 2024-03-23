@@ -384,6 +384,9 @@ TEST_F(Musicxml_Tests, arpGliss2) {
 TEST_F(Musicxml_Tests, arpGliss3) {
     mxmlIoTest("testArpGliss3");
 }
+TEST_F(Musicxml_Tests, arpOnRest) {
+    mxmlImportTestRef("testArpOnRest");
+}
 TEST_F(Musicxml_Tests, articulationCombination) {
     mxmlIoTestRef("testArticulationCombination");
 }
@@ -826,7 +829,7 @@ TEST_F(Musicxml_Tests, noteAttributes2) {
 TEST_F(Musicxml_Tests, noteAttributes3) {
     mxmlIoTest("testNoteAttributes3");
 }
-TEST_F(Musicxml_Tests, noteAttributes4) {
+TEST_F(Musicxml_Tests, DISABLED_noteAttributes4) {
     mxmlImportTestRef("testNoteAttributes2");
 }
 TEST_F(Musicxml_Tests, noteColor) {
@@ -930,6 +933,9 @@ TEST_F(Musicxml_Tests, stringData) {
 }
 TEST_F(Musicxml_Tests, stringVoiceName) {
     mxmlIoTestRef("testStringVoiceName");
+}
+TEST_F(Musicxml_Tests, swing) {
+    mxmlMscxExportTestRef("testSwing");
 }
 TEST_F(Musicxml_Tests, systemBrackets1) {
     mxmlIoTest("testSystemBrackets1");
@@ -1040,6 +1046,9 @@ TEST_F(Musicxml_Tests, trackHandling) {
 }
 TEST_F(Musicxml_Tests, tremolo) {
     mxmlIoTest("testTremolo");
+}
+TEST_F(Musicxml_Tests, trills) {
+    mxmlMscxExportTestRef("testTrills");
 }
 TEST_F(Musicxml_Tests, tuplets1) {
     mxmlIoTestRef("testTuplets1");

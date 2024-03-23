@@ -65,6 +65,11 @@ void PlaybackConfigurationStub::setMixerSectionVisible(MixerSectionType, bool)
 {
 }
 
+mu::async::Channel<MixerSectionType, bool> PlaybackConfigurationStub::isMixerSectionVisibleChanged() const
+{
+    return {};
+}
+
 bool PlaybackConfigurationStub::isAuxSendVisible(audio::aux_channel_idx_t) const
 {
     return false;
@@ -140,5 +145,14 @@ bool PlaybackConfigurationStub::soundPresetsMultiSelectionEnabled() const
 }
 
 void PlaybackConfigurationStub::setSoundPresetsMultiSelectionEnabled(bool)
+{
+}
+
+bool PlaybackConfigurationStub::needToShowChangeSoundWarning() const
+{
+    return false;
+}
+
+void PlaybackConfigurationStub::setNeedToShowChangeSoundWarning(bool)
 {
 }

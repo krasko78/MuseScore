@@ -50,6 +50,8 @@ static const Settings::Key MIXER_FADER_SECTION_VISIBLE_KEY(moduleName, "playback
 static const Settings::Key MIXER_MUTE_AND_SOLO_SECTION_VISIBLE_KEY(moduleName, "playback/mixer/muteAndSoloSectionVisible");
 static const Settings::Key MIXER_TITLE_SECTION_VISIBLE_KEY(moduleName, "playback/mixer/titleSectionVisible");
 
+static const Settings::Key MIXER_NEED_TO_SHOW_CHANGE_SOUND_WARNING(moduleName, "playback/mixer/needToShowChangeSoundWarning");
+
 static const Settings::Key MUTE_HIDDEN_INSTRUMENTS(moduleName, "playback/mixer/muteHiddenInstruments");
 
 static const Settings::Key DEFAULT_SOUND_PROFILE_FOR_NEW_PROJECTS(moduleName, "playback/profiles/defaultProfileName");
@@ -90,10 +92,14 @@ void PlaybackConfiguration::init()
     settings()->setDefaultValue(PLAY_HARMONY_WHEN_EDITING, Val(true));
     settings()->setDefaultValue(PLAYBACK_CURSOR_TYPE_KEY, Val(PlaybackCursorType::STEPPED));
     settings()->setDefaultValue(SOUND_PRESETS_MULTI_SELECTION_KEY, Val(false));
+    settings()->setDefaultValue(MIXER_NEED_TO_SHOW_CHANGE_SOUND_WARNING, Val(true));
 
     for (MixerSectionType sectionType : allMixerSectionTypes()) {
         bool sectionEnabledByDefault = sectionType != MixerSectionType::Volume;
         settings()->setDefaultValue(mixerSectionVisibleKey(sectionType), Val(sectionEnabledByDefault));
+        settings()->valueChanged(mixerSectionVisibleKey(sectionType)).onReceive(this, [this, sectionType](const Val& val) {
+            m_isMixerSectionVisibleChanged.send(sectionType, val.toBool());
+        });
     }
 
     settings()->setDefaultValue(MUTE_HIDDEN_INSTRUMENTS, Val(true));
@@ -163,6 +169,11 @@ bool PlaybackConfiguration::isMixerSectionVisible(MixerSectionType sectionType) 
 void PlaybackConfiguration::setMixerSectionVisible(MixerSectionType sectionType, bool visible)
 {
     settings()->setSharedValue(mixerSectionVisibleKey(sectionType), Val(visible));
+}
+
+mu::async::Channel<MixerSectionType, bool> PlaybackConfiguration::isMixerSectionVisibleChanged() const
+{
+    return m_isMixerSectionVisibleChanged;
 }
 
 bool PlaybackConfiguration::isAuxSendVisible(aux_channel_idx_t index) const
@@ -257,6 +268,16 @@ bool PlaybackConfiguration::soundPresetsMultiSelectionEnabled() const
 void PlaybackConfiguration::setSoundPresetsMultiSelectionEnabled(bool enabled)
 {
     settings()->setSharedValue(SOUND_PRESETS_MULTI_SELECTION_KEY, Val(enabled));
+}
+
+bool PlaybackConfiguration::needToShowChangeSoundWarning() const
+{
+    return settings()->value(MIXER_NEED_TO_SHOW_CHANGE_SOUND_WARNING).toBool();
+}
+
+void PlaybackConfiguration::setNeedToShowChangeSoundWarning(bool show)
+{
+    settings()->setSharedValue(MIXER_NEED_TO_SHOW_CHANGE_SOUND_WARNING, Val(show));
 }
 
 const SoundProfileName& PlaybackConfiguration::fallbackSoundProfileStr() const

@@ -376,6 +376,7 @@ public:
     void textLine(TextLineBase const* const tl, staff_idx_t staff, const Fraction& tick);
     void dynamic(Dynamic const* const dyn, staff_idx_t staff);
     void symbol(Symbol const* const sym, staff_idx_t staff);
+    void systemText(StaffTextBase const* const text, staff_idx_t staff);
     void tempoText(TempoText const* const text, staff_idx_t staff);
     void harmony(Harmony const* const, FretDiagram const* const fd, int offset = 0);
     Score* score() const { return m_score; }
@@ -2850,16 +2851,28 @@ static void writeAccidental(XmlWriter& xml, const String& tagName, const Acciden
 
 static void wavyLineStart(const Trill* tr, const int number, Notations& notations, Ornaments& ornaments, XmlWriter& xml)
 {
-    // mscore only supports wavy-line with trill-mark
     notations.tag(xml, tr);
     ornaments.tag(xml);
-    xml.tagRaw(u"trill-mark" + color2xml(tr));
-    writeAccidental(xml, u"accidental-mark", tr->accidental());
+    switch (tr->trillType()) {
+    case TrillType::TRILL_LINE:
+        xml.tagRaw(u"trill-mark" + color2xml(tr));
+        break;
+    case TrillType::UPPRALL_LINE:
+        xml.tagRaw(u"other-ornament smufl=\"ornamentBottomLeftConcaveStroke\"" + color2xml(tr));
+        break;
+    case TrillType::DOWNPRALL_LINE:
+        xml.tagRaw(u"other-ornament smufl=\"ornamentLeftVerticalStroke\"" + color2xml(tr));
+        break;
+    case TrillType::PRALLPRALL_LINE:
+    default:
+        break;
+    }
     String tagName = u"wavy-line type=\"start\"";
     tagName += String(u" number=\"%1\"").arg(number + 1);
     tagName += color2xml(tr);
     tagName += ExportMusicXml::positioningAttributes(tr, true);
     xml.tagRaw(tagName);
+    writeAccidental(xml, u"accidental-mark", tr->accidental());
 }
 
 //---------------------------------------------------------
@@ -3041,6 +3054,8 @@ static std::vector<String> symIdToArtic(const SymId sid)
 
     case SymId::articStaccatissimoAbove:
     case SymId::articStaccatissimoBelow:
+    case SymId::articStaccatissimoWedgeAbove:
+    case SymId::articStaccatissimoWedgeBelow:
         return { u"staccatissimo" };
         break;
 
@@ -3107,6 +3122,11 @@ static std::vector<String> symIdToArtic(const SymId sid)
     case SymId::articTenutoAccentAbove:
     case SymId::articTenutoAccentBelow:
         return { u"tenuto", u"accent" };
+        break;
+
+    case SymId::articStaccatissimoStrokeAbove:
+    case SymId::articStaccatissimoStrokeBelow:
+        return { u"spiccato" };
         break;
 
     default:
@@ -4877,6 +4897,47 @@ void ExportMusicXml::words(TextBase const* const text, staff_idx_t staff)
 
     directionTag(m_xml, m_attr, text);
     wordsMetronome(m_xml, m_score->style(), text, offset);
+
+    directionETag(m_xml, staff);
+}
+
+//---------------------------------------------------------
+//   systemText
+//---------------------------------------------------------
+
+void ExportMusicXml::systemText(StaffTextBase const* const text, staff_idx_t staff)
+{
+    const auto offset = calculateTimeDeltaInDivisions(text->tick(), tick(), m_div);
+
+    if (text->plainText() == "") {
+        // sometimes empty Texts are present, exporting would result
+        // in invalid MusicXML (as an empty direction-type would be created)
+        return;
+    }
+
+    directionTag(m_xml, m_attr, text);
+    wordsMetronome(m_xml, m_score->style(), text, offset);
+
+    if (text->swing()) {
+        m_xml.startElement("sound");
+        m_xml.startElement("swing");
+        if (!text->swingParameters().swingUnit) {
+            m_xml.tag("straight");
+        } else {
+            const int swingPercentage = text->swingParameters().swingRatio;
+            const int swingDivisor = std::gcd(text->swingParameters().swingRatio, 100);
+            m_xml.tag("first",  100 / swingDivisor);
+            m_xml.tag("second", swingPercentage / swingDivisor);
+            if (text->swingParameters().swingUnit == Constants::DIVISION / 2) {
+                m_xml.tag("swing-type", TConv::toXml(DurationType::V_EIGHTH));
+            } else {
+                m_xml.tag("swing-type", TConv::toXml(DurationType::V_16TH));
+            }
+        }
+        m_xml.endElement();
+        m_xml.endElement();
+    }
+
     directionETag(m_xml, staff);
 }
 
@@ -6185,7 +6246,7 @@ static bool commonAnnotations(ExportMusicXml* exp, const EngravingItem* e, staff
         exp->symbol(toSymbol(e), sstaff);
     } else if (e->isTempoText()) {
         exp->tempoText(toTempoText(e), sstaff);
-    } else if (e->isPlayTechAnnotation() || e->isCapo() || e->isStringTunings() || e->isStaffText() || e->isSystemText()
+    } else if (e->isPlayTechAnnotation() || e->isCapo() || e->isStringTunings() || e->isStaffText()
                || e->isTripletFeel() || e->isText()
                || e->isExpression() || (e->isInstrumentChange() && e->visible())) {
         exp->words(toTextBase(e), sstaff);
@@ -6195,6 +6256,8 @@ static bool commonAnnotations(ExportMusicXml* exp, const EngravingItem* e, staff
         exp->harpPedals(toHarpPedalDiagram(e), sstaff);
     } else if (e->isRehearsalMark()) {
         exp->rehearsal(toRehearsalMark(e), sstaff);
+    } else if (e->isSystemText()) {
+        exp->systemText(toStaffTextBase(e), sstaff);
     } else {
         return instrChangeHandled;
     }
@@ -6376,6 +6439,9 @@ static void figuredBass(XmlWriter& xml, track_idx_t strack, track_idx_t etrack, 
             if (track == wtrack) {
                 if (e->type() == ElementType::FIGURED_BASS) {
                     const FiguredBass* fb = dynamic_cast<const FiguredBass*>(e);
+                    if (fb->items().empty()) {
+                        return;
+                    }
                     //LOGD("figuredbass() track %d seg %p fb %p seg %p tick %d ticks %d cr %p tick %d ticks %d",
                     //       track, seg, fb, fb->segment(), fb->segment()->tick(), fb->ticks(), cr, cr->tick(), cr->actualTicks());
                     bool extend = fb->ticks() > cr->actualTicks();
@@ -6391,7 +6457,6 @@ static void figuredBass(XmlWriter& xml, track_idx_t strack, track_idx_t etrack, 
                     const bool writeDuration = fb->ticks() < cr->actualTicks();
                     writeMusicXML(fb, xml, true, crEndTick.ticks(), fbEndTick.ticks(),
                                   writeDuration, divisions);
-
                     // Check for changing figures under a single note (each figure stored in a separate segment)
                     for (Segment* segNext = seg->next(); segNext && segNext->element(track) == NULL; segNext = segNext->next()) {
                         for (EngravingItem* annot : segNext->annotations()) {

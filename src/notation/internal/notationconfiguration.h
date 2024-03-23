@@ -28,6 +28,7 @@
 #include "global/iglobalconfiguration.h"
 #include "io/ifilesystem.h"
 #include "ui/iuiconfiguration.h"
+#include "context/iglobalcontext.h"
 #include "engraving/iengravingconfiguration.h"
 
 #include "../inotationconfiguration.h"
@@ -39,6 +40,7 @@ class NotationConfiguration : public INotationConfiguration, public async::Async
     INJECT(io::IFileSystem, fileSystem)
     INJECT(ui::IUiConfiguration, uiConfiguration)
     INJECT(engraving::IEngravingConfiguration, engravingConfiguration)
+    INJECT(context::IGlobalContext, context)
 
 public:
     void init();
@@ -198,6 +200,14 @@ public:
     io::path_t styleFileImportPath() const override;
     void setStyleFileImportPath(const io::path_t& path) override;
 
+    int styleDialogLastPageIndex() const override;
+    void setStyleDialogLastPageIndex(int value) override;
+
+    int styleDialogLastSubPageIndex() const override;
+    void setStyleDialogLastSubPageIndex(int value) override;
+
+    void resetStyleDialogPageIndices() override;
+
 private:
     io::path_t firstScoreOrderListPath() const;
     void setFirstScoreOrderListPath(const io::path_t& path);
@@ -214,6 +224,9 @@ private:
     async::Notification m_isPlayRepeatsChanged;
     async::Notification m_isPlayChordSymbolsChanged;
     ValCh<int> m_pianoKeyboardNumberOfKeys;
+
+    int m_styleDialogLastPageIndex = 0;
+    int m_styleDialogLastSubPageIndex = 0;
 };
 }
 

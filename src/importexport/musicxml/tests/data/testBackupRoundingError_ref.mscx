@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="4.20">
+<museScore version="4.40">
   <Score>
     <Division>480</Division>
     <Style>
@@ -1759,6 +1759,14 @@
             <fractions>-1/8</fractions>
             </location>
           <Spanner type="Pedal">
+            <Pedal>
+              <endHookType>1</endHookType>
+              </Pedal>
+            <next>
+              <location>
+                <fractions>1/8</fractions>
+                </location>
+              </next>
             </Spanner>
           <location>
             <fractions>1/8</fractions>
@@ -1768,6 +1776,11 @@
             <placement>below</placement>
             </Fermata>
           <Spanner type="Pedal">
+            <prev>
+              <location>
+                <fractions>-1/8</fractions>
+                </location>
+              </prev>
             </Spanner>
           <Chord>
             <durationType>quarter</durationType>

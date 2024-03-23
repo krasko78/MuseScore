@@ -27,6 +27,7 @@ else()
 endif()
 
 set(MODULE_QML_IMPORT ${CMAKE_CURRENT_LIST_DIR}/qml )
+set(MODULE_QMLAPI_IMPORT ${CMAKE_CURRENT_LIST_DIR}/api )
 
 include(${CMAKE_CURRENT_LIST_DIR}/view/treeview/treeview.cmake)
 

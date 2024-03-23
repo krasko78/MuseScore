@@ -178,13 +178,13 @@ void TremoloTwoChord::setTremoloType(TremoloType t)
 
 void TremoloTwoChord::reset()
 {
+    EngravingItem::reset();
     if (userModified()) {
         //undoChangeProperty(Pid::BEAM_POS, PropertyValue::fromValue(beamPos()));
         undoChangeProperty(Pid::USER_MODIFIED, false);
     }
     undoChangeProperty(Pid::STEM_DIRECTION, DirectionV::AUTO);
     resetProperty(Pid::BEAM_NO_SLOPE);
-    setGenerated(true);
 }
 
 //---------------------------------------------------------
@@ -570,6 +570,16 @@ void TremoloTwoChord::clearBeamSegments()
 
     DeleteAll(m_beamSegments);
     m_beamSegments.clear();
+}
+
+int TremoloTwoChord::maxCRMove() const
+{
+    return std::max(m_chord1->staffMove(), m_chord2->staffMove());
+}
+
+int TremoloTwoChord::minCRMove() const
+{
+    return std::min(m_chord1->staffMove(), m_chord2->staffMove());
 }
 
 // used for palettes

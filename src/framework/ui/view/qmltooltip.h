@@ -56,7 +56,11 @@ signals:
     void hideToolTip();
 
 private:
+    friend class QmlToolTipTests;
+
     bool eventFilter(QObject* watched, QEvent* event) override;
+
+    void clear();
 
     QQuickItem* m_item = nullptr;
     QString m_title;

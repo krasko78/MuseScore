@@ -2695,6 +2695,8 @@ static void readMeasure206(Measure* m, int staffIdx, XmlReader& e, ReadContext& 
             } else if (tag == "HairPin") {
                 Read206::readHairpin206(e, ctx, toHairpin(sp));
             } else if (tag == "Trill") {
+                Ornament* ornament = Factory::createOrnament(m->score()->dummy()->chord());
+                toTrill(sp)->setOrnament(ornament);
                 Read206::readTrill206(e, ctx, toTrill(sp));
             } else {
                 Read206::readTextLine206(e, ctx, toTextLineBase(sp));
@@ -3109,6 +3111,9 @@ static void readStaffContent206(Score* score, XmlReader& e, ReadContext& ctx)
                 measure->checkMeasure(staff);
                 if (!measure->isMMRest()) {
                     score->measures()->add(measure);
+                    if (m && m->mmRest()) {
+                        m->mmRest()->setNext(measure);
+                    }
                     ctx.setLastMeasure(measure);
                     ctx.setTick(measure->endTick());
                 } else {
@@ -3119,6 +3124,7 @@ static void readStaffContent206(Score* score, XmlReader& e, ReadContext& ctx)
                     if (lm) {
                         lm->setMMRest(measure);
                         measure->setTick(lm->tick());
+                        measure->setPrev(lm->prev());
                     }
                 }
             } else if (tag == "HBox" || tag == "VBox" || tag == "TBox" || tag == "FBox") {

@@ -48,6 +48,8 @@
 #include "view/mainwindowbridge.h"
 #endif
 
+#include "internal/uiengine.h"
+
 #include "view/qmltooltip.h"
 #include "view/iconcodes.h"
 #include "view/musicalsymbolcodes.h"
@@ -61,6 +63,10 @@
 
 #include "view/internal/errordetailsmodel.h"
 #include "view/internal/progressdialogmodel.h"
+
+#include "global/api/iapiregister.h"
+#include "api/navigationapi.h"
+#include "api/keyboardapi.h"
 
 #include "dev/interactivetestsmodel.h"
 #include "dev/testdialog.h"
@@ -119,6 +125,18 @@ void UiModule::resolveImports()
     }
 }
 
+void UiModule::registerApi()
+{
+    using namespace mu::api;
+
+    auto api = ioc()->resolve<IApiRegister>(moduleName());
+    if (api) {
+        api->regApiCreator(moduleName(), "api.navigation", new ApiCreator<NavigationApi>());
+        api->regApiCreator(moduleName(), "api.keyboard", new ApiCreator<KeyboardApi>());
+        api->regApiSingltone(moduleName(), "api.theme", UiEngine::instance()->theme());
+    }
+}
+
 void UiModule::registerResources()
 {
     ui_init_qrc();
@@ -126,8 +144,11 @@ void UiModule::registerResources()
 
 void UiModule::registerUiTypes()
 {
+#ifdef MU_QT5_COMPAT
+    qRegisterMetaType<api::ThemeApi*>("api::ThemeApi*");
+#endif
     qmlRegisterUncreatableType<UiEngine>("MuseScore.Ui", 1, 0, "UiEngine", "Cannot create an UiEngine");
-    qmlRegisterUncreatableType<UiTheme>("MuseScore.Ui", 1, 0, "QmlTheme", "Cannot create a QmlTheme");
+    qmlRegisterUncreatableType<api::ThemeApi>("MuseScore.Ui", 1, 0, "QmlTheme", "Cannot create a QmlTheme");
     qmlRegisterUncreatableType<QmlToolTip>("MuseScore.Ui", 1, 0, "QmlToolTip", "Cannot create a QmlToolTip");
     qmlRegisterUncreatableType<IconCode>("MuseScore.Ui", 1, 0, "IconCode", "Cannot create an IconCode");
     qmlRegisterUncreatableType<MusicalSymbolCodes>("MuseScore.Ui", 1, 0, "MusicalSymbolCodes",

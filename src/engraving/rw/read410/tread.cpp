@@ -1761,6 +1761,7 @@ void TRead::read(Beam* b, XmlReader& e, ReadContext& ctx)
             e.skipCurrentElement();
         } else if (tag == "y1" || tag == "y2") { // obsolete
             e.skipCurrentElement();
+        } else if (readProperty(b, tag, e, ctx, Pid::BEAM_CROSS_STAFF_MOVE)) {
         } else if (!readItemProperties(b, e, ctx)) {
             e.unknown();
         }
@@ -2497,7 +2498,9 @@ void TRead::read(SoundFlag* item, XmlReader& xml, ReadContext&)
     while (xml.readNextStartElement()) {
         const AsciiStringView tag(xml.name());
 
-        if (tag == "presets") {
+        if (tag == "play") {
+            item->setPlay(xml.readBool());
+        } else if (tag == "presets") {
             item->setSoundPresets(xml.readText().split(u","));
         } else if (tag == "playingTechnique") {
             item->setPlayingTechnique(xml.readText());

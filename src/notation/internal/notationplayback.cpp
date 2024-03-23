@@ -424,8 +424,8 @@ bool NotationPlayback::doAddSoundFlag(StaffText* staffText)
     }
 
     for (EngravingObject* obj : *links) {
-        if (obj && obj->isStaffText()) {
-            toStaffText(obj)->add(soundFlag->clone());
+        if (obj && obj->isStaffText() && obj != staffText) {
+            toStaffText(obj)->add(soundFlag->linkedClone());
         }
     }
 
@@ -469,6 +469,19 @@ void NotationPlayback::removeSoundFlags(const InstrumentTrackIdSet& trackIdSet)
 
     m_playbackModel.reload();
     m_notationChanged.notify();
+}
+
+bool NotationPlayback::hasSoundFlags(const engraving::InstrumentTrackIdSet& trackIdSet)
+{
+    TRACEFUNC;
+
+    for (const InstrumentTrackId& trackId : trackIdSet) {
+        if (m_playbackModel.hasSoundFlags(trackId)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 std::vector<StaffText*> NotationPlayback::collectStaffText(const InstrumentTrackIdSet& trackIdSet, bool withSoundFlags) const

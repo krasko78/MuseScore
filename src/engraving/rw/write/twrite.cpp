@@ -679,8 +679,9 @@ void TWrite::write(const Beam* item, XmlWriter& xml, WriteContext& ctx)
     writeProperty(item, xml, Pid::BEAM_NO_SLOPE);
     writeProperty(item, xml, Pid::GROW_LEFT);
     writeProperty(item, xml, Pid::GROW_RIGHT);
+    writeProperty(item, xml, Pid::BEAM_CROSS_STAFF_MOVE);
 
-    int idx = (item->beamDirection() == DirectionV::AUTO || item->beamDirection() == DirectionV::DOWN) ? 0 : 1;
+    int idx = item->directionIdx();
     if (item->userModified()) {
         double _spatium = item->spatium();
         for (BeamFragment* f : item->beamFragments()) {
@@ -2714,7 +2715,7 @@ void TWrite::write(const StaffType* item, XmlWriter& xml, WriteContext&)
         xml.tag("invisible", item->invisible());
     }
     if (item->color() != engravingConfiguration()->defaultColor()) {
-        xml.tag("color", item->color().toString().c_str());
+        xml.tagProperty(Pid::COLOR, item->color());
     }
     if (item->group() == StaffGroup::STANDARD) {
         xml.tag("noteheadScheme", TConv::toXml(item->noteHeadScheme()), TConv::toXml(NoteHeadScheme::HEAD_NORMAL));
@@ -2881,6 +2882,8 @@ void TWrite::write(const SoundFlag* item, XmlWriter& xml, WriteContext&)
     }
 
     xml.startElement(item);
+
+    writeProperty(item, xml, Pid::PLAY);
 
     if (!item->soundPresets().empty()) {
         xml.tag("presets", item->soundPresets().join(u","));
