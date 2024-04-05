@@ -141,6 +141,7 @@
 
 #include "log.h"
 
+using namespace muse::draw;
 using namespace mu::engraving;
 using namespace mu::engraving::read400;
 
@@ -2323,11 +2324,11 @@ void TRead::read(Symbol* sym, XmlReader& e, ReadContext& ctx)
 
 void TRead::read(FSymbol* sym, XmlReader& e, ReadContext& ctx)
 {
-    mu::draw::Font font = sym->font();
+    Font font = sym->font();
     while (e.readNextStartElement()) {
         const AsciiStringView tag(e.name());
         if (tag == "font") {
-            font.setFamily(e.readText(), draw::Font::Type::Unknown);
+            font.setFamily(e.readText(), Font::Type::Unknown);
         } else if (tag == "fontsize") {
             font.setPointSizeF(e.readDouble());
         } else if (tag == "code") {
@@ -4093,10 +4094,25 @@ int TRead::read(SigEvent* item, XmlReader& e, int fileDivision)
 
 void TRead::read(TremoloCompat& t, XmlReader& e, ReadContext& ctx)
 {
-    auto item = [](TremoloCompat& t) -> EngravingItem* {
+    auto createDefaultTremolo = [](TremoloCompat& t) {
+        t.single = Factory::createTremoloSingleChord(t.parent);
+        t.single->setTrack(t.parent->track());
+        t.single->setTremoloType(TremoloType::R8);
+    };
+
+    auto item = [createDefaultTremolo](TremoloCompat& t) -> EngravingItem* {
         if (t.two) {
             return t.two;
         }
+
+        if (!t.single) {
+            // If no item been created yet at this point,
+            // that means no "subtype" tag was present in the XML file.
+            // In this case, we create a single eighth-note tremolo,
+            // since that was the default.
+            createDefaultTremolo(t);
+        }
+
         return t.single;
     };
 
@@ -4158,6 +4174,14 @@ void TRead::read(TremoloCompat& t, XmlReader& e, ReadContext& ctx)
         } else if (!readItemProperties(item(t), e, ctx)) {
             e.unknown();
         }
+    }
+
+    if (!t.two && !t.single) {
+        // If no item been created yet at this point,
+        // that means no "subtype" tag was present in the XML file.
+        // In this case, we create a single eighth-note tremolo,
+        // since that was the default.
+        createDefaultTremolo(t);
     }
 }
 

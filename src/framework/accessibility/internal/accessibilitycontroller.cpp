@@ -37,13 +37,14 @@
 
 #include "log.h"
 
-#ifdef MUE_ENABLE_ACCESSIBILITY_TRACE
+#ifdef MUSE_MODULE_ACCESSIBILITY_TRACE
 #define MYLOG() LOGI()
 #else
 #define MYLOG() LOGN()
 #endif
 
-using namespace mu::accessibility;
+using namespace muse;
+using namespace muse::accessibility;
 
 AccessibleObject* s_rootObject = nullptr;
 std::shared_ptr<IQAccessibleInterfaceRegister> accessibleInterfaceRegister = nullptr;
@@ -295,7 +296,7 @@ void AccessibilityController::stateChanged(IAccessible* aitem, State state, bool
 
 void AccessibilityController::sendEvent(QAccessibleEvent* ev)
 {
-#ifdef MUE_ENABLE_ACCESSIBILITY_TRACE
+#ifdef MUSE_MODULE_ACCESSIBILITY_TRACE
     AccessibleObject* obj = qobject_cast<AccessibleObject*>(ev->object());
     MYLOG() << "object: " << obj->item()->accessibleName() << ", event: " << int(ev->type());
 #endif
@@ -668,13 +669,13 @@ int AccessibilityController::accessibleRowIndex() const
     return 0;
 }
 
-mu::async::Channel<IAccessible::Property, mu::Val> AccessibilityController::accessiblePropertyChanged() const
+async::Channel<IAccessible::Property, mu::Val> AccessibilityController::accessiblePropertyChanged() const
 {
     static async::Channel<IAccessible::Property, Val> ch;
     return ch;
 }
 
-mu::async::Channel<IAccessible::State, bool> AccessibilityController::accessibleStateChanged() const
+async::Channel<IAccessible::State, bool> AccessibilityController::accessibleStateChanged() const
 {
     static async::Channel<IAccessible::State, bool> ch;
     return ch;

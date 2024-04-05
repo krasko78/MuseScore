@@ -65,6 +65,7 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/iuiconfiguration.h
     ${CMAKE_CURRENT_LIST_DIR}/uierrors.h
     ${CMAKE_CURRENT_LIST_DIR}/uitypes.h
+    ${CMAKE_CURRENT_LIST_DIR}/uiaction.h
     ${CMAKE_CURRENT_LIST_DIR}/imainwindow.h
     ${CMAKE_CURRENT_LIST_DIR}/iuiactionsregister.h
     ${CMAKE_CURRENT_LIST_DIR}/iuiactionsmodule.h
@@ -151,10 +152,6 @@ set(MODULE_UI
     ${CMAKE_CURRENT_LIST_DIR}/dev/testdialog.ui
     )
 
-set(MODULE_LINK
-    accessibility
-    )
-
 if (OS_IS_MAC)
     find_library(AppKit NAMES AppKit)
     set(MODULE_LINK ${MODULE_LINK} ${AppKit})
@@ -162,6 +159,6 @@ endif()
 
 include(SetupModule)
 
-if (MUE_BUILD_UI_TESTS)
+if (MUSE_MODULE_UI_TESTS)
     add_subdirectory(tests)
 endif()

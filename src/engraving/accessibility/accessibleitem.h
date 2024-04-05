@@ -28,18 +28,16 @@
 #include "modularity/ioc.h"
 #include "accessibility/iaccessibilitycontroller.h"
 
-#include "dom/engravingitem.h"
-#include "dom/textbase.h"
-
-//! NOTE At the moment this is just a concept, not a production-ready system, a lot of work yet.
+#include "../dom/engravingitem.h"
+#include "../dom/textbase.h"
 
 namespace mu::engraving {
 class AccessibleRoot;
-class AccessibleItem : public accessibility::IAccessible, public std::enable_shared_from_this<AccessibleItem>
+class AccessibleItem : public muse::accessibility::IAccessible, public std::enable_shared_from_this<AccessibleItem>
 {
     OBJECT_ALLOCATOR(engraving, AccessibleItem)
 
-    INJECT_STATIC(accessibility::IAccessibilityController, accessibilityController)
+    INJECT_STATIC(muse::accessibility::IAccessibilityController, accessibilityController)
 
 public:
     AccessibleItem(EngravingItem* e, Role role = Role::ElementOnScore);

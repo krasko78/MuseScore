@@ -92,7 +92,7 @@
 using namespace mu::io;
 using namespace mu::notation;
 using namespace mu::engraving;
-using namespace mu::draw;
+using namespace muse::draw;
 
 static mu::engraving::KeyboardModifier keyboardModifier(Qt::KeyboardModifiers km)
 {
@@ -302,7 +302,7 @@ void NotationInteraction::notifyAboutNoteInputStateChanged()
     m_noteInput->stateChanged().notify();
 }
 
-void NotationInteraction::paint(mu::draw::Painter* painter)
+void NotationInteraction::paint(Painter* painter)
 {
     EngravingItem::renderer()->drawItem(score()->shadowNote(), painter);
 
@@ -1695,7 +1695,11 @@ bool NotationInteraction::applyPaletteElement(mu::engraving::EngravingItem* elem
             mu::engraving::Spanner* spanner = static_cast<mu::engraving::Spanner*>(engraving::Factory::createItem(type, score->dummy()));
             rw::RWRegister::reader()->readItem(spanner, e);
             spanner->styleChanged();
-            score->cmdAddSpanner(spanner, cr1->staffIdx(), startSegment, endSegment, modifiers & Qt::ControlModifier);
+            if (spanner->isHairpin() && cr1 == cr2) {
+                score->addHairpinToChordRest(toHairpin(spanner), cr1);
+            } else {
+                score->cmdAddSpanner(spanner, cr1->staffIdx(), startSegment, endSegment, modifiers & Qt::ControlModifier);
+            }
             if (spanner->isVoiceSpecific()) {
                 spanner->setTrack(cr1->track());
             }
@@ -2001,7 +2005,7 @@ void NotationInteraction::applyDropPaletteElement(mu::engraving::Score* score, m
         if (el && !score->inputState().noteEntryMode()) {
             doSelect({ el }, mu::engraving::SelectType::SINGLE, 0);
             if (el->needStartEditingAfterSelecting()) {
-                startEditElement(el);
+                startEditElement(el, false);
             }
         }
         dropData->dropElement = nullptr;
@@ -2366,20 +2370,20 @@ void NotationInteraction::resetAnchorLines()
     m_anchorLines.clear();
 }
 
-double NotationInteraction::currentScaling(mu::draw::Painter* painter) const
+double NotationInteraction::currentScaling(Painter* painter) const
 {
     qreal guiScaling = configuration()->guiScaling();
     return painter->worldTransform().m11() / guiScaling;
 }
 
-void NotationInteraction::drawAnchorLines(mu::draw::Painter* painter)
+void NotationInteraction::drawAnchorLines(Painter* painter)
 {
     if (m_anchorLines.empty()) {
         return;
     }
 
     const auto dropAnchorColor = configuration()->anchorLineColor();
-    mu::draw::Pen pen(dropAnchorColor, 2.0 / currentScaling(painter), mu::draw::PenStyle::DotLine);
+    Pen pen(dropAnchorColor, 2.0 / currentScaling(painter), PenStyle::DotLine);
 
     for (const LineF& anchor : m_anchorLines) {
         painter->setPen(pen);
@@ -2388,7 +2392,7 @@ void NotationInteraction::drawAnchorLines(mu::draw::Painter* painter)
         qreal d = 4.0 / currentScaling(painter);
         RectF rect(-d, -d, 2 * d, 2 * d);
 
-        painter->setBrush(mu::draw::Brush(dropAnchorColor));
+        painter->setBrush(Brush(dropAnchorColor));
         painter->setNoPen();
         rect.moveCenter(anchor.p1());
         painter->drawEllipse(rect);
@@ -2397,7 +2401,7 @@ void NotationInteraction::drawAnchorLines(mu::draw::Painter* painter)
     }
 }
 
-void NotationInteraction::drawTextEditMode(draw::Painter* painter)
+void NotationInteraction::drawTextEditMode(muse::draw::Painter* painter)
 {
     if (!isTextEditingStarted()) {
         return;
@@ -2406,9 +2410,9 @@ void NotationInteraction::drawTextEditMode(draw::Painter* painter)
     m_editData.element->drawEditMode(painter, m_editData, currentScaling(painter));
 }
 
-void NotationInteraction::drawSelectionRange(draw::Painter* painter)
+void NotationInteraction::drawSelectionRange(muse::draw::Painter* painter)
 {
-    using namespace draw;
+    using namespace muse::draw;
     if (!m_selection->isRange()) {
         return;
     }
@@ -2436,7 +2440,7 @@ void NotationInteraction::drawSelectionRange(draw::Painter* painter)
     }
 }
 
-void NotationInteraction::drawGripPoints(draw::Painter* painter)
+void NotationInteraction::drawGripPoints(muse::draw::Painter* painter)
 {
     if (isDragStarted() && !isGripEditStarted()) {
         return;
@@ -2916,7 +2920,7 @@ bool NotationInteraction::isTextSelected() const
 
 bool NotationInteraction::isTextEditingStarted() const
 {
-    return m_editData.element && m_editData.element->isTextBase();
+    return m_editData.element && m_editData.element->isTextBase() && m_editData.editTextualProperties;
 }
 
 bool NotationInteraction::textEditingAllowed(const EngravingItem* element) const
@@ -2938,6 +2942,7 @@ void NotationInteraction::startEditText(EngravingItem* element, const PointF& cu
         m_editData.element = element;
     }
 
+    m_editData.editTextualProperties = true;
     m_editData.startMove = bindCursorPosToText(cursorPos, m_editData.element);
     m_editData.element->startEdit(m_editData);
 
@@ -3248,7 +3253,7 @@ bool NotationInteraction::isElementEditStarted() const
     return m_editData.element != nullptr;
 }
 
-void NotationInteraction::startEditElement(EngravingItem* element)
+void NotationInteraction::startEditElement(EngravingItem* element, bool editTextualProperties)
 {
     if (!element) {
         return;
@@ -3258,9 +3263,10 @@ void NotationInteraction::startEditElement(EngravingItem* element)
         return;
     }
 
-    if (element->isTextBase()) {
+    if (element->isTextBase() && editTextualProperties) {
         startEditText(element);
     } else if (element->isEditable()) {
+        m_editData.editTextualProperties = false;
         element->startEdit(m_editData);
         m_editData.element = element;
     }
@@ -3339,6 +3345,12 @@ void NotationInteraction::editElement(QKeyEvent* event)
 
     m_editData.key = event->key();
     m_editData.s = event->text();
+
+    if (event->type() == QKeyEvent::Type::KeyRelease) {
+        m_editData.isKeyRelease = true;
+    } else {
+        m_editData.isKeyRelease = false;
+    }
 
     // Brackets may be deleted and replaced
     bool isBracket = m_editData.element->isBracket();
@@ -3477,7 +3489,7 @@ void NotationInteraction::joinSelectedMeasures()
 mu::Ret NotationInteraction::canAddBoxes() const
 {
     if (selection()->isRange()) {
-        return make_ok();
+        return mu::make_ok();
     }
 
     static const ElementTypeSet BOX_TYPES {
@@ -3486,11 +3498,11 @@ mu::Ret NotationInteraction::canAddBoxes() const
 
     for (const EngravingItem* element: selection()->elements()) {
         if (mu::engraving::toMeasure(element->findMeasure())) {
-            return make_ok();
+            return mu::make_ok();
         }
 
         if (mu::contains(BOX_TYPES, element->type())) {
-            return make_ok();
+            return mu::make_ok();
         }
     }
 
@@ -3653,7 +3665,7 @@ mu::Ret NotationInteraction::repeatSelection()
             }
             apply();
         }
-        return make_ok();
+        return mu::make_ok();
     }
 
     if (!selection.isRange()) {
@@ -4197,7 +4209,7 @@ mu::Ret NotationInteraction::canAddTextToItem(TextStyleType type, const Engravin
     }
 
     if (type == TextStyleType::FRAME) {
-        return item && item->isBox() ? make_ok() : make_ret(Err::EmptySelection);
+        return item && item->isBox() ? mu::make_ok() : make_ret(Err::EmptySelection);
     }
 
     static const std::set<TextStyleType> needSelectNoteOrRestTypes {
@@ -4228,10 +4240,10 @@ mu::Ret NotationInteraction::canAddTextToItem(TextStyleType type, const Engravin
         };
 
         bool isNoteOrRestSelected = item && mu::contains(requiredElementTypes, item->type());
-        return isNoteOrRestSelected ? make_ok() : make_ret(Err::NoteOrRestIsNotSelected);
+        return isNoteOrRestSelected ? mu::make_ok() : make_ret(Err::NoteOrRestIsNotSelected);
     }
 
-    return make_ok();
+    return mu::make_ok();
 }
 
 void NotationInteraction::addTextToItem(TextStyleType type, EngravingItem* item)
@@ -4323,7 +4335,7 @@ mu::Ret NotationInteraction::canAddFiguredBass() const
     };
 
     bool isNoteOrRestSelected = elementsSelected(requiredTypes);
-    return isNoteOrRestSelected ? make_ok() : make_ret(Err::NoteOrFiguredBassIsNotSelected);
+    return isNoteOrRestSelected ? mu::make_ok() : make_ret(Err::NoteOrFiguredBassIsNotSelected);
 }
 
 void NotationInteraction::addFiguredBass()
@@ -5572,7 +5584,7 @@ mu::Ret NotationInteraction::canAddGuitarBend() const
     Score* score = this->score();
     bool canAdd = score && score->selection().noteList().size() > 0;
 
-    return canAdd ? make_ok() : make_ret(Err::NoteIsNotSelected);
+    return canAdd ? mu::make_ok() : make_ret(Err::NoteIsNotSelected);
 }
 
 void NotationInteraction::addGuitarBend(GuitarBendType bendType)

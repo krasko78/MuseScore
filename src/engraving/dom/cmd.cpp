@@ -627,6 +627,61 @@ void Score::cmdAddSpanner(Spanner* spanner, staff_idx_t staffIdx, Segment* start
     undoAddElement(spanner, true, ctrlModifier);
 }
 
+void Score::addHairpinToChordRest(Hairpin* hairpin, ChordRest* chordRest)
+{
+    track_idx_t track = chordRest->track();
+    hairpin->setTrack(track);
+    hairpin->setTrack2(track);
+
+    hairpin->setTick(chordRest->tick());
+
+    // End the hairpin at the end of the chord or, if present, at the next dynamic
+    Fraction endTick = chordRest->tick() + chordRest->actualTicks();
+
+    Segment* startSegment = chordRest->segment();
+    Segment* endSegment = nullptr;
+    for (Segment* segment = startSegment; segment && segment->tick() < endTick;
+         segment = segment->next1(SegmentType::ChordRest | SegmentType::TimeTick)) {
+        if (segment == startSegment) {
+            continue;
+        }
+        if (segment->findAnnotation(ElementType::DYNAMIC, track, track)) {
+            endSegment = segment;
+            break;
+        }
+    }
+    if (endSegment) {
+        endTick = std::min(endTick, endSegment->tick());
+    }
+
+    hairpin->setTick2(endTick);
+
+    undoAddElement(hairpin);
+}
+
+void Score::addHairpinToDynamic(Hairpin* hairpin, Dynamic* dynamic)
+{
+    track_idx_t track = dynamic->track();
+    hairpin->setTrack(track);
+    hairpin->setTrack2(track);
+
+    hairpin->setTick(dynamic->tick());
+
+    ChordRest* startCR = nullptr;
+    for (Segment* segment = dynamic->segment(); segment; segment = segment->prev(SegmentType::ChordRest)) {
+        EngravingItem* element = segment->elementAt(track);
+        if (element && element->isChordRest()) {
+            startCR = toChordRest(element);
+            break;
+        }
+    }
+
+    Fraction endTick = startCR ? startCR->tick() + startCR->actualTicks() : dynamic->segment()->measure()->endTick();
+    hairpin->setTick2(endTick);
+
+    undoAddElement(hairpin);
+}
+
 //---------------------------------------------------------
 //   expandVoice
 //    fills gaps in voice with rests,
@@ -1855,21 +1910,6 @@ static void upDownChromatic(bool up, int pitch, Note* n, Key key, int tpc1, int 
 }
 
 //---------------------------------------------------------
-//   setTpc
-//---------------------------------------------------------
-
-static void setTpc(Note* oNote, int tpc, int& newTpc1, int& newTpc2)
-{
-    if (oNote->concertPitch()) {
-        newTpc1 = tpc;
-        newTpc2 = oNote->transposeTpc(tpc);
-    } else {
-        newTpc2 = tpc;
-        newTpc1 = oNote->transposeTpc(tpc);
-    }
-}
-
-//---------------------------------------------------------
 //   upDown
 ///   Increment/decrement pitch of note by one or by an octave.
 //---------------------------------------------------------
@@ -1992,31 +2032,33 @@ void Score::upDown(bool up, UpDownMode mode)
 
             case UpDownMode::DIATONIC:
             {
-                int tpc = oNote->tpc();
-                if (up) {
-                    if (tpc > Tpc::TPC_A + int(key)) {
-                        if (pitch < 127) {
-                            newPitch = pitch + 1;
-                            setTpc(oNote, tpc - 5, newTpc1, newTpc2);
-                        }
+                Note* firstTiedNote = oNote->firstTiedNote();
+                int newLine = firstTiedNote->line() + (up ? -1 : 1);
+                Staff* vStaff = score()->staff(firstTiedNote->chord()->vStaffIdx());
+                Key vKey = vStaff->key(tick);
+                Key cKey = vStaff->concertKey(tick);
+                Interval interval = vStaff->part()->instrument(tick)->transpose();
+
+                bool error = false;
+                AccidentalVal accOffs = firstTiedNote->chord()->measure()->findAccidental(
+                    firstTiedNote->chord()->segment(), firstTiedNote->chord()->vStaffIdx(), newLine, error);
+                if (error) {
+                    accOffs = Accidental::subtype2value(AccidentalType::NONE);
+                }
+                int nStep = absStep(newLine, vStaff->clef(tick));
+                int octave = nStep / 7;
+                int testPitch = step2pitch(nStep) + octave * 12 + int(accOffs);
+
+                if (testPitch <= 127 && testPitch > 0) {
+                    newPitch = testPitch;
+                    if (!firstTiedNote->concertPitch()) {
+                        newPitch += interval.chromatic;
                     } else {
-                        if (pitch < 126) {
-                            newPitch = pitch + 2;
-                            setTpc(oNote, tpc + 2, newTpc1, newTpc2);
-                        }
+                        interval.flip();
+                        vKey = transposeKey(cKey, interval, vStaff->part()->preferSharpFlat());
                     }
-                } else {
-                    if (tpc > Tpc::TPC_C + int(key)) {
-                        if (pitch > 1) {
-                            newPitch = pitch - 2;
-                            setTpc(oNote, tpc - 2, newTpc1, newTpc2);
-                        }
-                    } else {
-                        if (pitch > 0) {
-                            newPitch = pitch - 1;
-                            setTpc(oNote, tpc + 5, newTpc1, newTpc2);
-                        }
-                    }
+                    newTpc1 = pitch2tpc(newPitch, cKey, Prefer::NEAREST);
+                    newTpc2 = pitch2tpc(newPitch - firstTiedNote->transposition(), vKey, Prefer::NEAREST);
                 }
             }
             break;
@@ -2764,6 +2806,17 @@ void Score::cmdResetNoteAndRestGroupings()
     }
 }
 
+static void resetBeamOffSet(void*, EngravingItem* e)
+{
+    // Reset completely cross staff beams from MU1&2
+    if (e->isBeam() && toBeam(e)->fullCross()) {
+        e->reset();
+    }
+}
+
+//---------------------------------------------------------
+//   cmdResetAllPositions
+//---------------------------------------------------------
 void Score::cmdResetAllPositions(bool undoable)
 {
     TRACEFUNC;
@@ -2782,6 +2835,13 @@ void Score::resetAutoplace()
     TRACEFUNC;
 
     scanElements(nullptr, resetElementPosition);
+}
+
+void Score::resetCrossBeams()
+{
+    TRACEFUNC;
+
+    scanElements(nullptr, resetBeamOffSet);
 }
 
 //---------------------------------------------------------
@@ -3486,8 +3546,8 @@ bool Score::makeMeasureRepeatGroup(Measure* firstMeasure, int numMeasures, staff
     }
 
     if (!empty) {
-        auto b = MessageBox::warning(trc("engraving", "Current contents of measures will be replaced"),
-                                     trc("engraving", "Continue with inserting measure repeat?"));
+        auto b = MessageBox::warning(mu::trc("engraving", "Current contents of measures will be replaced"),
+                                     mu::trc("engraving", "Continue with inserting measure repeat?"));
         if (b == MessageBox::Button::Cancel) {
             return false;
         }
@@ -4115,6 +4175,12 @@ static Segment* setChord(Score* score, Segment* segment, track_idx_t track, cons
             LOGD("reached end of score");
             break;
         }
+
+        //it is possible that the next measure's ticks have not been computed yet. compute them now
+        if (nseg->ticks().isZero()) {
+            nseg->measure()->computeTicks();
+        }
+
         segment = nseg;
 
         cr = toChordRest(segment->element(track));

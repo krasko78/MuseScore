@@ -24,12 +24,13 @@
 #include <QAccessible>
 #include <QMetaEnum>
 
+#include "muse_framework_config.h"
 #include "accessibility/internal/accessibilitycontroller.h"
 
 #include "log.h"
 
 using namespace mu::diagnostics;
-using namespace mu::accessibility;
+using namespace muse::accessibility;
 
 DiagnosticAccessibleModel::DiagnosticAccessibleModel(QObject* parent)
     : QAbstractItemModel(parent)
@@ -48,7 +49,7 @@ DiagnosticAccessibleModel::~DiagnosticAccessibleModel()
 
 void DiagnosticAccessibleModel::init()
 {
-#ifdef MUE_BUILD_ACCESSIBILITY_MODULE
+#ifdef MUSE_MODULE_ACCESSIBILITY
     AccessibilityController* accessController = dynamic_cast<AccessibilityController*>(accessibilityController().get());
     AccessibilityController::Item rootItem = accessController->findItem(accessController);
     m_accessibleRootObject = rootItem.object;
@@ -86,7 +87,7 @@ static void debug_dumpItem(QAccessibleInterface* item, QTextStream& stream, QStr
     level.chop(2);
 }
 
-#ifdef MUE_BUILD_ACCESSIBILITY_MODULE
+#ifdef MUSE_MODULE_ACCESSIBILITY
 static void debug_dumpTree(QAccessibleInterface* item)
 {
     QString str;
@@ -104,7 +105,7 @@ static void debug_dumpTree(QAccessibleInterface* item)
 
 void DiagnosticAccessibleModel::dumpTree()
 {
-#ifdef MUE_BUILD_ACCESSIBILITY_MODULE
+#ifdef MUSE_MODULE_ACCESSIBILITY
     AccessibilityController* accessController = dynamic_cast<AccessibilityController*>(accessibilityController().get());
     AccessibilityController::Item rootItem = accessController->findItem(accessController);
 

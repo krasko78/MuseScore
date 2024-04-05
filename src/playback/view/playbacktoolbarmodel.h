@@ -88,9 +88,9 @@ private:
     void setupConnections();
 
     void updateActions();
-    void onActionsStateChanges(const actions::ActionCodeList& codes) override;
+    void onActionsStateChanges(const muse::actions::ActionCodeList& codes) override;
 
-    bool isAdditionalAction(const actions::ActionCode& actionCode) const;
+    bool isAdditionalAction(const muse::actions::ActionCode& actionCode) const;
 
     QTime totalPlayTime() const;
     notation::MeasureBeat measureBeat() const;
@@ -100,7 +100,7 @@ private:
     void updatePlayPosition();
     void doSetPlayTime(const QTime& time);
 
-    void rewind(audio::msecs_t milliseconds);
+    void rewind(muse::audio::msecs_t milliseconds);
     void rewindToBeat(const notation::MeasureBeat& beat);
 
     bool m_isToolbarFloating = false;

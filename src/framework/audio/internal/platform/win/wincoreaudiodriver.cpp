@@ -43,7 +43,7 @@
         return errorValue; \
 } \
 
-using namespace mu::audio;
+using namespace muse::audio;
 
 struct WinCoreData {
     IAudioClient* audioClient = nullptr;
@@ -397,7 +397,7 @@ bool CoreAudioDriver::selectOutputDevice(const AudioDeviceID& id)
     return ok;
 }
 
-bool mu::audio::CoreAudioDriver::resetToDefaultOutputDevice()
+bool muse::audio::CoreAudioDriver::resetToDefaultOutputDevice()
 {
     return selectOutputDevice(defaultDeviceId());
 }
@@ -454,7 +454,7 @@ AudioDeviceList CoreAudioDriver::availableOutputDevices() const
     CoInitialize(NULL);
 
     AudioDeviceList result;
-    result.push_back({ DEFAULT_DEVICE_ID, trc("audio", "System default") });
+    result.push_back({ DEFAULT_DEVICE_ID, mu::trc("audio", "System default") });
 
     HRESULT hr;
     IMMDeviceCollection* devices;

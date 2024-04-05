@@ -39,7 +39,7 @@ namespace mu::appshell {
 class StartupScenario : public IStartupScenario, public async::Asyncable
 {
     INJECT(IInteractive, interactive)
-    INJECT(actions::IActionsDispatcher, dispatcher)
+    INJECT(muse::actions::IActionsDispatcher, dispatcher)
     INJECT(mi::IMultiInstancesProvider, multiInstancesProvider)
     INJECT(IAppShellConfiguration, configuration)
     INJECT(IAppShellHiddenConfiguration, appshellHiddenConfiguration) // KRASKO

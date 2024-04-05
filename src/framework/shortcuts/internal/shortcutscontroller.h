@@ -23,22 +23,27 @@
 #define MU_SHORTCUTS_SHORTCUTSCONTROLLER_H
 
 #include "../ishortcutscontroller.h"
+
 #include "async/asyncable.h"
 #include "modularity/ioc.h"
 #include "actions/iactionsdispatcher.h"
 #include "ui/iuiactionsregister.h"
 #include "ui/iinteractiveprovider.h"
+#include "ui/iuicontextresolver.h"
 #include "ishortcutsregister.h"
-#include "context/iuicontextresolver.h"
+#include "shortcutcontext.h"
 
 namespace mu::shortcuts {
 class ShortcutsController : public IShortcutsController, public async::Asyncable
 {
     INJECT(IShortcutsRegister, shortcutsRegister)
-    INJECT(actions::IActionsDispatcher, dispatcher)
+    INJECT(muse::actions::IActionsDispatcher, dispatcher)
     INJECT(ui::IUiActionsRegister, aregister)
     INJECT(ui::IInteractiveProvider, interactiveProvider)
-    INJECT(context::IUiContextResolver, uiContextResolver)
+    INJECT(ui::IUiContextResolver, uiContextResolver)
+
+    //! NOTE May be missing because it must be implemented outside the framework
+    INJECT(IShortcutContextPriority, shortcutContextPriority)
 
 public:
     ShortcutsController() = default;
@@ -49,7 +54,7 @@ public:
     bool isRegistered(const std::string& sequence) const override;
 
 private:
-    actions::ActionCode resolveAction(const std::string& sequence) const;
+    muse::actions::ActionCode resolveAction(const std::string& sequence) const;
 };
 }
 

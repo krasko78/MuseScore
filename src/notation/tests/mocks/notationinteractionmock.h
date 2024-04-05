@@ -119,7 +119,7 @@ public:
     MOCK_METHOD(bool, nextGrip, (), (override)); // KRASKO
 
     MOCK_METHOD(bool, isElementEditStarted, (), (const, override));
-    MOCK_METHOD(void, startEditElement, (EngravingItem*), (override));
+    MOCK_METHOD(void, startEditElement, (EngravingItem*, bool), (override));
     MOCK_METHOD(void, changeEditElement, (EngravingItem*), (override));
     MOCK_METHOD(bool, isEditAllowed, (QKeyEvent*), (override));
     MOCK_METHOD(void, editElement, (QKeyEvent*), (override));

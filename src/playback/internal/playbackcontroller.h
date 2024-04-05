@@ -47,13 +47,13 @@
 #include "../isoundprofilesrepository.h"
 
 namespace mu::playback {
-class PlaybackController : public IPlaybackController, public actions::Actionable, public async::Asyncable
+class PlaybackController : public IPlaybackController, public muse::actions::Actionable, public async::Asyncable
 {
-    INJECT_STATIC(actions::IActionsDispatcher, dispatcher)
+    INJECT_STATIC(muse::actions::IActionsDispatcher, dispatcher)
     INJECT_STATIC(context::IGlobalContext, globalContext)
     INJECT_STATIC(IPlaybackConfiguration, configuration)
     INJECT_STATIC(notation::INotationConfiguration, notationConfiguration)
-    INJECT_STATIC(audio::IPlayback, playback)
+    INJECT_STATIC(muse::audio::IPlayback, playback)
     INJECT_STATIC(ISoundProfilesRepository, profilesRepo)
     INJECT_STATIC(IInteractive, interactive)
 
@@ -68,26 +68,27 @@ public:
 
     void reset() override;
 
-    void seek(const midi::tick_t tick) override;
-    void seek(const audio::msecs_t msecs) override;
+    void seek(const muse::midi::tick_t tick) override;
+    void seek(const muse::audio::msecs_t msecs) override;
 
     async::Notification playbackPositionChanged() const override;
     async::Channel<uint32_t> midiTickPlayed() const override;
     float playbackPositionInSeconds() const override;
 
-    audio::TrackSequenceId currentTrackSequenceId() const override;
+    muse::audio::TrackSequenceId currentTrackSequenceId() const override;
     async::Notification currentTrackSequenceIdChanged() const override;
 
     const InstrumentTrackIdMap& instrumentTrackIdMap() const override;
     const AuxTrackIdMap& auxTrackIdMap() const override;
 
-    async::Channel<audio::TrackId> trackAdded() const override;
-    async::Channel<audio::TrackId> trackRemoved() const override;
+    async::Channel<muse::audio::TrackId> trackAdded() const override;
+    async::Channel<muse::audio::TrackId> trackRemoved() const override;
 
-    std::string auxChannelName(audio::aux_channel_idx_t index) const override;
-    async::Channel<audio::aux_channel_idx_t, std::string> auxChannelNameChanged() const override;
+    std::string auxChannelName(muse::audio::aux_channel_idx_t index) const override;
+    async::Channel<muse::audio::aux_channel_idx_t, std::string> auxChannelNameChanged() const override;
 
-    async::Promise<audio::SoundPresetList> availableSoundPresets(const engraving::InstrumentTrackId& instrumentTrackId) const override;
+    async::Promise<muse::audio::SoundPresetList> availableSoundPresets(
+        const engraving::InstrumentTrackId& instrumentTrackId) const override;
 
     notation::INotationSoloMuteState::SoloMuteState trackSoloMuteState(const engraving::InstrumentTrackId& trackId) const override;
     void setTrackSoloMuteState(const engraving::InstrumentTrackId& trackId,
@@ -97,8 +98,8 @@ public:
     void playMetronome(int tick) override;
     void seekElement(const notation::EngravingItem* element) override;
 
-    bool actionChecked(const actions::ActionCode& actionCode) const override;
-    async::Channel<actions::ActionCode> actionCheckedChanged() const override;
+    bool actionChecked(const muse::actions::ActionCode& actionCode) const override;
+    async::Channel<muse::actions::ActionCode> actionCheckedChanged() const override;
 
     QTime totalPlayTime() const override;
     async::Notification totalPlayTimeChanged() const override;
@@ -107,7 +108,7 @@ public:
     async::Notification currentTempoChanged() const override;
 
     notation::MeasureBeat currentBeat() const override;
-    audio::msecs_t beatToMilliseconds(int measureIndex, int beatIndex) const override;
+    muse::audio::msecs_t beatToMilliseconds(int measureIndex, int beatIndex) const override;
 
     double tempoMultiplier() const override;
     void setTempoMultiplier(double multiplier) override;
@@ -119,7 +120,7 @@ public:
     void setNotation(notation::INotationPtr notation) override;
     void setIsExportingAudio(bool exporting) override;
 
-    bool canReceiveAction(const actions::ActionCode& code) const override;
+    bool canReceiveAction(const muse::actions::ActionCode& code) const override;
 
 private:
     notation::INotationPlaybackPtr notationPlayback() const;
@@ -145,24 +146,24 @@ private:
     void seekListSelection();
     void seekRangeSelection();
 
-    void onAudioResourceChanged(const mu::engraving::InstrumentTrackId& trackId, const audio::AudioResourceMeta& oldMeta,
-                                const audio::AudioResourceMeta& newMeta);
+    void onAudioResourceChanged(const mu::engraving::InstrumentTrackId& trackId, const muse::audio::AudioResourceMeta& oldMeta,
+                                const muse::audio::AudioResourceMeta& newMeta);
 
     void addSoundFlagsIfNeed(const std::vector<engraving::EngravingItem*>& selection);
 
     void togglePlay();
-    void rewind(const actions::ActionData& args);
+    void rewind(const muse::actions::ActionData& args);
     void play();
     void pause();
     void stop();
     void resume();
 
-    audio::msecs_t playbackStartMsecs() const;
-    audio::msecs_t playbackEndMsecs() const;
+    muse::audio::msecs_t playbackStartMsecs() const;
+    muse::audio::msecs_t playbackEndMsecs() const;
 
     notation::InstrumentTrackIdSet instrumentTrackIdSetForRangePlayback() const;
 
-    void setCurrentPlaybackStatus(audio::PlaybackStatus status);
+    void setCurrentPlaybackStatus(muse::audio::PlaybackStatus status);
 
     void togglePlayRepeats();
     void togglePlayChordSymbols();
@@ -181,12 +182,12 @@ private:
     void enableLoop();
     void disableLoop();
 
-    void notifyActionCheckedChanged(const actions::ActionCode& actionCode);
+    void notifyActionCheckedChanged(const muse::actions::ActionCode& actionCode);
 
     project::IProjectAudioSettingsPtr audioSettings() const;
 
     void resetCurrentSequence();
-    void setupNewCurrentSequence(const audio::TrackSequenceId sequenceId);
+    void setupNewCurrentSequence(const muse::audio::TrackSequenceId sequenceId);
     void subscribeOnAudioParamsChanges();
     void setupSequenceTracks();
     void setupSequencePlayer();
@@ -196,21 +197,21 @@ private:
     void updateSoloMuteStates();
     void updateAuxMuteStates();
 
-    void setCurrentPlaybackTime(audio::msecs_t msecs);
+    void setCurrentPlaybackTime(muse::audio::msecs_t msecs);
 
     using TrackAddFinished = std::function<void ()>;
 
     void addTrack(const engraving::InstrumentTrackId& instrumentTrackId, const TrackAddFinished& onFinished);
     void doAddTrack(const engraving::InstrumentTrackId& instrumentTrackId, const std::string& title, const TrackAddFinished& onFinished);
-    void addAuxTrack(audio::aux_channel_idx_t index, const TrackAddFinished& onFinished);
+    void addAuxTrack(muse::audio::aux_channel_idx_t index, const TrackAddFinished& onFinished);
 
     void setTrackActivity(const engraving::InstrumentTrackId& instrumentTrackId, const bool isActive);
-    audio::AudioOutputParams trackOutputParams(const engraving::InstrumentTrackId& instrumentTrackId) const;
+    muse::audio::AudioOutputParams trackOutputParams(const engraving::InstrumentTrackId& instrumentTrackId) const;
     engraving::InstrumentTrackIdSet availableInstrumentTracks() const;
     void removeNonExistingTracks();
     void removeTrack(const engraving::InstrumentTrackId& instrumentTrackId);
 
-    audio::msecs_t tickToMsecs(int tick) const;
+    muse::audio::msecs_t tickToMsecs(int tick) const;
 
     notation::INotationPtr m_notation;
     notation::IMasterNotationPtr m_masterNotation;
@@ -221,19 +222,19 @@ private:
     async::Notification m_totalPlayTimeChanged;
     async::Notification m_currentTempoChanged;
     async::Channel<uint32_t> m_tickPlayed;
-    async::Channel<actions::ActionCode> m_actionCheckedChanged;
+    async::Channel<muse::actions::ActionCode> m_actionCheckedChanged;
 
-    audio::TrackSequenceId m_currentSequenceId = -1;
+    muse::audio::TrackSequenceId m_currentSequenceId = -1;
     async::Notification m_currentSequenceIdChanged;
-    audio::PlaybackStatus m_currentPlaybackStatus = audio::PlaybackStatus::Stopped;
-    audio::msecs_t m_currentPlaybackTimeMsecs = 0;
-    midi::tick_t m_currentTick = 0;
+    muse::audio::PlaybackStatus m_currentPlaybackStatus = muse::audio::PlaybackStatus::Stopped;
+    muse::audio::msecs_t m_currentPlaybackTimeMsecs = 0;
+    muse::midi::tick_t m_currentTick = 0;
     notation::Tempo m_currentTempo;
 
-    async::Channel<audio::TrackId> m_trackAdded;
-    async::Channel<audio::TrackId> m_trackRemoved;
+    async::Channel<muse::audio::TrackId> m_trackAdded;
+    async::Channel<muse::audio::TrackId> m_trackRemoved;
 
-    async::Channel<audio::aux_channel_idx_t, std::string> m_auxChannelNameChanged;
+    async::Channel<muse::audio::aux_channel_idx_t, std::string> m_auxChannelNameChanged;
 
     InstrumentTrackIdMap m_instrumentTrackIdMap;
     AuxTrackIdMap m_auxTrackIdMap;

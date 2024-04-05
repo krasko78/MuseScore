@@ -27,6 +27,7 @@
 
 #include "global/io/buffer.h"
 #include "global/io/file.h"
+#include "global/io/ioretcodes.h"
 
 #include "engraving/dom/undo.h"
 
@@ -79,7 +80,7 @@ static void setupScoreMetaTags(mu::engraving::MasterScore* masterScore, const Pr
 
 static QString scoreDefaultTitle()
 {
-    return qtrc("project", "Untitled score");
+    return mu::qtrc("project", "Untitled score");
 }
 
 NotationProject::~NotationProject()
@@ -228,6 +229,10 @@ mu::Ret NotationProject::doLoad(const io::path_t& path, const io::path_t& styleP
     m_masterNotation->notation()->viewState()->read(reader);
     m_masterNotation->notation()->soloMuteState()->read(reader);
     for (IExcerptNotationPtr excerpt : m_masterNotation->excerpts()) {
+        if (!excerpt->hasFileName()) {
+            continue;
+        }
+
         io::path_t ePath = u"Excerpts/" + excerpt->fileName() + u"/";
         excerpt->notation()->viewState()->read(reader, ePath);
         excerpt->notation()->soloMuteState()->read(reader, ePath);
@@ -566,16 +571,17 @@ mu::Ret NotationProject::doSave(const io::path_t& path, engraving::MscIoMode ioM
 
     // Step 1: check writable
     {
-        if (fileSystem()->exists(savePath) && !fileSystem()->isWritable(savePath)) {
-            LOGE() << "failed save, not writable path: " << savePath;
-            return make_ret(notation::Err::UnknownError);
+        if ((fileSystem()->exists(savePath) && !fileSystem()->isWritable(savePath))
+            || (fileSystem()->exists(targetContainerPath) && !fileSystem()->isWritable(targetContainerPath))) {
+            LOGE() << "failed save, not writable path: " << targetContainerPath;
+            return make_ret(io::Err::FSWriteError);
         }
 
         if (ioMode == engraving::MscIoMode::Dir) {
             // Dir needs to be created, otherwise we can't move to it
             if (!QDir(targetContainerPath).mkpath(".")) {
-                LOGE() << "Couldn't create container directory";
-                return make_ret(notation::Err::UnknownError);
+                LOGE() << "Couldn't create container directory: " << targetContainerPath;
+                return make_ret(io::Err::FSMakingError);
             }
         }
     }
@@ -620,7 +626,7 @@ mu::Ret NotationProject::doSave(const io::path_t& path, engraving::MscIoMode ioM
                 return filesToBeMoved.ret;
             }
 
-            Ret ret = make_ok();
+            Ret ret = mu::make_ok();
 
             for (const io::path_t& fileToBeMoved : filesToBeMoved.val) {
                 io::path_t destinationFile

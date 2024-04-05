@@ -38,10 +38,10 @@ class PlaybackCursor
 public:
     PlaybackCursor() = default;
 
-    void paint(draw::Painter* painter);
+    void paint(muse::draw::Painter* painter);
 
     void setNotation(INotationPtr notation);
-    void move(midi::tick_t tick);
+    void move(muse::midi::tick_t tick);
 
     bool visible() const;
     void setVisible(bool arg);
@@ -50,7 +50,7 @@ public:
 
 private:
     QColor color() const;
-    RectF resolveCursorRectByTick(midi::tick_t tick) const;
+    RectF resolveCursorRectByTick(muse::midi::tick_t tick) const;
 
     bool m_visible = false;
     RectF m_rect;

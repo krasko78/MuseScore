@@ -2041,7 +2041,7 @@ EngravingItem* Chord::drop(EditData& data)
     return 0;
 }
 
-void Chord::setColor(const mu::draw::Color& color)
+void Chord::setColor(const Color& color)
 {
     ChordRest::setColor(color);
 
@@ -3146,7 +3146,7 @@ void Chord::undoChangeProperty(Pid id, const PropertyValue& newValue, PropertyFl
         }, false);
     }
 
-    EngravingItem::undoChangeProperty(id, newValue, ps);
+    ChordRest::undoChangeProperty(id, newValue, ps);
 }
 
 std::set<SymId> Chord::articulationSymbolIds() const

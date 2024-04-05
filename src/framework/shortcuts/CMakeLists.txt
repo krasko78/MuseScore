@@ -20,10 +20,13 @@
 
 set(MODULE shortcuts)
 
+set(MODULE_QRC shortcuts.qrc)
+
 set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/shortcutsmodule.cpp
     ${CMAKE_CURRENT_LIST_DIR}/shortcutsmodule.h
     ${CMAKE_CURRENT_LIST_DIR}/shortcutstypes.h
+    ${CMAKE_CURRENT_LIST_DIR}/shortcutcontext.h
     ${CMAKE_CURRENT_LIST_DIR}/ishortcutsregister.h
     ${CMAKE_CURRENT_LIST_DIR}/ishortcutscontroller.h
     ${CMAKE_CURRENT_LIST_DIR}/ishortcutsconfiguration.h
@@ -52,8 +55,6 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/view/editmidimappingmodel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/view/editmidimappingmodel.h
     )
-
-set(MODULE_QRC shortcuts.qrc)
 
 set(MODULE_QML_IMPORT ${CMAKE_CURRENT_LIST_DIR}/qml )
 

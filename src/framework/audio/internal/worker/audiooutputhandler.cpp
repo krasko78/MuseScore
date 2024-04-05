@@ -30,17 +30,18 @@
 #include "internal/worker/audioengine.h"
 #include "audioerrors.h"
 
-#ifdef MUE_ENABLE_AUDIO_EXPORT
+#include "muse_framework_config.h"
+#ifdef MUSE_MODULE_AUDIO_EXPORT
 #include "internal/soundtracks/soundtrackwriter.h"
 #endif
 
 #include "log.h"
 
-using namespace mu::audio;
+using namespace muse::audio;
 using namespace mu::async;
 
-#ifdef MUE_ENABLE_AUDIO_EXPORT
-using namespace mu::audio::soundtrack;
+#ifdef MUSE_MODULE_AUDIO_EXPORT
+using namespace muse::audio::soundtrack;
 #endif
 
 AudioOutputHandler::AudioOutputHandler(IGetTrackSequence* getSequence)
@@ -196,7 +197,7 @@ Promise<bool> AudioOutputHandler::saveSoundTrack(const TrackSequenceId sequenceI
             return reject(static_cast<int>(Err::InvalidSequenceId), "invalid sequence id");
         }
 
-#ifdef MUE_ENABLE_AUDIO_EXPORT
+#ifdef MUSE_MODULE_AUDIO_EXPORT
         s->player()->stop();
         s->player()->seek(0);
         msecs_t totalDuration = s->player()->duration();
@@ -227,7 +228,7 @@ Promise<bool> AudioOutputHandler::saveSoundTrack(const TrackSequenceId sequenceI
 
 void AudioOutputHandler::abortSavingAllSoundTracks()
 {
-#ifdef MUE_ENABLE_AUDIO_EXPORT
+#ifdef MUSE_MODULE_AUDIO_EXPORT
     for (auto writer : m_saveSoundTracksWritersMap) {
         writer.second->abort();
     }

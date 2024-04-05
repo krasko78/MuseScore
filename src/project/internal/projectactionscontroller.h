@@ -32,6 +32,7 @@
 #include "actions/actionable.h"
 #include "actions/iactionsdispatcher.h"
 #include "multiinstances/imultiinstancesprovider.h"
+#include "multiinstances/iprojectprovider.h"
 #include "cloud/musescorecom/imusescorecomservice.h"
 #include "cloud/audiocom/iaudiocomservice.h"
 #include "cloud/cloudqmltypes.h"
@@ -51,7 +52,8 @@
 #include "iprojectautosaver.h"
 
 namespace mu::project {
-class ProjectActionsController : public IProjectFilesController, public QObject, public actions::Actionable, public async::Asyncable
+class ProjectActionsController : public IProjectFilesController, public mi::IProjectProvider, public muse::actions::Actionable,
+    public async::Asyncable
 {
     INJECT(IProjectConfiguration, configuration)
     INJECT(INotationReadersRegister, readers)
@@ -60,12 +62,12 @@ class ProjectActionsController : public IProjectFilesController, public QObject,
     INJECT(IProjectAutoSaver, projectAutoSaver)
     INJECT(IOpenSaveProjectScenario, openSaveProjectScenario)
     INJECT(IExportProjectScenario, exportProjectScenario)
-    INJECT(actions::IActionsDispatcher, dispatcher)
+    INJECT(muse::actions::IActionsDispatcher, dispatcher)
     INJECT(IInteractive, interactive)
     INJECT(context::IGlobalContext, globalContext)
     INJECT(mi::IMultiInstancesProvider, multiInstancesProvider)
-    INJECT(cloud::IMuseScoreComService, museScoreComService)
-    INJECT(cloud::IAudioComService, audioComService)
+    INJECT(muse::cloud::IMuseScoreComService, museScoreComService)
+    INJECT(muse::cloud::IAudioComService, audioComService)
     INJECT(notation::INotationConfiguration, notationConfiguration)
     INJECT(playback::IPlaybackController, playbackController)
     INJECT(print::IPrintProvider, printProvider)
@@ -74,16 +76,18 @@ class ProjectActionsController : public IProjectFilesController, public QObject,
 public:
     void init();
 
-    bool canReceiveAction(const actions::ActionCode& code) const override;
+    bool canReceiveAction(const muse::actions::ActionCode& code) const override;
 
     bool isUrlSupported(const QUrl& url) const override;
     bool isFileSupported(const io::path_t& path) const override;
     Ret openProject(const ProjectFile& file) override;
     bool closeOpenedProject(bool quitApp = false) override;
-    bool isProjectOpened(const io::path_t& scorePath) const override;
-    bool isAnyProjectOpened() const override;
     bool saveProject(const io::path_t& path = io::path_t()) override;
     bool saveProjectLocally(const io::path_t& path = io::path_t(), SaveMode saveMode = SaveMode::Save) override;
+
+    // mi::IProjectProvider
+    bool isProjectOpened(const io::path_t& scorePath) const override;
+    bool isAnyProjectOpened() const override;
 
     const ProjectBeingDownloaded& projectBeingDownloaded() const override;
     async::Notification projectBeingDownloadedChanged() const override;
@@ -99,7 +103,7 @@ private:
 
     void newProject();
 
-    void openProject(const actions::ActionData& args);
+    void openProject(const muse::actions::ActionData& args);
     Ret openProject(const io::path_t& path, const QString& displayNameOverride = QString());
     void downloadAndOpenCloudProject(int scoreId, const QString& hash = QString(), const QString& secret = QString(), bool isOwner = true);
     Ret openMuseScoreUrl(const QUrl& url);

@@ -36,7 +36,7 @@
 #include "log.h"
 
 using namespace mu;
-using namespace mu::draw;
+using namespace muse::draw;
 using namespace mu::engraving;
 
 static const Settings::Key DEFAULT_STYLE_FILE_PATH("engraving", "engraving/style/defaultStyleFile");
@@ -71,7 +71,7 @@ void EngravingConfiguration::init()
         Settings::Key key("engraving", "engraving/colors/voice" + std::to_string(voice + 1));
 
         settings()->setDefaultValue(key, Val(DEFAULT_VOICE_COLORS[voice].toQColor()));
-        settings()->setDescription(key, qtrc("engraving", "Voice %1 color").arg(voice + 1).toStdString());
+        settings()->setDescription(key, mu::qtrc("engraving", "Voice %1 color").arg(voice + 1).toStdString());
         settings()->setCanBeManuallyEdited(key, true);
         settings()->valueChanged(key).onReceive(this, [this, voice](const Val& val) {
             Color color = val.toQColor();
@@ -215,6 +215,16 @@ Color EngravingConfiguration::noteBackgroundColor() const
 Color EngravingConfiguration::fontPrimaryColor() const
 {
     return Color(uiConfiguration()->currentTheme().values[ui::ThemeStyleKey::FONT_PRIMARY_COLOR].toString());
+}
+
+Color EngravingConfiguration::timeTickAnchorColorLighter() const
+{
+    return Color(204, 234, 255);
+}
+
+Color EngravingConfiguration::timeTickAnchorColorDarker() const
+{
+    return Color(153, 213, 255);
 }
 
 double EngravingConfiguration::guiScaling() const

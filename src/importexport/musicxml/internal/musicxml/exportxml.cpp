@@ -128,6 +128,7 @@
 
 #include "modularity/ioc.h"
 #include "../../imusicxmlconfiguration.h"
+#include "global/iapplication.h"
 #include "engraving/iengravingconfiguration.h"
 
 #include "log.h"
@@ -352,6 +353,7 @@ typedef std::map<const Instrument*, int> MxmlInstrumentMap;
 class ExportMusicXml
 {
     INJECT_STATIC(mu::iex::musicxml::IMusicXmlConfiguration, configuration)
+    INJECT_STATIC(mu::IApplication, application)
 
 public:
     ExportMusicXml(Score* s)
@@ -5425,7 +5427,7 @@ int ExportMusicXml::findBracket(const TextLineBase* tl) const
 
 void ExportMusicXml::textLine(TextLineBase const* const tl, staff_idx_t staff, const Fraction& tick)
 {
-    using namespace mu::draw;
+    using namespace muse::draw;
 
     if (!tl->lineVisible() && ((tl->beginText().isEmpty() && tl->tick() == tick)
                                || (tl->endText().isEmpty() && tl->tick() != tick))) {
@@ -6766,7 +6768,7 @@ void ExportMusicXml::identification(XmlWriter& xml, Score const* const score)
         xml.tag("software", String(u"MuseScore 0.7.0"));
         xml.tag("encoding-date", String(u"2007-09-10"));
     } else {
-        xml.tag("software", String(u"MuseScore ") + String::fromAscii(MUSESCORE_VERSION));
+        xml.tag("software", String(u"MuseScore ") + application()->version().toString());
         xml.tag("encoding-date", Date::currentDate().toString(DateFormat::ISODate));
     }
 
@@ -7437,7 +7439,7 @@ void ExportMusicXml::writeElement(EngravingItem* el, const Measure* m, staff_idx
         if (tickIsInMiddleOfMeasure(barln->tick(), m)) {
             barlineMiddle(barln);
         }
-    } else if (el->isKeySig() || el->isTimeSig() || el->isBreath()) {
+    } else if (el->isKeySig() || el->isTimeSig() || el->isBreath() || el->isTimeTickAnchor()) {
         // handled elsewhere
     } else {
         LOGD("ExportMusicXml::write unknown segment type %s", el->typeName());
@@ -7761,6 +7763,9 @@ void ExportMusicXml::writeMeasureTracks(const Measure* const m,
     track_idx_t etrack = strack + VOICES;
     for (track_idx_t track = strack; track < etrack; ++track) {
         for (auto seg = m->first(); seg; seg = seg->next()) {
+            if (seg->isTimeTickType()) {
+                continue;
+            }
             const auto el = seg->element(track);
             if (!el) {
                 continue;

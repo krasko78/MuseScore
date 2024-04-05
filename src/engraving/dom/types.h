@@ -25,11 +25,12 @@
 
 #include <unordered_set>
 
-#include "containers.h"
-#include "types/types.h"
+#include "global/containers.h"
+
+#include "../types/types.h"
+#include "../style/styledef.h"
 
 #include "property.h"
-#include "style/styledef.h"
 
 namespace mu::engraving {
 class EngravingItem;
@@ -408,6 +409,9 @@ enum class SegmentType {
     EndBarLine         = 0x400,
     KeySigAnnounce     = 0x800,
     TimeSigAnnounce    = 0x1000,
+    //--
+    TimeTick           = 0x2000,
+    //--
     All                = -1,   ///< Includes all barline types
     /// Alias for `BeginBarLine | StartRepeatBarLine | BarLine | EndBarLine`
     BarLineType        = BeginBarLine | StartRepeatBarLine | BarLine | EndBarLine,

@@ -35,14 +35,12 @@
 
 #include "languages/ilanguagesservice.h"
 
-class QQmlEngine;
-
 namespace mu::ui {
 class UiEngine : public QObject, public IUiEngine
 {
     Q_OBJECT
 
-    INJECT(languages::ILanguagesService, languagesService)
+    INJECT(muse::languages::ILanguagesService, languagesService)
 
     Q_PROPERTY(api::ThemeApi * theme READ theme NOTIFY themeChanged)
     Q_PROPERTY(QmlToolTip * tooltip READ tooltip CONSTANT)
@@ -53,9 +51,10 @@ class UiEngine : public QObject, public IUiEngine
     Q_PROPERTY(InteractiveProvider * _interactiveProvider READ interactiveProvider_property CONSTANT)
 
 public:
+    UiEngine();
     ~UiEngine() override;
 
-    static UiEngine* instance();
+    void init();
 
     QmlApi* api() const;
     api::ThemeApi* theme() const;
@@ -68,13 +67,12 @@ public:
 
     // IUiEngine
     void updateTheme() override;
+    QQmlApplicationEngine* qmlAppEngine() const override;
     QQmlEngine* qmlEngine() const override;
+    void quit() override;
     void clearComponentCache() override;
     void addSourceImportPath(const QString& path) override;
     // ---
-
-    void moveQQmlEngine(QQmlEngine* e);
-    void quit();
 
     QQuickItem* rootItem() const;
 
@@ -86,12 +84,8 @@ signals:
     void rootItemChanged(QQuickItem* rootItem);
 
 private:
-    UiEngine();
 
-    QQmlEngine* engine();
-    void setup(QQmlEngine* engine);
-
-    QQmlEngine* m_engine = nullptr;
+    QQmlApplicationEngine* m_engine = nullptr;
     QStringList m_sourceImportPaths;
     api::ThemeApi* m_theme = nullptr;
     QmlTranslation* m_translation = nullptr;

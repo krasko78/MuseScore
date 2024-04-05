@@ -24,13 +24,14 @@
 #include "async/notifylist.h"
 #include "types/translatablestring.h"
 
+#include "context/shortcutcontext.h"
 #include "internal/notationuiactions.h"
 
 #include "log.h"
 
 using namespace mu;
 using namespace mu::notation;
-using namespace mu::actions;
+using namespace muse::actions;
 using namespace mu::ui;
 using namespace mu::uicomponents;
 
@@ -583,7 +584,7 @@ MenuItemList NoteInputBarModel::makeSubitems(const ActionCode& actionCode)
 MenuItemList NoteInputBarModel::makeNoteInputMethodItems()
 {
     MenuItemList items;
-    actions::ActionCode currentInputMethod = currentNoteInputModeAction().code;
+    ActionCode currentInputMethod = currentNoteInputModeAction().code;
 
     for (const auto& pair : noteInputModeActions) {
         ActionCode actionCode = pair.first;

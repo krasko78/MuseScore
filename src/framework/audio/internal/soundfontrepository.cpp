@@ -27,8 +27,8 @@
 
 #include "log.h"
 
-using namespace mu::audio;
-using namespace mu::audio::synth;
+using namespace muse::audio;
+using namespace muse::audio::synth;
 using namespace mu::async;
 
 void SoundFontRepository::init()
@@ -101,8 +101,8 @@ Notification SoundFontRepository::soundFontsChanged() const
 
 mu::Ret SoundFontRepository::addSoundFont(const SoundFontPath& path)
 {
-    std::string title = qtrc("audio", "Do you want to add the SoundFont: %1?")
-                        .arg(io::filename(path).toQString()).toStdString();
+    std::string title = mu::qtrc("audio", "Do you want to add the SoundFont: %1?")
+                        .arg(mu::io::filename(path).toQString()).toStdString();
 
     IInteractive::Button btn = interactive()->question(title, "", {
         IInteractive::Button::No,
@@ -119,9 +119,9 @@ mu::Ret SoundFontRepository::addSoundFont(const SoundFontPath& path)
     }
 
     if (fileSystem()->exists(newPath.val)) {
-        title = trc("audio", "File already exists. Do you want to overwrite it?");
+        title = mu::trc("audio", "File already exists. Do you want to overwrite it?");
 
-        std::string body = qtrc("audio", "File path: %1")
+        std::string body = mu::qtrc("audio", "File path: %1")
                            .arg(newPath.val.toQString()).toStdString();
 
         btn = interactive()->question(title, body, {
@@ -140,8 +140,8 @@ mu::Ret SoundFontRepository::addSoundFont(const SoundFontPath& path)
         loadSoundFont(newPath.val);
         m_soundFontsChanged.notify();
 
-        interactive()->info(trc("audio", "SoundFont installed"),
-                            trc("audio", "You can assign soundfonts to instruments using the mixer panel."),
+        interactive()->info(mu::trc("audio", "SoundFont installed"),
+                            mu::trc("audio", "You can assign soundfonts to instruments using the mixer panel."),
                             {}, 0, IInteractive::Option::WithIcon);
     }
 
@@ -154,7 +154,7 @@ mu::RetVal<SoundFontPath> SoundFontRepository::resolveInstallationPath(const Sou
 
     for (const io::path_t& dir : dirs) {
         if (fileSystem()->isWritable(dir)) {
-            SoundFontPath newPath = dir + "/" + io::filename(path);
+            SoundFontPath newPath = dir + "/" + mu::io::filename(path);
             return RetVal<SoundFontPath>::make_ok(newPath);
         }
     }

@@ -25,12 +25,12 @@
 #include "engraving/dom/instrumentname.h"
 
 using namespace mu::inspector;
-using namespace mu::actions;
+using namespace muse::actions;
 
 InstrumentNameSettingsModel::InstrumentNameSettingsModel(QObject* parent, IElementRepositoryService* repository)
     : AbstractInspectorModel(parent, repository)
 {
-    setTitle(qtrc("inspector", "Instrument names"));
+    setTitle(mu::qtrc("inspector", "Instrument names"));
     setModelType(InspectorModelType::TYPE_INSTRUMENT_NAME);
 }
 

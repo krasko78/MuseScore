@@ -26,7 +26,7 @@
 #include "global/io/buffer.h"
 #include "global/types/retval.h"
 
-#include "types/types.h"
+#include "../types/types.h"
 
 #include "../dom/masterscore.h"
 #include "../dom/audio.h"
@@ -115,7 +115,7 @@ mu::Ret MscLoader::loadMscz(MasterScore* masterScore, const MscReader& mscReader
 
     ReadInOutData masterReadOutData;
 
-    Ret ret = make_ok();
+    Ret ret = mu::make_ok();
 
     // Read score
     {

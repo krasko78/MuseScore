@@ -56,15 +56,15 @@ QVariantList ImportPreferencesModel::shortestNotes() const
     constexpr int division =  engraving::Constants::DIVISION;
 
     QVariantList result = {
-        QVariantMap { { "title", qtrc("appshell/preferences", "Quarter") }, { "value", division } },
-        QVariantMap { { "title", qtrc("appshell/preferences", "Eighth") }, { "value", division / 2 } },
-        QVariantMap { { "title", qtrc("appshell/preferences", "16th") }, { "value", division / 4 } },
-        QVariantMap { { "title", qtrc("appshell/preferences", "32nd") }, { "value", division / 8 } },
-        QVariantMap { { "title", qtrc("appshell/preferences", "64th") }, { "value", division / 16 } },
-        QVariantMap { { "title", qtrc("appshell/preferences", "128th") }, { "value", division / 32 } },
-        QVariantMap { { "title", qtrc("appshell/preferences", "256th") }, { "value", division / 64 } },
-        QVariantMap { { "title", qtrc("appshell/preferences", "512th") }, { "value", division / 128 } },
-        QVariantMap { { "title", qtrc("appshell/preferences", "1024th") }, { "value", division / 256 } }
+        QVariantMap { { "title", mu::qtrc("appshell/preferences", "Quarter") }, { "value", division } },
+        QVariantMap { { "title", mu::qtrc("appshell/preferences", "Eighth") }, { "value", division / 2 } },
+        QVariantMap { { "title", mu::qtrc("appshell/preferences", "16th") }, { "value", division / 4 } },
+        QVariantMap { { "title", mu::qtrc("appshell/preferences", "32nd") }, { "value", division / 8 } },
+        QVariantMap { { "title", mu::qtrc("appshell/preferences", "64th") }, { "value", division / 16 } },
+        QVariantMap { { "title", mu::qtrc("appshell/preferences", "128th") }, { "value", division / 32 } },
+        QVariantMap { { "title", mu::qtrc("appshell/preferences", "256th") }, { "value", division / 64 } },
+        QVariantMap { { "title", mu::qtrc("appshell/preferences", "512th") }, { "value", division / 128 } },
+        QVariantMap { { "title", mu::qtrc("appshell/preferences", "1024th") }, { "value", division / 256 } }
     };
 
     return result;
@@ -72,12 +72,12 @@ QVariantList ImportPreferencesModel::shortestNotes() const
 
 QStringList ImportPreferencesModel::stylePathFilter() const
 {
-    return { qtrc("appshell/preferences", "MuseScore style file") + " (*.mss)" };
+    return { mu::qtrc("appshell/preferences", "MuseScore style file") + " (*.mss)" };
 }
 
 QString ImportPreferencesModel::styleChooseTitle() const
 {
-    return qtrc("appshell/preferences", "Choose default style for imports");
+    return mu::qtrc("appshell/preferences", "Choose default style for imports");
 }
 
 QString ImportPreferencesModel::fileDirectory(const QString& filePath) const
@@ -108,6 +108,11 @@ bool ImportPreferencesModel::importBreaks() const
 bool ImportPreferencesModel::needUseDefaultFont() const
 {
     return musicXmlConfiguration()->needUseDefaultFont();
+}
+
+bool ImportPreferencesModel::inferTextType() const
+{
+    return musicXmlConfiguration()->inferTextType();
 }
 
 int ImportPreferencesModel::currentShortestNote() const
@@ -173,6 +178,16 @@ void ImportPreferencesModel::setNeedUseDefaultFont(bool value)
 
     musicXmlConfiguration()->setNeedUseDefaultFont(value);
     emit needUseDefaultFontChanged(value);
+}
+
+void ImportPreferencesModel::setInferTextType(bool value)
+{
+    if (value == inferTextType()) {
+        return;
+    }
+
+    musicXmlConfiguration()->setInferTextType(value);
+    emit inferTextTypeChanged(value);
 }
 
 void ImportPreferencesModel::setCurrentShortestNote(int note)

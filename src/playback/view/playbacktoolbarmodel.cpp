@@ -28,11 +28,11 @@
 #include "playback/internal/playbackuiactions.h"
 
 using namespace mu::playback;
-using namespace mu::actions;
+using namespace muse::actions;
 using namespace mu::ui;
 using namespace mu::uicomponents;
 using namespace mu::notation;
-using namespace mu::audio;
+using namespace muse::audio;
 
 static const ActionCode PLAY_ACTION_CODE("play");
 
@@ -128,7 +128,7 @@ void PlaybackToolBarModel::updateActions()
     setItems(result);
 }
 
-void PlaybackToolBarModel::onActionsStateChanges(const actions::ActionCodeList& codes)
+void PlaybackToolBarModel::onActionsStateChanges(const ActionCodeList& codes)
 {
     AbstractMenuModel::onActionsStateChanges(codes);
 
@@ -138,7 +138,7 @@ void PlaybackToolBarModel::onActionsStateChanges(const actions::ActionCodeList& 
     }
 }
 
-bool PlaybackToolBarModel::isAdditionalAction(const actions::ActionCode& actionCode) const
+bool PlaybackToolBarModel::isAdditionalAction(const ActionCode& actionCode) const
 {
     return PlaybackUiActions::loopBoundaryActions().contains(actionCode);
 }

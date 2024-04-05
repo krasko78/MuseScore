@@ -161,7 +161,7 @@ Ret InteractiveProvider::showProgress(const std::string& title, mu::Progress* pr
         }
     }
 
-    return make_ok();
+    return mu::make_ok();
 }
 
 RetVal<io::path_t> InteractiveProvider::selectOpeningFile(const std::string& title, const io::path_t& dir,
@@ -203,7 +203,7 @@ RetVal<Val> InteractiveProvider::open(const UriQuery& q)
         break;
     case ContainerType::Undefined: {
         //! NOTE Not found default, try extension
-        extensions::Manifest ext = extensionsProvider()->manifest(q.uri());
+        muse::extensions::Manifest ext = extensionsProvider()->manifest(q.uri());
         if (ext.isValid()) {
             openedRet = openExtensionDialog(q);
         } else {
@@ -339,8 +339,14 @@ void InteractiveProvider::fillExtData(QmlLaunchData* data, const UriQuery& q) co
     QVariantMap params;
     params["uri"] = QString::fromStdString(q.toString());
 
+    //! NOTE Extension dialogs open as non-modal by default
+    //! The modal parameter must be present in the uri
+    //! But here, just in case, `true` is indicated by default,
+    //! since this value is set in the base class of the dialog by default
+    params["modal"] = q.param("modal", Val(true)).toBool();
+
+    data->setValue("uri", QString::fromStdString(VIEWER_URI.toString()));
     data->setValue("sync", params.value("sync", false));
-    data->setValue("modal", params.value("modal", ""));
     data->setValue("params", params);
 }
 

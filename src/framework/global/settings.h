@@ -23,14 +23,16 @@
 #define MU_GLOBAL_SETTINGS_H
 
 #include <string>
-#include <vector>
 
 #include "types/val.h"
 #include "async/channel.h"
 #include "io/path.h"
 
+#include "muse_framework_config.h"
+#ifdef MUSE_MODULE_MULTIINSTANCES
 #include "modularity/ioc.h"
 #include "multiinstances/imultiinstancesprovider.h"
+#endif
 
 //! NOTE We are gradually abandoning Qt in non-GUI classes.
 //! This settings interface is almost independent of Qt,
@@ -42,8 +44,9 @@ class QSettings;
 namespace mu {
 class Settings
 {
+#ifdef MUSE_MODULE_MULTIINSTANCES
     Inject<mi::IMultiInstancesProvider> multiInstancesProvider;
-
+#endif
 public:
     static Settings* instance();
 

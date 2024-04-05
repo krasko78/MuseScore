@@ -21,17 +21,15 @@
  */
 
 #include <QDateTime>
+#include <QUrl>
 
 #include "util.h"
 
-#include "engraving/dom/measurebase.h"
-#include "engraving/dom/page.h"
-#include "engraving/dom/score.h"
-#include "engraving/dom/system.h"
+#include "log.h"
 
 using namespace mu;
 
-namespace mu::extensions::apiv1 {
+namespace muse::extensions::apiv1 {
 //---------------------------------------------------------
 //   FileIO
 //---------------------------------------------------------

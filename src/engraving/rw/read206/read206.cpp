@@ -137,14 +137,14 @@ void Read206::readTextStyle206(MStyle* style, XmlReader& e, ReadContext& ctx, st
     FrameType frameType = FrameType::NO_FRAME;
     Spatium paddingWidth(0.0);
     Spatium frameWidth(0.0);
-    mu::draw::Color foregroundColor = mu::draw::Color::BLACK;
-    mu::draw::Color backgroundColor = mu::draw::Color::transparent;
+    Color foregroundColor = Color::BLACK;
+    Color backgroundColor = Color::transparent;
 
     PlacementV placement = PlacementV::ABOVE;
     bool placementValid = false;
 
     String name = e.attribute("name");
-    mu::draw::Color frameColor = mu::draw::Color::BLACK;
+    Color frameColor = Color::BLACK;
 
     bool systemFlag = false;
     double lineWidth = -1.0;
@@ -2593,6 +2593,7 @@ static void readMeasure206(Measure* m, int staffIdx, XmlReader& e, ReadContext& 
                 mmr->setParent(segment);
                 mmr->setTrack(ctx.track());
                 read400::TRead::read(mmr, e, ctx);
+                mmr->setTicks(m->ticks());
                 segment->add(mmr);
                 lastTick = ctx.tick();
                 ctx.incTick(mmr->actualTicks());
@@ -2682,6 +2683,7 @@ static void readMeasure206(Measure* m, int staffIdx, XmlReader& e, ReadContext& 
                    || tag == "Volta") {
             Spanner* sp = toSpanner(Factory::createItemByName(tag, ctx.dummy()));
             sp->setTrack(ctx.track());
+            sp->setTrack2(sp->track());
             sp->setTick(ctx.tick());
             sp->eraseSpannerSegments();
             ctx.addSpanner(e.intAttribute("id", -1), sp);

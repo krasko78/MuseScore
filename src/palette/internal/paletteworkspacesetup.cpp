@@ -23,8 +23,8 @@
 
 #include "io/buffer.h"
 
-#include "paletteprovider.h"
 #include "palettecreator.h"
+#include "../palettetypes.h"
 
 #include "engraving/rw/xmlreader.h"
 #include "engraving/rw/xmlwriter.h"
@@ -34,7 +34,7 @@
 using namespace mu;
 using namespace mu::io;
 using namespace mu::palette;
-using namespace mu::workspace;
+using namespace muse::workspace;
 
 static const AsciiStringView PALETTE_XML_TAG("PaletteBox");
 
@@ -81,11 +81,11 @@ void PaletteWorkspaceSetup::setup()
         QByteArray newData;
         writePalette(tree, newData);
 
-        workspacesDataProvider()->setRawData(DataKey::Palettes, newData);
+        workspacesDataProvider()->setRawData(WS_Palettes, newData);
     });
 
     auto loadData = [this]() {
-        RetVal<QByteArray> data = workspacesDataProvider()->rawData(DataKey::Palettes);
+        RetVal<QByteArray> data = workspacesDataProvider()->rawData(WS_Palettes);
         PaletteTreePtr tree;
         if (data.ret && !data.val.isEmpty()) {
             LOGD() << "there is palette data in the workspace, we will use it";

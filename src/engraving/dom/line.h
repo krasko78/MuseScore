@@ -45,6 +45,7 @@ class LineSegment : public SpannerSegment
     OBJECT_ALLOCATOR(engraving, LineSegment)
 protected:
     virtual void editDrag(EditData&) override;
+    void updateAnchors(EditData& ed) const;
     virtual bool isEditAllowed(EditData&) const override;
     virtual bool edit(EditData&) override;
     std::vector<mu::LineF> gripAnchorLines(Grip) const override;
@@ -105,10 +106,10 @@ public:
     void setDiagonal(bool v) { m_diagonal = v; }
 
     Millimetre lineWidth() const { return m_lineWidth; }
-    mu::draw::Color lineColor() const { return m_lineColor; }
+    muse::draw::Color lineColor() const { return m_lineColor; }
     LineType lineStyle() const { return m_lineStyle; }
     void setLineWidth(const Millimetre& v) { m_lineWidth = v; }
-    void setLineColor(const mu::draw::Color& v) { m_lineColor = v; }
+    void setLineColor(const muse::draw::Color& v) { m_lineColor = v; }
     void setLineStyle(LineType v) { m_lineStyle = v; }
 
     double dashLineLen() const { return m_dashLineLen; }
@@ -127,14 +128,15 @@ public:
     bool setProperty(Pid propertyId, const PropertyValue&) override;
     PropertyValue propertyDefault(Pid id) const override;
 
-    virtual mu::PointF linePos(Grip, System** system) const;
+    virtual mu::PointF linePos(Grip grip, System** system) const;
+    virtual bool allowTimeAnchor() const override { return true; }
 
 private:
 
     friend class LineSegment;
 
     Millimetre m_lineWidth;
-    mu::draw::Color m_lineColor { engravingConfiguration()->defaultColor() };
+    muse::draw::Color m_lineColor { engravingConfiguration()->defaultColor() };
     LineType m_lineStyle = LineType::SOLID;
     double m_dashLineLen = 5.0;
     double m_dashGapLen = 5.0;

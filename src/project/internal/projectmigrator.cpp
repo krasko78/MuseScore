@@ -21,16 +21,15 @@
  */
 #include "projectmigrator.h"
 
+#include <QVersionNumber>
+
 #include "engraving/types/constants.h"
 #include "engraving/dom/score.h"
 #include "engraving/dom/excerpt.h"
 #include "engraving/dom/undo.h"
-
-#include "rw/compat/readstyle.h"
+#include "engraving/rw/compat/readstyle.h"
 
 #include "log.h"
-
-#include <QVersionNumber>
 
 using namespace mu;
 using namespace mu::project;
@@ -134,6 +133,12 @@ void ProjectMigrator::resetStyleSettings(mu::engraving::MasterScore* score)
     score->resetStyleValue(mu::engraving::Sid::measureSpacing);
 }
 
+bool ProjectMigrator::resetCrossBeams(engraving::MasterScore* score)
+{
+    score->setResetCrossBeams();
+    return true;
+}
+
 Ret ProjectMigrator::migrateProject(engraving::EngravingProjectPtr project, const MigrationOptions& opt)
 {
     TRACEFUNC;
@@ -158,6 +163,10 @@ Ret ProjectMigrator::migrateProject(engraving::EngravingProjectPtr project, cons
 
     if (ok && score->mscVersion() < 300) {
         ok = resetAllElementsPositions(score);
+    }
+
+    if (ok && score->mscVersion() <= 206) {
+        ok = resetCrossBeams(score);
     }
 
     if (ok && score->mscVersion() != mu::engraving::Constants::MSC_VERSION) {

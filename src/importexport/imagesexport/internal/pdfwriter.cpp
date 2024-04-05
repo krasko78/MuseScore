@@ -33,7 +33,7 @@ using namespace mu::iex::imagesexport;
 using namespace mu::project;
 using namespace mu::notation;
 using namespace mu::io;
-using namespace mu::draw;
+using namespace muse::draw;
 using namespace mu::engraving;
 
 std::vector<INotationWriter::UnitType> PdfWriter::supportedUnitTypes() const
@@ -135,7 +135,7 @@ mu::Ret PdfWriter::writeList(const INotationPtrList& notations, io::IODevice& de
 void PdfWriter::preparePdfWriter(QPdfWriter& pdfWriter, const QString& title, const QSizeF& size) const
 {
     pdfWriter.setResolution(configuration()->exportPdfDpiResolution());
-    pdfWriter.setCreator("MuseScore Version: " MUSESCORE_VERSION);
+    pdfWriter.setCreator(QString("MuseScore Version: ") + application()->version().toString());
     pdfWriter.setTitle(title);
     pdfWriter.setPageMargins(QMarginsF());
     pdfWriter.setPageLayout(QPageLayout(QPageSize(size, QPageSize::Inch), QPageLayout::Orientation::Portrait, QMarginsF()));

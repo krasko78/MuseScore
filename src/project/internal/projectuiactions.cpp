@@ -22,9 +22,11 @@
 #include "projectuiactions.h"
 
 #include "types/translatablestring.h"
+#include "context/shortcutcontext.h"
 
 using namespace mu::project;
 using namespace mu::ui;
+using namespace muse::actions;
 
 const UiActionList ProjectUiActions::m_actions = {
     UiAction("file-open",
@@ -152,12 +154,12 @@ bool ProjectUiActions::actionChecked(const UiAction&) const
     return false;
 }
 
-mu::async::Channel<mu::actions::ActionCodeList> ProjectUiActions::actionEnabledChanged() const
+mu::async::Channel<ActionCodeList> ProjectUiActions::actionEnabledChanged() const
 {
     return m_actionEnabledChanged;
 }
 
-mu::async::Channel<mu::actions::ActionCodeList> ProjectUiActions::actionCheckedChanged() const
+mu::async::Channel<ActionCodeList> ProjectUiActions::actionCheckedChanged() const
 {
     return m_actionCheckedChanged;
 }

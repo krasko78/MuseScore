@@ -27,7 +27,7 @@
 #include "log.h"
 
 using namespace mu::appshell;
-using namespace mu::actions;
+using namespace muse::actions;
 
 static const mu::Uri FIRST_LAUNCH_SETUP_URI("musescore://firstLaunchSetup");
 static const mu::Uri HOME_URI("musescore://home");
@@ -191,8 +191,8 @@ void StartupScenario::restoreLastSession()
 
     StartupModeType modeType = resolveStartupModeType();
     if (!appshellHiddenConfiguration()->autoRestoreSessionAfterCrash() || modeType != StartupModeType::ContinueLastSession) {
-        IInteractive::Result result = interactive()->question(trc("appshell", "The previous session quit unexpectedly."),
-                                                              trc("appshell", "Do you want to restore the session?"),
+        IInteractive::Result result = interactive()->question(mu::trc("appshell", "The previous session quit unexpectedly."),
+                                                              mu::trc("appshell", "Do you want to restore the session?"),
                                                               { IInteractive::Button::No, IInteractive::Button::Yes });
         restore = result.button() == static_cast<int>(IInteractive::Button::Yes);
     }

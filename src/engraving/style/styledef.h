@@ -26,9 +26,10 @@
 #include <array>
 #include <vector>
 
-#include "types/string.h"
-#include "types/propertyvalue.h"
-#include "dom/property.h"
+#include "global/types/string.h"
+
+#include "../types/propertyvalue.h"
+#include "../dom/property.h"
 
 namespace mu::engraving {
 // Needs to be duplicated here and in symid.h since moc doesn't handle macros from #include'd files
@@ -1147,6 +1148,8 @@ enum class Sid {
     repeatLeftFrameRound,
     repeatLeftFrameFgColor,
     repeatLeftFrameBgColor,
+
+    repeatsMusicalSymbolsScale,
 
     repeatRightFontFace,
     repeatRightFontSize,

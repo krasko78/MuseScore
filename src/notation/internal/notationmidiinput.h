@@ -42,13 +42,13 @@ namespace mu::notation {
 class NotationMidiInput : public INotationMidiInput
 {
     INJECT(playback::IPlaybackController, playbackController)
-    INJECT(actions::IActionsDispatcher, dispatcher)
+    INJECT(muse::actions::IActionsDispatcher, dispatcher)
     INJECT(INotationConfiguration, configuration)
 
 public:
     NotationMidiInput(IGetScore* getScore, INotationInteractionPtr notationInteraction, INotationUndoStackPtr undoStack);
 
-    void onMidiEventReceived(const midi::Event& event) override;
+    void onMidiEventReceived(const muse::midi::Event& event) override;
     async::Channel<std::vector<const Note*> > notesReceived() const override;
 
     void onRealtimeAdvance() override;
@@ -57,8 +57,8 @@ private:
     mu::engraving::Score* score() const;
 
     void doProcessEvents();
-    Note* addNoteToScore(const midi::Event& e);
-    Note* makeNote(const midi::Event& e);
+    Note* addNoteToScore(const muse::midi::Event& e);
+    Note* makeNote(const muse::midi::Event& e);
 
     void enableMetronome();
     void disableMetronome();
@@ -82,7 +82,7 @@ private:
     async::Channel<std::vector<const Note*> > m_notesReceivedChannel;
 
     QTimer m_processTimer;
-    std::vector<midi::Event> m_eventsQueue;
+    std::vector<muse::midi::Event> m_eventsQueue;
 
     QTimer m_realtimeTimer;
     QTimer m_extendNoteTimer;

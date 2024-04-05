@@ -45,11 +45,11 @@
 #include "view/vstieditorview.h"
 #include "view/vstfxeditorview.h"
 
-using namespace mu::vst;
+using namespace muse::vst;
 using namespace mu::modularity;
-using namespace mu::audio::synth;
-using namespace mu::audio::fx;
-using namespace mu::audio;
+using namespace muse::audio::synth;
+using namespace muse::audio::fx;
+using namespace muse::audio;
 using namespace mu::ui;
 
 static std::shared_ptr<VstConfiguration> s_configuration = std::make_shared<VstConfiguration>();
@@ -112,7 +112,7 @@ void VSTModule::registerResources()
 
 void VSTModule::registerUiTypes()
 {
-    ioc()->resolve<ui::IUiEngine>(moduleName())->addSourceImportPath(vst_QML_IMPORT);
+    ioc()->resolve<mu::ui::IUiEngine>(moduleName())->addSourceImportPath(vst_QML_IMPORT);
 }
 
 void VSTModule::onInit(const mu::IApplication::RunMode&)

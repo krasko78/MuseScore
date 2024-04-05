@@ -26,11 +26,11 @@
 #include <QQuickItem>
 
 #include "extensions/api/v1/ipluginapiv1.h"
-#include "global/api/apiobject.h"
 
 #include "modularity/ioc.h"
 #include "actions/iactionsdispatcher.h"
 #include "context/iglobalcontext.h"
+#include "global/iapplication.h"
 
 #include "enums.h"
 #include "apitypes.h"
@@ -73,12 +73,13 @@ class Score;
 //   @P scores               array[mu::engraving::Score]  all currently open scores (read only)
 //---------------------------------------------------------
 
-class PluginAPI : public QQuickItem, public extensions::apiv1::IPluginApiV1
+class PluginAPI : public QQuickItem, public muse::extensions::apiv1::IPluginApiV1
 {
     Q_OBJECT
 
-    INJECT(mu::actions::IActionsDispatcher, actionsDispatcher)
+    INJECT(muse::actions::IActionsDispatcher, actionsDispatcher)
     INJECT(mu::context::IGlobalContext, context)
+    INJECT(mu::IApplication, application)
 
     /** Path where the plugin is placed in menu */
     Q_PROPERTY(QString menuPath READ menuPath WRITE setMenuPath)

@@ -23,16 +23,17 @@
 
 #include "ui/view/iconcodes.h"
 #include "context/uicontext.h"
+#include "context/shortcutcontext.h"
 
-#include "view/dockwindow/idockwindow.h"
+#include "dockwindow/idockwindow.h"
 #include "async/notification.h"
 
 #include "log.h"
 
 using namespace mu::appshell;
 using namespace mu::ui;
-using namespace mu::actions;
-using namespace mu::dock;
+using namespace muse::actions;
+using namespace muse::dock;
 
 static const ActionCode FULL_SCREEN_CODE("fullscreen");
 static const ActionCode TOGGLE_NAVIGATOR_ACTION_CODE("toggle-navigator");
@@ -295,19 +296,19 @@ bool ApplicationUiActions::actionChecked(const UiAction& act) const
     return window ? window->isDockOpen(dockName) : false;
 }
 
-mu::async::Channel<mu::actions::ActionCodeList> ApplicationUiActions::actionEnabledChanged() const
+mu::async::Channel<ActionCodeList> ApplicationUiActions::actionEnabledChanged() const
 {
     return m_actionEnabledChanged;
 }
 
-mu::async::Channel<mu::actions::ActionCodeList> ApplicationUiActions::actionCheckedChanged() const
+mu::async::Channel<ActionCodeList> ApplicationUiActions::actionCheckedChanged() const
 {
     return m_actionCheckedChanged;
 }
 
-const QMap<mu::actions::ActionCode, DockName>& ApplicationUiActions::toggleDockActions()
+const QMap<ActionCode, DockName>& ApplicationUiActions::toggleDockActions()
 {
-    static const QMap<mu::actions::ActionCode, DockName> actionsMap {
+    static const QMap<ActionCode, DockName> actionsMap {
         { "toggle-transport", PLAYBACK_TOOLBAR_NAME },
         { "toggle-noteinput", NOTE_INPUT_BAR_NAME },
 

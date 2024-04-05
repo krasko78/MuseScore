@@ -23,9 +23,9 @@
 #ifndef MU_ENGRAVING_HAIRPIN_H
 #define MU_ENGRAVING_HAIRPIN_H
 
-#include "textlinebase.h"
+#include "../types/types.h"
 
-#include "types/types.h"
+#include "textlinebase.h"
 
 namespace mu::engraving {
 class Hairpin;
@@ -69,6 +69,9 @@ public:
     std::vector<mu::PointF> gripsPositions(const EditData& = EditData()) const override;
 
     std::unique_ptr<ElementGroup> getDragGroup(std::function<bool(const EngravingItem*)> isDragged) override;
+
+    Dynamic* findStartDynamic() const;
+    Dynamic* findEndDynamic() const;
 
 private:
 
@@ -156,6 +159,8 @@ public:
     {
         return m_hairpinType == HairpinType::CRESC_LINE || m_hairpinType == HairpinType::DECRESC_LINE;
     }
+
+    PointF linePos(Grip grip, System** system) const override;
 
 private:
 

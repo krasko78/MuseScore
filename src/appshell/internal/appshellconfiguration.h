@@ -25,8 +25,9 @@
 #include "async/asyncable.h"
 
 #include "modularity/ioc.h"
-#include "iglobalconfiguration.h"
-#include "io/ifilesystem.h"
+#include "global/iglobalconfiguration.h"
+#include "global/iapplication.h"
+#include "global/io/ifilesystem.h"
 #include "multiinstances/imultiinstancesprovider.h"
 #include "ui/iuiconfiguration.h"
 #include "project/iprojectconfiguration.h"
@@ -40,13 +41,14 @@ namespace mu::appshell {
 class AppShellConfiguration : public IAppShellConfiguration, public async::Asyncable
 {
     INJECT(IGlobalConfiguration, globalConfiguration)
+    INJECT(IApplication, application)
     INJECT(io::IFileSystem, fileSystem)
     INJECT(mi::IMultiInstancesProvider, multiInstancesProvider)
     INJECT(ui::IUiConfiguration, uiConfiguration)
     INJECT(project::IProjectConfiguration, projectConfiguration)
     INJECT(notation::INotationConfiguration, notationConfiguration)
     INJECT(playback::IPlaybackConfiguration, playbackConfiguration)
-    INJECT(languages::ILanguagesConfiguration, languagesConfiguration)
+    INJECT(muse::languages::ILanguagesConfiguration, languagesConfiguration)
 
 public:
     void init();

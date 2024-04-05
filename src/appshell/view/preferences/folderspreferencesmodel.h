@@ -40,9 +40,9 @@ class FoldersPreferencesModel : public QAbstractListModel, public async::Asyncab
 
     Inject<project::IProjectConfiguration> projectConfiguration;
     Inject<notation::INotationConfiguration> notationConfiguration;
-    Inject<extensions::IExtensionsConfiguration> extensionsConfiguration;
-    Inject<audio::IAudioConfiguration> audioConfiguration;
-    Inject<vst::IVstConfiguration> vstConfiguration;
+    Inject<muse::extensions::IExtensionsConfiguration> extensionsConfiguration;
+    Inject<muse::audio::IAudioConfiguration> audioConfiguration;
+    Inject<muse::vst::IVstConfiguration> vstConfiguration;
     Inject<IAppShellConfiguration> configuration;
 
 public:

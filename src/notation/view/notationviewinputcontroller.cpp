@@ -34,7 +34,7 @@
 using namespace mu;
 using namespace mu::notation;
 using namespace mu::engraving;
-using namespace mu::actions;
+using namespace muse::actions;
 using namespace mu::commonscene;
 
 static constexpr int PIXELSSTEPSFACTOR = 5;
@@ -688,7 +688,7 @@ void NotationViewInputController::handleLeftClick(const ClickContext& ctx)
 
     if (!selection->isRange()) {
         if (ctx.hitElement && ctx.hitElement->needStartEditingAfterSelecting()) {
-            viewInteraction()->startEditElement(ctx.hitElement);
+            viewInteraction()->startEditElement(ctx.hitElement, false);
             return;
         }
     }
@@ -900,9 +900,12 @@ void NotationViewInputController::mouseDoubleClickEvent(QMouseEvent* event)
 
     m_tripleClickPending = true;
 
+    const INotationInteraction::HitElementContext& ctx = hitElementContext();
     if (viewInteraction()->isTextEditingStarted()) {
         viewInteraction()->selectText(mu::engraving::SelectTextType::Word);
         return;
+    } else if (viewInteraction()->textEditingAllowed(ctx.element)) {
+        viewInteraction()->startEditText(ctx.element, m_logicalBeginPoint);
     }
 
     PointF logicPos = m_view->toLogical(event->pos());
@@ -968,6 +971,13 @@ void NotationViewInputController::keyPressEvent(QKeyEvent* event)
             dispatcher()->dispatch("edit-text");
             event->accept();
         }
+    }
+}
+
+void NotationViewInputController::keyReleaseEvent(QKeyEvent* event)
+{
+    if (event->key() == Qt::Key_Shift) {
+        viewInteraction()->editElement(event);
     }
 }
 

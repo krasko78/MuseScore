@@ -23,10 +23,12 @@
 #include "instrumentsuiactions.h"
 
 #include "context/uicontext.h"
+#include "context/shortcutcontext.h"
 #include "types/translatablestring.h"
 
 using namespace mu::instrumentsscene;
 using namespace mu::ui;
+using namespace muse::actions;
 
 const UiActionList InstrumentsUiActions::m_actions = {
     UiAction("instruments",
@@ -58,12 +60,12 @@ bool InstrumentsUiActions::actionChecked(const UiAction&) const
     return false;
 }
 
-mu::async::Channel<mu::actions::ActionCodeList> InstrumentsUiActions::actionEnabledChanged() const
+mu::async::Channel<ActionCodeList> InstrumentsUiActions::actionEnabledChanged() const
 {
     return m_actionEnabledChanged;
 }
 
-mu::async::Channel<mu::actions::ActionCodeList> InstrumentsUiActions::actionCheckedChanged() const
+mu::async::Channel<ActionCodeList> InstrumentsUiActions::actionCheckedChanged() const
 {
     return m_actionCheckedChanged;
 }

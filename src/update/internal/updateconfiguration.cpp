@@ -21,6 +21,10 @@
  */
 #include "updateconfiguration.h"
 
+#include "modularity/ioc.h"
+#include "global/iapplication.h"
+#include "global/configreader.h"
+
 #include "settings.h"
 
 using namespace mu;
@@ -45,15 +49,19 @@ static QString userAgent()
     osName = "Linux";
 #endif
 
+    static Inject<IApplication> app;
+
     QString osVersion = QSysInfo::productVersion();
     QString cpuArchitecture = QSysInfo::currentCpuArchitecture();
 
     return QString("Musescore/%1 (%2 %3; %4)")
-           .arg(MUSESCORE_VERSION, osName, osVersion, cpuArchitecture);
+           .arg(app()->version().toString(), osName, osVersion, cpuArchitecture);
 }
 
 void UpdateConfiguration::init()
 {
+    m_config = ConfigReader::read(":/configs/update.cfg");
+
     settings()->setDefaultValue(CHECK_FOR_UPDATE_KEY, Val(isAppUpdatable()));
 
     bool allowUpdateOnPreRelease = false;
@@ -102,14 +110,16 @@ void UpdateConfiguration::setSkippedReleaseVersion(const std::string& version) c
 
 std::string UpdateConfiguration::checkForUpdateUrl() const
 {
-    return !allowUpdateOnPreRelease() ? "https://updates.musescore.org/feed/latest.xml"
-           : "https://updates.musescore.org/feed/latest.test.xml";
+    return !allowUpdateOnPreRelease()
+           ? m_config.value("latest").toString()
+           : m_config.value("latest.test").toString();
 }
 
 std::string UpdateConfiguration::previousReleasesNotesUrl() const
 {
-    return !allowUpdateOnPreRelease() ? "https://updates.musescore.org/feed/all.xml"
-           : "https://updates.musescore.org/feed/all.test.xml";
+    return !allowUpdateOnPreRelease()
+           ? m_config.value("all").toString()
+           : m_config.value("all.test").toString();
 }
 
 mu::network::RequestHeaders UpdateConfiguration::updateHeaders() const

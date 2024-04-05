@@ -162,7 +162,7 @@
 #include "tupletlayout.h"
 #include "horizontalspacing.h"
 
-using namespace mu::draw;
+using namespace muse::draw;
 using namespace mu::engraving;
 using namespace mu::engraving::rtti;
 using namespace mu::engraving::rendering::dev;
@@ -416,6 +416,8 @@ void TLayout::layoutItem(EngravingItem* item, LayoutContext& ctx)
         break;
     case ElementType::TIMESIG:
         layoutTimeSig(item_cast<const TimeSig*>(item), static_cast<TimeSig::LayoutData*>(ldata), ctx);
+        break;
+    case ElementType::TIME_TICK_ANCHOR: layoutTimeTickAnchor(static_cast<TimeTickAnchor*>(item), ctx);
         break;
     case ElementType::TREMOLO_SINGLECHORD: layoutTremoloSingle(item_cast<TremoloSingleChord*>(item), ctx);
         break;
@@ -1215,7 +1217,7 @@ void TLayout::layoutBend(const Bend* item, Bend::LayoutData* ldata)
 
     RectF bb;
 
-    mu::draw::FontMetrics fm(item->font(spatium));
+    FontMetrics fm(item->font(spatium));
 
     size_t n = item->points().size();
     double x = ldata->noteWidth;
@@ -1243,7 +1245,7 @@ void TLayout::layoutBend(const Bend* item, Bend::LayoutData* ldata)
             int idx = (pitch + 12) / 25;
             const char* l = Bend::label[idx];
             bb.unite(fm.boundingRect(RectF(x2, y2, 0, 0),
-                                     draw::AlignHCenter | draw::AlignBottom | draw::TextDontClip,
+                                     muse::draw::AlignHCenter | muse::draw::AlignBottom | muse::draw::TextDontClip,
                                      String::fromAscii(l)));
             y = y2;
         }
@@ -1270,7 +1272,7 @@ void TLayout::layoutBend(const Bend* item, Bend::LayoutData* ldata)
             int idx = (item->points().at(pt + 1).pitch + 12) / 25;
             const char* l = Bend::label[idx];
             bb.unite(fm.boundingRect(RectF(x2, y2, 0, 0),
-                                     draw::AlignHCenter | draw::AlignBottom | draw::TextDontClip,
+                                     muse::draw::AlignHCenter | muse::draw::AlignBottom | muse::draw::TextDontClip,
                                      String::fromAscii(l)));
         } else {
             // down
@@ -1851,14 +1853,14 @@ void TLayout::layoutDeadSlapped(const DeadSlapped* item, DeadSlapped::LayoutData
         PointF bottomLeft = topLeft + PointF(0, height);
         PointF offsetX = PointF(crossThickness, 0);
 
-        mu::draw::PainterPath path1;
+        PainterPath path1;
         path1.moveTo(topLeft);
         path1.lineTo(topLeft + offsetX);
         path1.lineTo(bottomRight);
         path1.lineTo(bottomRight - offsetX);
         path1.lineTo(topLeft);
 
-        mu::draw::PainterPath path2;
+        PainterPath path2;
         path2.moveTo(topRight);
         path2.lineTo(topRight - offsetX);
         path2.lineTo(bottomLeft);
@@ -1889,35 +1891,14 @@ void TLayout::layoutDynamic(const Dynamic* item, Dynamic::LayoutData* ldata, con
         return;
     }
 
-    EngravingItem* itemToAlign = nullptr;
-    track_idx_t startTrack = staff2track(item->staffIdx());
-    track_idx_t endTrack = startTrack + VOICES;
-    for (track_idx_t track = startTrack; track < endTrack; ++track) {
-        EngravingItem* e = s->elementAt(track);
-        if (!e || (e->isRest() && toRest(e)->ticks() >= item->measure()->ticks() && item->measure()->hasVoices(e->staffIdx()))) {
-            continue;
-        }
-        itemToAlign = e;
-        break;
-    }
-
-    if (!itemToAlign) {
+    if (item->anchorToEndOfPrevious()) {
+        TLayout::layoutDynamicToEndOfPrevious(item, ldata, conf);
         return;
     }
 
-    LD_CONDITION(itemToAlign->ldata()->isSetBbox());
-
-    if (!itemToAlign->isChord()) {
-        ldata->moveX(itemToAlign->width() * 0.5);
-        return;
-    }
-
-    Chord* chord = toChord(itemToAlign);
     bool centerOnNote = item->centerOnNotehead() || (!item->centerOnNotehead() && item->align().horizontal == AlignH::HCENTER);
+    double noteHeadWidth = item->score()->noteHeadWidth();
 
-    // Move to center of notehead width
-    Note* note = chord->notes().at(0);
-    double noteHeadWidth = note->headWidth();
     ldata->moveX(noteHeadWidth * (centerOnNote ? 0.5 : 1));
 
     if (!item->centerOnNotehead()) {
@@ -1937,6 +1918,23 @@ void TLayout::layoutDynamic(const Dynamic* item, Dynamic::LayoutData* ldata, con
 
     // If the dynamic contains custom text, keep it aligned
     ldata->moveX(-item->customTextOffset());
+}
+
+void TLayout::layoutDynamicToEndOfPrevious(const Dynamic* item, TextBase::LayoutData* ldata, const LayoutConfiguration&)
+{
+    Segment* curSegment = item->segment();
+    Segment* leftMostSegment = curSegment;
+    while (true) {
+        Segment* prevSeg = leftMostSegment->prev1enabled();
+        if (prevSeg && prevSeg->tick() == leftMostSegment->tick()) {
+            leftMostSegment = prevSeg;
+        } else {
+            break;
+        }
+    }
+
+    double xDiff = curSegment->x() + curSegment->measure()->x() - (leftMostSegment->x() + leftMostSegment->measure()->x());
+    ldata->setPosX(-xDiff - ldata->bbox().right() - 0.50 * item->spatium());
 }
 
 void TLayout::layoutExpression(const Expression* item, Expression::LayoutData* ldata)
@@ -2095,13 +2093,13 @@ void TLayout::layoutFiguredBassItem(const FiguredBassItem* item, FiguredBassItem
     LAYOUT_CALL_ITEM(item);
     // construct font metrics
     int fontIdx = 0;
-    mu::draw::Font f(FiguredBass::FBFonts().at(fontIdx).family, draw::Font::Type::Tablature);
+    Font f(FiguredBass::FBFonts().at(fontIdx).family, Font::Type::Tablature);
 
     // font size in pixels, scaled according to spatium()
     // (use the same font selection as used in draw() below)
     double m = ctx.conf().styleD(Sid::figuredBassFontSize) * item->spatium() / SPATIUM20;
     f.setPointSizeF(m);
-    mu::draw::FontMetrics fm(f);
+    FontMetrics fm(f);
 
     String str;
     double x = item->symWidth(SymId::noteheadBlack) * .5;
@@ -2552,12 +2550,12 @@ void TLayout::layoutFretDiagram(const FretDiagram* item, FretDiagram::LayoutData
 
     // Allocate space for fret offset number
     if (item->fretOffset() > 0) {
-        mu::draw::Font scaledFont(item->font());
+        Font scaledFont(item->font());
         scaledFont.setPointSizeF(item->font().pointSizeF() * item->userMag());
 
         double fretNumMag = ctx.conf().styleD(Sid::fretNumMag);
         scaledFont.setPointSizeF(scaledFont.pointSizeF() * fretNumMag);
-        mu::draw::FontMetrics fm2(scaledFont);
+        FontMetrics fm2(scaledFont);
         double numw = fm2.width(String::number(item->fretOffset() + 1));
         double xdiff = numw + ldata->stringDist * .4;
         w += xdiff;
@@ -3038,31 +3036,15 @@ void TLayout::layoutHairpinSegment(HairpinSegment* item, LayoutContext& ctx)
     ldata->setIsSkipDraw(false);
 
     const double _spatium = item->spatium();
-    const track_idx_t _trck = item->track();
-    Dynamic* sd = nullptr;
-    Dynamic* ed = nullptr;
+    Dynamic* sd = item->findStartDynamic();
+    Dynamic* ed = item->findEndDynamic();
     double dymax = item->hairpin()->placeBelow() ? -DBL_MAX : DBL_MAX;
     if (item->autoplace() && !ctx.conf().isPaletteMode()
         && item->explicitParent() // TODO: remove this line (this might happen when Ctrl+Shift+Dragging an item)
         ) {
-        Segment* start = item->hairpin()->startSegment();
-        Segment* end = item->hairpin()->endSegment();
         // Try to fit between adjacent dynamics
         double minDynamicsDistance = ctx.conf().styleMM(Sid::autoplaceHairpinDynamicsDistance) * item->staff()->staffMag(item->tick());
-        const System* sys = item->system();
         if (item->isSingleType() || item->isBeginType()) {
-            if (start && start->system() == sys) {
-                sd = toDynamic(start->findAnnotation(ElementType::DYNAMIC, _trck, _trck));
-                if (!sd) {
-                    // Dynamics might have been added to the previous
-                    // segment rather than exactly to hairpin start,
-                    // search in that segment too.
-                    start = start->prev(SegmentType::ChordRest);
-                    if (start && start->system() == sys) {
-                        sd = toDynamic(start->findAnnotation(ElementType::DYNAMIC, _trck, _trck));
-                    }
-                }
-            }
             if (sd && sd->addToSkyline() && sd->placement() == item->hairpin()->placement()) {
                 double segmentXPos = sd->segment()->pos().x() + sd->measure()->pos().x();
                 double sdRight = sd->pos().x() + segmentXPos + sd->ldata()->bbox().right();
@@ -3079,11 +3061,6 @@ void TLayout::layoutHairpinSegment(HairpinSegment* item, LayoutContext& ctx)
             }
         }
         if (item->isSingleType() || item->isEndType()) {
-            if (end && end->tick() < sys->endTick() && start != end) {
-                // checking ticks rather than systems
-                // systems may be unknown at layout stage.
-                ed = toDynamic(end->findAnnotation(ElementType::DYNAMIC, _trck, _trck));
-            }
             if (ed && ed->addToSkyline() && ed->placement() == item->hairpin()->placement()) {
                 const double edLeft = ed->ldata()->bbox().left() + ed->pos().x()
                                       + ed->segment()->pos().x() + ed->measure()->pos().x();
@@ -5382,7 +5359,7 @@ void TLayout::layoutStringTunings(StringTunings* item, LayoutContext& ctx)
 
     if (item->noStringVisible()) {
         double spatium = item->spatium();
-        mu::draw::Font font(item->font());
+        Font font(item->font());
 
         RectF rect;
         rect.setTopLeft({ 0, item->ldata()->bbox().y() - font.weight() - spatium * .15 });
@@ -5393,8 +5370,8 @@ void TLayout::layoutStringTunings(StringTunings* item, LayoutContext& ctx)
 
     for (TextBlock& block : item->mutldata()->blocks) {
         for (TextFragment& fragment : block.fragments()) {
-            mu::draw::Font font = fragment.font(item);
-            if (font.type() == mu::draw::Font::Type::MusicSymbol) {
+            Font font = fragment.font(item);
+            if (font.type() == Font::Type::MusicSymbol) {
                 // HACK: the music symbol doesn't have a good baseline
                 // to go with text so we correct it here
                 const double baselineAdjustment = 0.35 * font.pointSizeF();
@@ -5405,7 +5382,7 @@ void TLayout::layoutStringTunings(StringTunings* item, LayoutContext& ctx)
 
     double secondStringXAlign = 0.0;
     for (const TextFragment& fragment : item->fragmentList()) {
-        if (fragment.font(item).type() == mu::draw::Font::Type::MusicSymbol) {
+        if (fragment.font(item).type() == Font::Type::MusicSymbol) {
             secondStringXAlign = std::max(secondStringXAlign, fragment.pos.x());
         }
     }
@@ -5417,7 +5394,7 @@ void TLayout::layoutStringTunings(StringTunings* item, LayoutContext& ctx)
                 continue;
             }
 
-            if (fragment.font(item).type() == mu::draw::Font::Type::MusicSymbol) {
+            if (fragment.font(item).type() == Font::Type::MusicSymbol) {
                 xMove = secondStringXAlign - fragment.pos.x();
             }
             fragment.pos.setX(fragment.pos.x() + xMove);
@@ -5576,7 +5553,7 @@ void TLayout::layoutTabDurationSymbol(const TabDurationSymbol* item, TabDuration
     if (!chord || !chord->isChord()
         || (chord->beamMode() != BeamMode::BEGIN && chord->beamMode() != BeamMode::MID
             && chord->beamMode() != BeamMode::END)) {
-        mu::draw::FontMetrics fm(item->tab()->durationFont());
+        FontMetrics fm(item->tab()->durationFont());
         hbb   = item->tab()->durationBoxH();
         wbb   = fm.width(item->text());
         xbb   = 0.0;
@@ -6231,6 +6208,15 @@ void TLayout::layoutTimeSig(const TimeSig* item, TimeSig::LayoutData* ldata, con
     }
 }
 
+void TLayout::layoutTimeTickAnchor(TimeTickAnchor* item, LayoutContext&)
+{
+    TimeTickAnchor::LayoutData* ldata = item->mutldata();
+    ldata->setPos(0.0, 0.0);
+    double width = item->segment()->width();
+    double height = item->staff()->staffHeight();
+    ldata->setBbox(0.0, 0.0, width, height);
+}
+
 void TLayout::layoutTremoloSingle(TremoloSingleChord* item, LayoutContext& ctx)
 {
     LAYOUT_CALL_ITEM(item);
@@ -6577,7 +6563,17 @@ SpannerSegment* TLayout::layoutSystemSLine(SLine* line, System* system, LayoutCo
         //
         line->computeStartElement();
         line->computeEndElement();
-        sst = line->tick2() <= etick ? SpannerSegmentType::SINGLE : SpannerSegmentType::BEGIN;
+        if (line->tick2() < etick) {
+            sst = SpannerSegmentType::SINGLE;
+        } else if (line->tick2() == etick) {
+            if (line->isPedal() && toPedal(line)->connect45HookToNext()) {
+                sst = SpannerSegmentType::BEGIN;
+            } else {
+                sst = SpannerSegmentType::SINGLE;
+            }
+        } else {
+            sst = SpannerSegmentType::BEGIN;
+        }
     } else if (line->tick() < stick && line->tick2() > etick) {
         sst = SpannerSegmentType::MIDDLE;
     } else {

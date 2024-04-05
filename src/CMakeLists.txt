@@ -29,16 +29,8 @@ if (MUE_BUILD_APPSHELL_MODULE)
     add_subdirectory(appshell)
 endif()
 
-if (MUE_BUILD_AUTOBOT_MODULE)
-    add_subdirectory(autobot)
-endif()
-
 if (MUE_BUILD_BRAILLE_MODULE)
     add_subdirectory(braille)
-endif()
-
-if (MUE_BUILD_CLOUD_MODULE)
-    add_subdirectory(cloud)
 endif()
 
 add_subdirectory(commonscene)
@@ -64,18 +56,6 @@ if (MUE_BUILD_INSTRUMENTSSCENE_MODULE)
     add_subdirectory(instrumentsscene)
 endif()
 
-if (MUE_BUILD_LANGUAGES_MODULE)
-    add_subdirectory(languages)
-endif()
-
-if (MUE_BUILD_LEARN_MODULE)
-    add_subdirectory(learn)
-endif()
-
-if (MUE_BUILD_MULTIINSTANCES_MODULE)
-    add_subdirectory(multiinstances)
-endif()
-
 if (MUE_BUILD_NOTATION_MODULE)
     add_subdirectory(notation)
 endif()
@@ -98,8 +78,8 @@ if (MUE_BUILD_UPDATE_MODULE)
     add_subdirectory(update)
 endif()
 
-if (MUE_BUILD_WORKSPACE_MODULE)
-    add_subdirectory(workspace)
+if (MUSE_MODULE_WORKSPACE)
+    add_subdirectory(workspacescene)
 endif()
 
 # Stubs

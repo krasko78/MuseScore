@@ -33,7 +33,7 @@
 
 #include "log.h"
 
-using namespace mu::extensions;
+using namespace muse::extensions;
 
 KnownCategories ExtensionsProvider::knownCategories() const
 {
@@ -156,9 +156,13 @@ mu::Ret ExtensionsProvider::perform(const UriQuery& uri)
 {
     Action a = action(uri);
     switch (a.type) {
-    case Type::Form:
-        return interactive()->open(uri).ret;
-        break;
+    case Type::Form: {
+        UriQuery q = uri;
+        if (!q.contains("modal")) {
+            q.addParam("modal", Val(a.modal));
+        }
+        return interactive()->open(q).ret;
+    } break;
     case Type::Macros:
         return run(uri);
     default:

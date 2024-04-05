@@ -135,6 +135,7 @@ set(LINK_LIB
     context
     shortcuts
     workspace
+    workspacescene
     audio
     mpe
     midi
@@ -151,9 +152,10 @@ set(LINK_LIB
     update
     )
 
-if (MUE_BUILD_UI_MODULE)
+if (MUSE_MODULE_UI)
     list(APPEND LINK_LIB ui)
     list(APPEND LINK_LIB uicomponents)
+    list(APPEND LINK_LIB dockwindow)
 endif()
 
 if (MUE_BUILD_CONVERTER_MODULE)
@@ -169,7 +171,7 @@ if (NOT CC_IS_EMSCRIPTEN)
     list(APPEND LINK_LIB languages)
     list(APPEND LINK_LIB multiinstances)
 
-    if (MUE_BUILD_EXTENSIONS_MODULE)
+    if (MUSE_MODULE_EXTENSIONS)
         list(APPEND LINK_LIB extensions)
     endif()
 
@@ -200,13 +202,13 @@ if (NOT CC_IS_EMSCRIPTEN)
 endif()
 
 
-if (MUE_BUILD_AUTOBOT_MODULE) 
+if (MUSE_MODULE_AUTOBOT)
     list(APPEND LINK_LIB autobot)
 endif()
 
-if (MUE_BUILD_MUSESAMPLER_MODULE)
+if (MUSE_MODULE_MUSESAMPLER)
     list(APPEND LINK_LIB musesampler)
-endif(MUE_BUILD_MUSESAMPLER_MODULE)
+endif()
 
 set (MSCORE_APPEND_SRC)
 
@@ -226,10 +228,20 @@ if (CC_IS_EMSCRIPTEN)
 endif()
 
 ###########################################
+# Resources
+###########################################
+if (MUE_COMPILE_QT5_COMPAT)
+    qt5_add_resources(APP_RCC_SOURCES app.qrc)
+else()
+    qt_add_resources(APP_RCC_SOURCES app.qrc)
+endif()
+
+###########################################
 # Executable declaration
 ###########################################
 
 add_executable(${EXECUTABLE_NAME}
+      ${APP_RCC_SOURCES}
       main.cpp
       app.cpp
       app.h
@@ -477,7 +489,6 @@ elseif(OS_IS_MAC)
             ${PROJECT_SOURCE_DIR}/fonts/mscore-BC.ttf
             ${PROJECT_SOURCE_DIR}/fonts/mscoreTab.ttf
             ${PROJECT_SOURCE_DIR}/fonts/mscore/MScoreText.ttf
-            ${PROJECT_SOURCE_DIR}/fonts/mscore/MusescoreIcon.ttf
             ${PROJECT_SOURCE_DIR}/fonts/musejazz/MuseJazzText.otf
             ${PROJECT_SOURCE_DIR}/fonts/petaluma/PetalumaScript.otf
             ${PROJECT_SOURCE_DIR}/fonts/petaluma/PetalumaText.otf

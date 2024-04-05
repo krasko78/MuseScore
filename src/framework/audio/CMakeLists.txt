@@ -37,14 +37,16 @@ if (OS_IS_WIN)
         ${CMAKE_CURRENT_LIST_DIR}/internal/platform/win/audiodeviceslistener.h
     )
 elseif(OS_IS_LIN OR OS_IS_FBSD)
-    if (MUE_ENABLE_AUDIO_JACK)
+    if (MUSE_MODULE_AUDIO_JACK)
         set(DRIVER_SRC
             ${CMAKE_CURRENT_LIST_DIR}/internal/platform/jack/jackaudiodriver.cpp
             ${CMAKE_CURRENT_LIST_DIR}/internal/platform/jack/jackaudiodriver.h
+            ${CMAKE_CURRENT_LIST_DIR}/internal/platform/lin/linuxaudiodriver.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/internal/platform/lin/linuxaudiodriver.h
             ${CMAKE_CURRENT_LIST_DIR}/internal/platform/jack/audiodeviceslistener.cpp
             ${CMAKE_CURRENT_LIST_DIR}/internal/platform/jack/audiodeviceslistener.h
         )
-    else (MUE_ENABLE_AUDIO_JACK)
+    else()
         set(DRIVER_SRC
             ${CMAKE_CURRENT_LIST_DIR}/internal/platform/lin/linuxaudiodriver.cpp
             ${CMAKE_CURRENT_LIST_DIR}/internal/platform/lin/linuxaudiodriver.h
@@ -70,8 +72,6 @@ elseif(OS_IS_WASM)
         ${CMAKE_CURRENT_LIST_DIR}/internal/platform/web/webaudiodriver.h
     )
 endif()
-
-add_subdirectory(${PROJECT_SOURCE_DIR}/thirdparty/fluidsynth fluidsynth)
 
 set(MODULE_SRC
 
@@ -226,7 +226,8 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/internal/synthesizers/synthresolver.h
     )
 
-set(FLUIDSYNTH_DIR ${PROJECT_SOURCE_DIR}/thirdparty/fluidsynth/fluidsynth-2.1.4)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/thirdparty/fluidsynth fluidsynth)
+set(FLUIDSYNTH_DIR ${CMAKE_CURRENT_LIST_DIR}/thirdparty/fluidsynth/fluidsynth-2.3.3)
 set (FLUIDSYNTH_INC
     ${FLUIDSYNTH_DIR}/include
     ${FLUIDSYNTH_DIR}/src
@@ -248,7 +249,7 @@ set(MODULE_LINK
     fluidsynth
     )
 
-if (MUE_ENABLE_AUDIO_EXPORT)
+if (MUSE_MODULE_AUDIO_EXPORT)
     set(MODULE_SRC
         ${MODULE_SRC}
 
@@ -268,9 +269,9 @@ if (MUE_ENABLE_AUDIO_EXPORT)
         ${CMAKE_CURRENT_LIST_DIR}/internal/soundtracks/soundtrackwriter.h
         )
 
-    add_subdirectory(${PROJECT_SOURCE_DIR}/thirdparty/lame lame)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/thirdparty/opusenc opusenc)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/thirdparty/flac flac)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/thirdparty/lame lame)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/thirdparty/opusenc opusenc)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/thirdparty/flac flac)
 
     set(MODULE_LINK ${MODULE_LINK} lame opusenc flac)
 endif()
@@ -289,10 +290,13 @@ else ()
         )
 endif()
 
-if (MUE_ENABLE_AUDIO_JACK)
+if (MUSE_MODULE_AUDIO_JACK)
     find_package(Jack REQUIRED)
     set(MODULE_INCLUDE ${MODULE_INCLUDE} ${JACK_INCLUDE_DIRS} )
     set(MODULE_LINK ${MODULE_LINK} ${JACK_LIBRARIES} pthread )
+    find_package(ALSA REQUIRED)
+    set(MODULE_INCLUDE ${MODULE_INCLUDE} ${ALSA_INCLUDE_DIRS} )
+    set(MODULE_LINK ${MODULE_LINK} ${ALSA_LIBRARIES} pthread )
 else ()
     if (OS_IS_MAC)
         find_library(AudioToolbox NAMES AudioToolbox)
@@ -312,8 +316,8 @@ set(MODULE_QRC audio.qrc)
 set(MODULE_ROOT ${CMAKE_CURRENT_LIST_DIR})
 set(MODULE_QML_IMPORT ${CMAKE_CURRENT_LIST_DIR}/qml)
 
-include(${PROJECT_SOURCE_DIR}/build/module.cmake)
+include(SetupModule)
 
-if (MUE_BUILD_AUDIO_TESTS)
+if (MUSE_MODULE_AUDIO_TESTS)
     add_subdirectory(tests)
 endif()

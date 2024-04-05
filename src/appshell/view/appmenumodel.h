@@ -51,12 +51,12 @@ class AppMenuModel : public uicomponents::AbstractMenuModel
     INJECT(ui::IUiActionsRegister, uiActionsRegister)
     INJECT(ui::INavigationController, navigationController)
     INJECT(ui::IUiConfiguration, uiConfiguration)
-    INJECT(actions::IActionsDispatcher, actionsDispatcher)
-    INJECT(workspace::IWorkspaceManager, workspacesManager)
+    INJECT(muse::actions::IActionsDispatcher, actionsDispatcher)
+    INJECT(muse::workspace::IWorkspaceManager, workspacesManager)
     INJECT(IAppShellConfiguration, configuration)
     INJECT(project::IRecentFilesController, recentFilesController)
     INJECT(IAppMenuModelHook, appMenuModelHook)
-    INJECT(extensions::IExtensionsProvider, extensionsProvider)
+    INJECT(muse::extensions::IExtensionsProvider, extensionsProvider)
     INJECT(update::IUpdateConfiguration, updateConfiguration)
     INJECT(IGlobalConfiguration, globalConfiguration)
 
@@ -70,7 +70,7 @@ private:
     void setupConnections();
 
     using uicomponents::AbstractMenuModel::makeMenuItem;
-    uicomponents::MenuItem* makeMenuItem(const actions::ActionCode& actionCode, uicomponents::MenuItemRole role);
+    uicomponents::MenuItem* makeMenuItem(const muse::actions::ActionCode& actionCode, uicomponents::MenuItemRole role);
 
     uicomponents::MenuItem* makeFileMenu();
     uicomponents::MenuItem* makeEditMenu();

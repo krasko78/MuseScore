@@ -29,8 +29,9 @@
 
 using namespace mu;
 using namespace mu::ui;
-using namespace mu::draw;
+using namespace muse::draw;
 using namespace mu::notation;
+using namespace muse::actions;
 
 static constexpr qreal SCROLL_LIMIT_OFF_OVERSCROLL_FACTOR = 0.75;
 
@@ -196,7 +197,7 @@ void AbstractNotationPaintView::selectOnNavigationActive()
     interaction->selectFirstElement(false);
 }
 
-bool AbstractNotationPaintView::canReceiveAction(const actions::ActionCode& actionCode) const
+bool AbstractNotationPaintView::canReceiveAction(const ActionCode& actionCode) const
 {
     if (actionCode == "diagnostic-notationview-redraw") {
         return true;
@@ -565,8 +566,8 @@ void AbstractNotationPaintView::paint(QPainter* qp)
     RectF rect = RectF::fromQRectF(qp->clipBoundingRect());
     rect = correctDrawRect(rect);
 
-    mu::draw::Painter mup(qp, objectName().toStdString());
-    mu::draw::Painter* painter = &mup;
+    muse::draw::Painter mup(qp, objectName().toStdString());
+    muse::draw::Painter* painter = &mup;
 
     paintBackground(rect, painter);
 
@@ -629,7 +630,7 @@ void AbstractNotationPaintView::onNotationSetup()
     });
 }
 
-void AbstractNotationPaintView::paintBackground(const RectF& rect, draw::Painter* painter)
+void AbstractNotationPaintView::paintBackground(const RectF& rect, muse::draw::Painter* painter)
 {
     TRACEFUNC;
 
@@ -1156,6 +1157,13 @@ void AbstractNotationPaintView::keyPressEvent(QKeyEvent* event)
     return;
 }
 
+void AbstractNotationPaintView::keyReleaseEvent(QKeyEvent* event)
+{
+    if (isInited()) {
+        m_inputController->keyReleaseEvent(event);
+    }
+}
+
 bool AbstractNotationPaintView::event(QEvent* event)
 {
     QEvent::Type eventType = event->type();
@@ -1308,14 +1316,14 @@ void AbstractNotationPaintView::onPlayingChanged()
 
     if (isPlaying) {
         float playPosSec = playbackController()->playbackPositionInSeconds();
-        midi::tick_t tick = notationPlayback()->secToTick(playPosSec);
+        muse::midi::tick_t tick = notationPlayback()->secToTick(playPosSec);
         movePlaybackCursor(tick);
     } else {
         scheduleRedraw();
     }
 }
 
-void AbstractNotationPaintView::movePlaybackCursor(midi::tick_t tick)
+void AbstractNotationPaintView::movePlaybackCursor(muse::midi::tick_t tick)
 {
     TRACEFUNC;
 

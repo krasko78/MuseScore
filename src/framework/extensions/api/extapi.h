@@ -19,16 +19,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef MU_EXTENSIONS_API_EXTAPI_H
-#define MU_EXTENSIONS_API_EXTAPI_H
+#ifndef MUSE_EXTENSIONS_API_EXTAPI_H
+#define MUSE_EXTENSIONS_API_EXTAPI_H
 
 #include <QObject>
+#include <QMap>
 
 #include "modularity/ioc.h"
 #include "api/iapiregister.h"
 #include "api/iapiengine.h"
 
-namespace mu::extensions::api {
+namespace muse::extensions::api {
 //! NOTE Used for qml and scripts
 class ExtApi : public QObject
 {
@@ -81,4 +82,4 @@ private:
 };
 }
 
-#endif // MU_EXTENSIONS_API_EXTAPI_H
+#endif // MUSE_EXTENSIONS_API_EXTAPI_H

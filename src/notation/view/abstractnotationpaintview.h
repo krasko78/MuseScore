@@ -49,14 +49,14 @@
 
 namespace mu::notation {
 class AbstractNotationPaintView : public uicomponents::QuickPaintedView, public IControlledView, public async::Asyncable,
-    public actions::Actionable
+    public muse::actions::Actionable
 {
     Q_OBJECT
 
     INJECT(INotationConfiguration, configuration)
     INJECT(engraving::IEngravingConfiguration, engravingConfiguration)
     INJECT(ui::IUiConfiguration, uiConfiguration)
-    INJECT(actions::IActionsDispatcher, dispatcher)
+    INJECT(muse::actions::IActionsDispatcher, dispatcher)
     INJECT(context::IGlobalContext, globalContext)
     INJECT(playback::IPlaybackController, playbackController)
     INJECT(ui::IUiContextResolver, uiContextResolver)
@@ -166,7 +166,7 @@ protected:
     INotationPtr notation() const;
     void setNotation(INotationPtr notation);
     void setReadonly(bool readonly);
-    void setMatrix(const draw::Transform& matrix);
+    void setMatrix(const muse::draw::Transform& matrix);
 
     void moveCanvasToCenter();
     bool moveCanvasToPosition(const PointF& logicPos);
@@ -181,7 +181,7 @@ protected:
     virtual void onLoadNotation(INotationPtr notation);
     virtual void onUnloadNotation(INotationPtr notation);
 
-    virtual void onMatrixChanged(const draw::Transform& oldMatrix, const draw::Transform& newMatrix, bool overrideZoomType);
+    virtual void onMatrixChanged(const muse::draw::Transform& oldMatrix, const muse::draw::Transform& newMatrix, bool overrideZoomType);
 
 protected slots:
     virtual void onViewSizeChanged();
@@ -196,7 +196,7 @@ private:
     void initBackground();
     void initNavigatorOrientation();
 
-    bool canReceiveAction(const actions::ActionCode& actionCode) const override;
+    bool canReceiveAction(const muse::actions::ActionCode& actionCode) const override;
     void onCurrentNotationChanged();
     bool isInited() const;
 
@@ -215,6 +215,7 @@ private:
     bool event(QEvent* event) override;
     bool shortcutOverride(QKeyEvent* event);
     void keyPressEvent(QKeyEvent* event) override;
+    void keyReleaseEvent(QKeyEvent* event) override;
     void dragEnterEvent(QDragEnterEvent* event) override;
     void dragLeaveEvent(QDragLeaveEvent* event) override;
     void dragMoveEvent(QDragMoveEvent* event) override;
@@ -237,7 +238,7 @@ private:
     void onShowItemRequested(const INotationInteraction::ShowItemRequest& request);
 
     void onPlayingChanged();
-    void movePlaybackCursor(midi::tick_t tick);
+    void movePlaybackCursor(muse::midi::tick_t tick);
     bool needAdjustCanvasVerticallyWhilePlayback(const RectF& cursorRect);
 
     void updateLoopMarkers();
@@ -245,13 +246,13 @@ private:
     const Page* pageByPoint(const PointF& point) const;
     PointF alignToCurrentPageBorder(const RectF& showRect, const PointF& pos) const;
 
-    void paintBackground(const RectF& rect, draw::Painter* painter);
+    void paintBackground(const RectF& rect, muse::draw::Painter* painter);
 
     PointF canvasCenter() const;
     std::pair<qreal, qreal> constraintCanvas(qreal dx, qreal dy) const;
 
     INotationPtr m_notation;
-    draw::Transform m_matrix;
+    muse::draw::Transform m_matrix;
 
     std::unique_ptr<NotationViewInputController> m_inputController;
     std::unique_ptr<PlaybackCursor> m_playbackCursor;

@@ -42,8 +42,6 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/profiler.h
     ${CMAKE_CURRENT_LIST_DIR}/dataformatter.cpp
     ${CMAKE_CURRENT_LIST_DIR}/dataformatter.h
-    ${CMAKE_CURRENT_LIST_DIR}/muversion.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/muversion.h
     ${CMAKE_CURRENT_LIST_DIR}/stringutils.cpp
     ${CMAKE_CURRENT_LIST_DIR}/stringutils.h
     ${CMAKE_CURRENT_LIST_DIR}/ptrutils.h
@@ -66,6 +64,8 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/dlib.h
     ${CMAKE_CURRENT_LIST_DIR}/iprocess.h
     ${CMAKE_CURRENT_LIST_DIR}/isysteminfo.h
+    ${CMAKE_CURRENT_LIST_DIR}/configreader.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/configreader.h
 
     ${KORS_MODULARITY_SRC}
     ${CMAKE_CURRENT_LIST_DIR}/modularity/ioc.h
@@ -96,6 +96,7 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/types/version.cpp
     ${CMAKE_CURRENT_LIST_DIR}/types/version.h
     ${CMAKE_CURRENT_LIST_DIR}/types/number.h
+    ${CMAKE_CURRENT_LIST_DIR}/types/config.h
 
     ${CMAKE_CURRENT_LIST_DIR}/io/ioenums.h
     ${CMAKE_CURRENT_LIST_DIR}/io/path.cpp
@@ -191,6 +192,13 @@ else()
         ${CMAKE_CURRENT_LIST_DIR}/deprecated/qzipwriter_p.h
         )
 
+    if (MU_BUILD_UI_MODULE)
+        set(MODULE_SRC ${MODULE_SRC}
+            ${CMAKE_CURRENT_LIST_DIR}/internal/interactive.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/internal/interactive.h
+        )
+    endif()
+
     include(GetPlatformInfo)
 
     if (OS_IS_MAC)
@@ -209,18 +217,10 @@ else()
     endif()
 endif()
 
-set(FS_LIB )
-# The use of `filesystem` is disabled until
-# I figure out how to use it correctly for all platforms and compilers (including MinGW)
-# (igor.korsukov@gmail.com)
-#if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-#    set(FS_LIB stdc++fs)
-#endif()
-
 include(GetCompilerInfo)
 set(Z_LIB )
 if (CC_IS_MSVC)
-    include(FindStaticLibrary)
+    include(FindZlibStatic)
     set(Z_LIB zlibstat)
     set(Z_INCLUDE ${DEPENDENCIES_INC}/zlib)
 elseif (CC_IS_EMSCRIPTEN)
@@ -234,7 +234,6 @@ list(APPEND MODULE_INCLUDE
     )
 
 list(APPEND MODULE_LINK
-    ${FS_LIB}
     ${Z_LIB}
 )
 
@@ -242,12 +241,12 @@ if (MUE_ENABLE_CUSTOM_ALLOCATOR)
     set(MODULE_DEF ${MODULE_DEF} -DMUE_ENABLE_CUSTOM_ALLOCATOR)
 endif()
 
-if (MUE_ENABLE_LOGGER_DEBUGLEVEL)
-    set(MODULE_DEF ${MODULE_DEF} -DMUE_ENABLE_LOGGER_DEBUGLEVEL)
+if (MUSE_MODULE_GLOBAL_LOGGER_DEBUGLEVEL)
+    set(MODULE_DEF ${MODULE_DEF} -DMUSE_MODULE_GLOBAL_LOGGER_DEBUGLEVEL)
 endif()
 
 include(SetupModule)
 
-if (MUE_BUILD_GLOBAL_TESTS)
+if (MUSE_MODULE_GLOBAL_TESTS)
     add_subdirectory(tests)
 endif()

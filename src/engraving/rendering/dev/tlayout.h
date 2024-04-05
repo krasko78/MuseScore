@@ -100,6 +100,7 @@
 #include "../../dom/tempotext.h"
 #include "../../dom/text.h"
 #include "../../dom/timesig.h"
+#include "../../dom/anchors.h"
 #include "../../dom/tremolobar.h"
 #include "../../dom/tripletfeel.h"
 #include "../../dom/trill.h"
@@ -168,6 +169,7 @@ class TextLineBase;
 class TextLineBaseSegment;
 class Tie;
 class TimeSig;
+class TimeTickAnchor;
 class TremoloSingleChord;
 class TremoloTwoChord;
 class TremoloBar;
@@ -339,6 +341,7 @@ public:
     static void layoutTextLineBaseSegment(TextLineBaseSegment* item, LayoutContext& ctx); // base class
     static void layoutTie(Tie* item, LayoutContext& ctx);
     static void layoutTimeSig(const TimeSig* item, TimeSig::LayoutData* ldata, const LayoutContext& ctx);
+    static void layoutTimeTickAnchor(TimeTickAnchor* item, LayoutContext&);
     static void layoutTremoloSingle(TremoloSingleChord* item, LayoutContext& ctx);
     static void layoutTremoloTwo(TremoloTwoChord* item, LayoutContext& ctx);
     static void layoutTremoloBar(const TremoloBar* item, TremoloBar::LayoutData* ldata);
@@ -376,6 +379,7 @@ private:
                                                       std::function<SpannerSegment* (System* parent)> createSegment);
 
     static Shape textLineBaseSegmentShape(const TextLineBaseSegment* item);
+    static void layoutDynamicToEndOfPrevious(const Dynamic* item, Dynamic::LayoutData* ldata, const LayoutConfiguration& conf);
 };
 }
 

@@ -29,9 +29,9 @@ using namespace mu::appshell;
 using namespace mu::ui;
 using namespace mu::uicomponents;
 using namespace mu::project;
-using namespace mu::workspace;
-using namespace mu::actions;
-using namespace mu::extensions;
+using namespace muse::workspace;
+using namespace muse::actions;
+using namespace muse::extensions;
 
 static QString makeId(const ActionCode& actionCode, int itemIndex)
 {
@@ -115,7 +115,7 @@ void AppMenuModel::setupConnections()
     });
 }
 
-MenuItem* AppMenuModel::makeMenuItem(const actions::ActionCode& actionCode, MenuItemRole menuRole)
+MenuItem* AppMenuModel::makeMenuItem(const ActionCode& actionCode, MenuItemRole menuRole)
 {
     MenuItem* item = makeMenuItem(actionCode);
     item->setRole(menuRole);
@@ -356,7 +356,7 @@ MenuItem* AppMenuModel::makeDiagnosticMenu()
         makeMenu(TranslatableString("appshell/menu/diagnostic", "&System"), systemItems, "menu-system")
     };
 
-#ifdef MUE_BUILD_MUSESAMPLER_MODULE
+#ifdef MUSE_MODULE_MUSESAMPLER
     MenuItemList museSamplerItems {
         makeMenuItem("musesampler-check"),
     };
@@ -644,11 +644,11 @@ MenuItemList AppMenuModel::makePluginsItems()
 
     auto addMenuItems = [this](MenuItemList& items, const Manifest& m) {
         if (m.actions.size() == 1) {
-            const extensions::Action& a = m.actions.at(0);
+            const muse::extensions::Action& a = m.actions.at(0);
             items << makeMenuItem(makeUriQuery(m.uri, a.code).toString(), TranslatableString::untranslatable(a.title));
         } else {
             MenuItemList sub;
-            for (const extensions::Action& a : m.actions) {
+            for (const muse::extensions::Action& a : m.actions) {
                 sub << makeMenuItem(makeUriQuery(m.uri, a.code).toString(), TranslatableString::untranslatable(a.title));
             }
             items << makeMenu(TranslatableString::untranslatable(m.title), sub);

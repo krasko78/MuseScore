@@ -28,7 +28,6 @@
 #include <QSvgRenderer>
 
 #include "translation.h"
-#include "muversion.h"
 
 using namespace mu::appshell;
 
@@ -52,7 +51,7 @@ LoadingScreenView::LoadingScreenView(QWidget* parent)
     setAttribute(Qt::WA_TranslucentBackground);
     resize(loadingScreenSize);
 
-    m_message = qtrc("appshell", "Loading…\u200e");
+    m_message = mu::qtrc("appshell", "Loading…\u200e");
 }
 
 bool LoadingScreenView::event(QEvent* event)
@@ -97,5 +96,5 @@ void LoadingScreenView::draw(QPainter* painter)
 
     painter->drawText(websiteRect.translated(0.0, -websiteBoundingRect.height() - versionNumberSpacing),
                       Qt::AlignBottom | alignment | Qt::TextDontClip,
-                      qtrc("appshell", "Version %1").arg(QString::fromStdString(MUVersion::fullVersion().toStdString())));
+                      mu::qtrc("appshell", "Version %1").arg(application()->fullVersion().toString()));
 }

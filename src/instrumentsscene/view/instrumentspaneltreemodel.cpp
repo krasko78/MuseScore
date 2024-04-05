@@ -39,7 +39,7 @@ using namespace mu::uicomponents;
 
 using ItemType = InstrumentsTreeItemType::ItemType;
 
-static const mu::actions::ActionCode ADD_INSTRUMENTS_ACTIONCODE("instruments");
+static const muse::actions::ActionCode ADD_INSTRUMENTS_ACTIONCODE("instruments");
 
 namespace mu::instrumentsscene {
 static QString notationToKey(const INotationPtr notation)
@@ -822,12 +822,12 @@ bool InstrumentsPanelTreeModel::warnAboutRemovingInstrumentsIfNecessary(int coun
         //: Please omit `%n` in the translation in this case; it's only there so that you
         //: have the possibility to provide translations with the correct numerus form,
         //: i.e. to show "instrument" or "instruments" as appropriate.
-        trc("instruments", "Are you sure you want to delete the selected %n instrument(s)?", nullptr, count),
+        mu::trc("instruments", "Are you sure you want to delete the selected %n instrument(s)?", nullptr, count),
 
         //: Please omit `%n` in the translation in this case; it's only there so that you
         //: have the possibility to provide translations with the correct numerus form,
         //: i.e. to show "instrument" or "instruments" as appropriate.
-        trc("instruments", "This will remove the %n instrument(s) from the full score and all part scores.", nullptr, count),
+        mu::trc("instruments", "This will remove the %n instrument(s) from the full score and all part scores.", nullptr, count),
 
         { IInteractive::Button::No, IInteractive::Button::Yes })
            .standardButton() == IInteractive::Button::Yes;

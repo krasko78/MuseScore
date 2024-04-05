@@ -29,7 +29,7 @@
 #include "draw/types/color.h"
 #include "draw/types/geometry.h"
 
-#include "types/fraction.h"
+#include "../types/fraction.h"
 
 namespace mu::engraving {
 class XmlReader : public XmlStreamReader
@@ -62,7 +62,7 @@ public:
     SizeF readSize();
     ScaleF readScale();
     RectF readRect();
-    draw::Color readColor();
+    muse::draw::Color readColor();
     Fraction readFraction();
     String readXml();
 

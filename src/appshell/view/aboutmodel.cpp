@@ -22,7 +22,6 @@
 #include "aboutmodel.h"
 
 #include "translation.h"
-#include "muversion.h"
 
 #include <QApplication>
 #include <QClipboard>
@@ -38,8 +37,8 @@ AboutModel::AboutModel(QObject* parent)
 QString AboutModel::museScoreVersion() const
 {
     QString version = QString::fromStdString(configuration()->museScoreVersion());
-    return mu::MUVersion::unstable()
-           ? qtrc("appshell/about", "Unstable prerelease for %1").arg(version)
+    return application()->unstable()
+           ? mu::qtrc("appshell/about", "Unstable prerelease for %1").arg(version)
            : version;
 }
 
@@ -93,9 +92,9 @@ void AboutModel::copyRevisionToClipboard() const
                 ? " or later" : ""))
         .arg(QSysInfo::currentCpuArchitecture())
         .arg(QSysInfo::WordSize)
-        .arg(MUSESCORE_VERSION)
-        .arg(MUSESCORE_BUILD_NUMBER)
-        .arg(MUSESCORE_REVISION));
+        .arg(application()->version().toString())
+        .arg(application()->build())
+        .arg(application()->revision()));
 }
 
 void AboutModel::toggleDevMode()

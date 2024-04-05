@@ -25,7 +25,7 @@
 
 using namespace mu::notation;
 
-void PlaybackCursor::paint(mu::draw::Painter* painter)
+void PlaybackCursor::paint(muse::draw::Painter* painter)
 {
     if (!m_visible) {
         return;
@@ -39,13 +39,13 @@ void PlaybackCursor::setNotation(INotationPtr notation)
     m_notation = notation;
 }
 
-void PlaybackCursor::move(midi::tick_t tick)
+void PlaybackCursor::move(muse::midi::tick_t tick)
 {
     m_rect = resolveCursorRectByTick(tick);
 }
 
 //! NOTE Copied from ScoreView::moveCursor(const Fraction& tick)
-mu::RectF PlaybackCursor::resolveCursorRectByTick(midi::tick_t _tick) const
+mu::RectF PlaybackCursor::resolveCursorRectByTick(muse::midi::tick_t _tick) const
 {
     if (!m_notation) {
         return RectF();

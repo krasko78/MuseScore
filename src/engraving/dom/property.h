@@ -23,9 +23,9 @@
 #ifndef MU_ENGRAVING_PROPERTY_H
 #define MU_ENGRAVING_PROPERTY_H
 
-#include "types/string.h"
+#include "global/types/string.h"
 
-#include "types/propertyvalue.h"
+#include "../types/propertyvalue.h"
 
 namespace mu::engraving {
 //------------------------------------------------------------------------
@@ -362,6 +362,7 @@ enum class Pid {
     DYNAMICS_SIZE,
     CENTER_ON_NOTEHEAD,
     SNAP_TO_DYNAMICS,
+    ANCHOR_TO_END_OF_PREVIOUS,
 
     POS_ABOVE,
 

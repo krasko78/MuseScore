@@ -32,22 +32,24 @@
 #include <memory>
 #include <optional>
 
-#include "async/channel.h"
-#include "types/ret.h"
-#include "compat/midi/compatmidirenderinternal.h"
+#include "global/async/channel.h"
+#include "global/types/ret.h"
 
 #include "modularity/ioc.h"
 #include "draw/iimageprovider.h"
-#include "iengravingfontsprovider.h"
+#include "global/iapplication.h"
+#include "../iengravingfontsprovider.h"
 
-#include "types/constants.h"
+#include "../types/constants.h"
 
-#include "rendering/iscorerenderer.h"
-#include "rendering/layoutoptions.h"
-#include "rendering/paddingtable.h"
+#include "../rendering/iscorerenderer.h"
+#include "../rendering/layoutoptions.h"
+#include "../rendering/paddingtable.h"
 
-#include "style/style.h"
-#include "style/pagestyle.h"
+#include "../style/style.h"
+#include "../style/pagestyle.h"
+
+#include "../compat/midi/compatmidirenderinternal.h"
 
 #include "chordlist.h"
 #include "input.h"
@@ -139,6 +141,7 @@ class ShadowNote;
 
 struct Interval;
 struct NoteVal;
+struct ShowAnchors;
 
 enum class BeatType : char;
 enum class Key;
@@ -209,6 +212,19 @@ enum class PlayMode : char {
     AUDIO
 };
 
+struct ShowAnchors {
+    staff_idx_t staffIdx;
+    Fraction startTick;
+    Fraction endTick;
+
+    void reset()
+    {
+        staffIdx = mu::nidx;
+        startTick = Fraction(-1, 1);
+        endTick = Fraction(-1, 1);
+    }
+};
+
 //---------------------------------------------------------------------------------------
 //   @@ Score
 //   @P composer        string            composer of the score (read only)
@@ -240,12 +256,13 @@ class Score : public EngravingObject
     OBJECT_ALLOCATOR(engraving, Score)
     DECLARE_CLASSOF(ElementType::SCORE)
 
-    INJECT(draw::IImageProvider, imageProvider)
-    INJECT(IEngravingConfiguration, configuration)
-    INJECT(IEngravingFontsProvider, engravingFonts)
+    Inject<muse::draw::IImageProvider> imageProvider;
+    Inject<IEngravingConfiguration> configuration;
+    Inject<IEngravingFontsProvider> engravingFonts;
+    Inject<IApplication> application;
 
     // internal
-    INJECT(rendering::IScoreRenderer, renderer)
+    Inject<rendering::IScoreRenderer> renderer;
 
 public:
     Score(const Score&) = delete;
@@ -290,12 +307,14 @@ public:
     void addMeasure(MeasureBase*, MeasureBase*);
     void linkMeasures(Score* score);
     void setResetAutoplace() { m_resetAutoplace = true; }
+    void setResetCrossBeams() { m_resetCrossBeams = true; }
 
     Excerpt* excerpt() { return m_excerpt; }
     void setExcerpt(Excerpt* e) { m_excerpt = e; }
 
     // methods for resetting elements for pre-4.0 score migration
     void resetAutoplace();
+    void resetCrossBeams();
 
     void cmdAddBracket();
     void cmdAddParentheses();
@@ -376,7 +395,7 @@ public:
     bool isSystemObjectStaff(Staff* staff) const;
 
     Measure* pos2measure(const mu::PointF&, staff_idx_t* staffIdx, int* pitch, Segment**, mu::PointF* offset) const;
-    void dragPosition(const mu::PointF&, staff_idx_t* staffIdx, Segment**, double spacingFactor = 0.5) const;
+    void dragPosition(const mu::PointF&, staff_idx_t* staffIdx, Segment**, double spacingFactor = 0.5, bool allowTimeAnchor = false) const;
 
     void undoAddElement(EngravingItem* element, bool addToLinkedStaves = true, bool ctrlModifier = false,
                         EngravingItem* elementToRelink = nullptr);
@@ -551,7 +570,11 @@ public:
     void setMarkIrregularMeasures(bool v);
     void setShowInstrumentNames(bool v) { m_showInstrumentNames = v; }
 
-    void print(mu::draw::Painter* printer, int page);
+    void hideAnchors() { m_showAnchors.reset(); }
+    void updateShowAnchors(staff_idx_t staffIdx, const Fraction& startTick, const Fraction& endTick);
+    const ShowAnchors& showAnchors() const { return m_showAnchors; }
+
+    void print(muse::draw::Painter* printer, int page);
     ChordRest* getSelectedChordRest() const;
     std::set<ChordRest*> getSelectedChordRests() const;
     void getSelectedChordRest2(ChordRest** cr1, ChordRest** cr2) const;
@@ -581,8 +604,8 @@ public:
     Segment* tick2segmentMM(const Fraction& tick, bool first, SegmentType st) const;
     Segment* tick2segmentMM(const Fraction& tick) const;
     Segment* tick2segmentMM(const Fraction& tick, bool first) const;
-    Segment* tick2leftSegment(const Fraction& tick, bool useMMrest = false, SegmentType st = SegmentType::ChordRest) const;
-    Segment* tick2rightSegment(const Fraction& tick, bool useMMrest = false) const;
+    Segment* tick2leftSegment(const Fraction& tick, bool useMMrest = false, SegmentType segType = SegmentType::ChordRest) const;
+    Segment* tick2rightSegment(const Fraction& tick, bool useMMrest = false, SegmentType segType = SegmentType::ChordRest) const;
     Segment* tick2leftSegmentMM(const Fraction& tick) { return tick2leftSegment(tick, /* useMMRest */ true); }
 
     void setUpTempoMapLater();
@@ -799,6 +822,7 @@ public:
     int pageNumberOffset() const { return m_pageNumberOffset; }
     void setPageNumberOffset(int v) { m_pageNumberOffset = v; }
 
+    String appVersion() const { return application()->version().toString(); }
     String mscoreVersion() const { return m_mscoreVersion; }
     int mscoreRevision() const { return m_mscoreRevision; }
     void setMscoreVersion(const String& val) { m_mscoreVersion = val; }
@@ -869,6 +893,9 @@ public:
     void addUnmanagedSpanner(Spanner*);
     void removeUnmanagedSpanner(Spanner*);
 
+    void addHairpinToChordRest(Hairpin* hairpin, ChordRest* chordRest);
+    void addHairpinToDynamic(Hairpin* hairpin, Dynamic* dynamic);
+
     Hairpin* addHairpin(HairpinType, const Fraction& tickStart, const Fraction& tickEnd, track_idx_t track);
     Hairpin* addHairpin(HairpinType, ChordRest* cr1, ChordRest* cr2 = nullptr);
 
@@ -918,7 +945,7 @@ public:
     Measure* firstTrailingMeasure(ChordRest** cr = nullptr);
     ChordRest* cmdTopStaff(ChordRest* cr = nullptr);
 
-    std::shared_ptr<mu::draw::Pixmap> createThumbnail();
+    std::shared_ptr<muse::draw::Pixmap> createThumbnail();
     String createRehearsalMarkText(RehearsalMark* current) const;
     String nextRehearsalMarkText(RehearsalMark* previous, RehearsalMark* current) const;
 
@@ -1075,8 +1102,11 @@ private:
     bool m_printing = false;                // True if we are drawing to a printer
     bool m_savedCapture = false;            // True if we saved an image capture
 
+    ShowAnchors m_showAnchors;
+
     ScoreOrder m_scoreOrder;                 // used for score ordering
     bool m_resetAutoplace = false;
+    bool m_resetCrossBeams = false;
     int m_mscVersion = Constants::MSC_VERSION;     // version of current loading *.msc file
 
     bool m_isOpen = false;

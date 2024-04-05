@@ -36,7 +36,7 @@
 using namespace mu;
 using namespace mu::playback;
 using namespace mu::engraving;
-using namespace mu::audio;
+using namespace muse::audio;
 
 static const QString RESET_MENU_ID = "reset";
 static const QString MULTI_SELECTION_MENU_ID = "multi-selection";
@@ -69,8 +69,8 @@ static QVariantList buildAvailablePlayingTechniquesModel(const std::set<String>&
     }
 
     QVariantMap ordinaryItem;
-    ordinaryItem["code"] = QString::fromStdString(mpe::ORDINARY_PLAYING_TECHNIQUE_CODE);
-    ordinaryItem["name"] = qtrc("playback", "Ord. (default)");
+    ordinaryItem["code"] = QString::fromStdString(mu::mpe::ORDINARY_PLAYING_TECHNIQUE_CODE);
+    ordinaryItem["name"] = mu::qtrc("playback", "Ord. (default)");
     model << ordinaryItem;
 
     for (const String& playingTechniqueCode : availableTechniqueCodes) {
@@ -128,10 +128,10 @@ void SoundFlagSettingsModel::load()
 
 void SoundFlagSettingsModel::initTitle()
 {
-    const audio::AudioInputParams& params = currentAudioInputParams();
+    const AudioInputParams& params = currentAudioInputParams();
 
-    QString name = audio::audioSourceName(params).toQString();
-    QString category = audio::audioSourceCategoryName(params).toQString();
+    QString name = muse::audio::audioSourceName(params).toQString();
+    QString category = muse::audio::audioSourceCategoryName(params).toQString();
     QString title = category + ": " + name;
 
     setTitle(title);
@@ -229,7 +229,7 @@ uicomponents::MenuItem* SoundFlagSettingsModel::buildMenuItem(const QString& act
     item->setId(actionCode);
 
     ui::UiAction action;
-    action.code = actions::codeFromQString(actionCode);
+    action.code = muse::actions::codeFromQString(actionCode);
     action.title = title;
     item->setAction(action);
 
@@ -352,7 +352,7 @@ bool SoundFlagSettingsModel::updateStaffText()
 
     const SoundFlag::PlayingTechniqueCode& techniqueCode = soundFlag->playingTechnique();
     if (!techniqueCode.empty()) {
-        if (techniqueCode.toStdString() == mpe::ORDINARY_PLAYING_TECHNIQUE_CODE) {
+        if (techniqueCode.toStdString() == mu::mpe::ORDINARY_PLAYING_TECHNIQUE_CODE) {
             strs << mtrc("playback", "ordinary");
         } else {
             strs << soundFlag->playingTechnique();
@@ -423,10 +423,6 @@ QStringList SoundFlagSettingsModel::selectedPresetCodes() const
         result << presetCode.toQString();
     }
 
-    if (result.empty()) {
-        result << defaultPresetCode();
-    }
-
     return result;
 }
 
@@ -456,7 +452,11 @@ void SoundFlagSettingsModel::loadAvailablePlayingTechniques()
     std::set<String> availablePlayingTechniqueCodes;
 
     for (const SoundPreset& preset : m_availablePresets) {
-        if (!selectedPresetCodes.contains(preset.code)) {
+        if (selectedPresetCodes.empty()) {
+            if (!preset.isDefault) {
+                continue;
+            }
+        } else if (!selectedPresetCodes.contains(preset.code)) {
             continue;
         }
 
@@ -487,10 +487,6 @@ QString SoundFlagSettingsModel::selectedPlayingTechniqueCode() const
     }
 
     QString result = toSoundFlag(m_item)->playingTechnique().toQString();
-
-    if (result.isEmpty()) {
-        result = defaultPlayingTechniqueCode();
-    }
 
     return result;
 }

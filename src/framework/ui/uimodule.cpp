@@ -71,6 +71,8 @@
 #include "dev/interactivetestsmodel.h"
 #include "dev/testdialog.h"
 
+#include "log.h"
+
 using namespace mu::ui;
 using namespace mu::modularity;
 
@@ -86,6 +88,7 @@ std::string UiModule::moduleName() const
 
 void UiModule::registerExports()
 {
+    m_uiengine = std::make_shared<UiEngine>();
     m_configuration = std::make_shared<UiConfiguration>();
     m_uiactionsRegister = std::make_shared<UiActionsRegister>();
     m_keyNavigationController = std::make_shared<NavigationController>();
@@ -102,9 +105,9 @@ void UiModule::registerExports()
     #endif
 
     ioc()->registerExport<IUiConfiguration>(moduleName(), m_configuration);
-    ioc()->registerExportNoDelete<IUiEngine>(moduleName(), UiEngine::instance());
+    ioc()->registerExport<IUiEngine>(moduleName(), m_uiengine);
     ioc()->registerExport<IMainWindow>(moduleName(), new MainWindow());
-    ioc()->registerExport<IInteractiveProvider>(moduleName(), UiEngine::instance()->interactiveProvider());
+    ioc()->registerExport<IInteractiveProvider>(moduleName(), m_uiengine->interactiveProvider());
     ioc()->registerExport<IInteractiveUriRegister>(moduleName(), new InteractiveUriRegister());
     ioc()->registerExport<IPlatformTheme>(moduleName(), m_platformTheme);
     ioc()->registerExport<IUiActionsRegister>(moduleName(), m_uiactionsRegister);
@@ -133,7 +136,7 @@ void UiModule::registerApi()
     if (api) {
         api->regApiCreator(moduleName(), "api.navigation", new ApiCreator<NavigationApi>());
         api->regApiCreator(moduleName(), "api.keyboard", new ApiCreator<KeyboardApi>());
-        api->regApiSingltone(moduleName(), "api.theme", UiEngine::instance()->theme());
+        api->regApiSingltone(moduleName(), "api.theme", m_uiengine->theme());
     }
 }
 
@@ -192,11 +195,15 @@ void UiModule::onPreInit(const IApplication::RunMode& mode)
 
 void UiModule::onInit(const IApplication::RunMode& mode)
 {
+    //! NOTE Icons
+    //! At the moment they can also be used in console mode, because it is used in engraving
+    if (QFontDatabase::addApplicationFont(":/ui/data/MusescoreIcon.ttf") == -1) {
+        LOGE() << "Unable load icon font: `:/ui/data/MusescoreIcon.ttf`";
+    }
+
     if (mode != IApplication::RunMode::GuiApp) {
         return;
     }
-
-    QFontDatabase::addApplicationFont(":/fonts/mscore/MusescoreIcon.ttf"); // icons
 
     m_keyNavigationController->init();
 }
@@ -216,6 +223,8 @@ void UiModule::onAllInited(const IApplication::RunMode& mode)
     //! All modules need to be initialized in order to get the correct state of UIActions.
     //! So, we do init on onStartApp
     m_uiactionsRegister->init();
+
+    m_uiengine->init();
 }
 
 void UiModule::onDeinit()

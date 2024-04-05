@@ -61,7 +61,7 @@ struct std::less<MuseSamplerEvent>
 };
 
 namespace mu::musesampler {
-class MuseSamplerSequencer : public audio::AbstractEventSequencer<mu::mpe::NoteEvent, AuditionStartNoteEvent, AuditionStopNoteEvent>
+class MuseSamplerSequencer : public muse::audio::AbstractEventSequencer<mu::mpe::NoteEvent, AuditionStartNoteEvent, AuditionStopNoteEvent>
 {
 public:
     void init(MuseSamplerLibHandlerPtr samplerLib, ms_MuseSampler sampler, IMuseSamplerTracksPtr tracks, std::string&& defaultPresetCode);
@@ -92,7 +92,7 @@ private:
     double dynamicLevelRatio(const mpe::dynamic_level_t level) const;
 
     ms_NoteArticulation convertArticulationType(mpe::ArticulationType articulation) const;
-    ms_NoteArticulation noteArticulationTypes(const mpe::NoteEvent& noteEvent) const;
+    void parseArticulations(const mpe::ArticulationMap& articulations, ms_NoteArticulation& articulationFlag, ms_NoteHead& notehead) const;
 
     void parseOffStreamParams(const mpe::PlaybackParamMap& params, std::string& presets, std::string& textArticulation) const;
 

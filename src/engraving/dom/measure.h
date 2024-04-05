@@ -262,10 +262,11 @@ public:
     Segment* findSegment(SegmentType st,    const Fraction& f) const { return findSegmentR(st, f - tick()); }
     Segment* undoGetSegment(SegmentType st, const Fraction& f) { return undoGetSegmentR(st, f - tick()); }
     Segment* getSegment(SegmentType st,     const Fraction& f) { return getSegmentR(st, f - tick()); }
+    Segment* getChordRestOrTimeTickSegment(const Fraction& f);
 
     void connectTremolo();
 
-    void setEndBarLineType(BarLineType val, track_idx_t track, bool visible = true, mu::draw::Color color = mu::draw::Color());
+    void setEndBarLineType(BarLineType val, track_idx_t track, bool visible = true, muse::draw::Color color = muse::draw::Color());
 
     void scanElements(void* data, void (* func)(void*, EngravingItem*), bool all=true) override;
     void createVoice(int track);

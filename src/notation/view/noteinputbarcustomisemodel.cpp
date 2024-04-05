@@ -31,10 +31,10 @@
 #include "log.h"
 
 using namespace mu::notation;
-using namespace mu::workspace;
+using namespace muse::workspace;
 using namespace mu::ui;
 using namespace mu::uicomponents;
-using namespace mu::actions;
+using namespace muse::actions;
 
 static const QString NOTE_INPUT_TOOLBAR_NAME("noteInput");
 
@@ -232,7 +232,7 @@ NoteInputBarCustomiseItem* NoteInputBarCustomiseModel::makeItem(const UiAction& 
 NoteInputBarCustomiseItem* NoteInputBarCustomiseModel::makeSeparatorItem()
 {
     NoteInputBarCustomiseItem* item = new NoteInputBarCustomiseItem(NoteInputBarCustomiseItem::ItemType::SEPARATOR, this);
-    item->setTitle(QString("-------  %1  -------").arg(qtrc("notation", "Separator line")));
+    item->setTitle(QString("-------  %1  -------").arg(mu::qtrc("notation", "Separator line")));
     item->setChecked(true); //! NOTE Can't be unchecked
     return item;
 }

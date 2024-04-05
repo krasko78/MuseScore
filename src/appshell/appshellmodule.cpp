@@ -63,8 +63,6 @@
 #include "view/windowdroparea.h"
 #include "view/internal/maintoolbarmodel.h"
 
-#include "view/dockwindow/docksetup.h"
-
 #ifdef Q_OS_MAC
 #include "view/appmenumodel.h"
 #include "view/internal/platform/macos/macosappmenumodelhook.h"
@@ -76,7 +74,7 @@
 using namespace mu::appshell;
 using namespace mu::modularity;
 using namespace mu::ui;
-using namespace mu::dock;
+using namespace muse::dock;
 
 static void appshell_init_qrc()
 {
@@ -103,8 +101,6 @@ void AppShellModule::registerExports()
     #ifdef Q_OS_MAC
     m_scrollingHook = std::make_shared<MacOSScrollingHook>();
     #endif
-
-    DockSetup::registerExports();
 
     ioc()->registerExport<IAppShellConfiguration>(moduleName(), m_appShellConfiguration);
     ioc()->registerExport<IAppShellHiddenConfiguration>(moduleName(), m_appShellHiddenConfiguration); // KRASKO
@@ -148,8 +144,6 @@ void AppShellModule::registerResources()
 
 void AppShellModule::registerUiTypes()
 {
-    DockSetup::registerQmlTypes();
-
     qmlRegisterType<SettingListModel>("MuseScore.Preferences", 1, 0, "SettingListModel");
     qmlRegisterType<PreferencesModel>("MuseScore.Preferences", 1, 0, "PreferencesModel");
     qmlRegisterType<GeneralPreferencesModel>("MuseScore.Preferences", 1, 0, "GeneralPreferencesModel");
@@ -202,8 +196,6 @@ void AppShellModule::onInit(const IApplication::RunMode& mode)
     if (mode == IApplication::RunMode::AudioPluginRegistration) {
         return;
     }
-
-    DockSetup::onInit();
 
     m_appShellConfiguration->init();
     m_appShellHiddenConfiguration->init(); // KRASKO

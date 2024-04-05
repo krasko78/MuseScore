@@ -26,7 +26,7 @@
 #include "engravingitem.h"
 #include "draw/types/painterpath.h"
 
-#include "types/types.h"
+#include "../types/types.h"
 
 namespace mu::engraving {
 class Factory;
@@ -94,7 +94,7 @@ public:
     Note* note() const { return m_note; }
 
     struct LayoutData : public EngravingItem::LayoutData {
-        draw::PainterPath path;
+        muse::draw::PainterPath path;
     };
     DECLARE_LAYOUTDATA_METHODS(ChordLine)
 

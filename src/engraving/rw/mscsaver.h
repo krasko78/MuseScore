@@ -25,14 +25,14 @@
 #include "global/modularity/ioc.h"
 #include "draw/iimageprovider.h"
 
-#include "infrastructure/mscwriter.h"
+#include "../infrastructure/mscwriter.h"
 
 namespace mu::engraving {
 class MasterScore;
 class Score;
 class MscSaver
 {
-    INJECT(draw::IImageProvider, imageProvider)
+    INJECT(muse::draw::IImageProvider, imageProvider)
 public:
     MscSaver() = default;
 
