@@ -41,7 +41,7 @@ class NavigationController : public QObject, public INavigationController, publi
     INJECT(actions::IActionsDispatcher, dispatcher)
     INJECT(mu::IInteractive, interactive)
     INJECT(IMainWindow, mainWindow)
-    INJECT(appshell::IAppShellHiddenConfiguration, appshellHiddenConfiguration) // KRASKO
+    INJECT(mu::appshell::IAppShellHiddenConfiguration, appshellHiddenConfiguration) // KRASKO
 
 public:
     NavigationController() = default;
