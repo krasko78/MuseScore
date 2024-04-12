@@ -41,7 +41,7 @@
 #include <QPolygonF>
 #endif
 
-namespace mu {
+namespace muse {
 template<typename T>
 inline bool isEqual(T a1, T a2)
 {
@@ -762,26 +762,17 @@ RectX<T> RectX<T>::normalized() const
 }
 
 template<typename T>
-inline mu::logger::Stream& operator<<(mu::logger::Stream& s, const mu::RectX<T>& r)
+inline muse::logger::Stream& operator<<(muse::logger::Stream& s, const muse::RectX<T>& r)
 {
-    s << mu::dump(r);
+    s << muse::dump(r);
     return s;
 }
 
 template<typename T>
-inline mu::logger::Stream& operator<<(mu::logger::Stream& s, const mu::PointX<T>& p)
+inline muse::logger::Stream& operator<<(muse::logger::Stream& s, const muse::PointX<T>& p)
 {
-    s << mu::dump(p);
+    s << muse::dump(p);
     return s;
-}
-
-namespace muse {
-using RectF = mu::RectF;
-using Size = mu::Size;
-using SizeF = mu::SizeF;
-using PointF = mu::PointF;
-using LineF = mu::LineF;
-using PolygonF = mu::PolygonF;
 }
 
 #endif // MUSE_DRAW_GEOMETRY_H

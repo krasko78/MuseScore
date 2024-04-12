@@ -32,7 +32,7 @@
 
 #include "log.h"
 
-using namespace mu;
+using namespace muse;
 
 static const Settings::Key BACKUP_KEY("global", "application/backup/subfolder");
 static const Settings::Key DEV_MODE_ENABLED_KEY("global", "application/devModeEnabled");
@@ -65,16 +65,8 @@ io::path_t GlobalConfiguration::appDataPath() const
 
 QString GlobalConfiguration::resolveAppDataPath() const
 {
-#ifndef MUSE_APP_INSTALL_PREFIX
-#define MUSE_APP_INSTALL_PREFIX "/"
-#endif
-
-#ifndef MUSE_APP_INSTALL_NAME
-#define MUSE_APP_INSTALL_NAME "App"
-#endif
-
 #ifdef Q_OS_WIN
-    QDir dir(QCoreApplication::applicationDirPath() + QString("/../" MUSE_APP_INSTALL_NAME));
+    QDir dir(QCoreApplication::applicationDirPath() + QString("/../"));
     return dir.absolutePath() + "/";
 #elif defined(Q_OS_MAC)
     QDir dir(QCoreApplication::applicationDirPath() + QString("/../Resources"));

@@ -20,8 +20,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef MU_SHORTCUTS_SHORTCUTSMODEL_H
-#define MU_SHORTCUTS_SHORTCUTSMODEL_H
+#ifndef MUSE_SHORTCUTS_SHORTCUTSMODEL_H
+#define MUSE_SHORTCUTS_SHORTCUTSMODEL_H
 
 #include <QAbstractListModel>
 #include <QItemSelection>
@@ -36,7 +36,7 @@
 
 class QItemSelection;
 
-namespace mu::shortcuts {
+namespace muse::shortcuts {
 class ShortcutsModel : public QAbstractListModel, public async::Asyncable
 {
     Q_OBJECT
@@ -101,4 +101,4 @@ private:
 };
 }
 
-#endif // MU_SHORTCUTS_SHORTCUTSMODEL_H
+#endif // MUSE_SHORTCUTS_SHORTCUTSMODEL_H

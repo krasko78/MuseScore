@@ -23,7 +23,8 @@
 #include "stringssetupdataresolver.h"
 
 using namespace mu::engraving;
-using namespace mu::mpe;
+using namespace muse;
+using namespace muse::mpe;
 
 PlaybackSetupData StringsSetupDataResolver::doResolve(const Instrument* instrument)
 {
@@ -278,7 +279,7 @@ PlaybackSetupData StringsSetupDataResolver::doResolve(const Instrument* instrume
         SoundId::Violin
     };
 
-    if (mu::contains(supportPrimaryAndSecondaryCategories, search->second.id)) {
+    if (muse::contains(supportPrimaryAndSecondaryCategories, search->second.id)) {
         SoundSubCategory category = instrument->isPrimary() ? SoundSubCategory::Primary : SoundSubCategory::Secondary;
         PlaybackSetupData setupData = search->second;
         setupData.subCategorySet.insert(category);

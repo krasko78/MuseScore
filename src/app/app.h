@@ -29,7 +29,7 @@
 #include "modularity/ioc.h"
 #include "global/iapplication.h"
 #include "converter/iconvertercontroller.h"
-#include "diagnostics/idiagnosticdrawprovider.h"
+#include "engraving/devtools/drawdata/idiagnosticdrawprovider.h"
 #include "autobot/iautobot.h"
 #include "audio/iregisteraudiopluginsscenario.h"
 #include "multiinstances/imultiinstancesprovider.h"
@@ -51,12 +51,12 @@
 namespace mu::app {
 class App
 {
-    INJECT(IApplication, muapplication)
+    INJECT(muse::IApplication, muapplication)
     INJECT(converter::IConverterController, converter)
-    INJECT(diagnostics::IDiagnosticDrawProvider, diagnosticDrawProvider)
+    INJECT(engraving::IDiagnosticDrawProvider, diagnosticDrawProvider)
     INJECT(muse::autobot::IAutobot, autobot)
     INJECT(muse::audio::IRegisterAudioPluginsScenario, registerAudioPluginsScenario)
-    INJECT(mi::IMultiInstancesProvider, multiInstancesProvider)
+    INJECT(muse::mi::IMultiInstancesProvider, multiInstancesProvider)
     INJECT(muse::ui::IUiConfiguration, uiConfiguration)
     INJECT(appshell::IAppShellConfiguration, appshellConfiguration)
     INJECT(appshell::IStartupScenario, startupScenario)
@@ -72,18 +72,18 @@ class App
 public:
     App();
 
-    void addModule(modularity::IModuleSetup* module);
+    void addModule(muse::modularity::IModuleSetup* module);
 
     int run(int argc, char** argv);
 
 private:
-    void applyCommandLineOptions(const CommandLineParser::Options& options, IApplication::RunMode runMode);
+    void applyCommandLineOptions(const CommandLineParser::Options& options, muse::IApplication::RunMode runMode);
     int processConverter(const CommandLineParser::ConverterTask& task);
     int processDiagnostic(const CommandLineParser::Diagnostic& task);
     int processAudioPluginRegistration(const CommandLineParser::AudioPluginRegistration& task);
     void processAutobot(const CommandLineParser::Autobot& task);
 
-    QList<modularity::IModuleSetup*> m_modules;
+    QList<muse::modularity::IModuleSetup*> m_modules;
 };
 }
 

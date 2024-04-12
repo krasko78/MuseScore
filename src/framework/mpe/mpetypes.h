@@ -20,8 +20,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef MU_MPE_MPETYPES_H
-#define MU_MPE_MPETYPES_H
+#ifndef MUSE_MPE_MPETYPES_H
+#define MUSE_MPE_MPETYPES_H
 
 #include <stdint.h>
 #include <math.h>
@@ -42,7 +42,7 @@
 #undef C
 #endif
 
-namespace mu::mpe {
+namespace muse::mpe {
 // common
 using usecs_t = int64_t; // microseconds
 using percentage_t = int_fast16_t;
@@ -150,7 +150,8 @@ private:
             }
 
             float newPointPositionCoef = (pair.second / static_cast<float>(pair.first)) * positionAmplifyFactor;
-            duration_percentage_t newPointPosition = static_cast<duration_percentage_t>(RealRound(pair.second / newPointPositionCoef, 0));
+            duration_percentage_t newPointPosition
+                = static_cast<duration_percentage_t>(RealRound(pair.second / newPointPositionCoef, 0));
 
             result.insert({ newPointPosition, pair.second });
         }
@@ -371,7 +372,7 @@ inline bool isMultiNoteArticulation(const ArticulationType type)
         ArticulationType::ArpeggioStraightDown,
     };
 
-    return mu::contains(MULTI_TYPES, type);
+    return muse::contains(MULTI_TYPES, type);
 }
 
 inline bool isSingleNoteArticulation(const ArticulationType type)
@@ -935,4 +936,4 @@ private:
 };
 }
 
-#endif // MU_MPE_MPETYPES_H
+#endif // MUSE_MPE_MPETYPES_H

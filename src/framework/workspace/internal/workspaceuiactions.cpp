@@ -25,6 +25,7 @@
 #include "shortcuts/shortcutcontext.h"
 #include "types/translatablestring.h"
 
+using namespace muse;
 using namespace muse::workspace;
 using namespace muse::ui;
 using namespace muse::actions;
@@ -32,12 +33,12 @@ using namespace muse::actions;
 const UiActionList WorkspaceUiActions::m_actions = {
     UiAction("select-workspace",
              muse::ui::UiCtxAny,
-             mu::shortcuts::CTX_ANY,
+             muse::shortcuts::CTX_ANY,
              TranslatableString("action", "Select workspace")
              ),
     UiAction("configure-workspaces",
              muse::ui::UiCtxAny,
-             mu::shortcuts::CTX_ANY,
+             muse::shortcuts::CTX_ANY,
              TranslatableString("action", "Configure workspace"),
              TranslatableString("action", "Configure workspace…")
              )
@@ -67,12 +68,12 @@ bool WorkspaceUiActions::actionChecked(const UiAction&) const
     return false;
 }
 
-mu::async::Channel<ActionCodeList> WorkspaceUiActions::actionEnabledChanged() const
+async::Channel<ActionCodeList> WorkspaceUiActions::actionEnabledChanged() const
 {
     return m_actionEnabledChanged;
 }
 
-mu::async::Channel<ActionCodeList> WorkspaceUiActions::actionCheckedChanged() const
+async::Channel<ActionCodeList> WorkspaceUiActions::actionCheckedChanged() const
 {
     return m_actionCheckedChanged;
 }

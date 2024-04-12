@@ -25,6 +25,7 @@
 #include "shortcuts/shortcutcontext.h"
 #include "types/translatablestring.h"
 
+using namespace muse;
 using namespace muse::ui;
 using namespace muse::actions;
 using namespace muse::autobot;
@@ -32,12 +33,12 @@ using namespace muse::autobot;
 const UiActionList AutobotActions::m_actions = {
     UiAction("autobot-show-batchtests",
              muse::ui::UiCtxAny,
-             mu::shortcuts::CTX_ANY,
+             muse::shortcuts::CTX_ANY,
              TranslatableString("action", "Show batch tests…")
              ),
     UiAction("autobot-show-scripts",
              muse::ui::UiCtxAny,
-             mu::shortcuts::CTX_ANY,
+             muse::shortcuts::CTX_ANY,
              TranslatableString("action", "Show &scripts…")
              ),
 };
@@ -52,7 +53,7 @@ bool AutobotActions::actionEnabled(const UiAction&) const
     return true;
 }
 
-mu::async::Channel<ActionCodeList> AutobotActions::actionEnabledChanged() const
+async::Channel<ActionCodeList> AutobotActions::actionEnabledChanged() const
 {
     static async::Channel<ActionCodeList> ch;
     return ch;
@@ -63,7 +64,7 @@ bool AutobotActions::actionChecked(const UiAction&) const
     return false;
 }
 
-mu::async::Channel<ActionCodeList> AutobotActions::actionCheckedChanged() const
+async::Channel<ActionCodeList> AutobotActions::actionCheckedChanged() const
 {
     static async::Channel<ActionCodeList> ch;
     return ch;

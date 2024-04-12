@@ -19,8 +19,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef MU_SHORTCUTS_MIDIREMOTE_H
-#define MU_SHORTCUTS_MIDIREMOTE_H
+#ifndef MUSE_SHORTCUTS_MIDIREMOTE_H
+#define MUSE_SHORTCUTS_MIDIREMOTE_H
 
 #include "async/asyncable.h"
 
@@ -33,12 +33,12 @@
 #include "shortcutstypes.h"
 #include "../imidiremote.h"
 
-namespace mu::deprecated {
+namespace muse::deprecated {
 class XmlReader;
 class XmlWriter;
 }
 
-namespace mu::shortcuts {
+namespace muse::shortcuts {
 class MidiRemote : public IMidiRemote, public async::Asyncable
 {
     INJECT(io::IFileSystem, fileSystem)
@@ -83,4 +83,4 @@ private:
 };
 }
 
-#endif // MU_SHORTCUTS_MIDIREMOTE_H
+#endif // MUSE_SHORTCUTS_MIDIREMOTE_H

@@ -288,7 +288,6 @@ void Cursor::add(EngravingItem* wrapped)
         // To be added at chord level
         case ElementType::NOTE:
         case ElementType::ARPEGGIO:
-        case ElementType::TREMOLO:
         case ElementType::TREMOLO_SINGLECHORD:
         case ElementType::TREMOLO_TWOCHORD:
         case ElementType::CHORDLINE:
@@ -633,7 +632,7 @@ void Cursor::setStaffIdx(int v)
 {
     track_idx_t _track = v * VOICES + track() % VOICES;
     size_t tracks = _score->nstaves() * VOICES;
-    if (_track == mu::nidx) {
+    if (_track == muse::nidx) {
         _track = 0;
     } else if (_track >= tracks) {
         _track = tracks - 1;
@@ -649,7 +648,7 @@ void Cursor::setVoice(int v)
 {
     track_idx_t _track = (track() / VOICES) * VOICES + v;
     size_t tracks = _score->nstaves() * VOICES;
-    if (_track == mu::nidx) {
+    if (_track == muse::nidx) {
         _track = 0;
     } else if (_track >= tracks) {
         _track = tracks - 1;

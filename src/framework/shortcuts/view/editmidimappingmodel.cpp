@@ -26,7 +26,7 @@
 #include "utils.h"
 #include "log.h"
 
-using namespace mu::shortcuts;
+using namespace muse::shortcuts;
 using namespace muse::midi;
 
 EditMidiMappingModel::EditMidiMappingModel(QObject* parent)
@@ -58,7 +58,7 @@ QString EditMidiMappingModel::mappingTitle() const
 {
     MidiDeviceID currentMidiInDeviceId = midiInPort()->deviceID();
     if (currentMidiInDeviceId.empty() || !m_event.isValid()) {
-        return mu::qtrc("shortcuts", "Waiting…");
+        return muse::qtrc("shortcuts", "Waiting…");
     }
 
     return deviceName(currentMidiInDeviceId) + " > " + m_event.name().toQString();

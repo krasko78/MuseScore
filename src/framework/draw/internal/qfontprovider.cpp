@@ -29,7 +29,7 @@
 #include "engraving/dom/mscore.h"
 #include "fontengineft.h"
 
-using namespace mu;
+using namespace muse;
 using namespace muse::draw;
 
 class FontPaintDevice : public QPaintDevice

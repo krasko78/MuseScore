@@ -455,7 +455,7 @@ Segment* LineSegment::findSegmentForGrip(Grip grip, PointF pos) const
     System* sys = system();
     const std::vector<System*> foundSystems = score()->searchSystem(pos, sys, spacingFactor);
 
-    if (!foundSystems.empty() && !mu::contains(foundSystems, sys) && foundSystems[0]->staves().size()) {
+    if (!foundSystems.empty() && !muse::contains(foundSystems, sys) && foundSystems[0]->staves().size()) {
         sys = foundSystems[0];
     }
 
@@ -487,7 +487,7 @@ PointF LineSegment::deltaRebaseLeft(const Segment* oldSeg, const Segment* newSeg
 ///   Helper function for anchors rebasing when dragging.
 //---------------------------------------------------------
 
-PointF LineSegment::deltaRebaseRight(const Segment* oldSeg, const Segment* newSeg, staff_idx_t staffIndex)
+PointF LineSegment::deltaRebaseRight(const Segment* oldSeg, const Segment* newSeg)
 {
     if (oldSeg == newSeg) {
         return PointF();

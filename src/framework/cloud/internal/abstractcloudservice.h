@@ -60,9 +60,9 @@ class AbstractCloudService : public QObject, public IAuthorizationService, publi
     INJECT(ICloudConfiguration, configuration)
     INJECT(ui::IUiConfiguration, uiConfig)
     INJECT(io::IFileSystem, fileSystem)
-    INJECT(mu::network::INetworkManagerCreator, networkManagerCreator)
-    INJECT(mu::IInteractive, interactive)
-    INJECT(mu::mi::IMultiInstancesProvider, multiInstancesProvider)
+    INJECT(network::INetworkManagerCreator, networkManagerCreator)
+    INJECT(IInteractive, interactive)
+    INJECT(mi::IMultiInstancesProvider, multiInstancesProvider)
 
 public:
     explicit AbstractCloudService(QObject* parent = nullptr);
@@ -99,7 +99,7 @@ protected:
         QUrl refreshApiUrl;
         QUrl logoutApiUrl;
 
-        mu::network::RequestHeaders headers;
+        network::RequestHeaders headers;
         QVariantMap authorizationParameters;
         QVariantMap refreshParameters;
     };
@@ -118,7 +118,7 @@ protected:
     Ret executeRequest(const RequestCallback& requestCallback);
 
     Ret uploadingDownloadingRetFromRawRet(const Ret& rawRet, bool isAlreadyUploaded = false) const;
-    int statusCode(const mu::Ret& ret) const;
+    int statusCode(const Ret& ret) const;
     void printServerReply(const QBuffer& reply) const;
 
     QString accessToken() const;
@@ -141,7 +141,7 @@ private:
 
     void openUrl(const QUrl& url);
 
-    mu::network::RequestHeaders headers() const;
+    network::RequestHeaders headers() const;
 
     QOAuth2AuthorizationCodeFlow* m_oauth2 = nullptr;
     OAuthHttpServerReplyHandler* m_replyHandler = nullptr;

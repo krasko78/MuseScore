@@ -26,10 +26,10 @@
 
 #include "log.h"
 
-using namespace mu;
+using namespace muse;
 using namespace muse::audio;
 using namespace muse::audio::synth;
-using namespace mu::mpe;
+using namespace muse::mpe;
 
 EventAudioSource::EventAudioSource(const TrackId trackId, const mpe::PlaybackData& playbackData,
                                    OnOffStreamEventsReceived onOffStreamReceived)

@@ -139,7 +139,7 @@ struct GraceNoteLyrics {
 class MusicXMLParserLyric
 {
 public:
-    MusicXMLParserLyric(const LyricNumberHandler lyricNumberHandler, XmlStreamReader& e, Score* score, MxmlLogger* logger);
+    MusicXMLParserLyric(const LyricNumberHandler lyricNumberHandler, muse::XmlStreamReader& e, Score* score, MxmlLogger* logger);
     std::set<Lyrics*> extendedLyrics() const { return m_extendedLyrics; }
     std::map<int, Lyrics*> numberedLyrics() const { return m_numberedLyrics; }
     void parse();
@@ -147,7 +147,7 @@ private:
     void skipLogCurrElem();
     void readElision(String& formattedText);
     const LyricNumberHandler m_lyricNumberHandler;
-    XmlStreamReader& m_e;
+    muse::XmlStreamReader& m_e;
     const Score* m_score = nullptr;            // the score
     MxmlLogger* m_logger = nullptr;            // Error logger
     std::map<int, Lyrics*> m_numberedLyrics;   // lyrics with valid number
@@ -176,14 +176,14 @@ public:
     String print() const;
     void setText(const String& text) { m_text = text; }
     String text() const { return m_text; }
-    static Notation notationWithAttributes(const String& name, const std::vector<XmlStreamReader::Attribute>& attributes,
-                                           const String& parent = {}, const SymId& symId = SymId::noSym);
+    static Notation notationWithAttributes(const muse::String& name, const std::vector<muse::XmlStreamReader::Attribute>& attributes,
+                                           const muse::String& parent = {}, const SymId& symId = SymId::noSym);
 private:
-    String m_name;
-    String m_parent;
+    muse::String m_name;
+    muse::String m_parent;
     SymId m_symId = SymId::noSym;
-    String m_subType;
-    String m_text;
+    muse::String m_subType;
+    muse::String m_text;
     std::map<String, String> m_attributes;
 };
 
@@ -221,6 +221,7 @@ using TrillStack = std::array<Trill*, MAX_NUMBER_LEVEL>;
 using BracketsStack = std::array<MusicXmlExtendedSpannerDesc, MAX_NUMBER_LEVEL>;
 using OttavasStack = std::array<MusicXmlExtendedSpannerDesc, MAX_NUMBER_LEVEL>;
 using HairpinsStack = std::array<MusicXmlExtendedSpannerDesc, MAX_NUMBER_LEVEL>;
+using InferredHairpinsStack = std::vector<Hairpin*>;
 using SpannerStack = std::array<MusicXmlExtendedSpannerDesc, MAX_NUMBER_LEVEL>;
 using SpannerSet = std::set<Spanner*>;
 using DelayedArpMap = std::map<int, DelayedArpeggio>;
@@ -232,7 +233,7 @@ using DelayedArpMap = std::map<int, DelayedArpeggio>;
 class MusicXMLParserNotations
 {
 public:
-    MusicXMLParserNotations(XmlStreamReader& e, Score* score, MxmlLogger* logger);
+    MusicXMLParserNotations(muse::XmlStreamReader& e, Score* score, MxmlLogger* logger);
     void parse();
     void addToScore(ChordRest* const cr, Note* const note, const int tick, SlurStack& slurs, Glissando* glissandi[MAX_NUMBER_LEVEL][2],
                     MusicXmlSpannerMap& spanners, TrillStack& trills, Tie*& tie, ArpeggioMap& arpMap, DelayedArpMap& delayedArps);
@@ -259,7 +260,7 @@ private:
     void tied();
     void tuplet();
     void otherNotation();
-    XmlStreamReader& m_e;
+    muse::XmlStreamReader& m_e;
     const Score* m_score = nullptr;                         // the score
     MxmlLogger* m_logger = nullptr;                              // the error logger
     String m_errors;                    // errors to present to the user
@@ -287,7 +288,7 @@ class MusicXMLParserPass2
 {
 public:
     MusicXMLParserPass2(Score* score, MusicXMLParserPass1& pass1, MxmlLogger* logger);
-    Err parse(const ByteArray& data);
+    Err parse(const muse::ByteArray& data);
     String errors() const { return m_errors; }
 
     // part specific data interface functions
@@ -299,6 +300,9 @@ public:
 
     SLine* delayedOttava() { return m_delayedOttava; }
     void setDelayedOttava(SLine* ottava) { m_delayedOttava = ottava; }
+
+    void addInferredHairpin(Hairpin* hp);
+    InferredHairpinsStack getInferredHairpins();
 
 private:
     void addError(const String& error);      // Add an error to be shown in the GUI
@@ -347,7 +351,7 @@ private:
 
     // generic pass 2 data
 
-    XmlStreamReader m_e;
+    muse::XmlStreamReader m_e;
     int m_divs = 0;                        // the current divisions value
     Score* m_score = nullptr;              // the score
     MusicXMLParserPass1& m_pass1;          // the pass1 results
@@ -366,6 +370,7 @@ private:
     BracketsStack m_brackets;
     OttavasStack m_ottavas;                // Current ottavas
     HairpinsStack m_hairpins;              // Current hairpins
+    InferredHairpinsStack m_inferredHairpins;
     MusicXmlExtendedSpannerDesc m_dummyNewMusicXmlSpannerDesc;
 
     Glissando* m_glissandi[MAX_NUMBER_LEVEL][2];     // Current slides ([0]) / glissandi ([1])
@@ -401,7 +406,8 @@ private:
 class MusicXMLParserDirection
 {
 public:
-    MusicXMLParserDirection(XmlStreamReader& e, Score* score, MusicXMLParserPass1& pass1, MusicXMLParserPass2& pass2, MxmlLogger* logger);
+    MusicXMLParserDirection(muse::XmlStreamReader& e, Score* score, MusicXMLParserPass1& pass1, MusicXMLParserPass2& pass2,
+                            MxmlLogger* logger);
     void direction(const String& partId, Measure* measure, const Fraction& tick, MusicXmlSpannerMap& spanners,
                    DelayedDirectionsList& delayedDirections, InferredFingeringsList& inferredFingerings);
     double totalY() const { return m_defaultY + m_relativeY; }
@@ -425,6 +431,9 @@ private:
     String matchRepeat() const;
     void skipLogCurrElem();
     bool isLikelyCredit(const Fraction& tick) const;
+    void textToDynamic(String& text);
+    void textToCrescLine(String& text);
+    void addInferredCrescLine(const track_idx_t track, const Fraction& tick, const bool isVocalStaff);
     bool isLyricBracket() const;
     bool isLikelySubtitle(const Fraction& tick) const;
     bool isLikelyLegallyDownloaded(const Fraction& tick) const;
@@ -435,12 +444,13 @@ private:
 
     bool hasTotalY() const { return m_hasRelativeY || m_hasDefaultY; }
 
-    XmlStreamReader& m_e;
+    muse::XmlStreamReader& m_e;
     Score* m_score = nullptr;                              // the score
     MusicXMLParserPass1& m_pass1;                // the pass1 results
     MusicXMLParserPass2& m_pass2;                // the pass2 results
     MxmlLogger* m_logger = nullptr;                        // Error logger
 
+    Hairpin* m_inferredHairpinStart = nullptr;
     StringList m_dynamicsList;
     String m_enclosure;
     String m_wordsText;

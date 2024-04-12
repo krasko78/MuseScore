@@ -30,6 +30,7 @@
 
 using namespace mu::project;
 using namespace mu::notation;
+using namespace muse;
 using namespace muse::actions;
 
 TemplatePaintView::TemplatePaintView(QQuickItem* parent)
@@ -129,6 +130,6 @@ void TemplatePaintView::resetNotation()
 
 QString TemplatePaintView::shortcutsTitleByActionCode(const ActionCode& code) const
 {
-    shortcuts::Shortcut shortcut = shortcutsRegister()->shortcut(code);
-    return shortcuts::sequencesToNativeText(shortcut.sequences);
+    muse::shortcuts::Shortcut shortcut = shortcutsRegister()->shortcut(code);
+    return muse::shortcuts::sequencesToNativeText(shortcut.sequences);
 }

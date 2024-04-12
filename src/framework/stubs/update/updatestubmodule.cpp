@@ -27,8 +27,8 @@
 #include "updatescenariostub.h"
 #include "updateservicestub.h"
 
-using namespace mu::update;
-using namespace mu::modularity;
+using namespace muse::update;
+using namespace muse::modularity;
 
 static std::shared_ptr<UpdateScenarioStub> s_scenario = std::make_shared<UpdateScenarioStub>();
 static std::shared_ptr<UpdateServiceStub> s_service = std::make_shared<UpdateServiceStub>();
@@ -42,6 +42,6 @@ std::string UpdateModule::moduleName() const
 void UpdateModule::registerExports()
 {
     ioc()->registerExport<IUpdateScenario>(moduleName(), s_scenario);
-    ioc()->registerExport<IUpdateService>(moduleName(), s_service);
+    ioc()->registerExport<IAppUpdateService>(moduleName(), s_service);
     ioc()->registerExport<IUpdateConfiguration>(moduleName(), s_configuration);
 }

@@ -107,7 +107,7 @@
 #include "framework/uicomponents/uicomponentsmodule.h"
 #endif
 
-#ifdef MUE_BUILD_UPDATE_MODULE
+#ifdef MUSE_MODULE_UPDATE
 #include "update/updatemodule.h"
 #else
 #include "framework/stubs/update/updatestubmodule.h"
@@ -224,7 +224,7 @@
 #include <shellapi.h>
 #endif
 
-#ifndef MUE_BUILD_CRASHPAD_CLIENT
+#ifndef MUSE_MODULE_DIAGNOSTICS_CRASHPAD_CLIENT
 static void crashCallback(int signum)
 {
     const char* signame = "UNKNOWN SIGNAME";
@@ -247,7 +247,7 @@ static void crashCallback(int signum)
 
 int main(int argc, char** argv)
 {
-#ifndef MUE_BUILD_CRASHPAD_CLIENT
+#ifndef MUSE_MODULE_DIAGNOSTICS_CRASHPAD_CLIENT
     signal(SIGSEGV, crashCallback);
     signal(SIGILL, crashCallback);
     signal(SIGFPE, crashCallback);
@@ -261,7 +261,7 @@ int main(int argc, char** argv)
 
     //! NOTE `diagnostics` must be first, because it installs the crash handler.
     //! For other modules, the order is (an should be) unimportant.
-    app.addModule(new mu::diagnostics::DiagnosticsModule());
+    app.addModule(new muse::diagnostics::DiagnosticsModule());
 
     // framework
     app.addModule(new muse::accessibility::AccessibilityModule());
@@ -269,12 +269,12 @@ int main(int argc, char** argv)
     app.addModule(new muse::audio::AudioModule());
     app.addModule(new muse::draw::DrawModule());
     app.addModule(new muse::midi::MidiModule());
-    app.addModule(new mu::mpe::MpeModule());
+    app.addModule(new muse::mpe::MpeModule());
 #ifdef MUSE_MODULE_MUSESAMPLER
-    app.addModule(new mu::musesampler::MuseSamplerModule());
+    app.addModule(new muse::musesampler::MuseSamplerModule());
 #endif
-    app.addModule(new mu::network::NetworkModule());
-    app.addModule(new mu::shortcuts::ShortcutsModule());
+    app.addModule(new muse::network::NetworkModule());
+    app.addModule(new muse::shortcuts::ShortcutsModule());
 #ifdef MUSE_MODULE_UI
     app.addModule(new muse::ui::UiModule());
     app.addModule(new muse::uicomponents::UiComponentsModule());
@@ -328,7 +328,7 @@ int main(int argc, char** argv)
     app.addModule(new mu::instrumentsscene::InstrumentsSceneModule());
     app.addModule(new muse::languages::LanguagesModule());
     app.addModule(new muse::learn::LearnModule());
-    app.addModule(new mu::mi::MultiInstancesModule());
+    app.addModule(new muse::mi::MultiInstancesModule());
     app.addModule(new mu::notation::NotationModule());
     app.addModule(new mu::palette::PaletteModule());
     app.addModule(new mu::playback::PlaybackModule());
@@ -337,7 +337,7 @@ int main(int argc, char** argv)
 #endif
     app.addModule(new mu::print::PrintModule());
     app.addModule(new mu::project::ProjectModule());
-    app.addModule(new mu::update::UpdateModule());
+    app.addModule(new muse::update::UpdateModule());
     app.addModule(new muse::workspace::WorkspaceModule());
     app.addModule(new mu::workspacescene::WorkspaceSceneModule());
 

@@ -29,15 +29,15 @@
 #include "ui/imainwindow.h"
 
 namespace muse::api {
-class KeyboardApi : public mu::api::ApiObject
+class KeyboardApi : public api::ApiObject
 {
     Q_OBJECT
 
-    INJECT(mu::shortcuts::IShortcutsController, shortcutsController)
+    INJECT(shortcuts::IShortcutsController, shortcutsController)
     INJECT(ui::IMainWindow, mainWindow)
 
 public:
-    explicit KeyboardApi(mu::api::IApiEngine* e);
+    explicit KeyboardApi(api::IApiEngine* e);
 
     Q_INVOKABLE void key(const QString& key);
     Q_INVOKABLE void repeatKey(const QString& key, int count);

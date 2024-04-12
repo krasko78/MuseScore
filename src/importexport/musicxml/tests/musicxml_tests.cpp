@@ -40,6 +40,7 @@
 #endif
 
 using namespace mu;
+using namespace muse;
 using namespace mu::iex::musicxml;
 using namespace mu::engraving;
 
@@ -102,11 +103,11 @@ MasterScore* Musicxml_Tests::readScore(const String& fileName, bool isAbsolutePa
 {
     String suffix = io::FileInfo::suffix(fileName);
 
-    auto importXml = [](MasterScore* score, const io::path_t& path) -> engraving::Err {
+    auto importXml = [](MasterScore* score, const muse::io::path_t& path) -> engraving::Err {
         return mu::engraving::importMusicXml(score, path.toQString(), false);
     };
 
-    auto importMxl = [](MasterScore* score, const io::path_t& path) -> engraving::Err {
+    auto importMxl = [](MasterScore* score, const muse::io::path_t& path) -> engraving::Err {
         return mu::engraving::importCompressedMusicXml(score, path.toQString(), false);
     };
 
@@ -696,8 +697,17 @@ TEST_F(Musicxml_Tests, inferredCredits2) {
 TEST_F(Musicxml_Tests, inferredFingerings) {
     mxmlImportTestRef("testInferredFingerings");
 }
+TEST_F(Musicxml_Tests, inferredCrescLines) {
+    mxmlImportTestRef("testInferredCrescLines");
+}
+TEST_F(Musicxml_Tests, inferredDynamicsExpression) {
+    mxmlImportTestRef("testInferredDynamicsExpression");
+}
 TEST_F(Musicxml_Tests, inferredTempoText) {
     mxmlImportTestRef("testInferredTempoText");
+}
+TEST_F(Musicxml_Tests, inferredCrescLines2) {
+    mxmlImportTestRef("testInferredCrescLines2");
 }
 TEST_F(Musicxml_Tests, instrumentChangeMIDIportExport) {
     mxmlMscxExportTestRef("testInstrumentChangeMIDIportExport");

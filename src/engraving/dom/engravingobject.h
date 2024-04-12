@@ -28,7 +28,7 @@
 
 #include "draw/types/geometry.h"
 #include "modularity/ioc.h"
-#include "diagnostics/iengravingelementsprovider.h"
+#include "../devtools/iengravingelementsprovider.h"
 
 #include "../style/styledef.h"
 
@@ -37,14 +37,6 @@
 
 #include "../infrastructure/rtti.h"
 #include "../infrastructure/eid.h"
-
-namespace mu {
-class TranslatableString;
-}
-
-namespace mu::diagnostics {
-class EngravingElementsProvider;
-}
 
 namespace mu::engraving {
 class Accidental;
@@ -206,7 +198,7 @@ public:
 
 class EngravingObject
 {
-    INJECT_STATIC(mu::diagnostics::IEngravingElementsProvider, elementsProvider)
+    INJECT_STATIC(IEngravingElementsProvider, elementsProvider)
 
 public:
     EngravingObject(const ElementType& type, EngravingObject* parent);
@@ -232,7 +224,7 @@ public:
     const EngravingObjectList& children() const { return m_children; }
 
     // Score Tree functions for scan function
-    friend class mu::diagnostics::EngravingElementsProvider;
+    friend class EngravingElementsProvider;
     virtual EngravingObject* scanParent() const { return m_parent; }
     virtual EngravingObjectList scanChildren() const { return {}; }
     virtual void scanElements(void* data, void (* func)(void*, EngravingItem*), bool all=true);
@@ -364,7 +356,6 @@ public:
     CONVERT(Ottava,        OTTAVA)
     CONVERT(LayoutBreak,   LAYOUT_BREAK)
     CONVERT(Segment,       SEGMENT)
-    CONVERT(Tremolo,       TREMOLO)
     CONVERT(System,        SYSTEM)
     CONVERT(Lyrics,        LYRICS)
     CONVERT(Stem,          STEM)

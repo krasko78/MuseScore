@@ -29,9 +29,9 @@
 
 #include "log.h"
 
-using namespace mu;
+using namespace muse;
 using namespace muse::audio;
-using namespace mu::async;
+using namespace muse::async;
 
 static constexpr size_t DEFAULT_AUX_BUFFER_SIZE = 1024;
 
@@ -103,7 +103,7 @@ Ret Mixer::removeChannel(const TrackId trackId)
         return make_ret(Ret::Code::Ok);
     }
 
-    bool removed = mu::remove_if(m_auxChannelInfoList, [trackId](const AuxChannelInfo& aux) {
+    bool removed = muse::remove_if(m_auxChannelInfoList, [trackId](const AuxChannelInfo& aux) {
         return aux.channel->trackId() == trackId;
     });
 
@@ -219,7 +219,7 @@ void Mixer::processTrackChannels(size_t outBufferSize, size_t samplesPerChannel,
         std::map<TrackId, std::future<std::vector<float> > > futures;
 
         for (const auto& pair : m_trackChannels) {
-            if (filterTracks && !mu::contains(m_tracksToProcessWhenIdle, pair.second->trackId())) {
+            if (filterTracks && !muse::contains(m_tracksToProcessWhenIdle, pair.second->trackId())) {
                 continue;
             }
 
@@ -232,7 +232,7 @@ void Mixer::processTrackChannels(size_t outBufferSize, size_t samplesPerChannel,
         }
     } else {
         for (const auto& pair : m_trackChannels) {
-            if (filterTracks && !mu::contains(m_tracksToProcessWhenIdle, pair.second->trackId())) {
+            if (filterTracks && !muse::contains(m_tracksToProcessWhenIdle, pair.second->trackId())) {
                 continue;
             }
 

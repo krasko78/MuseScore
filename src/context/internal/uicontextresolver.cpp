@@ -24,13 +24,17 @@
 #include "diagnostics/diagnosticutils.h"
 
 #include "shortcutcontext.h"
+
+#include "muse_framework_config.h"
+
 #include "log.h"
 
 using namespace mu::context;
+using namespace muse;
 using namespace muse::ui;
 
-static const mu::Uri HOME_PAGE_URI("musescore://home");
-static const mu::Uri NOTATION_PAGE_URI("musescore://notation");
+static const muse::Uri HOME_PAGE_URI("musescore://home");
+static const muse::Uri NOTATION_PAGE_URI("musescore://notation");
 
 static const QString NOTATION_NAVIGATION_PANEL("ScoreView");
 
@@ -89,7 +93,7 @@ UiContext UiContextResolver::currentUiContext() const
     TRACEFUNC;
     Uri currentUri = interactive()->currentUri().val;
 
-#ifdef MUE_BUILD_DIAGNOSTICS_MODULE
+#ifdef MUSE_MODULE_DIAGNOSTICS
     currentUri = diagnostics::diagnosticCurrentUri(interactive()->stack());
 #endif
 
@@ -142,7 +146,7 @@ bool UiContextResolver::matchWithCurrent(const UiContext& ctx) const
     return match(currentCtx, ctx);
 }
 
-mu::async::Notification UiContextResolver::currentUiContextChanged() const
+muse::async::Notification UiContextResolver::currentUiContextChanged() const
 {
     return m_currentUiContextChanged;
 }

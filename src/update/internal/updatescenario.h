@@ -35,11 +35,11 @@
 #include "../iupdatescenario.h"
 
 namespace mu::update {
-class UpdateScenario : public IUpdateScenario, public async::Asyncable
+class UpdateScenario : public IUpdateScenario, public muse::async::Asyncable
 {
-    INJECT(IInteractive, interactive)
+    INJECT(muse::IInteractive, interactive)
     INJECT(muse::actions::IActionsDispatcher, dispatcher)
-    INJECT(mi::IMultiInstancesProvider, multiInstancesProvider)
+    INJECT(muse::mi::IMultiInstancesProvider, multiInstancesProvider)
     INJECT(IUpdateConfiguration, configuration)
     INJECT(IUpdateService, updateService)
 
@@ -62,10 +62,10 @@ private:
     void showServerErrorMsg();
 
     void downloadRelease();
-    void closeAppAndStartInstallation(const io::path_t& installerPath);
+    void closeAppAndStartInstallation(const muse::io::path_t& installerPath);
 
     bool m_progress = false;
-    mu::ProgressPtr m_progressChannel = nullptr;
+    muse::ProgressPtr m_progressChannel = nullptr;
 };
 }
 

@@ -32,14 +32,14 @@
 #include "async/asyncable.h"
 
 namespace mu::notation {
-class MidiInputOutputController : public async::Asyncable
+class MidiInputOutputController : public muse::async::Asyncable
 {
     INJECT(muse::midi::IMidiInPort, midiInPort)
     INJECT(muse::midi::IMidiOutPort, midiOutPort)
     INJECT(muse::midi::IMidiConfiguration, midiConfiguration)
     INJECT(context::IGlobalContext, globalContext)
     INJECT(INotationConfiguration, configuration)
-    INJECT(shortcuts::IMidiRemote, midiRemote)
+    INJECT(muse::shortcuts::IMidiRemote, midiRemote)
 
 public:
     void init();
@@ -49,7 +49,7 @@ private:
     void checkOutputConnection();
 
     void checkConnection(const muse::midi::MidiDeviceID& preferredDeviceId, const muse::midi::MidiDeviceID& currentDeviceId,
-                         const muse::midi::MidiDeviceList& availableDevices, const std::function<Ret(
+                         const muse::midi::MidiDeviceList& availableDevices, const std::function<muse::Ret(
                                                                                                      const muse::midi::MidiDeviceID&)>& connectCallback);
 
     void onMidiEventReceived(const muse::midi::tick_t tick, const muse::midi::Event& event);

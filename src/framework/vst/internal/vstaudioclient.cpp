@@ -23,9 +23,9 @@
 
 #include "log.h"
 
-using namespace mu;
+using namespace muse;
 using namespace muse::vst;
-using namespace mu::mpe;
+using namespace muse::mpe;
 using namespace muse::audio;
 
 VstAudioClient::~VstAudioClient()

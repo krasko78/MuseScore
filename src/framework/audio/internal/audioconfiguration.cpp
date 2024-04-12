@@ -30,7 +30,7 @@
 
 #include "log.h"
 
-using namespace mu;
+using namespace muse;
 using namespace muse::audio;
 using namespace muse::audio::synth;
 
@@ -46,7 +46,7 @@ static const Settings::Key USER_SOUNDFONTS_PATHS("midi", "application/paths/mySo
 
 static const AudioResourceId DEFAULT_SOUND_FONT_NAME = "MS Basic";
 static const AudioResourceAttributes DEFAULT_AUDIO_RESOURCE_ATTRIBUTES = {
-    { PLAYBACK_SETUP_DATA_ATTRIBUTE, mpe::GENERIC_SETUP_DATA_STRING },
+    { PLAYBACK_SETUP_DATA_ATTRIBUTE, muse::mpe::GENERIC_SETUP_DATA_STRING },
     { SOUNDFONT_NAME_ATTRIBUTE, String::fromStdString(DEFAULT_SOUND_FONT_NAME) } };
 
 static const AudioResourceMeta DEFAULT_AUDIO_RESOURCE_META
@@ -188,12 +188,12 @@ SoundFontPaths AudioConfiguration::soundFontDirectories() const
 io::paths_t AudioConfiguration::userSoundFontDirectories() const
 {
     std::string pathsStr = settings()->value(USER_SOUNDFONTS_PATHS).toString();
-    return mu::io::pathsFromString(pathsStr);
+    return io::pathsFromString(pathsStr);
 }
 
 void AudioConfiguration::setUserSoundFontDirectories(const io::paths_t& paths)
 {
-    settings()->setSharedValue(USER_SOUNDFONTS_PATHS, Val(mu::io::pathsToString(paths)));
+    settings()->setSharedValue(USER_SOUNDFONTS_PATHS, Val(io::pathsToString(paths)));
 }
 
 async::Channel<io::paths_t> AudioConfiguration::soundFontDirectoriesChanged() const

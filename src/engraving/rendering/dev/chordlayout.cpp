@@ -70,6 +70,7 @@
 #include "tremololayout.h"
 #include "autoplace.h"
 
+using namespace muse;
 using namespace mu::engraving;
 using namespace mu::engraving::rendering::dev;
 
@@ -216,7 +217,7 @@ void ChordLayout::layoutPitched(Chord* item, LayoutContext& ctx)
 
             double gapSize = arpeggioNoteDistance;
 
-            if (leftNote && RealIsNull(leftNote->x())) {
+            if (leftNote && muse::RealIsNull(leftNote->x())) {
                 if (downnote->line() > firstLedgerBelow || upnote->line() < firstLedgerAbove) {
                     gapSize = arpeggioLedgerDistance + ctx.conf().styleS(Sid::ledgerLineLength).val() * item->spatium();
                 }
@@ -420,7 +421,7 @@ void ChordLayout::layoutTablature(Chord* item, LayoutContext& ctx)
                     //    use available space
                     // for negative x offset:
                     //    space is allocated elsewhere, so don't re-allocate here
-                    if (note->ldata()->pos().x() != 0.0) {                      // this probably does not work for TAB, as
+                    if (!RealIsNull(note->ldata()->pos().x())) {                      // this probably does not work for TAB, as
                         overlap += std::abs(note->ldata()->pos().x());              // _pos is used to centre the fret on the stem
                     } else {
                         overlap -= fretWidth * 0.125;
@@ -884,7 +885,8 @@ void ChordLayout::layoutArticulations(Chord* item, LayoutContext& ctx)
             }
             if (prevVisibleArticulation && (prevVisibleArticulation->up() == a->up())) {
                 int staffBottom = (staffType->lines() - 2) * 2;
-                if ((headSide && item->downLine() < staffBottom) || (!headSide && !RealIsEqualOrMore(y, (staffBottom + 1) * _lineDist))) {
+                if ((headSide && item->downLine() < staffBottom)
+                    || (!headSide && !muse::RealIsEqualOrMore(y, (staffBottom + 1) * _lineDist))) {
                     y += _spatium;
                 } else {
                     y += prevVisibleArticulation->height() + minDist;
@@ -944,7 +946,7 @@ void ChordLayout::layoutArticulations(Chord* item, LayoutContext& ctx)
                 }
             }
             if (prevVisibleArticulation && (prevVisibleArticulation->up() == a->up())) {
-                if ((headSide && item->upLine() > 2) || (!headSide && !RealIsEqualOrLess(y, 0.0))) {
+                if ((headSide && item->upLine() > 2) || (!headSide && !muse::RealIsEqualOrLess(y, 0.0))) {
                     y -= item->spatium();
                 } else {
                     y -= prevVisibleArticulation->height() + minDist;
@@ -1078,8 +1080,8 @@ void ChordLayout::layoutArticulations2(Chord* item, LayoutContext& ctx, bool lay
         if (a->isStaccato()) {
             stacc = a;
         } else if (stacc && a->isAccent() && stacc->up() == a->up()
-                   && (RealIsEqualOrLess(stacc->ldata()->pos().y(), 0.0)
-                       || RealIsEqualOrMore(stacc->ldata()->pos().y(), item->staff()->staffHeight()))) {
+                   && (muse::RealIsEqualOrLess(stacc->ldata()->pos().y(), 0.0)
+                       || muse::RealIsEqualOrMore(stacc->ldata()->pos().y(), item->staff()->staffHeight()))) {
             // obviously, the accent doesn't have a cutout, so this value just artificially moves the stacc
             // and accent closer to each other to simulate some kind of kerning. Looks great using all musescore fonts,
             // though there is a possibility that a different font which has vertically-asymmetrical accents
@@ -1261,7 +1263,7 @@ bool ChordLayout::isChordPosBelowBeam(Chord* item, Beam* beam)
         return noteY > endAnchor.y();
     }
 
-    double proportionAlongX = RealIsEqual(startX, endX) ? 0.0 : (noteX - startAnchor.x()) / (endAnchor.x() - startAnchor.x());
+    double proportionAlongX = muse::RealIsEqual(startX, endX) ? 0.0 : (noteX - startAnchor.x()) / (endAnchor.x() - startAnchor.x());
     double desiredY = proportionAlongX * (endAnchor.y() - startAnchor.y()) + startAnchor.y();
     return noteY > desiredY;
 }
@@ -1934,7 +1936,7 @@ void ChordLayout::layoutChords1(LayoutContext& ctx, Segment* segment, staff_idx_
                 Chord* chord = toChord(e);
                 Chord::LayoutData* chordLdata = chord->mutldata();
                 if (chord->up()) {
-                    if (!RealIsNull(upOffset)) {
+                    if (!muse::RealIsNull(upOffset)) {
                         chordLdata->moveX(upOffset + centerAdjustUp + oversizeUp);
                         if (downDots && !upDots) {
                             chordLdata->moveX(dotAdjust);
@@ -1943,7 +1945,7 @@ void ChordLayout::layoutChords1(LayoutContext& ctx, Segment* segment, staff_idx_
                         chordLdata->moveX(centerUp);
                     }
                 } else {
-                    if (!RealIsNull(downOffset)) {
+                    if (!muse::RealIsNull(downOffset)) {
                         chordLdata->moveX(downOffset + centerAdjustDown);
                         if (upDots && !downDots) {
                             chordLdata->moveX(dotAdjust);
@@ -2246,7 +2248,7 @@ static std::pair<double, double> layoutAccidental(const MStyle& style, AcEl* me,
     }
     if (conflictAbove || conflictBelow) {
         me->x = lx - acc->width() - acc->ldata()->bbox().x();
-    } else if (colOffset != 0.0) {
+    } else if (!RealIsNull(colOffset)) {
         me->x = lx - pd - acc->width() - acc->ldata()->bbox().x();
     } else {
         me->x = lx - pnd - acc->width() - acc->ldata()->bbox().x();
@@ -2294,7 +2296,7 @@ void ChordLayout::placeDots(const std::vector<Chord*>& chords, const std::vector
                 int dotMove = otherNote->dotPosition() == DirectionV::UP ? -1 : 1;
                 int otherDotLoc = otherNote->line() + dotMove;
                 bool added = alreadyAdded.count(otherDotLoc);
-                if (!added && mu::contains(anchoredDots, otherDotLoc)) {
+                if (!added && muse::contains(anchoredDots, otherDotLoc)) {
                     dotMove = -dotMove; // if the desired space is taken, adjust opposite
                 } else if (added && alreadyAdded[otherDotLoc] != otherNote) {
                     dotMove = -dotMove;
@@ -2317,7 +2319,7 @@ void ChordLayout::placeDots(const std::vector<Chord*>& chords, const std::vector
                     int dotMove = otherNote->dotPosition() == DirectionV::DOWN ? 1 : -1;
                     int otherDotLoc = otherNote->line() + dotMove;
                     bool added = alreadyAdded.count(otherDotLoc);
-                    if (!added && mu::contains(anchoredDots, otherDotLoc)) {
+                    if (!added && muse::contains(anchoredDots, otherDotLoc)) {
                         dotMove = -dotMove;
                     } else if (added && alreadyAdded[otherDotLoc] != otherNote) {
                         dotMove = -dotMove;
@@ -2631,7 +2633,7 @@ void ChordLayout::layoutChords3(const MStyle& style, const std::vector<Chord*>& 
         for (int i = 0; i <= n; ++i, --n) {
             int pc = (aclist[i].line + 700) % 7;
             if (aclist[columnTop[pc]].line != aclist[columnBottom[pc]].line) {
-                if (!mu::contains(column, pc)) {
+                if (!muse::contains(column, pc)) {
                     column.push_back(pc);
                 }
             } else {
@@ -2642,7 +2644,7 @@ void ChordLayout::layoutChords3(const MStyle& style, const std::vector<Chord*>& 
             }
             pc = (aclist[n].line + 700) % 7;
             if (aclist[columnTop[pc]].line != aclist[columnBottom[pc]].line) {
-                if (!mu::contains(column, pc)) {
+                if (!muse::contains(column, pc)) {
                     column.push_back(pc);
                 }
             } else {
@@ -3195,7 +3197,7 @@ void ChordLayout::resolveRestVSRest(std::vector<Rest*>& rests, const Staff* staf
             continue;
         }
 
-        if (mu::contains(rest1->ldata()->mergedRests, rest2) || mu::contains(rest2->ldata()->mergedRests, rest1)) {
+        if (muse::contains(rest1->ldata()->mergedRests, rest2) || muse::contains(rest2->ldata()->mergedRests, rest1)) {
             continue;
         }
 

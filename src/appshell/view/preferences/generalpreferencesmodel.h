@@ -37,15 +37,15 @@
 #include "project/iprojectconfiguration.h"
 
 namespace mu::appshell {
-class GeneralPreferencesModel : public QObject, public async::Asyncable
+class GeneralPreferencesModel : public QObject, public muse::async::Asyncable
 {
     Q_OBJECT
 
     INJECT(IAppShellConfiguration, configuration)
-    INJECT(IInteractive, interactive)
+    INJECT(muse::IInteractive, interactive)
     INJECT(muse::languages::ILanguagesConfiguration, languagesConfiguration)
     INJECT(muse::languages::ILanguagesService, languagesService)
-    INJECT(shortcuts::IShortcutsConfiguration, shortcutsConfiguration)
+    INJECT(muse::shortcuts::IShortcutsConfiguration, shortcutsConfiguration)
 
     Q_PROPERTY(QVariantList languages READ languages NOTIFY languagesChanged)
     Q_PROPERTY(QString currentLanguageCode READ currentLanguageCode WRITE setCurrentLanguageCode NOTIFY currentLanguageCodeChanged)
@@ -103,7 +103,7 @@ signals:
     void startupModesChanged();
 
 private:
-    mu::Progress m_languageUpdateProgress;
+    muse::Progress m_languageUpdateProgress;
 
     bool m_isNeedRestart = false;
 

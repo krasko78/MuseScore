@@ -21,9 +21,9 @@
  */
 import QtQuick 2.15
 
-import MuseScore.Ui 1.0
-import MuseScore.UiComponents 1.0
-import MuseScore.Diagnostics 1.0
+import Muse.Ui 1.0
+import Muse.UiComponents 1.0
+import MuseScore.Engraving 1.0
 
 Rectangle {
     color: ui.theme.backgroundSecondaryColor

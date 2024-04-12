@@ -274,7 +274,7 @@ bool Dynamic::isEditAllowed(EditData& ed) const
         Key_Down
     };
 
-    return mu::contains(ARROW_KEYS, static_cast<KeyboardKey>(ed.key));
+    return muse::contains(ARROW_KEYS, static_cast<KeyboardKey>(ed.key));
 }
 
 //-------------------------------------------------------------------
@@ -333,7 +333,7 @@ void Dynamic::manageBarlineCollisions()
         return;
     }
 
-    staff_idx_t barLineStaff = mu::nidx;
+    staff_idx_t barLineStaff = muse::nidx;
     if (placeAbove()) {
         // need to find the barline from the staff above
         // taking into account there could be invisible staves
@@ -350,7 +350,7 @@ void Dynamic::manageBarlineCollisions()
         barLineStaff = staffIdx();
     }
 
-    if (barLineStaff == mu::nidx) {
+    if (barLineStaff == muse::nidx) {
         return;
     }
 
@@ -455,6 +455,11 @@ EngravingItem* Dynamic::drop(EditData& ed)
         score()->undoRemoveElement(this); // swap this dynamic for the newly added one
     }
     return item;
+}
+
+int Dynamic::dynamicVelocity(DynamicType t)
+{
+    return DYN_LIST[int(t)].velocity;
 }
 
 TranslatableString Dynamic::subtypeUserName() const
@@ -563,7 +568,7 @@ bool Dynamic::changeTimeAnchorType(const EditData& ed)
 
 bool Dynamic::moveSegment(const EditData& ed)
 {
-    if (!ed.modifiers & AltModifier && anchorToEndOfPrevious()) {
+    if (!(ed.modifiers & AltModifier) && anchorToEndOfPrevious()) {
         undoResetProperty(Pid::ANCHOR_TO_END_OF_PREVIOUS);
         return true;
     }

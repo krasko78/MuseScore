@@ -35,8 +35,8 @@ namespace muse::learn {
 class LearnService : public ILearnService
 {
     INJECT(ILearnConfiguration, configuration)
-    INJECT(mu::network::INetworkManagerCreator, networkManagerCreator)
-    INJECT(mu::IInteractive, interactive)
+    INJECT(network::INetworkManagerCreator, networkManagerCreator)
+    INJECT(IInteractive, interactive)
 
 public:
     void refreshPlaylists() override;

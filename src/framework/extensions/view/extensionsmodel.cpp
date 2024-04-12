@@ -28,7 +28,7 @@
 #include "log.h"
 
 using namespace muse::extensions;
-using namespace mu::async;
+using namespace muse::async;
 
 static constexpr int INVALID_INDEX = -1;
 
@@ -96,11 +96,11 @@ QVariant ExtensionsListModel::data(const QModelIndex& index, int role) const
         return plugin.version.toQString();
     case rShortcuts:
         if (!plugin.config.shortcuts.empty()) {
-            return mu::shortcuts::sequencesToNativeText(mu::shortcuts::Shortcut::sequencesFromString(plugin.config.shortcuts));
+            return shortcuts::sequencesToNativeText(shortcuts::Shortcut::sequencesFromString(plugin.config.shortcuts));
         }
 
         //: No keyboard shortcut is assigned to this plugin.
-        return mu::qtrc("extensions", "Not defined");
+        return muse::qtrc("extensions", "Not defined");
     }
 
     return QVariant();
@@ -133,7 +133,7 @@ void ExtensionsListModel::editShortcut(QString codeKey)
         return;
     }
 
-    UriQuery uri("musescore://preferences");
+    UriQuery uri("muse://preferences");
     uri.addParam("currentPageId", Val("shortcuts"));
 
     QVariantMap params;

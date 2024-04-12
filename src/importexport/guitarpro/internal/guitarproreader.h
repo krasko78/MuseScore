@@ -24,7 +24,7 @@
 
 #include "project/inotationreader.h"
 #include "modularity/ioc.h"
-#include "iguitarproconfiguration.h"
+#include "../iguitarproconfiguration.h"
 
 namespace mu::iex::guitarpro {
 class GuitarProReader : public project::INotationReader
@@ -32,7 +32,7 @@ class GuitarProReader : public project::INotationReader
     INJECT(mu::iex::guitarpro::IGuitarProConfiguration, guitarProConfiguration)
 
 public:
-    Ret read(mu::engraving::MasterScore* score, const io::path_t& path, const Options& options = Options()) override;
+    muse::Ret read(mu::engraving::MasterScore* score, const muse::io::path_t& path, const Options& options = Options()) override;
 };
 } // namespace mu::iex::guitarpro
 

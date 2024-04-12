@@ -56,10 +56,21 @@
 #include "api/v1/engravingapiv1.h"
 #endif
 
+#ifdef MUE_BUILD_ENGRAVING_DEVTOOLS
+#include "ui/iinteractiveuriregister.h"
+#include "devtools/engravingelementsprovider.h"
+#include "devtools/engravingelementsmodel.h"
+#include "devtools/corruptscoredevtoolsmodel.h"
+#include "devtools/drawdata/diagnosticdrawprovider.h"
+#endif
+
+#include "muse_framework_config.h"
+
 #include "log.h"
 
 using namespace mu::engraving;
-using namespace mu::modularity;
+using namespace muse;
+using namespace muse::modularity;
 using namespace muse::draw;
 
 static void engraving_init_qrc()
@@ -113,10 +124,21 @@ Versions:
     //ioc()->registerExport<rendering::IScoreRenderer>(moduleName(), new rendering::stable::ScoreRenderer());
 
     ioc()->registerExport<rendering::ISingleRenderer>(moduleName(), new rendering::single::SingleRenderer());
+
+#ifdef MUE_BUILD_ENGRAVING_DEVTOOLS
+    ioc()->registerExport<IEngravingElementsProvider>(moduleName(), new EngravingElementsProvider());
+    ioc()->registerExport<IDiagnosticDrawProvider>(moduleName(), new DiagnosticDrawProvider());
+#endif
 }
 
 void EngravingModule::resolveImports()
 {
+#ifdef MUE_BUILD_ENGRAVING_DEVTOOLS
+    auto ir = ioc()->resolve<muse::ui::IInteractiveUriRegister>(moduleName());
+    if (ir) {
+        ir->registerQmlUri(Uri("musescore://diagnostics/engraving/elements"), "MuseScore/Engraving/EngravingElementsDialog.qml");
+    }
+#endif
 }
 
 void EngravingModule::registerApi()
@@ -124,9 +146,9 @@ void EngravingModule::registerApi()
 #ifndef ENGRAVING_NO_API
     apiv1::PluginAPI::registerQmlTypes();
 
-    auto api = ioc()->resolve<mu::api::IApiRegister>(moduleName());
+    auto api = ioc()->resolve<muse::api::IApiRegister>(moduleName());
     if (api) {
-        api->regApiCreator(moduleName(), "api.engraving.v1", new mu::api::ApiCreator<apiv1::EngravingApiV1>());
+        api->regApiCreator(moduleName(), "api.engraving.v1", new muse::api::ApiCreator<apiv1::EngravingApiV1>());
     }
 #endif
 }
@@ -139,6 +161,11 @@ void EngravingModule::registerResources()
 void EngravingModule::registerUiTypes()
 {
     MScore::registerUiTypes();
+
+#ifdef MUE_BUILD_ENGRAVING_DEVTOOLS
+    qmlRegisterType<EngravingElementsModel>("MuseScore.Engraving", 1, 0, "EngravingElementsModel");
+    qmlRegisterType<CorruptScoreDevToolsModel>("MuseScore.Engraving", 1, 0, "CorruptScoreDevToolsModel");
+#endif
 }
 
 void EngravingModule::onInit(const IApplication::RunMode& mode)
@@ -149,7 +176,7 @@ void EngravingModule::onInit(const IApplication::RunMode& mode)
 
 #ifndef ENGRAVING_NO_INTERNAL
     // Init fonts
-#ifdef MUE_COMPILE_USE_QTFONTMETRICS
+#ifdef MUSE_MODULE_DRAW_USE_QTFONTMETRICS
     {
         // Symbols
         Smufl::init();
@@ -172,7 +199,7 @@ void EngravingModule::onInit(const IApplication::RunMode& mode)
         m_engravingfonts->loadAllFonts();
 
         // Text
-        const std::vector<io::path_t> textFonts = {
+        const std::vector<muse::io::path_t> textFonts = {
             ":/fonts/musejazz/MuseJazzText.otf",
             ":/fonts/campania/Campania.otf",
             ":/fonts/edwin/Edwin-Roman.otf",
@@ -198,7 +225,7 @@ void EngravingModule::onInit(const IApplication::RunMode& mode)
         };
 
         std::shared_ptr<IFontProvider> fontProvider = ioc()->resolve<IFontProvider>("fonts");
-        for (const io::path_t& font : textFonts) {
+        for (const muse::io::path_t& font : textFonts) {
             int loadStatusCode = fontProvider->addTextFont(font);
             if (loadStatusCode == -1) {
                 LOGE() << "Fatal error: cannot load internal font " << font;
@@ -215,7 +242,7 @@ void EngravingModule::onInit(const IApplication::RunMode& mode)
         fontProvider->insertSubstitution(u"Finale Broadway Text", u"MuseJazz Text");
         fontProvider->insertSubstitution(u"ScoreFont",      u"Leland Text");// alias for current Musical Text Font
     }
-#else // MUE_COMPILE_USE_QTFONTMETRICS
+#else // MUSE_MODULE_DRAW_USE_QTFONTMETRICS
     {
         using namespace muse::draw;
 
@@ -263,7 +290,7 @@ void EngravingModule::onInit(const IApplication::RunMode& mode)
         //! accordingly, they are drawn incorrectly
         m_engravingfonts->loadAllFonts();
     }
-#endif // MUE_COMPILE_USE_QTFONTMETRICS
+#endif // MUSE_MODULE_DRAW_USE_QTFONTMETRICS
 
     m_configuration->init();
 
