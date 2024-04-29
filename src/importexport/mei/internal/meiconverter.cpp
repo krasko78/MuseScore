@@ -845,6 +845,8 @@ engraving::ClefType Convert::clefFromMEI(const libmei::Clef& meiClef, bool& warn
         default:
             break;
         }
+    } else if (meiClef.GetShape() == libmei::CLEFSHAPE_perc) {
+        return engraving::ClefType::PERC;
     } else if (meiClef.GetShape() == libmei::CLEFSHAPE_GG && meiClef.GetLine() == 2) {
         return engraving::ClefType::G8_VB_O;
     }
@@ -885,6 +887,10 @@ libmei::Clef Convert::clefToMEI(engraving::ClefType clef)
     case (engraving::ClefType::G8_VB_O):
         meiClef.SetShape(libmei::CLEFSHAPE_GG);
         break;
+    case (engraving::ClefType::PERC):
+    case (engraving::ClefType::PERC2):
+        meiClef.SetShape(libmei::CLEFSHAPE_perc);
+        break;
     default:
         AsciiStringView glyphName = engraving::SymNames::nameForSymId(engraving::ClefInfo::symId(clef));
         meiClef.SetGlyphName(glyphName.ascii());
@@ -906,8 +912,10 @@ libmei::Clef Convert::clefToMEI(engraving::ClefType clef)
         }
     }
 
-    const int line = engraving::ClefInfo::line(clef);
-    meiClef.SetLine(line);
+    if (meiClef.GetShape() != libmei::CLEFSHAPE_perc) {
+        const int line = engraving::ClefInfo::line(clef);
+        meiClef.SetLine(line);
+    }
 
     // @dis and @dis.place
     switch (clef) {
@@ -2810,11 +2818,11 @@ libmei::Syl Convert::sylToMEI(const engraving::Lyrics* lyrics, ElisionType elisi
             meiSyl.SetWordpos(libmei::sylLog_WORDPOS_NONE);
         }
     } else if (elision == ElisionMiddle) {
-        // Set the elision conntecto and remove any word postion
+        // Set the elision connector and remove any word postion
         meiSyl.SetCon(libmei::sylLog_CON_b);
         meiSyl.SetWordpos(libmei::sylLog_WORDPOS_NONE);
     } else if (elision == ElisionLast) {
-        // Make middle an initial and remove terminal work position
+        // Make middle an initial and remove terminal word position
         if (meiSyl.GetWordpos() == libmei::sylLog_WORDPOS_m) {
             meiSyl.SetWordpos(libmei::sylLog_WORDPOS_i);
         } else if (meiSyl.GetWordpos() == libmei::sylLog_WORDPOS_t) {

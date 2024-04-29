@@ -142,7 +142,7 @@ int App::run(int argc, char** argv)
 #ifndef MUSE_APP_INSTALL_SUFFIX
 #define MUSE_APP_INSTALL_SUFFIX ""
 #endif
-    QGuiApplication::setDesktopFileName("org.musescore.MuseScore" MUSE_APP_INSTALL_SUFFIX ".desktop");
+    QGuiApplication::setDesktopFileName("org.musescore.MuseScore" + QString(MUSE_APP_INSTALL_SUFFIX) + ".desktop");
 #endif
 
     commandLineParser.processBuiltinArgs(*qapp);
@@ -444,6 +444,8 @@ void App::applyCommandLineOptions(const CommandLineParser::Options& options, IAp
     midiImportExportConfiguration()->setMidiImportOperationsFile(options.importMidi.operationsFile);
     guitarProConfiguration()->setLinkedTabStaffCreated(options.guitarPro.linkedTabStaffCreated);
     guitarProConfiguration()->setExperimental(options.guitarPro.experimental);
+    musicXmlConfiguration()->setNeedUseDefaultFontOverride(options.importMusicXML.useDefaultFont);
+    musicXmlConfiguration()->setInferTextTypeOverride(options.importMusicXML.inferTextType);
 #endif
 
     if (options.app.revertToFactorySettings) {

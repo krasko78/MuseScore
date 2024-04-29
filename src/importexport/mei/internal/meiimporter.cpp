@@ -1895,6 +1895,7 @@ bool MeiImporter::readNote(pugi::xml_node noteNode, Measure* measure, int track,
     note->setPitch(pitchSt.pitch, tpc1, pitchSt.tpc2);
 
     Accidental* accid = Factory::createAccidental(note);
+    Convert::colorFromMEI(accid, meiAccid);
     m_uids->reg(accid, meiAccid.m_xmlId);
     accid->setAccidentalType(pitchSt.accidType);
     //accid->setBracket(AccidentalBracket::BRACKET); // Not supported in MEI-Basic
@@ -2068,6 +2069,7 @@ bool MeiImporter::readVerse(pugi::xml_node verseNode, Chord* chord)
     }
 
     Lyrics* lyrics = Factory::createLyrics(chord);
+    m_uids->reg(lyrics, meiVerse.m_xmlId);
     Convert::colorFromMEI(lyrics, meiVerse);
 
     bool success = true;
@@ -2076,6 +2078,13 @@ bool MeiImporter::readVerse(pugi::xml_node verseNode, Chord* chord)
     pugi::xpath_node extender = verseNode.select_node("./syl[@con='u']");
     if (extender) {
         m_lyricExtenders[chord->track()][no] = std::make_pair(lyrics, nullptr);
+    }
+
+    // @place
+    if (meiVerse.HasPlace()) {
+        lyrics->setPlacement(meiVerse.GetPlace()
+                             == libmei::STAFFREL_above ? engraving::PlacementV::ABOVE : engraving::PlacementV::BELOW);
+        lyrics->setPropertyFlags(engraving::Pid::PLACEMENT, engraving::PropertyFlags::UNSTYLED);
     }
 
     // Aggregate the syllable into line blocks

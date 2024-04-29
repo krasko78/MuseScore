@@ -225,6 +225,7 @@ using InferredHairpinsStack = std::vector<Hairpin*>;
 using SpannerStack = std::array<MusicXmlExtendedSpannerDesc, MAX_NUMBER_LEVEL>;
 using SpannerSet = std::set<Spanner*>;
 using DelayedArpMap = std::map<int, DelayedArpeggio>;
+using SegnoStack = std::map<int, Marker*>;
 
 //---------------------------------------------------------
 //   MusicXMLParserNotations
@@ -233,10 +234,11 @@ using DelayedArpMap = std::map<int, DelayedArpeggio>;
 class MusicXMLParserNotations
 {
 public:
-    MusicXMLParserNotations(muse::XmlStreamReader& e, Score* score, MxmlLogger* logger);
+    MusicXMLParserNotations(muse::XmlStreamReader& e, Score* score, MxmlLogger* logger, MusicXMLParserPass1& pass1);
     void parse();
     void addToScore(ChordRest* const cr, Note* const note, const int tick, SlurStack& slurs, Glissando* glissandi[MAX_NUMBER_LEVEL][2],
-                    MusicXmlSpannerMap& spanners, TrillStack& trills, Tie*& tie, ArpeggioMap& arpMap, DelayedArpMap& delayedArps);
+                    MusicXmlSpannerMap& spanners, TrillStack& trills, std::map<int, Tie*>& ties, ArpeggioMap& arpMap,
+                    DelayedArpMap& delayedArps);
     String errors() const { return m_errors; }
     MusicXmlTupletDesc tupletDesc() const { return m_tupletDesc; }
     String tremoloType() const { return m_tremoloType; }
@@ -261,7 +263,8 @@ private:
     void tuplet();
     void otherNotation();
     muse::XmlStreamReader& m_e;
-    const Score* m_score = nullptr;                         // the score
+    MusicXMLParserPass1& m_pass1;
+    Score* m_score = nullptr;                         // the score
     MxmlLogger* m_logger = nullptr;                              // the error logger
     String m_errors;                    // errors to present to the user
     MusicXmlTupletDesc m_tupletDesc;
@@ -331,7 +334,7 @@ private:
     FiguredBassItem* figure(const int idx, const bool paren, FiguredBass* parent);
     FiguredBass* figuredBass();
     FretDiagram* frame();
-    void harmony(const String& partId, Measure* measure, const Fraction& sTime);
+    void harmony(const String& partId, Measure* measure, const Fraction& sTime, HarmonyMap& harmonyMap);
     Accidental* accidental();
     void beam(std::map<int, String>& beamTypes);
     void duration(Fraction& dura);
@@ -375,7 +378,7 @@ private:
 
     Glissando* m_glissandi[MAX_NUMBER_LEVEL][2];     // Current slides ([0]) / glissandi ([1])
 
-    Tie* m_tie = nullptr;
+    std::map<int, Tie*> m_ties;
     Volta* m_lastVolta = nullptr;
     bool m_hasDrumset;                             // drumset defined TODO: move to pass 1
 
@@ -387,6 +390,7 @@ private:
     Chord* m_tremStart = nullptr;                  // Starting chord for current tremolo
     FiguredBass* m_figBass = nullptr;              // Current figured bass element (to attach to next note)
     SLine* m_delayedOttava = nullptr;              // Current delayed ottava
+    SegnoStack m_segnos;                           // List of segno markings
     int m_multiMeasureRestCount = 0;
     int m_measureNumber = 0;                       // Current measure number as written in the score
     MusicXmlLyricsExtend m_extendedLyrics;         // Lyrics with "extend" requiring fixup
@@ -409,7 +413,9 @@ public:
     MusicXMLParserDirection(muse::XmlStreamReader& e, Score* score, MusicXMLParserPass1& pass1, MusicXMLParserPass2& pass2,
                             MxmlLogger* logger);
     void direction(const String& partId, Measure* measure, const Fraction& tick, MusicXmlSpannerMap& spanners,
-                   DelayedDirectionsList& delayedDirections, InferredFingeringsList& inferredFingerings);
+                   DelayedDirectionsList& delayedDirections, InferredFingeringsList& inferredFingerings, HarmonyMap& harmonyMap,
+                   bool& measureHasCoda, SegnoStack& segnos);
+
     double totalY() const { return m_defaultY + m_relativeY; }
     String placement() const;
 
@@ -425,10 +431,14 @@ private:
     void sound();
     void dynamics();
     void otherDirection();
-    void handleRepeats(Measure* measure, const track_idx_t track, const Fraction tick);
+    void handleRepeats(Measure* measure, const track_idx_t track, const Fraction tick, bool& measureHasCoda, SegnoStack& segnos,
+                       DelayedDirectionsList& delayedDirections);
+    Marker* findMarker(const String& repeat) const;
+    Jump* findJump(const String& repeat) const;
     void handleNmiCmi(Measure* measure, const track_idx_t track, const Fraction tick, DelayedDirectionsList& delayedDirections);
+    void handleChordSym(const track_idx_t track, const Fraction tick, HarmonyMap& harmonyMap);
     void handleTempo();
-    String matchRepeat() const;
+    String matchRepeat(const String& plainWords) const;
     void skipLogCurrElem();
     bool isLikelyCredit(const Fraction& tick) const;
     void textToDynamic(String& text);
@@ -441,6 +451,7 @@ private:
     Text* addTextToHeader(const TextStyleType textStyleType);
     void hideRedundantHeaderText(const Text* inferredText, const std::vector<String> metaTags);
     bool isLikelyFingering() const;
+    bool isLikelySticking();
 
     bool hasTotalY() const { return m_hasRelativeY || m_hasDefaultY; }
 
@@ -450,6 +461,7 @@ private:
     MusicXMLParserPass2& m_pass2;                // the pass2 results
     MxmlLogger* m_logger = nullptr;                        // Error logger
 
+    Color m_color;
     Hairpin* m_inferredHairpinStart = nullptr;
     StringList m_dynamicsList;
     String m_enclosure;
@@ -464,13 +476,17 @@ private:
     String m_sndFine;
     String m_sndSegno;
     String m_sndToCoda;
+    String m_codaId;
+    String m_segnoId;
     String m_placement;
     bool m_hasDefaultY = false;
     double m_defaultY = 0.0;
     bool m_hasRelativeY = false;
     double m_relativeY = 0.0;
+    double m_relativeX = 0.0;
     double m_tpoMetro = 0.0;                   // tempo according to metronome
     double m_tpoSound = 0.0;                   // tempo according to sound
+    bool m_visible = true;
     std::vector<EngravingItem*> m_elems;
     Fraction m_offset;
 };
@@ -492,6 +508,10 @@ public:
         m_measure(measure), m_tick(tick) {}
     void addElem();
     double totalY() const { return m_totalY; }
+    const EngravingItem* element() const { return m_element; }
+    track_idx_t track() const { return m_track; }
+    const Fraction& tick() const { return m_tick; }
+    const String& placement() const { return m_placement; }
 
 private:
     double m_totalY = 0.0;

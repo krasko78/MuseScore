@@ -51,8 +51,8 @@ set(MUSESCORE_BUILD_CONFIGURATION "app" CACHE STRING "Build configuration")
 # - vtest           - for visual tests (for CI)
 # - utest           - for unit tests (for CI)
 
-set(MUSESCORE_BUILD_MODE "dev" CACHE STRING "Build mode")
-# Possible MUSESCORE_BUILD_MODE values:
+set(MUSE_APP_BUILD_MODE "dev" CACHE STRING "Build mode")
+# Possible MUSE_APP_BUILD_MODE values:
 # - dev     - for development/nightly builds
 # - testing - for testing versions (alpha, beta, RC)
 # - release - for stable release builds
@@ -100,6 +100,9 @@ option(MUE_COMPILE_USE_CCACHE "Try use ccache" ON)
 option(MUE_COMPILE_USE_SHARED_LIBS_IN_DEBUG "Build shared libs if possible in debug" OFF)
 option(MUE_COMPILE_USE_SYSTEM_FREETYPE "Try use system freetype" OFF) # Important for the maintainer of Linux distributions
 option(MUE_COMPILE_USE_SYSTEM_OPUS "Try use system opus" OFF) # Important for the maintainers of Linux distributions
+option(MUE_COMPILE_USE_SYSTEM_TINYXML "Try use system tinyxml" OFF) # Important for the maintainer of Linux distributions
+option(MUE_COMPILE_USE_SYSTEM_OPUSENC "Try use system libopusenc" OFF) # Important for the maintainer of Linux distributions
+option(MUE_COMPILE_USE_SYSTEM_FLAC "Try use system flac" OFF) # Important for the maintainer of Linux distributions
 
 # === Debug ===
 option(MUE_ENABLE_LOAD_QML_FROM_SOURCE "Load qml files from source (not resource)" OFF)

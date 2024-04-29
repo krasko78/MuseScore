@@ -32,7 +32,7 @@ set(EXECUTABLE_NAME mscore)
 ###########################################
 include(GetPlatformInfo)
 if (OS_IS_WIN)
-    set(MSCORE_OUTPUT_NAME ${MUSESCORE_NAME}${MUSESCORE_VERSION_MAJOR})
+    set(MSCORE_OUTPUT_NAME ${MUSE_APP_NAME}${MUSE_APP_VERSION_MAJOR})
 
     include(GetCompilerInfo)
 
@@ -52,9 +52,9 @@ if (OS_IS_WIN)
 
 elseif(OS_IS_LIN)
 
-    if (MUSESCORE_INSTALL_SUFFIX)
-        set(MSCORE_OUTPUT_NAME "${EXECUTABLE_NAME}${MUSESCORE_INSTALL_SUFFIX}")
-    endif(MUSESCORE_INSTALL_SUFFIX)
+    if (MUSE_APP_INSTALL_SUFFIX)
+        set(MSCORE_OUTPUT_NAME "${EXECUTABLE_NAME}${MUSE_APP_INSTALL_SUFFIX}")
+    endif(MUSE_APP_INSTALL_SUFFIX)
 
     set(CMAKE_INSTALL_RPATH "${QT_INSTALL_LIBS}")
     if (BUILD_SHARED_LIBS)
@@ -65,10 +65,10 @@ elseif(OS_IS_MAC)
 
     set(EXECUTABLE_NAME mscore MACOSX_BUNDLE)
     set(MACOSX_BUNDLE_ICON_FILE AppIcon.icns)
-    set(MACOSX_BUNDLE_GUI_IDENTIFIER org.musescore.${MUSESCORE_NAME})
-    set(MACOSX_BUNDLE_BUNDLE_NAME ${MUSESCORE_NAME_WITH_SPACE})
-    set(MACOSX_BUNDLE_LONG_VERSION_STRING ${MUSESCORE_VERSION})
-    set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${MUSESCORE_VERSION})
+    set(MACOSX_BUNDLE_GUI_IDENTIFIER ${MUSE_APP_GUI_IDENTIFIER})
+    set(MACOSX_BUNDLE_BUNDLE_NAME ${MUSE_APP_TITLE})
+    set(MACOSX_BUNDLE_LONG_VERSION_STRING ${MUSE_APP_VERSION})
+    set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${MUSE_APP_VERSION})
     set(MACOSX_BUNDLE_BUNDLE_VERSION ${CMAKE_BUILD_NUMBER})
     set(MACOSX_BUNDLE_COPYRIGHT "Copyright © 1999-2024 MuseScore Limited. Published under the GNU General Public License version 3.")
 
@@ -446,10 +446,10 @@ elseif(OS_IS_LIN)
     if (LN_EXECUTABLE)
        add_custom_target(mscore_alias ALL
            COMMAND echo "Creating symlink alias for mscore executable."
-           COMMAND ${LN_EXECUTABLE} -sf "mscore${MUSESCORE_INSTALL_SUFFIX}" "musescore${MUSESCORE_INSTALL_SUFFIX}"
-           COMMAND echo 'Symlink alias: musescore${MUSESCORE_INSTALL_SUFFIX} -> mscore${MUSESCORE_INSTALL_SUFFIX}'
+           COMMAND ${LN_EXECUTABLE} -sf "mscore${MUSE_APP_INSTALL_SUFFIX}" "musescore${MUSE_APP_INSTALL_SUFFIX}"
+           COMMAND echo 'Symlink alias: musescore${MUSE_APP_INSTALL_SUFFIX} -> mscore${MUSE_APP_INSTALL_SUFFIX}'
            )
-       install(FILES ${PROJECT_BINARY_DIR}/src/app/musescore${MUSESCORE_INSTALL_SUFFIX} DESTINATION bin)
+       install(FILES ${PROJECT_BINARY_DIR}/src/app/musescore${MUSE_APP_INSTALL_SUFFIX} DESTINATION bin)
     else (LN_EXECUTABLE)
        add_custom_target(mscore_alias ALL COMMAND echo "No symlink aliases will be created." VERBATIM )
     endif (LN_EXECUTABLE)

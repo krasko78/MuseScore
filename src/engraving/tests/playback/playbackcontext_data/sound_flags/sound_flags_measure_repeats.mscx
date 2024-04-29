@@ -2,7 +2,7 @@
 <museScore version="4.20">
   <programVersion>4.4.0</programVersion>
   <programRevision></programRevision>
-  <LastEID>445</LastEID>
+  <LastEID>382</LastEID>
   <Score>
     <Division>480</Division>
     <showInvisible>1</showInvisible>
@@ -13,7 +13,7 @@
     <metaTag name="arranger"></metaTag>
     <metaTag name="composer">Composer / arranger</metaTag>
     <metaTag name="copyright"></metaTag>
-    <metaTag name="creationDate">2024-04-16</metaTag>
+    <metaTag name="creationDate">2024-04-19</metaTag>
     <metaTag name="lyricist"></metaTag>
     <metaTag name="movementNumber"></metaTag>
     <metaTag name="movementTitle"></metaTag>
@@ -113,90 +113,54 @@
             <sigN>4</sigN>
             <sigD>4</sigD>
             </TimeSig>
-          <PlayTechAnnotation>
-            <playTechType>pizzicato</playTechType>
-            <eid>1881195675699</eid>
-            <text>pizz.</text>
-            </PlayTechAnnotation>
-          <Chord>
-            <eid>987842478195</eid>
-            <durationType>quarter</durationType>
-            <Note>
-              <eid>983547510804</eid>
-              <pitch>65</pitch>
-              <tpc>13</tpc>
-              </Note>
-            </Chord>
-          <Chord>
-            <eid>1013612281971</eid>
-            <durationType>quarter</durationType>
-            <Note>
-              <eid>1009317314580</eid>
-              <pitch>65</pitch>
-              <tpc>13</tpc>
-              </Note>
-            </Chord>
-          <Chord>
-            <eid>1047972020339</eid>
-            <durationType>quarter</durationType>
-            <Note>
-              <eid>1043677052948</eid>
-              <pitch>65</pitch>
-              <tpc>13</tpc>
-              </Note>
-            </Chord>
-          <Chord>
-            <eid>1073741824115</eid>
-            <durationType>quarter</durationType>
-            <Note>
-              <eid>1069446856724</eid>
-              <pitch>65</pitch>
-              <tpc>13</tpc>
-              </Note>
-            </Chord>
+          <Rest>
+            <eid>55834574874</eid>
+            <durationType>measure</durationType>
+            <duration>4/4</duration>
+            </Rest>
           </voice>
         </Measure>
       <Measure>
         <voice>
           <StaffText>
-            <eid>1885490642992</eid>
-            <text>ordinary</text>
+            <eid>1627792605232</eid>
+            <text>espressivo</text>
             <SoundFlag>
-              <playingTechnique>ordinary_technique</playingTechnique>
+              <playingTechnique>Espressivo</playingTechnique>
               </SoundFlag>
             </StaffText>
           <Chord>
-            <eid>1159641170035</eid>
+            <eid>1340029796467</eid>
             <durationType>quarter</durationType>
             <Note>
-              <eid>1155346202644</eid>
+              <eid>1335734829076</eid>
+              <pitch>67</pitch>
+              <tpc>15</tpc>
+              </Note>
+            </Chord>
+          <Chord>
+            <eid>1365799600243</eid>
+            <durationType>quarter</durationType>
+            <Note>
+              <eid>1361504632852</eid>
               <pitch>65</pitch>
               <tpc>13</tpc>
               </Note>
             </Chord>
           <Chord>
-            <eid>1185410973811</eid>
+            <eid>1400159338611</eid>
             <durationType>quarter</durationType>
             <Note>
-              <eid>1181116006420</eid>
-              <pitch>65</pitch>
-              <tpc>13</tpc>
+              <eid>1395864371220</eid>
+              <pitch>67</pitch>
+              <tpc>15</tpc>
               </Note>
             </Chord>
           <Chord>
-            <eid>1219770712179</eid>
+            <eid>1425929142387</eid>
             <durationType>quarter</durationType>
             <Note>
-              <eid>1215475744788</eid>
-              <pitch>65</pitch>
-              <tpc>13</tpc>
-              </Note>
-            </Chord>
-          <Chord>
-            <eid>1245540515955</eid>
-            <durationType>quarter</durationType>
-            <Note>
-              <eid>1241245548564</eid>
+              <eid>1421634174996</eid>
               <pitch>65</pitch>
               <tpc>13</tpc>
               </Note>
@@ -206,44 +170,44 @@
       <Measure>
         <voice>
           <StaffText>
-            <eid>1894080577584</eid>
+            <eid>1636382539824</eid>
             <text>bartok</text>
             <SoundFlag>
               <playingTechnique>bartok</playingTechnique>
               </SoundFlag>
             </StaffText>
           <Chord>
-            <eid>1288490188915</eid>
+            <eid>1468878815347</eid>
             <durationType>quarter</durationType>
             <Note>
-              <eid>1284195221524</eid>
+              <eid>1464583847956</eid>
+              <pitch>67</pitch>
+              <tpc>15</tpc>
+              </Note>
+            </Chord>
+          <Chord>
+            <eid>1503238553715</eid>
+            <durationType>quarter</durationType>
+            <Note>
+              <eid>1498943586324</eid>
               <pitch>65</pitch>
               <tpc>13</tpc>
               </Note>
             </Chord>
           <Chord>
-            <eid>1314259992691</eid>
+            <eid>1537598292083</eid>
             <durationType>quarter</durationType>
             <Note>
-              <eid>1309965025300</eid>
-              <pitch>65</pitch>
-              <tpc>13</tpc>
+              <eid>1533303324692</eid>
+              <pitch>67</pitch>
+              <tpc>15</tpc>
               </Note>
             </Chord>
           <Chord>
-            <eid>1348619731059</eid>
+            <eid>1563368095859</eid>
             <durationType>quarter</durationType>
             <Note>
-              <eid>1344324763668</eid>
-              <pitch>65</pitch>
-              <tpc>13</tpc>
-              </Note>
-            </Chord>
-          <Chord>
-            <eid>1417339207795</eid>
-            <durationType>quarter</durationType>
-            <Note>
-              <eid>1413044240404</eid>
+              <eid>1559073128468</eid>
               <pitch>65</pitch>
               <tpc>13</tpc>
               </Note>
@@ -251,47 +215,28 @@
           </voice>
         </Measure>
       <Measure>
+        <measureRepeatCount>1</measureRepeatCount>
+        <LayoutBreak>
+          <eid>1589137899601</eid>
+          <subtype>nobreak</subtype>
+          </LayoutBreak>
         <voice>
-          <PlayTechAnnotation>
-            <eid>1902670512179</eid>
-            <text>arco</text>
-            </PlayTechAnnotation>
-          <Chord>
-            <eid>1460288880755</eid>
-            <durationType>quarter</durationType>
-            <Note>
-              <eid>1455993913364</eid>
-              <pitch>65</pitch>
-              <tpc>13</tpc>
-              </Note>
-            </Chord>
-          <Chord>
-            <eid>1486058684531</eid>
-            <durationType>quarter</durationType>
-            <Note>
-              <eid>1481763717140</eid>
-              <pitch>65</pitch>
-              <tpc>13</tpc>
-              </Note>
-            </Chord>
-          <Chord>
-            <eid>1520418422899</eid>
-            <durationType>quarter</durationType>
-            <Note>
-              <eid>1516123455508</eid>
-              <pitch>65</pitch>
-              <tpc>13</tpc>
-              </Note>
-            </Chord>
-          <Chord>
-            <eid>1546188226675</eid>
-            <durationType>quarter</durationType>
-            <Note>
-              <eid>1541893259284</eid>
-              <pitch>65</pitch>
-              <tpc>13</tpc>
-              </Note>
-            </Chord>
+          <MeasureRepeat>
+            <subtype>2</subtype>
+            <eid>1610612736030</eid>
+            <durationType>measure</durationType>
+            <duration>4/4</duration>
+            </MeasureRepeat>
+          </voice>
+        </Measure>
+      <Measure>
+        <measureRepeatCount>2</measureRepeatCount>
+        <voice>
+          <Rest>
+            <eid>1602022801434</eid>
+            <durationType>measure</durationType>
+            <duration>4/4</duration>
+            </Rest>
           </voice>
         </Measure>
       </Staff>

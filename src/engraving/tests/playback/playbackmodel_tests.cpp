@@ -44,7 +44,7 @@ using namespace mu::engraving;
 using namespace muse::mpe;
 using namespace muse;
 
-static const String PLAYBACK_MODEL_TEST_FILES_DIR("playbackmodel_data/");
+static const String PLAYBACK_MODEL_TEST_FILES_DIR("playback/playbackmodel_data/");
 static constexpr duration_t QUARTER_NOTE_DURATION = 500000; // duration in microseconds for 4/4 120BPM
 
 class Engraving_PlaybackModelTests : public ::testing::Test, public muse::async::Asyncable
@@ -847,10 +847,10 @@ TEST_F(Engraving_PlaybackModelTests, SimpleRepeat_Changes_Notification)
         EXPECT_EQ(updatedEvents.size(), expectedChangedEventsCount);
     });
 
-    // [WHEN] Notation has been changed on the 2-nd measure
+    // [WHEN] Notation has been changed
     ScoreChangesRange range;
-    range.tickFrom = 1920;
-    range.tickTo = 3840;
+    range.tickFrom = 480; // 2nd note of the 1st measure
+    range.tickTo = 3840; // 1st note of the 3rd measure (inside the repeat)
     range.staffIdxFrom = 0;
     range.staffIdxTo = 0;
     range.changedTypes = { ElementType::NOTE };

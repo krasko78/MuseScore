@@ -125,7 +125,7 @@ MasterScore* Musicxml_Tests::readScore(const String& fileName, bool isAbsolutePa
 bool Musicxml_Tests::saveCompareMusicXmlScore(MasterScore* score, const String& saveName, const String& compareWithLocalPath)
 {
     EXPECT_TRUE(saveXml(score, saveName));
-    return ScoreComp::compareFiles(saveName,  ScoreRW::rootPath() + u"/" + compareWithLocalPath);
+    return ScoreComp::compareFiles(ScoreRW::rootPath() + u"/" + compareWithLocalPath, saveName);
 }
 
 //---------------------------------------------------------
@@ -470,6 +470,9 @@ TEST_F(Musicxml_Tests, chordNoVoice) {
 TEST_F(Musicxml_Tests, chordSymbols) {
     mxmlMscxExportTestRef("testChordSymbols");
 }
+TEST_F(Musicxml_Tests, chordSymbols2) {
+    mxmlImportTestRef("testChordSymbols2");
+}
 TEST_F(Musicxml_Tests, clefs1) {
     mxmlIoTest("testClefs1");
 }
@@ -694,6 +697,12 @@ TEST_F(Musicxml_Tests, inferredCredits2) {
 }
 #endif
 #endif
+TEST_F(Musicxml_Tests, inferCodaII) {
+    mxmlImportTestRef("testInferCodaII");
+}
+TEST_F(Musicxml_Tests, inferSegnoII) {
+    mxmlImportTestRef("testInferSegnoII");
+}
 TEST_F(Musicxml_Tests, inferredFingerings) {
     mxmlImportTestRef("testInferredFingerings");
 }
@@ -720,6 +729,9 @@ TEST_F(Musicxml_Tests, invalidLayout) {
 }
 TEST_F(Musicxml_Tests, invalidTimesig) {
     mxmlIoTestRef("testInvalidTimesig");
+}
+TEST_F(Musicxml_Tests, invisibleDirection) {
+    mxmlIoTest("testInvisibleDirection");
 }
 TEST_F(Musicxml_Tests, invisibleElements) {
     mxmlIoTest("testInvisibleElements");
@@ -830,6 +842,9 @@ TEST_F(Musicxml_Tests, multiMeasureRest4) {
 }
 TEST_F(Musicxml_Tests, multipleNotations) {
     mxmlIoTestRef("testMultipleNotations");
+}
+TEST_F(Musicxml_Tests, namedNoteheads) {
+    mxmlImportTestRef("testNamedNoteheads");
 }
 TEST_F(Musicxml_Tests, negativeOffset) {
     mxmlImportTestRef("testNegativeOffset");
@@ -951,11 +966,17 @@ TEST_F(Musicxml_Tests, sound2) {
 TEST_F(Musicxml_Tests, specialCharacters) {
     mxmlIoTest("testSpecialCharacters");
 }
-TEST_F(Musicxml_Tests, testStaffEmptiness) {
+TEST_F(Musicxml_Tests, staffEmptiness) {
     mxmlImportTestRef("testStaffEmptiness");
+}
+TEST_F(Musicxml_Tests, staffSize) {
+    mxmlIoTest("testStaffSize");
 }
 TEST_F(Musicxml_Tests, staffTwoKeySigs) {
     mxmlIoTest("testStaffTwoKeySigs");
+}
+TEST_F(Musicxml_Tests, sticking) {
+    mxmlImportTestRef("testSticking");
 }
 TEST_F(Musicxml_Tests, stringData) {
     mxmlIoTest("testStringData");
@@ -1117,6 +1138,9 @@ TEST_F(Musicxml_Tests, unnecessaryBarlines) {
 }
 TEST_F(Musicxml_Tests, unusualDurations) {
     mxmlIoTestRef("testUnusualDurations");
+}
+TEST_F(Musicxml_Tests, unterminatedTies) {
+    mxmlImportTestRef("testUnterminatedTies");
 }
 TEST_F(Musicxml_Tests, virtualInstruments) {
     mxmlIoTestRef("testVirtualInstruments");
