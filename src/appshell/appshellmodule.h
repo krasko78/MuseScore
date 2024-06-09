@@ -39,7 +39,6 @@ class MacOSScrollingHook;
 class AppShellModule : public muse::modularity::IModuleSetup
 {
 public:
-    AppShellModule();
 
     std::string moduleName() const override;
 

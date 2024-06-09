@@ -50,6 +50,7 @@ class RepeatList;
 
 class PlaybackModel : public muse::async::Asyncable
 {
+public:
     INJECT(muse::mpe::IArticulationProfilesRepository, profilesRepository)
 
 public:
@@ -68,6 +69,7 @@ public:
     InstrumentTrackId chordSymbolsTrackId(const ID& partId) const;
     bool isChordSymbolsTrack(const InstrumentTrackId& trackId) const;
 
+    bool hasSoundFlags() const;
     bool hasSoundFlags(const InstrumentTrackId& trackId) const;
 
     const muse::mpe::PlaybackData& resolveTrackPlaybackData(const InstrumentTrackId& trackId);

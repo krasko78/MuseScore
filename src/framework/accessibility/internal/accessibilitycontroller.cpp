@@ -67,7 +67,7 @@ QAccessibleInterface* AccessibilityController::accessibleInterface(QObject*)
 static QAccessibleInterface* muAccessibleFactory(const QString& classname, QObject* object)
 {
     if (!accessibleInterfaceRegister) {
-        accessibleInterfaceRegister = ioc()->resolve<IQAccessibleInterfaceRegister>("accessibility");
+        accessibleInterfaceRegister = globalIoc()->resolve<IQAccessibleInterfaceRegister>("accessibility");
     }
 
     auto interfaceGetter = accessibleInterfaceRegister->interfaceGetter(classname);
@@ -565,6 +565,11 @@ IAccessible* AccessibilityController::accessibleChild(size_t i) const
 QWindow* AccessibilityController::accessibleWindow() const
 {
     return mainWindow()->qWindow();
+}
+
+muse::modularity::ContextPtr AccessibilityController::iocContext() const
+{
+    return Injectable::iocContext();
 }
 
 IAccessible::Role AccessibilityController::accessibleRole() const

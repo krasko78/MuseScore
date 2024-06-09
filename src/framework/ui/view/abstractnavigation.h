@@ -34,7 +34,7 @@
 #include "../inavigationcontroller.h"
 
 namespace muse::ui {
-class AbstractNavigation : public QObject, public QQmlParserStatus, public async::Asyncable
+class AbstractNavigation : public QObject, public QQmlParserStatus, public Injectable, public async::Asyncable
 {
     Q_OBJECT
 
@@ -53,7 +53,8 @@ class AbstractNavigation : public QObject, public QQmlParserStatus, public async
 
     Q_INTERFACES(QQmlParserStatus)
 
-    INJECT(INavigationController, navigationController)
+public:
+    Inject<INavigationController> navigationController = { this };
 
 public:
     explicit AbstractNavigation(QObject* parent = nullptr);

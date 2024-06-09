@@ -147,10 +147,14 @@ static void markInstrumentsAsPrimary(std::vector<Part*>& parts)
 //   Score
 //---------------------------------------------------------
 
-Score::Score()
-    : EngravingObject(ElementType::SCORE, nullptr), m_headersText(MAX_HEADERS, nullptr)
-    , m_footersText(MAX_FOOTERS, nullptr), m_selection(this)
+Score::Score(const modularity::ContextPtr& iocCtx)
+    : EngravingObject(ElementType::SCORE, nullptr), muse::Injectable(iocCtx)
+    , m_headersText(MAX_HEADERS, nullptr), m_footersText(MAX_FOOTERS, nullptr), m_selection(this)
 {
+    if (elementsProvider()) {
+        elementsProvider()->reg(this);
+    }
+
     Score::validScores.insert(this);
     m_masterScore = 0;
 
@@ -172,7 +176,7 @@ Score::Score()
 }
 
 Score::Score(MasterScore* parent, bool forcePartStyle /* = true */)
-    : Score{}
+    : Score{parent->iocContext()}
 {
     Score::validScores.insert(this);
     m_masterScore = parent;
@@ -4510,7 +4514,7 @@ ChordRest* Score::findCR(Fraction tick, track_idx_t track) const
 //    find last chord/rest on staff that ends before tick
 //---------------------------------------------------------
 
-ChordRest* Score::findCRinStaff(const Fraction& tick, staff_idx_t staffIdx) const
+ChordRest* Score::findChordRestEndingBeforeTickInStaff(const Fraction& tick, staff_idx_t staffIdx) const
 {
     Fraction ptick = tick - Fraction::fromTicks(1);
     Measure* m = tick2measureMM(ptick);
@@ -4550,6 +4554,28 @@ ChordRest* Score::findCRinStaff(const Fraction& tick, staff_idx_t staffIdx) cons
         return toChordRest(s->element(actualTrack));
     }
     return 0;
+}
+
+ChordRest* Score::findChordRestEndingBeforeTickInTrack(const Fraction& tick, track_idx_t trackIdx) const
+{
+    Measure* measure = tick2measureMM(tick - Fraction::eps());
+    if (!measure) {
+        LOGD("findCRinStaff: no measure for tick %d", tick.ticks());
+        return nullptr;
+    }
+
+    for (const Segment* segment = measure->last(); segment; segment = segment->prev()) {
+        EngravingItem* item = segment->elementAt(trackIdx);
+        if (!segment->isChordRestType() || !item) {
+            continue;
+        }
+        ChordRest* chordRest = toChordRest(item);
+        if (segment->tick() + chordRest->actualTicks() <= tick) {
+            return chordRest;
+        }
+    }
+
+    return nullptr;
 }
 
 //---------------------------------------------------------

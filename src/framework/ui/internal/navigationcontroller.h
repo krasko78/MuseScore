@@ -36,15 +36,18 @@
 #include "../inavigationcontroller.h"
 
 namespace muse::ui {
-class NavigationController : public QObject, public INavigationController, public actions::Actionable, public async::Asyncable
+class NavigationController : public QObject, public INavigationController, public Injectable, public actions::Actionable,
+    public async::Asyncable
 {
-    INJECT(actions::IActionsDispatcher, dispatcher)
-    INJECT(IInteractive, interactive)
-    INJECT(IMainWindow, mainWindow)
     INJECT(mu::appshell::IAppShellHiddenConfiguration, appshellHiddenConfiguration) // KRASKO
+public:
+    Inject<actions::IActionsDispatcher> dispatcher = { this };
+    Inject<IInteractive> interactive = { this };
+    Inject<IMainWindow> mainWindow = { this };
 
 public:
-    NavigationController() = default;
+    NavigationController(const modularity::ContextPtr& iocCtx)
+        : Injectable(iocCtx) {}
 
     enum MoveDirection {
         First = 0,

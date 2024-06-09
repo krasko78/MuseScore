@@ -203,6 +203,7 @@ public:
     std::vector<EngravingItem*> findAnnotations(ElementType type, track_idx_t minTrack, track_idx_t maxTrack) const;
     bool hasElements() const;
     bool hasElements(track_idx_t minTrack, track_idx_t maxTrack) const;
+    bool hasElements(staff_idx_t staffIdx) const;
     bool allElementsInvisible() const;
 
     Spatium extraLeadingSpace() const { return m_extraLeadingSpace; }
@@ -223,8 +224,8 @@ public:
 
     EngravingItem* firstInNextSegments(staff_idx_t activeStaff);   //<
     EngravingItem* lastInPrevSegments(staff_idx_t activeStaff);     //<
-    EngravingItem* firstElement(staff_idx_t staff);                //<  These methods are used for navigation
-    EngravingItem* lastElement(staff_idx_t staff);                 //<  for next-element and prev-element
+    EngravingItem* firstElementForNavigation(staff_idx_t staff);                //<  These methods are used for navigation
+    EngravingItem* lastElementForNavigation(staff_idx_t staff);                 //<  for next-element and prev-element
     EngravingItem* firstElementOfSegment(Segment* s, staff_idx_t activeStaff);
     EngravingItem* nextElementOfSegment(Segment* s, EngravingItem* e, staff_idx_t activeStaff);
     EngravingItem* prevElementOfSegment(Segment* s, EngravingItem* e, staff_idx_t activeStaff);
@@ -240,6 +241,8 @@ public:
     EngravingItem* nextElement(staff_idx_t activeStaff);
     using EngravingItem::prevElement;
     EngravingItem* prevElement(staff_idx_t activeStaff);
+
+    EngravingItem* firstElement(staff_idx_t staffIdx) const;
 
     std::vector<Shape> shapes() { return m_shapes; }
     const std::vector<Shape>& shapes() const { return m_shapes; }
@@ -282,7 +285,7 @@ public:
     bool isTimeTickType() const { return m_segmentType == SegmentType::TimeTick; }
     bool isRightAligned() const { return isClefType() || isBreathType(); }
 
-    bool canWriteSpannerStartEnd(track_idx_t track) const;
+    bool canWriteSpannerStartEnd(track_idx_t track, const Spanner* spanner) const;
 
     Fraction shortestChordRest() const;
     void computeCrossBeamType(Segment* nextSeg);

@@ -47,15 +47,15 @@ class AbstractInspectorModel : public QObject, public muse::async::Asyncable
 {
     Q_OBJECT
 
-    INJECT(context::IGlobalContext, context)
-    INJECT(muse::actions::IActionsDispatcher, dispatcher)
-
     Q_PROPERTY(QString title READ title NOTIFY titleChanged)
     Q_PROPERTY(int icon READ icon CONSTANT)
     Q_PROPERTY(InspectorSectionType sectionType READ sectionType CONSTANT)
     Q_PROPERTY(InspectorModelType modelType READ modelType CONSTANT)
     Q_PROPERTY(bool isEmpty READ isEmpty NOTIFY isEmptyChanged)
 
+public:
+    INJECT(context::IGlobalContext, context)
+    INJECT(muse::actions::IActionsDispatcher, dispatcher)
 public:
     enum class InspectorSectionType {
         SECTION_UNDEFINED = -1,
@@ -242,14 +242,6 @@ private:
     mu::engraving::ElementType m_elementType = mu::engraving::ElementType::INVALID;
     bool m_updatePropertiesAllowed = false;
 };
-
-#ifdef MU_QT5_COMPAT
-inline uint qHash(AbstractInspectorModel::InspectorModelType t)
-{
-    return ::qHash(int(t));
-}
-
-#endif
 
 using InspectorModelType = AbstractInspectorModel::InspectorModelType;
 using InspectorSectionType = AbstractInspectorModel::InspectorSectionType;

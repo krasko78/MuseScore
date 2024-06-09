@@ -130,7 +130,6 @@ enum class KerningType
     NON_KERNING,
     LIMITED_KERNING,
     SAME_VOICE_LIMIT,
-    KERNING_UNTIL_ORIGIN,
     ALLOW_COLLISION,
     NOT_SET,
 };
@@ -153,9 +152,6 @@ public:
 
 class EngravingItem : public EngravingObject
 {
-    INJECT_STATIC(IEngravingConfiguration, engravingConfiguration)
-    INJECT_STATIC(rendering::IScoreRenderer, renderer)
-
     M_PROPERTY2(bool, isPositionLinkedToMaster, setPositionLinkedToMaster, true)
     M_PROPERTY2(bool, isAppearanceLinkedToMaster, setAppearanceLinkedToMaster, true)
     M_PROPERTY2(bool, excludeFromOtherParts, setExcludeFromOtherParts, false)
@@ -173,6 +169,10 @@ public:
 
     EngravingItem* parentItem(bool explicitParent = true) const;
     EngravingItemList childrenItems(bool all = false) const;
+
+    const muse::modularity::ContextPtr& iocContext() const;
+    const std::shared_ptr<IEngravingConfiguration>& configuration() const;
+    const std::shared_ptr<rendering::IScoreRenderer>& renderer() const;
 
     EngravingItem* findAncestor(ElementType t);
     const EngravingItem* findAncestor(ElementType t) const;
@@ -268,12 +268,7 @@ public:
 
     virtual int subtype() const { return -1; }                    // for select gui
 
-    void drawAt(muse::draw::Painter* p, const PointF& pt) const
-    {
-        p->translate(pt);
-        renderer()->drawItem(this, p);
-        p->translate(-pt);
-    }
+    void drawAt(muse::draw::Painter* p, const PointF& pt) const;
 
 //       virtual ElementGroup getElementGroup() { return SingleElementGroup(this); }
     virtual std::unique_ptr<ElementGroup> getDragGroup(std::function<bool(const EngravingItem*)> /*isDragged*/)
@@ -648,6 +643,12 @@ public:
     virtual void move(const PointF& s) { mutldata()->move(s); }
 
     virtual bool allowTimeAnchor() const { return false; }
+
+    virtual bool hasVoiceApplicationProperties() const { return false; }
+    bool appliesToAllVoicesInInstrument() const;
+    void setInitialTrackAndVoiceApplication(track_idx_t track);
+    void checkVoiceApplicationCompatibleWithTrack();
+    void setPlacementBasedOnVoiceApplication(DirectionV styledDirection);
 
     void setOffsetChanged(bool val, bool absolute = true, const PointF& diff = PointF());
     //! ---------------------

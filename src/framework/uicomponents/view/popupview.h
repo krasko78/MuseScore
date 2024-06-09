@@ -33,19 +33,20 @@
 #include "ui/imainwindow.h"
 #include "ui/iuiconfiguration.h"
 #include "ui/inavigationcontroller.h"
-#include "ui/view/navigationcontrol.h"
 
 #include "popupwindow/ipopupwindow.h"
 #include "internal/popupviewclosecontroller.h"
 
-#ifndef MU_QT5_COMPAT
 Q_MOC_INCLUDE(< QWindow >)
-#endif
 
 class QQuickCloseEvent;
 
+namespace muse::ui {
+class INavigationControl;
+}
+
 namespace muse::uicomponents {
-class PopupView : public QObject, public QQmlParserStatus, async::Asyncable
+class PopupView : public QObject, public QQmlParserStatus, public Injectable, public async::Asyncable
 {
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
@@ -88,9 +89,10 @@ class PopupView : public QObject, public QQmlParserStatus, async::Asyncable
     Q_PROPERTY(bool alwaysOnTop READ alwaysOnTop WRITE setAlwaysOnTop NOTIFY alwaysOnTopChanged)
     Q_PROPERTY(QVariantMap ret READ ret WRITE setRet NOTIFY retChanged)
 
-    INJECT(ui::IMainWindow, mainWindow)
-    INJECT(ui::IUiConfiguration, uiConfiguration)
-    INJECT(ui::INavigationController, navigationController)
+public:
+    Inject<ui::IMainWindow> mainWindow = { this };
+    Inject<ui::IUiConfiguration> uiConfiguration = { this };
+    Inject<ui::INavigationController> navigationController= { this };
 
 public:
 
@@ -235,8 +237,9 @@ protected:
     void doFocusOut();
     void windowMoveEvent();
 
-    bool isMouseWithinBoundaries(const QPoint& mousePos) const;
+    bool isMouseWithinBoundaries(const QPointF& mousePos) const;
 
+    virtual void beforeOpen();
     void doOpen();
 
     QWindow* qWindow() const;

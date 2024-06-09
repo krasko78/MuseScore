@@ -70,7 +70,6 @@ struct TextStyleMap {
 
 class ReadContext
 {
-    INJECT(IEngravingFontsProvider, engravingFonts)
 public:
 
     ReadContext() = default;
@@ -86,6 +85,7 @@ public:
     const ReadContext* masterCtx() const;
 
     const MStyle& style() const;
+    std::shared_ptr<IEngravingFontsProvider> engravingFonts() const;
 
     bool pasteMode() const { return _pasteMode; }
     void setPasteMode(bool v) { _pasteMode = v; }
@@ -97,6 +97,7 @@ public:
     int fileDivision(int t) const;
 
     double spatium() const;
+    void setSpatium(double v);
 
     compat::DummyElement* dummy() const;
 

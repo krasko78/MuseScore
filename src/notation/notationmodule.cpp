@@ -82,6 +82,7 @@
 #include "view/styledialog/beamspagemodel.h"
 #include "view/styledialog/bendstyleselector.h"
 #include "view/styledialog/tieplacementselector.h"
+#include "view/styledialog/accidentalgrouppagemodel.h"
 
 #include "diagnostics/idiagnosticspathsregister.h"
 
@@ -122,7 +123,7 @@ void NotationModule::resolveImports()
         ar->reg(m_notationUiActions);
     }
 
-    auto writers = modularity::ioc()->resolve<project::INotationWritersRegister>(moduleName());
+    auto writers = ioc()->resolve<project::INotationWritersRegister>(moduleName());
     if (writers) {
         writers->reg({ "spos" }, std::make_shared<PositionsWriter>(PositionsWriter::ElementType::SEGMENT));
         writers->reg({ "mpos" }, std::make_shared<PositionsWriter>(PositionsWriter::ElementType::MEASURE));
@@ -187,13 +188,7 @@ void NotationModule::registerUiTypes()
     qmlRegisterType<BeamsPageModel>("MuseScore.NotationScene", 1, 0, "BeamsPageModel");
     qmlRegisterType<BendStyleSelector>("MuseScore.NotationScene", 1, 0, "BendStyleSelector");
     qmlRegisterType<TiePlacementSelectorModel>("MuseScore.NotationScene", 1, 0, "TiePlacementSelectorModel");
-
-    qRegisterMetaType<EditStyle>("EditStyle");
-    qRegisterMetaType<EditStaff>("EditStaff");
-    qRegisterMetaType<EditStringData>("EditStringData");
-    qRegisterMetaType<SelectNoteDialog>("SelectNoteDialog");
-    qRegisterMetaType<SelectDialog>("SelectDialog");
-    qRegisterMetaType<StaffTextPropertiesDialog>("StaffTextPropertiesDialog");
+    qmlRegisterType<AccidentalGroupPageModel>("MuseScore.NotationScene", 1, 0, "AccidentalGroupPageModel");
 
     qmlRegisterUncreatableType<NoteInputBarCustomiseItem>("MuseScore.NotationScene", 1, 0, "NoteInputBarCustomiseItem", "Cannot create");
 
@@ -220,7 +215,7 @@ void NotationModule::onInit(const IApplication::RunMode& mode)
 
     Notation::init();
 
-    auto pr = modularity::ioc()->resolve<diagnostics::IDiagnosticsPathsRegister>(moduleName());
+    auto pr = ioc()->resolve<diagnostics::IDiagnosticsPathsRegister>(moduleName());
     if (pr) {
         pr->reg("instruments", m_configuration->instrumentListPath());
 

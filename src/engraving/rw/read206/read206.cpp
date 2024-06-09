@@ -1445,6 +1445,7 @@ static void readTuplet206(Tuplet* tuplet, XmlReader& e, ReadContext& ctx)
             tuplet->resetNumberProperty();
             readText206(e, ctx, _number, tuplet);
             _number->setVisible(tuplet->visible());           //?? override saved property
+            _number->setColor(tuplet->color());
             _number->setTrack(tuplet->track());
             // move property flags from _number
             for (auto p : { Pid::FONT_FACE, Pid::FONT_SIZE, Pid::FONT_STYLE, Pid::ALIGN, Pid::SIZE_SPATIUM_DEPENDENT }) {
@@ -2560,7 +2561,7 @@ static void readMeasure206(Measure* m, int staffIdx, XmlReader& e, ReadContext& 
             }
             segment = m->getSegment(st, ctx.tick());
             segment->add(bl);
-            EngravingItem::renderer()->layoutItem(bl);
+            bl->renderer()->layoutItem(bl);
             if (fermataAbove) {
                 segment->add(fermataAbove);
             }
@@ -3289,13 +3290,11 @@ bool Read206::readScore206(Score* score, XmlReader& e, ReadContext& ctx)
             if (score->style().styleSt(Sid::MusicalTextFont) == "MuseJazz") {
                 score->style().set(Sid::MusicalTextFont, "MuseJazz Text");
             }
-            // if (_layoutMode == LayoutMode::FLOAT || _layoutMode == LayoutMode::SYSTEM) {
-            if (score->layoutMode() == LayoutMode::FLOAT) {
-                // style should not change spatium in
-                // float mode
+            if (ctx.overrideSpatium()) {
+                ctx.setOriginalSpatium(score->style().spatium());
                 score->style().set(Sid::spatium, sp);
             }
-            score->setEngravingFont(engravingFonts()->fontByName(score->style().styleSt(Sid::MusicalSymbolFont).toStdString()));
+            score->setEngravingFont(score->engravingFonts()->fontByName(score->style().styleSt(Sid::MusicalSymbolFont).toStdString()));
         } else if (tag == "copyright" || tag == "rights") {
             Text* text = Factory::createText(score->dummy(), TextStyleType::DEFAULT, false);
             readText206(e, ctx, text, text);
@@ -3430,6 +3429,10 @@ bool Read206::readScore206(Score* score, XmlReader& e, ReadContext& ctx)
 Err Read206::readScore(Score* score, XmlReader& e, ReadInOutData* out)
 {
     ReadContext ctx(score);
+    if (out && out->overriddenSpatium.has_value()) {
+        ctx.setSpatium(out->overriddenSpatium.value());
+        ctx.setOverrideSpatium(true);
+    }
     DEFER {
         if (out) {
             out->settingsCompat = std::move(ctx.settingCompat());
@@ -3445,6 +3448,10 @@ Err Read206::readScore(Score* score, XmlReader& e, ReadInOutData* out)
         } else if (tag == "Score") {
             if (!readScore206(score, e, ctx)) {
                 return Err::FileBadFormat;
+            }
+
+            if (ctx.overrideSpatium() && out) {
+                out->originalSpatium = ctx.originalSpatium();
             }
         } else if (tag == "Revision") {
             e.skipCurrentElement();

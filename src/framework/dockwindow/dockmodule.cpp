@@ -54,9 +54,12 @@ namespace muse::dock {
 class DockWidgetFactory : public KDDockWidgets::DefaultWidgetFactory
 {
 public:
+    DockWidgetFactory(const modularity::ContextPtr& iocCtx)
+        : m_iocContext(iocCtx) {}
+
     KDDockWidgets::DropIndicatorOverlayInterface* createDropIndicatorOverlay(KDDockWidgets::DropArea* dropArea) const override
     {
-        return new DropController(dropArea);
+        return new DropController(dropArea, m_iocContext);
     }
 
     Layouting::Separator* createSeparator(Layouting::Widget* parent = nullptr) const override
@@ -98,6 +101,9 @@ public:
     {
         return QUrl("qrc:/qml/Muse/Dock/DockFloatingWindow.qml");
     }
+
+private:
+    const modularity::ContextPtr m_iocContext;
 };
 }
 
@@ -116,7 +122,7 @@ std::string DockModule::moduleName() const
 
 void DockModule::registerExports()
 {
-    m_actionsController = std::make_shared<DockWindowActionsController>();
+    m_actionsController = std::make_shared<DockWindowActionsController>(iocContext());
 
     ioc()->registerExport<IDockWindowProvider>(moduleName(), new DockWindowProvider());
 }
@@ -155,7 +161,7 @@ void DockModule::onInit(const IApplication::RunMode& mode)
 
     QQmlEngine* engine = ioc()->resolve<ui::IUiEngine>(moduleName())->qmlEngine();
 
-    KDDockWidgets::Config::self().setFrameworkWidgetFactory(new DockWidgetFactory());
+    KDDockWidgets::Config::self().setFrameworkWidgetFactory(new DockWidgetFactory(iocContext()));
     KDDockWidgets::Config::self().setQmlEngine(engine);
 
     auto flags = KDDockWidgets::Config::self().flags()

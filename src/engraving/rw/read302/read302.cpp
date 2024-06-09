@@ -95,13 +95,11 @@ bool Read302::readScore302(Score* score, XmlReader& e, ReadContext& ctx)
 
             ReadStyleHook::readStyleTag(score, e);
 
-            // if (_layoutMode == LayoutMode::FLOAT || _layoutMode == LayoutMode::SYSTEM) {
-            if (score->layoutOptions().isMode(LayoutMode::FLOAT)) {
-                // style should not change spatium in
-                // float mode
+            if (ctx.overrideSpatium()) {
+                ctx.setOriginalSpatium(score->style().spatium());
                 score->style().set(Sid::spatium, sp);
             }
-            score->m_engravingFont = engravingFonts()->fontByName(score->style().styleSt(Sid::MusicalSymbolFont).toStdString());
+            score->m_engravingFont = score->engravingFonts()->fontByName(score->style().styleSt(Sid::MusicalSymbolFont).toStdString());
         } else if (tag == "copyright" || tag == "rights") {
             score->setMetaTag(u"copyright", Text::readXmlText(e, score));
         } else if (tag == "movement-number") {
@@ -256,6 +254,10 @@ bool Read302::readScore302(Score* score, XmlReader& e, ReadContext& ctx)
 Err Read302::readScore(Score* score, XmlReader& e, ReadInOutData* out)
 {
     ReadContext ctx(score);
+    if (out && out->overriddenSpatium.has_value()) {
+        ctx.setSpatium(out->overriddenSpatium.value());
+        ctx.setOverrideSpatium(true);
+    }
 
     DEFER {
         if (out) {
@@ -275,6 +277,10 @@ Err Read302::readScore(Score* score, XmlReader& e, ReadInOutData* out)
                     return Err::FileCriticallyCorrupted;
                 }
                 return Err::FileBadFormat;
+            }
+
+            if (ctx.overrideSpatium() && out) {
+                out->originalSpatium = ctx.originalSpatium();
             }
         } else if (tag == "Revision") {
             e.skipCurrentElement();

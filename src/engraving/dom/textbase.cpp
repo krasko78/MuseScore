@@ -349,7 +349,7 @@ void TextCursor::changeSelectionFormat(FormatId id, const FormatValue& val)
         }
     }
 
-    EngravingItem::renderer()->layoutText1(m_text);
+    m_text->renderer()->layoutText1(m_text);
 }
 
 const CharFormat TextCursor::selectedFragmentsFormat() const
@@ -740,20 +740,30 @@ int TextCursor::position(int row, int column) const
 //---------------------------------------------------------
 //   TextFragment
 //---------------------------------------------------------
-
-TextFragment::TextFragment()
-{
-}
-
 TextFragment::TextFragment(const String& s)
 {
     text = s;
 }
 
 TextFragment::TextFragment(TextCursor* cursor, const String& s)
+    : TextFragment(s)
 {
     format = *cursor->format();
-    text = s;
+}
+
+TextFragment::TextFragment(const TextFragment& f)
+{
+    text = f.text;
+    format = f.format;
+    pos = f.pos;
+}
+
+TextFragment& TextFragment::operator =(const TextFragment& f)
+{
+    text = f.text;
+    format = f.format;
+    pos = f.pos;
+    return *this;
 }
 
 //---------------------------------------------------------
@@ -976,7 +986,7 @@ void TextBlock::draw(Painter* p, const TextBase* t) const
 
 void TextBlock::layout(const TextBase* t)
 {
-    m_bbox        = RectF();
+    m_shape.clear();
     double x      = 0.0;
     m_lineSpacing = 0.0;
     double lm     = 0.0;
@@ -1014,7 +1024,7 @@ void TextBlock::layout(const TextBase* t)
 
     if (m_fragments.empty()) {
         FontMetrics fm = t->fontMetrics();
-        m_bbox.setRect(0.0, -fm.ascent(), 1.0, fm.descent());
+        m_shape.add(RectF(0.0, -fm.ascent(), 1.0, fm.descent()), t);
         m_lineSpacing = fm.lineSpacing();
     } else if (m_fragments.size() == 1 && m_fragments.front().text.isEmpty()) {
         auto fi = m_fragments.begin();
@@ -1035,7 +1045,7 @@ void TextBlock::layout(const TextBase* t)
         }
 
         RectF temp(0.0, -fm.ascent(), 1.0, fm.descent());
-        m_bbox |= temp;
+        m_shape.add(temp, t);
         m_lineSpacing = std::max(m_lineSpacing, fm.lineSpacing());
     } else {
         const auto fiLast = --m_fragments.end();
@@ -1062,14 +1072,14 @@ void TextBlock::layout(const TextBase* t)
                 x += w;
             }
 
-            m_bbox   |= (appshellHiddenConfiguration()->textObjectsWillUseTheirFontHeight()
-                           ? fm.boundingRect(f.text).translated(f.pos) : fm.tightBoundingRect(f.text).translated(f.pos)
-                        ).translated(f.pos);   // KRASKO
+            m_shape.add((appshellHiddenConfiguration()->textObjectsWillUseTheirFontHeight()
+                ? fm.boundingRect(f.text) : fm.tightBoundingRect(f.text)).translated(f.pos), t);   // KRASKO
             Font font = f.font(t);
             if (font.type() == Font::Type::MusicSymbol || font.type() == Font::Type::MusicSymbolText) {
                 // SEMI-HACK: Music fonts can have huge linespacing because of tall symbols, so instead of using the
                 // font linespacing value we just use the height of the individual fragment with some added margin
-                m_lineSpacing = std::max(m_lineSpacing, 1.25 * m_bbox.height());
+
+                m_lineSpacing = std::max(m_lineSpacing, 1.25 * m_shape.bbox().height());
             } else {
                 m_lineSpacing = std::max(m_lineSpacing, fm.lineSpacing());
             }
@@ -1083,12 +1093,13 @@ void TextBlock::layout(const TextBase* t)
     AlignH alignH = t->align().horizontal;
     bool dynamicAlwaysCentered = t->isDynamic() && t->getProperty(Pid::CENTER_ON_NOTEHEAD).toBool();
 
+    RectF bbox = m_shape.bbox();
     if (alignH == AlignH::HCENTER || dynamicAlwaysCentered) {
-        rx = (layoutWidth - (m_bbox.left() + m_bbox.right())) * .5;
+        rx = (layoutWidth - (bbox.left() + bbox.right())) * .5;
     } else if (alignH == AlignH::LEFT) {
-        rx = -m_bbox.left();
+        rx = -bbox.left();
     } else if (alignH == AlignH::RIGHT) {
-        rx = layoutWidth - m_bbox.right();
+        rx = layoutWidth - bbox.right();
     }
 
     rx += lm;
@@ -1096,7 +1107,7 @@ void TextBlock::layout(const TextBase* t)
     for (TextFragment& f : m_fragments) {
         f.pos.rx() += rx;
     }
-    m_bbox.translate(rx, 0.0);
+    m_shape.translate(PointF(rx, 0.0));
 }
 
 //---------------------------------------------------------
@@ -1139,7 +1150,7 @@ double TextBlock::xpos(size_t column, const TextBase* t) const
             }
         }
     }
-    return m_bbox.x();
+    return m_shape.bbox().x();
 }
 
 //---------------------------------------------------------
@@ -1191,7 +1202,8 @@ RectF TextBlock::boundingRect(int col1, int col2, const TextBase* t) const
 {
     double x1 = xpos(col1, t);
     double x2 = xpos(col2, t);
-    return RectF(x1, m_bbox.y(), x2 - x1, m_bbox.height());
+    const RectF& bbox = m_shape.bbox();
+    return RectF(x1, bbox.y(), x2 - x1, bbox.height());
 }
 
 //---------------------------------------------------------
@@ -1598,7 +1610,7 @@ TextBlock TextBlock::split(int column, TextCursor* cursor)
 
 static String toSymbolXml(Char c)
 {
-    static std::shared_ptr<IEngravingFontsProvider> provider = muse::modularity::ioc()->resolve<IEngravingFontsProvider>("engraving");
+    static std::shared_ptr<IEngravingFontsProvider> provider = muse::modularity::globalIoc()->resolve<IEngravingFontsProvider>("engraving");
 
     SymId symId = provider->fallbackFont()->fromCode(c.unicode());
     return u"<sym>" + String::fromAscii(SymNames::nameForSymId(symId).ascii()) + u"</sym>";
@@ -1689,6 +1701,10 @@ TextBase::TextBase(const TextBase& st)
     m_paddingWidth                = st.m_paddingWidth;
     m_frameRound                  = st.m_frameRound;
 
+    m_applyToVoice = st.m_applyToVoice;
+    m_direction = st.m_direction;
+    m_centerBetweenStaves = st.m_centerBetweenStaves;
+
     size_t n = m_elementStyle->size() + TEXT_STYLE_SIZE;
     delete[] m_propertyFlagsList;
     m_propertyFlagsList = new PropertyFlags[n];
@@ -1709,7 +1725,7 @@ TextBase::~TextBase()
 
 void TextBase::drawSelection(Painter* p, const RectF& r) const
 {
-    Brush bg(engravingConfiguration()->selectionColor());
+    Brush bg(configuration()->selectionColor());
     p->setCompositionMode(CompositionMode::HardLight);
     p->setBrush(bg);
     p->setNoPen();
@@ -1856,7 +1872,8 @@ void TextBase::createBlocks(LayoutData* ldata) const
                         CharFormat fmt = *cursor.format(); // save format
 
                         //char32_t code = score()->scoreFont()->symCode(id);
-                        char32_t code = id == SymId::space ? static_cast<char32_t>(' ') : engravingFonts()->fallbackFont()->symCode(id);
+                        char32_t code = id
+                                        == SymId::space ? static_cast<char32_t>(' ') : score()->engravingFonts()->fallbackFont()->symCode(id);
                         cursor.format()->setFontFamily(u"ScoreText");
                         insert(&cursor, code, ldata);
                         cursor.setFormat(fmt); // restore format
@@ -2308,6 +2325,30 @@ RectF TextBase::pageRectangle() const
     return abbox();
 }
 
+void TextBase::computeHighResShape(const FontMetrics& fontMetrics)
+{
+    Shape& highResShape = mutldata()->highResShape.mut_value();
+    highResShape.clear();
+    highResShape.elements().reserve(m_text.size());
+
+    for (const TextBlock& block : ldata()->blocks) {
+        double x = 0;
+        for (const TextFragment& fragment : block.fragments()) {
+            x += fragment.pos.x();
+            size_t textSize = fragment.text.size();
+            for (size_t i = 0; i < textSize; ++i) {
+                Char character = fragment.text.at(i);
+                RectF characterBoundingRect = fontMetrics.tightBoundingRect(fragment.text.at(i));
+                characterBoundingRect.translate(x, 0.0);
+                highResShape.add(characterBoundingRect);
+                if (i + 1 < textSize) {
+                    x += fontMetrics.horizontalAdvance(character);
+                }
+            }
+        }
+    }
+}
+
 //---------------------------------------------------------
 //   dragTo
 //---------------------------------------------------------
@@ -2741,6 +2782,12 @@ PropertyValue TextBase::getProperty(Pid propertyId) const
         return xmlText();
     case Pid::TEXT_LINKED_TO_MASTER:
         return isTextLinkedToMaster();
+    case Pid::DIRECTION:
+        return direction();
+    case Pid::CENTER_BETWEEN_STAVES:
+        return centerBetweenStaves();
+    case Pid::APPLY_TO_VOICE:
+        return applyToVoice();
     default:
         return EngravingItem::getProperty(propertyId);
     }
@@ -2809,6 +2856,15 @@ bool TextBase::setProperty(Pid pid, const PropertyValue& v)
         }
         setTextLinkedToMaster(v.toBool());
         break;
+    case Pid::DIRECTION:
+        setDirection(v.value<DirectionV>());
+        break;
+    case Pid::CENTER_BETWEEN_STAVES:
+        setCenterBetweenStaves(v.value<AutoOnOff>());
+        break;
+    case Pid::APPLY_TO_VOICE:
+        setApplyToVoice(v.value<VoiceApplication>());
+        break;
     default:
         rv = EngravingItem::setProperty(pid, v);
         break;
@@ -2850,6 +2906,12 @@ PropertyValue TextBase::propertyDefault(Pid id) const
         return static_cast<int>(VerticalAlignment::AlignNormal);
     case Pid::TEXT_LINKED_TO_MASTER:
         return true;
+    case Pid::DIRECTION:
+        return DirectionV::AUTO;
+    case Pid::CENTER_BETWEEN_STAVES:
+        return AutoOnOff::AUTO;
+    case Pid::APPLY_TO_VOICE:
+        return VoiceApplication::ALL_VOICE_IN_INSTRUMENT;
     default:
         for (const auto& p : *textStyle(TextStyleType::DEFAULT)) {
             if (p.pid == id) {
@@ -3239,14 +3301,14 @@ void TextBase::drawEditMode(Painter* p, EditData& ed, double currentViewScaling)
     }
 
     p->translate(-pos);
-    p->setPen(Pen(engravingConfiguration()->formattingMarksColor(), 2.0 / currentViewScaling)); // 2 pixel pen size
+    p->setPen(Pen(configuration()->formattingMarksColor(), 2.0 / currentViewScaling)); // 2 pixel pen size
     p->setBrush(BrushStyle::NoBrush);
 
     double m = spatium();
     RectF r = canvasBoundingRect().adjusted(-m, -m, m, m);
 
     p->drawRect(r);
-    pen = Pen(engravingConfiguration()->defaultColor(), 0.0);
+    pen = Pen(configuration()->defaultColor(), 0.0);
 }
 
 //---------------------------------------------------------

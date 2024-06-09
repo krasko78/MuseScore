@@ -22,9 +22,7 @@
 #ifndef MU_APPSHELL_APPMENUMODEL_H
 #define MU_APPSHELL_APPMENUMODEL_H
 
-#ifndef MU_QT5_COMPAT
 Q_MOC_INCLUDE(< QWindow >)
-#endif
 
 #include "uicomponents/view/abstractmenumodel.h"
 
@@ -47,6 +45,7 @@ class AppMenuModel : public muse::uicomponents::AbstractMenuModel
 {
     Q_OBJECT
 
+public:
     INJECT(muse::ui::IMainWindow, mainWindow)
     INJECT(muse::ui::IUiActionsRegister, uiActionsRegister)
     INJECT(muse::ui::INavigationController, navigationController)

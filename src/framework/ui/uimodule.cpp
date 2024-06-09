@@ -88,10 +88,10 @@ std::string UiModule::moduleName() const
 
 void UiModule::registerExports()
 {
-    m_uiengine = std::make_shared<UiEngine>();
-    m_configuration = std::make_shared<UiConfiguration>();
-    m_uiactionsRegister = std::make_shared<UiActionsRegister>();
-    m_keyNavigationController = std::make_shared<NavigationController>();
+    m_uiengine = std::make_shared<UiEngine>(iocContext());
+    m_configuration = std::make_shared<UiConfiguration>(iocContext());
+    m_uiactionsRegister = std::make_shared<UiActionsRegister>(iocContext());
+    m_keyNavigationController = std::make_shared<NavigationController>(iocContext());
     m_keyNavigationUiActions = std::make_shared<NavigationUiActions>();
 
     #ifdef Q_OS_MAC
@@ -121,7 +121,7 @@ void UiModule::resolveImports()
         ar->reg(m_keyNavigationUiActions);
     }
 
-    auto ir = modularity::ioc()->resolve<IInteractiveUriRegister>(moduleName());
+    auto ir = ioc()->resolve<IInteractiveUriRegister>(moduleName());
     if (ir) {
         ir->registerWidgetUri<TestDialog>(Uri("muse://devtools/interactive/testdialog"));
         ir->registerQmlUri(Uri("muse://devtools/interactive/sample"), "DevTools/Interactive/SampleDialog.qml");
@@ -147,9 +147,6 @@ void UiModule::registerResources()
 
 void UiModule::registerUiTypes()
 {
-#ifdef MU_QT5_COMPAT
-    qRegisterMetaType<api::ThemeApi*>("api::ThemeApi*");
-#endif
     qmlRegisterUncreatableType<UiEngine>("Muse.Ui", 1, 0, "UiEngine", "Cannot create an UiEngine");
     qmlRegisterUncreatableType<api::ThemeApi>("Muse.Ui", 1, 0, "QmlTheme", "Cannot create a QmlTheme");
     qmlRegisterUncreatableType<QmlToolTip>("Muse.Ui", 1, 0, "QmlToolTip", "Cannot create a QmlToolTip");
@@ -179,9 +176,8 @@ void UiModule::registerUiTypes()
     qmlRegisterType<ProgressDialogModel>("Muse.Ui", 1, 0, "ProgressDialogModel");
 
     qmlRegisterType<InteractiveTestsModel>("Muse.Ui", 1, 0, "InteractiveTestsModel");
-    qRegisterMetaType<TestDialog>("TestDialog");
 
-    modularity::ioc()->resolve<ui::IUiEngine>(moduleName())->addSourceImportPath(muse_ui_QML_IMPORT);
+    ioc()->resolve<ui::IUiEngine>(moduleName())->addSourceImportPath(muse_ui_QML_IMPORT);
 }
 
 void UiModule::onPreInit(const IApplication::RunMode& mode)

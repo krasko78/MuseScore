@@ -61,7 +61,6 @@
 #include "view/preferences/braillepreferencesmodel.h"
 #include "view/framelesswindow/framelesswindowmodel.h"
 #include "view/publish/publishtoolbarmodel.h"
-#include "view/windowdroparea.h"
 #include "view/internal/maintoolbarmodel.h"
 
 #ifdef Q_OS_MAC
@@ -83,10 +82,6 @@ static void appshell_init_qrc()
     Q_INIT_RESOURCE(appshell);
 }
 
-AppShellModule::AppShellModule()
-{
-}
-
 std::string AppShellModule::moduleName() const
 {
     return "appshell";
@@ -106,7 +101,6 @@ void AppShellModule::registerExports()
 
     ioc()->registerExport<IAppShellConfiguration>(moduleName(), m_appShellConfiguration);
     ioc()->registerExport<IAppShellHiddenConfiguration>(moduleName(), m_appShellHiddenConfiguration); // KRASKO
-    ioc()->registerExport<IApplicationActionController>(moduleName(), m_applicationActionController);
     ioc()->registerExport<IStartupScenario>(moduleName(), new StartupScenario());
     ioc()->registerExport<ISessionsManager>(moduleName(), m_sessionsManager);
 
@@ -181,8 +175,6 @@ void AppShellModule::registerUiTypes()
     qmlRegisterType<FramelessWindowModel>("MuseScore.AppShell", 1, 0, "FramelessWindowModel");
     qmlRegisterType<PublishToolBarModel>("MuseScore.AppShell", 1, 0, "PublishToolBarModel");
     qmlRegisterType<MainToolBarModel>("MuseScore.AppShell", 1, 0, "MainToolBarModel");
-
-    qmlRegisterType<WindowDropArea>("Muse.Ui", 1, 0, "WindowDropArea");
 }
 
 void AppShellModule::onPreInit(const IApplication::RunMode& mode)

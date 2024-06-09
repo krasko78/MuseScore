@@ -24,8 +24,6 @@
 
 #include <QObject>
 
-#include "../iapplicationactioncontroller.h"
-
 #include "modularity/ioc.h"
 #include "actions/actionable.h"
 #include "actions/iactionsdispatcher.h"
@@ -42,20 +40,19 @@
 #include "iapplication.h"
 
 namespace mu::appshell {
-class ApplicationActionController : public QObject, public IApplicationActionController, public muse::actions::Actionable,
-    public muse::async::Asyncable
+class ApplicationActionController : public QObject, public muse::actions::Actionable, public muse::async::Asyncable
 {
-    INJECT(muse::actions::IActionsDispatcher, dispatcher)
-    INJECT(muse::ui::IUiActionsRegister, actionsRegister)
-    INJECT(muse::ui::IMainWindow, mainWindow)
-    INJECT(muse::languages::ILanguagesService, languagesService)
-    INJECT(muse::IInteractive, interactive)
-    INJECT(IAppShellConfiguration, configuration)
-    INJECT(muse::mi::IMultiInstancesProvider, multiInstancesProvider)
-    INJECT(project::IProjectFilesController, projectFilesController)
-    INJECT(muse::audio::ISoundFontRepository, soundFontRepository)
-    INJECT(IStartupScenario, startupScenario)
-    INJECT(muse::IApplication, application)
+    muse::Inject<muse::actions::IActionsDispatcher> dispatcher;
+    muse::Inject<muse::ui::IUiActionsRegister> actionsRegister;
+    muse::Inject<muse::ui::IMainWindow> mainWindow;
+    muse::Inject<muse::languages::ILanguagesService> languagesService;
+    muse::Inject<muse::IInteractive> interactive;
+    muse::Inject<IAppShellConfiguration> configuration;
+    muse::Inject<muse::mi::IMultiInstancesProvider> multiInstancesProvider;
+    muse::Inject<project::IProjectFilesController> projectFilesController;
+    muse::Inject<muse::audio::ISoundFontRepository> soundFontRepository;
+    muse::Inject<IStartupScenario> startupScenario;
+    muse::Inject<muse::IApplication> application;
 
 public:
     void preInit();
@@ -63,12 +60,11 @@ public:
 
     muse::ValCh<bool> isFullScreen() const;
 
-    void onDragEnterEvent(QDragEnterEvent* event) override;
-    void onDragMoveEvent(QDragMoveEvent* event) override;
-    void onDropEvent(QDropEvent* event) override;
-
 private:
     bool eventFilter(QObject* watched, QEvent* event) override;
+    bool onDragEnterEvent(QDragEnterEvent* event);
+    bool onDragMoveEvent(QDragMoveEvent* event);
+    bool onDropEvent(QDropEvent* event);
 
     void setupConnections();
 

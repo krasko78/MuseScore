@@ -241,13 +241,19 @@ EngravingItem* ChordRest::drop(EditData& data)
         }
     // fall through
     case ElementType::TEMPO_TEXT:
-    case ElementType::DYNAMIC:
     case ElementType::EXPRESSION:
     case ElementType::FRET_DIAGRAM:
     case ElementType::TREMOLOBAR:
     case ElementType::SYMBOL:
     case ElementType::IMAGE:
         e->setTrack(track());
+        e->setParent(segment());
+        score()->undoAddElement(e);
+        return e;
+
+    case ElementType::DYNAMIC:
+        e->setTrack(track());
+        e->checkVoiceApplicationCompatibleWithTrack();
         e->setParent(segment());
         score()->undoAddElement(e);
         return e;
@@ -659,12 +665,12 @@ Slur* ChordRest::slur(const ChordRest* secondChordRest) const
 void ChordRest::undoChangeProperty(Pid id, const PropertyValue& newValue, PropertyFlags ps)
 {
     if (id == Pid::BEAM_MODE) {
-        if (ticks() > Fraction(1, 8)) {
+        if (m_durationType.hooks() == 0) {
             return;
         }
         BeamMode newBeamMode = newValue.value<BeamMode>();
-        if ((newBeamMode == BeamMode::BEGIN16 && ticks() > Fraction(1, 16))
-            || (newBeamMode == BeamMode::BEGIN32 && ticks() > Fraction(1, 32))) {
+        if ((newBeamMode == BeamMode::BEGIN16 && m_durationType.hooks() < 2)
+            || (newBeamMode == BeamMode::BEGIN32 && m_durationType.hooks() < 3)) {
             return;
         }
     }

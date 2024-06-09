@@ -113,6 +113,11 @@ const MStyle& ReadContext::style() const
     return score()->style();
 }
 
+std::shared_ptr<IEngravingFontsProvider> ReadContext::engravingFonts() const
+{
+    return score()->engravingFonts();
+}
+
 String ReadContext::mscoreVersion() const
 {
     return m_score->mscoreVersion();
@@ -136,6 +141,11 @@ int ReadContext::fileDivision(int t) const
 double ReadContext::spatium() const
 {
     return m_score->style().spatium();
+}
+
+void ReadContext::setSpatium(double v)
+{
+    m_score->style().set(Sid::spatium, v);
 }
 
 compat::DummyElement* ReadContext::dummy() const

@@ -1253,6 +1253,13 @@ bool Segment::hasElements(track_idx_t minTrack, track_idx_t maxTrack) const
     return false;
 }
 
+bool Segment::hasElements(staff_idx_t staffIdx) const
+{
+    track_idx_t startTrack = staffIdx * VOICES;
+    track_idx_t endTrack = startTrack + VOICES - 1;
+    return hasElements(startTrack, endTrack);
+}
+
 //---------------------------------------------------------
 //   allElementsInvisible
 ///  return true if all elements in the segment are invisible
@@ -1437,7 +1444,7 @@ RectF Segment::contentRect() const
 //   segment, or a barline if it spanns in the staff
 //---------------------------------------------------------
 
-EngravingItem* Segment::firstElement(staff_idx_t staff)
+EngravingItem* Segment::firstElementForNavigation(staff_idx_t staff)
 {
     if (isChordRestType()) {
         track_idx_t strack = staff * VOICES;
@@ -1461,7 +1468,7 @@ EngravingItem* Segment::firstElement(staff_idx_t staff)
 //   segment, or a barline if it spanns in the staff
 //---------------------------------------------------------
 
-EngravingItem* Segment::lastElement(staff_idx_t staff)
+EngravingItem* Segment::lastElementForNavigation(staff_idx_t staff)
 {
     if (segmentType() == SegmentType::ChordRest) {
         for (int voice = static_cast<int>(staff * VOICES + (VOICES - 1)); voice / static_cast<int>(VOICES) == static_cast<int>(staff);
@@ -1496,7 +1503,7 @@ EngravingItem* Segment::getElement(staff_idx_t staff)
 {
     segmentType();
     if (segmentType() == SegmentType::ChordRest) {
-        return firstElement(staff);
+        return firstElementForNavigation(staff);
     } else if (segmentType() & (SegmentType::EndBarLine | SegmentType::BarLine | SegmentType::StartRepeatBarLine)) {
         for (int i = static_cast<int>(staff); i >= 0; i--) {
             if (!element(i * VOICES)) {
@@ -1610,7 +1617,7 @@ EngravingItem* Segment::firstInNextSegments(staff_idx_t activeStaff)
             break;
         }
 
-        re = seg->firstElement(activeStaff);
+        re = seg->firstElementForNavigation(activeStaff);
     }
 
     if (re) {
@@ -2244,6 +2251,18 @@ EngravingItem* Segment::prevElement(staff_idx_t activeStaff)
     }
 }
 
+EngravingItem* Segment::firstElement(staff_idx_t staffIdx) const
+{
+    track_idx_t startTrack = staffIdx * VOICES;
+    track_idx_t endTrack = startTrack + VOICES;
+    for (track_idx_t track =  startTrack; track < endTrack; ++track) {
+        if (EngravingItem* item = m_elist[track]) {
+            return item;
+        }
+    }
+    return nullptr;
+}
+
 //--------------------------------------------------------
 //   lastInPrevSegments
 //   Searches for the previous segment that has elements on
@@ -2282,7 +2301,7 @@ EngravingItem* Segment::lastInPrevSegments(staff_idx_t activeStaff)
             //if (seg->segmentType() == SegmentType::EndBarLine)
             //      score()->inputState().setTrack((activeStaff - 1) * VOICES ); //correction
 
-            if ((re = seg->lastElement(activeStaff - 1)) != 0) {
+            if ((re = seg->lastElementForNavigation(activeStaff - 1)) != 0) {
                 return re;
             }
 
@@ -2540,16 +2559,17 @@ double Segment::spacing() const
     return m_spacing;
 }
 
-bool Segment::canWriteSpannerStartEnd(track_idx_t track) const
+bool Segment::canWriteSpannerStartEnd(track_idx_t track, const Spanner* spanner) const
 {
-    if (isChordRestType() && elementAt(track)) {
+    staff_idx_t staffIdx = track2staff(track);
+    if (isChordRestType() && (elementAt(track) || (!spanner->isVoiceSpecific() && hasElements(staffIdx)))) {
         return true;
     }
 
     if (isTimeTickType()) {
         Segment* crSegAtSameTick
             = score()->tick2segment(tick(), true, SegmentType::ChordRest, style().styleB(Sid::createMultiMeasureRests));
-        if (!crSegAtSameTick || !crSegAtSameTick->elementAt(track)) {
+        if (!crSegAtSameTick || !crSegAtSameTick->canWriteSpannerStartEnd(track, spanner)) {
             return true;
         }
     }
@@ -2568,18 +2588,18 @@ double Segment::elementsTopOffsetFromSkyline(staff_idx_t staffIndex) const
 
     SkylineLine north = staffSystem->skyline().north();
     int topOffset = INT_MAX;
-    for (SkylineSegment segment: north) {
+    for (const ShapeElement& element : north.elements()) {
         Segment* seg = prev1enabled();
         if (!seg) {
             continue;
         }
-        bool ok = seg->pagePos().x() <= segment.x && segment.x <= pagePos().x();
+        bool ok = seg->pagePos().x() <= element.left() && element.left() <= pagePos().x();
         if (!ok) {
             continue;
         }
 
-        if (segment.y < topOffset) {
-            topOffset = segment.y;
+        if (element.top() < topOffset) {
+            topOffset = element.top();
         }
     }
 
@@ -2601,18 +2621,18 @@ double Segment::elementsBottomOffsetFromSkyline(staff_idx_t staffIndex) const
 
     SkylineLine south = staffSystem->skyline().south();
     int bottomOffset = INT_MIN;
-    for (SkylineSegment segment: south) {
+    for (const ShapeElement& element : south.elements()) {
         Segment* seg = prev1enabled();
         if (!seg) {
             continue;
         }
-        bool ok = seg->pagePos().x() <= segment.x && segment.x <= pagePos().x();
+        bool ok = seg->pagePos().x() <= element.left() && element.left() <= pagePos().x();
         if (!ok) {
             continue;
         }
 
-        if (segment.y > bottomOffset) {
-            bottomOffset = segment.y;
+        if (element.bottom() > bottomOffset) {
+            bottomOffset = element.bottom();
         }
     }
 
@@ -2786,12 +2806,12 @@ double Segment::computeDurationStretch(const Segment* prevSeg, Fraction minTicks
         static constexpr double maxRatio = 32.0;
         double dMinTicks = minTicks.toDouble();
         double dMaxTicks = maxTicks.toDouble();
-        double maxSysRatio = dMaxTicks / dMinTicks;
         if (muse::RealIsEqualOrMore(dMaxTicks / dMinTicks, 2.0) && dMinTicks < longNoteThreshold) {
             /* HACK: we trick the system to ignore the shortest note and use the "next"
              * shortest. For example, if the shortest is a 32nd, we make it a 16th. */
             dMinTicks *= 2.0;
         }
+        double maxSysRatio = dMaxTicks / dMinTicks;
         double ratio = curTicks.toDouble() / dMinTicks;
         if (maxSysRatio > maxRatio) {
             double A = (dMinTicks * (maxRatio - 1)) / (dMaxTicks - dMinTicks);

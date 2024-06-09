@@ -42,6 +42,7 @@ class EditDrumsetDialog : public QDialog, private Ui::EditDrumsetDialog
 {
     Q_OBJECT
 
+public:
     INJECT(muse::IInteractive, interactive)
     INJECT(context::IGlobalContext, globalContext)
     INJECT(notation::INotationConfiguration, notationConfiguration)
@@ -50,9 +51,6 @@ class EditDrumsetDialog : public QDialog, private Ui::EditDrumsetDialog
 
 public:
     EditDrumsetDialog(QWidget* parent = nullptr);
-#ifdef MU_QT5_COMPAT
-    EditDrumsetDialog(const EditDrumsetDialog& other);
-#endif
 
 private slots:
     void bboxClicked(QAbstractButton* button);

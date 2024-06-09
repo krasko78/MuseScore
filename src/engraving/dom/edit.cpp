@@ -254,9 +254,9 @@ Tuplet* Score::addTuplet(ChordRest* destinationChordRest, Fraction ratio, Tuplet
 
     Fraction fr = f * Fraction(1, _ratio.denominator());
     if (!TDuration::isValid(fr)) {
-        MessageBox::warning(muse::mtrc("engraving", "Cannot create tuplet with ratio %1 for duration %2")
-                            .arg(_ratio.toString(), f.toString()).toStdString(),
-                            std::string(), { MessageBox::Ok });
+        MessageBox(iocContext()).warning(muse::mtrc("engraving", "Cannot create tuplet with ratio %1 for duration %2")
+                                         .arg(_ratio.toString(), f.toString()).toStdString(),
+                                         std::string(), { MessageBox::Ok });
         return nullptr;
     }
 
@@ -370,6 +370,7 @@ Chord* Score::addChord(const Fraction& tick, TDuration d, Chord* oc, bool genTie
     chord->setTrack(oc->track());
     chord->setDurationType(d);
     chord->setTicks(d.fraction());
+    chord->setStemDirection(oc->stemDirection());
 
     for (Note* n : oc->notes()) {
         Note* nn = Factory::createNote(chord);
@@ -2239,10 +2240,20 @@ void Score::cmdFlip()
         }
 
         if (e->isBeam()) {
-            auto beam = toBeam(e);
+            Beam* beam = toBeam(e);
             flipOnce(beam, [beam]() {
-                DirectionV dir = beam->up() ? DirectionV::DOWN : DirectionV::UP;
-                beam->undoChangeProperty(Pid::STEM_DIRECTION, dir);
+                if (beam->cross()) {
+                    int newCrossStaffMove = beam->crossStaffMove() + 1;
+                    if (beam->acceptCrossStaffMove(newCrossStaffMove)) {
+                        beam->undoChangeProperty(Pid::BEAM_CROSS_STAFF_MOVE, newCrossStaffMove);
+                    } else {
+                        beam->undoChangeProperty(Pid::BEAM_CROSS_STAFF_MOVE,
+                                                 beam->minCRMove() - beam->defaultCrossStaffIdx());
+                    }
+                } else {
+                    DirectionV dir = beam->up() ? DirectionV::DOWN : DirectionV::UP;
+                    beam->undoChangeProperty(Pid::STEM_DIRECTION, dir);
+                }
             });
         } else if (e->isType(ElementType::TREMOLO_TWOCHORD)) {
             TremoloTwoChord* tremolo = item_cast<TremoloTwoChord*>(e);
@@ -2390,9 +2401,21 @@ void Score::deleteItem(EngravingItem* el)
     if (!el) {
         return;
     }
-    // cannot remove generated elements
-    if (el->generated() && !(el->isBracket() || el->isBarLine() || el->isClef() || el->isMeasureNumber() || el->isKeySig())) {
-        return;
+
+    if (el->generated()) {
+        switch (el->type()) {
+        // These types can be removed, even if generated
+        case ElementType::BAR_LINE:
+        case ElementType::BRACKET:
+        case ElementType::CLEF:
+        case ElementType::INSTRUMENT_NAME:
+        case ElementType::KEYSIG:
+        case ElementType::MEASURE_NUMBER:
+            break;
+        // All other types cannot be removed if generated
+        default:
+            return;
+        }
     }
 //      LOGD("%s", el->typeName());
 
@@ -3334,10 +3357,9 @@ std::vector<ChordRest*> Score::deleteRange(Segment* s1, Segment* s2, track_idx_t
                 if (!s->isChordRestType()) {
                     // do not delete TimeSig/KeySig,
                     // it doesn't make sense to do it, except on full system
-                    if (s->segmentType() != SegmentType::TimeSig && s->segmentType() != SegmentType::KeySig) {
-                        if (!(e->isBarLine())) {
-                            undoRemoveElement(e);
-                        }
+                    if (!s->isTimeTickType() && !s->isTimeSigType() && !s->isKeySigType()
+                        && !s->isType(SegmentType::BarLineType) /*covers all barLine types*/) {
+                        undoRemoveElement(e);
                     }
                     continue;
                 }
@@ -3910,8 +3932,9 @@ void Score::removeChordRest(ChordRest* cr, bool clearSegment)
     std::set<Segment*> segments;
     for (EngravingObject* e : cr->linkList()) {
         if (cr->isChord()) {
-            for (Spanner* spanner : toChord(e)->startingSpanners()) {
-                if (spanner->isTrill()) {
+            std::set<Spanner*> startingSpanners = toChord(e)->startingSpanners();
+            for (Spanner* spanner : startingSpanners) {
+                if (spanner->isTrill() || spanner->isSlur()) {
                     doUndoRemoveElement(spanner);
                 }
             }

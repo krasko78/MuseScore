@@ -170,6 +170,17 @@ bool PlaybackModel::isChordSymbolsTrack(const InstrumentTrackId& trackId) const
     return trackId == chordSymbolsTrackId(trackId.partId);
 }
 
+bool PlaybackModel::hasSoundFlags() const
+{
+    for (auto& it: m_playbackCtxMap) {
+        if (it.second.hasSoundFlags()) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool PlaybackModel::hasSoundFlags(const InstrumentTrackId& trackId) const
 {
     auto search = m_playbackCtxMap.find(trackId);
@@ -580,6 +591,7 @@ bool PlaybackModel::hasToReloadScore(const ScoreChangesRange& changesRange) cons
         ElementType::SYSTEM_TEXT,
         ElementType::JUMP,
         ElementType::MARKER,
+        ElementType::BREATH,
     };
 
     for (const ElementType type : REQUIRED_TYPES) {
@@ -733,10 +745,13 @@ void PlaybackModel::clearExpiredEvents(const int tickFrom, const int tickTo, con
                     continue;
                 }
 
+                //! NOTE: the end tick of the current segment == the start tick of the next segment,
+                //! so subtract 1 to avoid removing events belonging to the next segment
                 timestamp_t segmentStartTime = timestampFromTicks(m_score, segmentStartTick + tickPositionOffset);
+                timestamp_t segmentEndTime = timestampFromTicks(m_score, segmentEndTick - 1 + tickPositionOffset);
 
                 removeEventsFrom = std::min(removeEventsFrom, segmentStartTime);
-                removeEventsTo = std::max(removeEventsTo, segmentStartTime);
+                removeEventsTo = std::max(removeEventsTo, segmentEndTime);
             }
         }
 
@@ -876,6 +891,13 @@ PlaybackModel::TickBoundaries PlaybackModel::tickBoundaries(const ScoreChangesRa
 
             result.tickFrom = std::min(result.tickFrom, firstTiedNote->tick().ticks());
             result.tickTo = std::max(result.tickTo, lastTiedNote->tick().ticks());
+        }
+        if (item->parent() && item->parent()->isChord()) {
+            for (Spanner* spanner : toChord(item->parent())->startingSpanners()) {
+                if (spanner->isTrill() && result.tickTo < spanner->tick2().ticks()) {
+                    result.tickTo = spanner->tick2().ticks();
+                }
+            }
         }
     }
 

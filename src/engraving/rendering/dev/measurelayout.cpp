@@ -288,7 +288,7 @@ void MeasureLayout::createMMRest(LayoutContext& ctx, Measure* firstMeasure, Meas
     ElementList oldList = mmrMeasure->takeElements();
     ElementList newList = lastMeasure->el();
     for (EngravingItem* e : firstMeasure->el()) {
-        if (e->isMarker()) {
+        if (e->isMarker() && firstMeasure != lastMeasure) {
             newList.push_back(e);
         }
     }
@@ -796,6 +796,9 @@ void MeasureLayout::createMultiMeasureRestsIfNeed(MeasureBase* currentMB, Layout
             }
             firstMeasure->setMMRestCount(0);
             ctx.mutState().setMeasureNo(mno);
+            if (lastMeasure->endTick() > ctx.state().endTick()) {
+                ctx.mutState().setEndTick(lastMeasure->endTick());
+            }
         }
     } else if (firstMeasure->isMMRest()) {
         LOGD("mmrest: no %d += %d", ctx.state().measureNo(), firstMeasure->mmRestCount());
@@ -1731,7 +1734,8 @@ void MeasureLayout::addSystemHeader(Measure* m, bool isFirstSystem, LayoutContex
                 if (isFirstClef && searchMeasure->tick() >= clefTick) {
                     // Need to check previous measure for clef change if one not found in this measure
                     Segment* clefSeg = searchMeasure->findFirstR(SegmentType::Clef | SegmentType::HeaderClef, Fraction(0, 0));
-                    if (Measure* prevMeas = searchMeasure->prevMeasure(); !clefSeg) {
+                    Measure* prevMeas = searchMeasure->prevMeasure();
+                    if (prevMeas && !clefSeg) {
                         clefSeg = prevMeas->findSegment(SegmentType::Clef, m->tick());
                     }
                     if (clefSeg && clefSeg->enabled()) {
@@ -2148,26 +2152,6 @@ void MeasureLayout::computeWidth(Measure* m, LayoutContext& ctx, Fraction minTic
         return;
     }
     double x = 0.0;
-    bool first = m->isFirstInSystem();
-
-    // left barriere:
-    //    Make sure no elements crosses the left boarder if first measure in a system.
-    //
-    Shape ls(first ? RectF(0.0, -DBL_MAX, 0.0, DBL_MAX) : RectF(0.0, 0.0, 0.0, m->spatium() * 4));
-
-    x = HorizontalSpacing::minLeft(s, ls);
-
-    if (s->isStartRepeatBarLineType()) {
-        System* sys = m->system();
-        MeasureBase* pmb = m->prev();
-        if (pmb && pmb->isMeasure() && pmb->system() == sys && pmb->repeatEnd()) {
-            Segment* seg = toMeasure(pmb)->last();
-            // overlap end repeat barline with start repeat barline
-            if (seg->isEndBarLineType()) {
-                x -= ctx.conf().styleMM(Sid::endBarWidth) * m->mag();
-            }
-        }
-    }
 
     ChordLayout::updateGraceNotes(m, ctx);
 
@@ -2448,7 +2432,7 @@ void MeasureLayout::layoutPartialWidth(StaffLines* lines, LayoutContext& ctx, do
         lines->mutldata()->setPosY(st->yoffset().val() * _spatium);
     } else {
         _lines = 5;
-        lines->setColor(EngravingItem::engravingConfiguration()->defaultColor());
+        lines->setColor(lines->configuration()->defaultColor());
     }
     lines->setLw(ctx.conf().styleS(Sid::staffLineWidth).val() * _spatium);
     double x1 = lines->pos().x();

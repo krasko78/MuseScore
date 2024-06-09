@@ -33,15 +33,16 @@
 #include "actions/iactionsdispatcher.h"
 
 namespace muse::uicomponents {
-class AbstractMenuModel : public QAbstractListModel, public async::Asyncable
+class AbstractMenuModel : public QAbstractListModel, public muse::Injectable, public async::Asyncable
 {
     Q_OBJECT
 
-    INJECT(ui::IUiActionsRegister, uiActionsRegister)
-    INJECT(muse::actions::IActionsDispatcher, dispatcher)
-
     Q_PROPERTY(int length READ rowCount NOTIFY itemsChanged)
     Q_PROPERTY(QVariantList items READ itemsProperty NOTIFY itemsChanged)
+
+public:
+    muse::Inject<ui::IUiActionsRegister> uiActionsRegister = { this };
+    muse::Inject<muse::actions::IActionsDispatcher> dispatcher = { this };
 
 public:
     explicit AbstractMenuModel(QObject* parent = nullptr);

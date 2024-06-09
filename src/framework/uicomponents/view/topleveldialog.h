@@ -29,15 +29,13 @@
 #include "ui/imainwindow.h"
 
 namespace muse::uicomponents {
-class TopLevelDialog : public QDialog
+class TopLevelDialog : public QDialog, public muse::Injectable
 {
-    INJECT(ui::IMainWindow, mainWindow)
+public:
+    muse::Inject<ui::IMainWindow> mainWindow = { this };
 
 public:
     explicit TopLevelDialog(QWidget* parent = nullptr);
-#ifdef MU_QT5_COMPAT
-    TopLevelDialog(const TopLevelDialog& dialog);
-#endif
 
 protected:
     bool event(QEvent* e) override;

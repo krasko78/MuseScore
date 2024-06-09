@@ -65,7 +65,7 @@ public:
     Q_ENUM(Role)
 };
 
-class AccessibleItem : public QObject, public QQmlParserStatus, public muse::accessibility::IAccessible
+class AccessibleItem : public QObject, public QQmlParserStatus, public accessibility::IAccessible, public Injectable
 {
     Q_OBJECT
 
@@ -94,7 +94,7 @@ class AccessibleItem : public QObject, public QQmlParserStatus, public muse::acc
 
     Q_INTERFACES(QQmlParserStatus)
 
-    INJECT(muse::accessibility::IAccessibilityController, accessibilityController)
+    Inject<accessibility::IAccessibilityController> accessibilityController = { this };
 
 public:
     STATE_PROPERTY(enabled, State::Enabled)
@@ -110,6 +110,7 @@ public:
     size_t accessibleChildCount() const override;
     const IAccessible* accessibleChild(size_t i) const override;
     QWindow* accessibleWindow() const override;
+    muse::modularity::ContextPtr iocContext() const override;
 
     IAccessible::Role accessibleRole() const override;
     QString accessibleName() const override;

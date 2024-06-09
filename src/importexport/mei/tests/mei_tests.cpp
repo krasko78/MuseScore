@@ -195,6 +195,10 @@ TEST_F(Mei_Tests, mei_label_01) {
     meiReadTest("label-01");
 }
 
+TEST_F(Mei_Tests, laissez_vibrer_01) {
+    meiReadTest("laissez-vibrer-01");
+}
+
 TEST_F(Mei_Tests, mei_lyric_01) {
     meiReadTest("lyric-01");
 }
@@ -217,6 +221,10 @@ TEST_F(Mei_Tests, mei_measure_01) {
 
 TEST_F(Mei_Tests, mei_measure_02) {
     meiReadTest("measure-02");
+}
+
+TEST_F(Mei_Tests, mei_mrpt_01) {
+    meiReadTest("measure-repeat-01");
 }
 
 TEST_F(Mei_Tests, mei_metadata_01) {
@@ -245,6 +253,10 @@ TEST_F(Mei_Tests, mei_page_head_02) {
 
 TEST_F(Mei_Tests, mei_pedal_01) {
     meiReadTest("pedal-01");
+}
+
+TEST_F(Mei_Tests, mei_reh_01) {
+    meiReadTest("reh-01");
 }
 
 TEST_F(Mei_Tests, mei_roman_numeral_01) {

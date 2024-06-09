@@ -68,12 +68,14 @@ struct TextStyleMap {
     TextStyleType ss;
 };
 
-class ReadContext
+class ReadContext : public muse::Injectable
 {
-    INJECT(IEngravingFontsProvider, engravingFonts)
+public:
+    muse::Inject<IEngravingFontsProvider> engravingFonts = { this };
+
 public:
 
-    ReadContext() = default;
+    ReadContext(const muse::modularity::ContextPtr& iocCtx);
     ReadContext(Score* score);
     ~ReadContext();
 
@@ -97,6 +99,11 @@ public:
     int fileDivision(int t) const;
 
     double spatium() const;
+    void setSpatium(double v);
+    double originalSpatium() const { return m_originalSpatium; }
+    void setOriginalSpatium(double v) { m_originalSpatium = v; }
+    bool overrideSpatium() const { return m_overrideSpatium; }
+    void setOverrideSpatium(bool v) { m_overrideSpatium = v; }
 
     compat::DummyElement* dummy() const;
 
@@ -236,6 +243,8 @@ private:
     SettingsCompat _settingsCompat;
 
     TimeSigMap m_compatTimeSigMap;
+    bool m_overrideSpatium = false;
+    double m_originalSpatium = 0;
 };
 }
 
