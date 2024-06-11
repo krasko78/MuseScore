@@ -29,11 +29,6 @@ static const std::string module_name_appshell_2("appshell_2");
 
 // ------------------------------------------------------------------------------------------------------------------------
 
-static const Settings::Key FIX_LOST_TRILL_COLOR_ON_SCORE_OPEN(module_name_appshell_2,
-    "krasko/FixLostTrillColorOnScoreOpen");
-        //  When true, will fix an issue where a trill color (and possibly other elements' color) is not respected
-        //  after a score is opened. The color is saved properly though and appears in the Properties panel. Default: true.
-
 static const Settings::Key FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE(module_name_appshell_2,
     "krasko/FixNonWorkingLeadingSpaceOnClefChange");
         //  When true, will make MuseScore respect the leading space on a clef added to indicate a clef change.
@@ -123,7 +118,6 @@ static const Settings::Key FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING(module_name_
 
 void AppShellHiddenConfiguration::init()
 {
-    settings()->setDefaultValue(FIX_LOST_TRILL_COLOR_ON_SCORE_OPEN, Val(true));
     settings()->setDefaultValue(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE, Val(true));
 
     settings()->setDefaultValue(AUTO_RESTORE_SESSION_AFTER_CRASH, Val(true));
@@ -165,9 +159,6 @@ void AppShellHiddenConfiguration::setDouble(const Settings::Key& key, const doub
 
 
 // ------------------------------------------------------------------------------------------------------------------------
-
-bool AppShellHiddenConfiguration::fixLostTrillColorOnScoreOpen() const { return getBool(FIX_LOST_TRILL_COLOR_ON_SCORE_OPEN); }
-void AppShellHiddenConfiguration::setFixLostTrillColorOnScoreOpen(bool value) { setBool(FIX_LOST_TRILL_COLOR_ON_SCORE_OPEN, value); }
 
 bool AppShellHiddenConfiguration::fixNonWorkingLeadingSpaceOnClefChange() const { return getBool(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE); }
 void AppShellHiddenConfiguration::setFixNonWorkingLeadingSpaceOnClefChange(bool value) { setBool(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE, value); }

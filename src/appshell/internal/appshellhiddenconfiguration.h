@@ -25,6 +25,8 @@
 #include <settings.h>
 #include "iappshellhiddenconfiguration.h"
 
+using namespace muse;
+
 namespace mu::appshell {
 class AppShellHiddenConfiguration : public IAppShellHiddenConfiguration
 {
@@ -33,9 +35,6 @@ public:
 
 
     // ------------------------------------------------------------------------------------------------------------------------
-
-    bool fixLostTrillColorOnScoreOpen() const override;
-    void setFixLostTrillColorOnScoreOpen(bool value) override;
 
     bool fixNonWorkingLeadingSpaceOnClefChange() const override;
     void setFixNonWorkingLeadingSpaceOnClefChange(bool value) override;

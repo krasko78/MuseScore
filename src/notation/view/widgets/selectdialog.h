@@ -42,7 +42,7 @@ class SelectDialog : public QDialog, Ui::SelectDialog, public muse::Injectable
     Q_OBJECT
 
     muse::Inject<context::IGlobalContext> globalContext = { this };
-    muse::Inject(appshell::IAppShellHiddenConfiguration, appshellHiddenConfiguration) // KRASKO
+    muse::Inject<appshell::IAppShellHiddenConfiguration> appshellHiddenConfiguration; // KRASKO
 
 public:
     SelectDialog(QWidget* parent = nullptr);

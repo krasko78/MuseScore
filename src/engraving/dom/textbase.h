@@ -245,7 +245,7 @@ public:
 
 class TextBlock
 {
-    INJECT(appshell::IAppShellHiddenConfiguration, appshellHiddenConfiguration) // KRASKO
+    INJECT_STATIC(appshell::IAppShellHiddenConfiguration, appshellHiddenConfiguration) // KRASKO
 
 public:
     TextBlock() = default;
