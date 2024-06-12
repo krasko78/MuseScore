@@ -37,17 +37,6 @@ using namespace mu;
 using namespace muse::draw;
 
 namespace mu::engraving {
-static const double MAXIMUM_Y = 1000000.0;
-static const double MINIMUM_Y = -1000000.0;
-
-// #define SKL_DEBUG
-
-#ifdef SKL_DEBUG
-#define DP(...)   printf(__VA_ARGS__)
-#else
-#define DP(...)
-#endif
-
 void Skyline::add(const ShapeElement& r)
 {
     if (r.ignoreForLayout()) {
@@ -109,8 +98,28 @@ void SkylineLine::add(const Shape& s)
     }
 }
 
+SkylineLine SkylineLine::getFilteredCopy(std::function<bool(const ShapeElement&)> filterOut) const
+{
+    SkylineLine newSkylineLine(*this);
+
+    newSkylineLine.m_shape.clear();
+
+    for (const ShapeElement& shapeEl : m_shape.elements()) {
+        if (filterOut(shapeEl)) {
+            continue;
+        }
+        newSkylineLine.m_shape.add(shapeEl);
+    }
+
+    return newSkylineLine;
+}
+
 void SkylineLine::add(const ShapeElement& r)
 {
+    if (r.ignoreForLayout()) {
+        return;
+    }
+
     double x = r.x();
     double top = r.top();
     double bottom = r.bottom();
@@ -186,14 +195,34 @@ void SkylineLine::clear()
 //    Calculates the minimum distance between two skylines
 //-------------------------------------------------------------------
 
-double Skyline::minDistance(const Skyline& s) const
+double Skyline::minDistance(const Skyline& s, double minHorizontalClearance) const
 {
-    return south().minDistance(s.north());
+    return south().minDistance(s.north(), minHorizontalClearance);
 }
 
-double SkylineLine::minDistance(const SkylineLine& sl) const
+double SkylineLine::minDistance(const SkylineLine& sl, double minHorizontalClearance) const
 {
-    return m_shape.minVerticalDistance(sl.m_shape);
+    return m_shape.minVerticalDistance(sl.m_shape, minHorizontalClearance);
+}
+
+double SkylineLine::minDistanceToShapeAbove(const Shape& shapeAbove, double minHorizontalClearance) const
+{
+    return shapeAbove.minVerticalDistance(m_shape, minHorizontalClearance);
+}
+
+double SkylineLine::minDistanceToShapeBelow(const Shape& shapeBelow, double minHorizontalClearance) const
+{
+    return m_shape.minVerticalDistance(shapeBelow, minHorizontalClearance);
+}
+
+double SkylineLine::verticalClearanceAbove(const Shape& shapeAbove) const
+{
+    return shapeAbove.verticalClearance(m_shape);
+}
+
+double SkylineLine::verticalClaranceBelow(const Shape& shapeBelow) const
+{
+    return m_shape.verticalClearance(shapeBelow);
 }
 
 void Skyline::paint(Painter& painter, double lineWidth) const // DEBUG only
@@ -234,6 +263,12 @@ void Skyline::paint(Painter& painter, double lineWidth) const // DEBUG only
 bool SkylineLine::valid() const
 {
     return !m_shape.empty();
+}
+
+SkylineLine& SkylineLine::translateY(double y)
+{
+    m_shape.translateY(y);
+    return *this;
 }
 
 double SkylineLine::top(double startX, double endX)

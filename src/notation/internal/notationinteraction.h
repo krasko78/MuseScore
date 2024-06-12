@@ -309,6 +309,9 @@ private:
     void doEndEditElement();
     void doEndDrag();
 
+    bool doDropStandard();
+    bool doDropTextBaseAndSymbols(const PointF& pos, bool applyUserOffset);
+
     void onElementDestroyed(EngravingItem* element);
 
     void doSelect(const std::vector<EngravingItem*>& elements, SelectType type, engraving::staff_idx_t staffIndex = 0);
@@ -339,7 +342,7 @@ private:
     void startEditText(mu::engraving::TextBase* text);
     bool needEndTextEdit() const;
 
-    mu::engraving::Page* point2page(const muse::PointF& p) const;
+    mu::engraving::Page* point2page(const muse::PointF& p, bool useNearestPage = false) const;
     std::vector<EngravingItem*> hitElements(const muse::PointF& p_in, float w) const;
     std::vector<EngravingItem*> elementsAt(const muse::PointF& p) const;
     EngravingItem* elementAt(const muse::PointF& p) const;
@@ -360,6 +363,7 @@ private:
     void moveStringSelection(MoveDirection d);
 
     EngravingItem* dropTarget(mu::engraving::EditData& ed) const;
+    bool dragStandardElement(const muse::PointF& pos, Qt::KeyboardModifiers modifiers);
     bool dragMeasureAnchorElement(const muse::PointF& pos);
     bool dragTimeAnchorElement(const muse::PointF& pos);
     bool dropCanvas(EngravingItem* e);
@@ -440,6 +444,9 @@ private:
     muse::async::Notification m_dropChanged;
 
     muse::async::Channel<ScoreConfigType> m_scoreConfigChanged;
+
+    engraving::BspTree m_droppableTree;
+    Page* m_currentDropPage = nullptr;
 
     mu::engraving::Lasso* m_lasso = nullptr;
 
