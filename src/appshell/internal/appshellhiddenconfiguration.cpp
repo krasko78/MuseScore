@@ -234,6 +234,12 @@ bool AppShellHiddenConfiguration::textObjectShouldUseFontHeight(std::string text
     if (((pos = value.find(", " + textStyle)) != std::string::npos) && (pos == (value.length() - textStyle.length() - 2)))
         return true;
 
+    if (value.find("," + textStyle + ",") != std::string::npos)
+        return true;
+
+    if (value.find(", " + textStyle + ",") != std::string::npos)
+        return true;
+
     return false;
 }
 void AppShellHiddenConfiguration::setTextObjectsToUseFontHeight(std::string value) { setString(TEXT_OBJECTS_TO_USE_FONT_HEIGHT, value); }
