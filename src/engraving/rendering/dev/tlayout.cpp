@@ -2493,7 +2493,7 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                         }
                     }
                     if (appshellHiddenConfiguration()->beamedNotesFingeringWillRespectMinDistanceToStaff()) {
-                        bottom = std::max(vStaff->staffHeight(), bottom);
+                        bottom = std::max(vStaff->staffHeight(item->tick()), bottom);
                     } // KRASKO: {END}
                     bottom += md;
                     double diff = bottom - (ldata->bbox().top() + ldata->pos().y() + yd + note->y());
