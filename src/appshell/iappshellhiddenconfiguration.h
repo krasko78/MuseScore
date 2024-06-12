@@ -74,8 +74,8 @@ public:
 
     // ------------------------------------------------------------------------------------------------------------------------
 
-    virtual bool textObjectsWillUseTheirFontHeight() const = 0;
-    virtual void setTextObjectsWillUseTheirFontHeight(bool value) = 0;
+    virtual bool textObjectShouldUseFontHeight(std::string textStyle) const = 0;
+    virtual void setTextObjectsToUseFontHeight(std::string value) = 0;
 
     virtual bool beamedNotesFingeringWillRespectMinDistanceToStaff() const = 0;
     virtual void setBeamedNotesFingeringWillRespectMinDistanceToStaff(bool value) = 0;

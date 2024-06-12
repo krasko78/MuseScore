@@ -1072,8 +1072,8 @@ void TextBlock::layout(const TextBase* t)
                 x += w;
             }
 
-            m_shape.add((appshellHiddenConfiguration()->textObjectsWillUseTheirFontHeight()
-                ? fm.boundingRect(f.text) : fm.tightBoundingRect(f.text)).translated(f.pos), t);   // KRASKO
+            m_shape.add((appshellHiddenConfiguration()->textObjectShouldUseFontHeight(textStyleNames[(int)t->textStyleType()]) // KRASKO
+                ? fm.boundingRect(f.text) : fm.tightBoundingRect(f.text)).translated(f.pos), t);
             Font font = f.font(t);
             if (font.type() == Font::Type::MusicSymbol || font.type() == Font::Type::MusicSymbolText) {
                 // SEMI-HACK: Music fonts can have huge linespacing because of tall symbols, so instead of using the
@@ -1087,7 +1087,7 @@ void TextBlock::layout(const TextBase* t)
     }
 
     // Apply style/custom line spacing
-    m_lineSpacing *= t->textLineSpacing();
+    m_lineSpacing *= t->textLineSpacing() * 0.707;   // KRASKO
 
     double rx = 0;
     AlignH alignH = t->align().horizontal;

@@ -2437,9 +2437,9 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                     double d = sk.minDistance(ss->skyline().north());
                     double yd = 0.0;
                     if (d > 0.0 && item->isStyled(Pid::MIN_DISTANCE)) {
-                        double extraSpacingBelow = !appshellHiddenConfiguration()->fixExtraSpacingOnMultilineFingering()
+                        double extraSpacingBelow = !appshellHiddenConfiguration()->fixExtraSpacingOnMultilineFingering() // KRASKO
                                                 ? item->ldata()->bbox().height() * .25
-                                                : 0.0 /*+ item->lineHeight() * .25*/;
+                                                : item->lineHeight() * 0.15;
                         yd -= d + extraSpacingBelow;
                     }
                     // force extra space above staff & chord (but not other fingerings)
@@ -2484,9 +2484,9 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                     double d = ss->skyline().south().minDistance(sk);
                     double yd = 0.0;
                     if (d > 0.0 && item->isStyled(Pid::MIN_DISTANCE)) {
-                        double extraSpacingAbove = !appshellHiddenConfiguration()->fixExtraSpacingOnMultilineFingering()
+                        double extraSpacingAbove = !appshellHiddenConfiguration()->fixExtraSpacingOnMultilineFingering() // KRASKO
                                                 ? item->ldata()->bbox().height() * .25
-                                                : 0.0 /*+ item->lineHeight() * .25*/;
+                                                : item->lineHeight() * .15;
                         yd += d + extraSpacingAbove;
                     }
                     // force extra space below staff & chord (but not other fingerings)

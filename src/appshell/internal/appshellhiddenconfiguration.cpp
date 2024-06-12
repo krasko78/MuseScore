@@ -93,13 +93,15 @@ static const Settings::Key ENABLE_SAME_COLOR_SELECTION(module_name_appshell_2,
 
 // ------------------------------------------------------------------------------------------------------------------------
 
-static const Settings::Key TEXT_OBJECTS_WILL_USE_THEIR_FONT_HEIGHT(module_name_appshell_2,
-    "krasko/TextObjectsWillUseTheirFontHeight");
-        //  When true, the height of any text (i.e. text object) will always be the font's full height. This will fix vertical
-        //  misalignment issues when different texts are displayed on the same line/row and some of the texts contain characters
-        //  with ascenders/descenders and the others do not. Multiline texts are affected as well. The caveat is that this could
-        //  slightly increase the spacing below the texts such as on fingerings above the staff. When false, the height will be
-        //  the actual height of the characters of the text. Default: false.
+static const Settings::Key TEXT_OBJECTS_TO_USE_FONT_HEIGHT(module_name_appshell_2,
+    "krasko/TextObjectsToUseFontHeight");
+        //  Is a comma-separated list of text styles. The height of any text (i.e. text object) with any of those text styles
+        //  will use the font's full height. This will fix vertical misalignment issues when different texts are displayed
+        //  on the same line/row and some of the texts contain characters with ascenders/descenders and the others do not.
+        //  Multiline texts are affected as well. The caveat is that this could slightly increase the spacing below the texts
+        //  such as on fingerings above the staff. When a text with style NOT specified in this setting, the height will be
+        //  the actual height of the characters of the text. The allowed values are the TextStyleType enum values.
+        //  Default: HEADER,FOOTER.
 
 static const Settings::Key BEAMED_NOTES_FINGERING_WILL_RESPECT_MIN_DISTANCE_TO_STAFF(module_name_appshell_2,
     "krasko/BeamedNotesFingeringWillRespectMinDistanceToStaff");
@@ -132,7 +134,7 @@ void AppShellHiddenConfiguration::init()
     settings()->setDefaultValue(STEP_FOR_SPIN_CONTROLS_ON_APPEARANCE_TAB, Val(0.5));
     settings()->setDefaultValue(ENABLE_SAME_COLOR_SELECTION, Val(true));
 
-    settings()->setDefaultValue(TEXT_OBJECTS_WILL_USE_THEIR_FONT_HEIGHT, Val(false));
+    settings()->setDefaultValue(TEXT_OBJECTS_TO_USE_FONT_HEIGHT, Val("HEADER,FOOTER"));
     settings()->setDefaultValue(BEAMED_NOTES_FINGERING_WILL_RESPECT_MIN_DISTANCE_TO_STAFF, Val(true));
     settings()->setDefaultValue(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING, Val(true));
 }
@@ -153,6 +155,16 @@ double AppShellHiddenConfiguration::getDouble(const Settings::Key& key) const
 }
 
 void AppShellHiddenConfiguration::setDouble(const Settings::Key& key, const double value)
+{
+    settings()->setSharedValue(key, Val(value));
+}
+
+std::string AppShellHiddenConfiguration::getString(const Settings::Key& key) const
+{
+    return settings()->value(key).toString();
+}
+
+void AppShellHiddenConfiguration::setString(const Settings::Key& key, const std::string value)
 {
     settings()->setSharedValue(key, Val(value));
 }
@@ -202,8 +214,29 @@ void AppShellHiddenConfiguration::setEnableSameColorSelection(bool value) { setB
 
 // ------------------------------------------------------------------------------------------------------------------------
 
-bool AppShellHiddenConfiguration::textObjectsWillUseTheirFontHeight() const { return getBool(TEXT_OBJECTS_WILL_USE_THEIR_FONT_HEIGHT); }
-void AppShellHiddenConfiguration::setTextObjectsWillUseTheirFontHeight(bool value) { setBool(TEXT_OBJECTS_WILL_USE_THEIR_FONT_HEIGHT, value); }
+bool AppShellHiddenConfiguration::textObjectShouldUseFontHeight(std::string textStyle) const
+{
+    std::size_t pos;
+
+    std::string value = getString(TEXT_OBJECTS_TO_USE_FONT_HEIGHT);
+    if (value == textStyle)
+        return true;
+
+    if (value.find(textStyle + ",") == 0)
+        return true;
+
+    if (value.find(textStyle + ", ") == 0)
+        return true;
+
+    if (((pos = value.find("," + textStyle)) != std::string::npos) && (pos == (value.length() - textStyle.length() - 1)))
+        return true;
+
+    if (((pos = value.find(", " + textStyle)) != std::string::npos) && (pos == (value.length() - textStyle.length() - 2)))
+        return true;
+
+    return false;
+}
+void AppShellHiddenConfiguration::setTextObjectsToUseFontHeight(std::string value) { setString(TEXT_OBJECTS_TO_USE_FONT_HEIGHT, value); }
 
 bool AppShellHiddenConfiguration::beamedNotesFingeringWillRespectMinDistanceToStaff() const { return getBool(BEAMED_NOTES_FINGERING_WILL_RESPECT_MIN_DISTANCE_TO_STAFF); }
 void AppShellHiddenConfiguration::setBeamedNotesFingeringWillRespectMinDistanceToStaff(bool value) { setBool(BEAMED_NOTES_FINGERING_WILL_RESPECT_MIN_DISTANCE_TO_STAFF, value); }

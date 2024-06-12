@@ -810,6 +810,87 @@ enum class TextStyleType {
     IGNORED_TYPES         // used for types no longer relevant (mainly Figured bass text type)
 };
 
+const std::string textStyleNames[] = { // KRASKO
+    "DEFAULT",
+
+    // Page-oriented styles
+    "TITLE",
+    "SUBTITLE",
+    "COMPOSER",
+    "LYRICIST",
+    "TRANSLATOR",
+    "FRAME",
+    "INSTRUMENT_EXCERPT",
+    "INSTRUMENT_LONG",
+    "INSTRUMENT_SHORT",
+    "INSTRUMENT_CHANGE",
+    "HEADER",
+    "FOOTER",
+
+    // Measure-oriented styles
+    "MEASURE_NUMBER",
+    "MMREST_RANGE",
+
+    // System-level styles
+    "TEMPO",
+    "TEMPO_CHANGE",
+    "METRONOME",
+    "REPEAT_LEFT",       // align to start of measure
+    "REPEAT_RIGHT",      // align to end of measur"
+    "REHEARSAL_MARK",
+    "SYSTEM",
+
+    // Staff oriented styles
+    "STAFF",
+    "EXPRESSION",
+    "DYNAMICS",
+    "HAIRPIN",
+    "LYRICS_ODD",
+    "LYRICS_EVEN",
+    "HARMONY_A",
+    "HARMONY_B",
+    "HARMONY_ROMAN",
+    "HARMONY_NASHVILLE",
+
+    // Note oriented styles
+    "TUPLET",
+    "STICKING",
+    "FINGERING",
+    "LH_GUITAR_FINGERING",
+    "RH_GUITAR_FINGERING",
+    "STRING_NUMBER",
+    "STRING_TUNINGS",
+    "HARP_PEDAL_DIAGRAM",
+    "HARP_PEDAL_TEXT_DIAGRAM",
+
+    // Line-oriented styles
+    "TEXTLINE",
+    "VOLTA",
+    "OTTAVA",
+    "GLISSANDO",
+    "PEDAL",
+    "BEND",
+    "LET_RING",
+    "PALM_MUTE",
+
+    // User styles
+    "USER1",
+    "USER2",
+    "USER3",
+    "USER4",
+    "USER5",
+    "USER6",
+    "USER7",
+    "USER8",
+    "USER9",
+    "USER10",
+    "USER11",
+    "USER12",
+    // special, no-contents, styles used while importing older scores
+    "TEXT_TYPES",           // used for user-defined types
+    "IGNORED_TYPES"         // used for types no longer relevant (mainly Figured bass text type)
+};
+
 enum class AnnotationCategory {
     Undefined = -1,
     TempoAnnotation,

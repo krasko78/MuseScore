@@ -78,8 +78,8 @@ public:
 
     // ------------------------------------------------------------------------------------------------------------------------
 
-    bool textObjectsWillUseTheirFontHeight() const override;
-    void setTextObjectsWillUseTheirFontHeight(bool value) override;
+    bool textObjectShouldUseFontHeight(std::string textStyle) const override;
+    void setTextObjectsToUseFontHeight(std::string value) override;
 
     bool beamedNotesFingeringWillRespectMinDistanceToStaff() const override;
     void setBeamedNotesFingeringWillRespectMinDistanceToStaff(bool value) override;
@@ -93,6 +93,9 @@ private:
 
     double getDouble(const Settings::Key& key) const;
     void setDouble(const Settings::Key& key, const double value);
+
+    std::string getString(const Settings::Key& key) const;
+    void setString(const Settings::Key& key, const std::string value);
 };
 }
 
