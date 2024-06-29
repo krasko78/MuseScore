@@ -24,10 +24,11 @@
 
 #include "anchors.h"
 #include "factory.h"
+#include "page.h"
 #include "score.h"
 #include "spanner.h"
+#include "staff.h"
 #include "system.h"
-#include "page.h"
 
 #include "rendering/dev/measurelayout.h"
 
@@ -56,7 +57,8 @@ void EditTimeTickAnchors::updateAnchors(const EngravingItem* item, track_idx_t t
     }
 
     staff_idx_t staff = track2staff(track);
-    for (MeasureBase* mb = startMeasure; mb && mb->tick() <= endMeasure->tick(); mb = mb->next()) {
+    Measure* startOneBefore = startMeasure->prevMeasure();
+    for (MeasureBase* mb = startOneBefore ? startOneBefore : startMeasure; mb && mb->tick() <= endMeasure->tick(); mb = mb->next()) {
         if (!mb->isMeasure()) {
             continue;
         }
@@ -97,19 +99,40 @@ void EditTimeTickAnchors::updateAnchors(Measure* measure, staff_idx_t staffIdx)
 
 TimeTickAnchor* EditTimeTickAnchors::createTimeTickAnchor(Measure* measure, Fraction relTick, staff_idx_t staffIdx)
 {
-    Segment* segment = measure->getSegmentR(SegmentType::TimeTick, relTick);
+    TimeTickAnchor* returnAnchor = nullptr;
 
-    track_idx_t track = staff2track(staffIdx);
-    EngravingItem* element = segment->elementAt(track);
-    TimeTickAnchor* anchor = element ? toTimeTickAnchor(element) : nullptr;
-    if (!anchor) {
-        anchor = Factory::createTimeTickAnchor(segment);
-        anchor->setParent(segment);
-        anchor->setTrack(track);
-        segment->add(anchor);
+    Staff* staff = measure->score()->staff(staffIdx);
+    IF_ASSERT_FAILED(staff) {
+        return nullptr;
     }
 
-    return anchor;
+    for (EngravingObject* linkedObj : staff->linkList()) {
+        IF_ASSERT_FAILED(linkedObj) {
+            continue;
+        }
+
+        Staff* linkedStaff = toStaff(linkedObj);
+        Measure* linkedMeasure = linkedObj == staff ? measure : linkedStaff->score()->tick2measureMM(measure->tick());
+        if (!linkedMeasure) {
+            continue;
+        }
+
+        Segment* segment = linkedMeasure->getSegmentR(SegmentType::TimeTick, relTick);
+        track_idx_t track = staff2track(linkedStaff->idx());
+        EngravingItem* element = segment->elementAt(track);
+        TimeTickAnchor* anchor = element ? toTimeTickAnchor(element) : nullptr;
+        if (!anchor) {
+            anchor = Factory::createTimeTickAnchor(segment);
+            anchor->setParent(segment);
+            anchor->setTrack(track);
+            segment->add(anchor);
+        }
+        if (linkedMeasure == measure) {
+            returnAnchor = anchor;
+        }
+    }
+
+    return returnAnchor;
 }
 
 void EditTimeTickAnchors::updateLayout(Measure* measure)

@@ -3114,36 +3114,26 @@ String Measure::accessibleInfo() const
 //       return minTick
 //---------------------------------------------------
 
-Fraction Measure::computeTicks()
+void Measure::computeTicks()
 {
-    Fraction minTick = ticks();
-    if (minTick <= Fraction(0, 1)) {
-        LOGD("=====minTick %d measure %p", minTick.ticks(), this);
+    for (Segment* segment = firstActive(); segment; segment = segment->nextActive()) {
+        Segment* nextSegment = segment->nextActive();
+        Fraction nextTick = nextSegment ? nextSegment->rtick() : ticks();
+        segment->setTicks(nextTick - segment->rtick());
     }
-    assert(minTick > Fraction(0, 1));
 
-    Segment* ns = first();
-    while (ns && !ns->enabled()) {
-        ns = ns->next();
-    }
-    while (ns) {
-        Segment* s = ns;
-        Segment* nextSeg = s->nextActive();
-        ns = nextSeg;
-        while (s->isChordRestType() && ns && ns->isTimeTickType()) {
-            // Ignore timeTick segments when computing duration of chordRest segments
-            ns = ns->nextActive();
-        }
-        Fraction nticks = (ns ? ns->rtick() : ticks()) - s->rtick();
-        if (nticks.isNotZero()) {
-            if (nticks < minTick) {
-                minTick = nticks;
+    for (Segment* segment = first(SegmentType::TimeTick); segment; segment = segment->next(SegmentType::TimeTick)) {
+        segment->setTicks(Fraction(0, 1));
+        Segment* nextSegment = segment->next();
+        while (nextSegment) {
+            Fraction tickDiff = nextSegment->rtick() - segment->rtick();
+            if (!tickDiff.isZero()) {
+                segment->setTicks(tickDiff);
+                break;
             }
+            nextSegment = nextSegment->next();
         }
-        s->setTicks(nticks);
-        ns = nextSeg;
     }
-    return minTick;
 }
 
 //---------------------------------------------------------
@@ -3399,8 +3389,11 @@ void Measure::respaceSegments()
     }
     // Start respacing segments
     for (Segment& s : m_segments) {
+        if (s.isTimeTickType()) {
+            continue;
+        }
         s.mutldata()->setPosX(x);
-        if (s.enabled() && s.visible() && !s.allElementsInvisible() && !s.isTimeTickType()) {
+        if (s.enabled() && s.visible() && !s.allElementsInvisible()) {
             x += s.width(LD_ACCESS::BAD);
         }
     }

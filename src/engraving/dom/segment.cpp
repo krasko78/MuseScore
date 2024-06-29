@@ -515,6 +515,42 @@ Segment* Segment::prev1MM(SegmentType types) const
     return 0;
 }
 
+Segment* Segment::nextActive() const
+{
+    Segment* ns = next();
+    while (ns && !ns->isActive()) {
+        ns = ns->next();
+    }
+    return ns;
+}
+
+Segment* Segment::nextEnabled() const
+{
+    Segment* ns = next();
+    while (ns && !ns->enabled()) {
+        ns = ns->next();
+    }
+    return ns;
+}
+
+Segment* Segment::prevActive() const
+{
+    Segment* ps = prev();
+    while (ps && !ps->isActive()) {
+        ps = ps->prev();
+    }
+    return ps;
+}
+
+Segment* Segment::prevEnabled() const
+{
+    Segment* ps = prev();
+    while (ps && !ps->enabled()) {
+        ps = ps->prev();
+    }
+    return ps;
+}
+
 //---------------------------------------------------------
 //   nextCR
 //    get next ChordRest Segment
@@ -1267,6 +1303,10 @@ bool Segment::hasElements(staff_idx_t staffIdx) const
 
 bool Segment::allElementsInvisible() const
 {
+    if (isType(SegmentType::TimeTick)) {
+        return true;
+    }
+
     if (isType(SegmentType::BarLineType | SegmentType::ChordRest)) {
         return false;
     }

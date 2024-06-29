@@ -44,6 +44,7 @@
 #include "engraving/dom/lyrics.h"
 #include "engraving/dom/marker.h"
 #include "engraving/dom/measure.h"
+#include "engraving/dom/measurerepeat.h"
 #include "engraving/dom/note.h"
 #include "engraving/dom/ornament.h"
 #include "engraving/dom/ottava.h"
@@ -1253,6 +1254,16 @@ bool MeiImporter::readStaffGrps(pugi::xml_node parentNode, int& staffSpan, int c
 bool MeiImporter::readSectionElements(pugi::xml_node parentNode)
 {
     bool success = true;
+
+    libmei::Section meiSection;
+    meiSection.Read(parentNode);
+
+    if (meiSection.HasRestart() && meiSection.GetRestart() == libmei::BOOLEAN_true) {
+        MeasureBase* lastMeasureBase = !m_score->measures()->empty() ? m_score->measures()->last() : nullptr;
+        if (lastMeasureBase) {
+            m_score->insertBox(ElementType::HBOX, lastMeasureBase);
+        }
+    }
 
     pugi::xpath_node_set elements = parentNode.select_nodes("./*");
     for (pugi::xpath_node xpathNode : elements) {

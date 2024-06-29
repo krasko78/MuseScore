@@ -227,8 +227,8 @@ PalettePtr PaletteCreator::newDynamicsPalette(bool defaultPalette)
         "pppppp", "ppppp", "pppp",
         "ppp", "pp", "p", "mp", "mf", "f", "ff", "fff",
         "ffff", "fffff", "ffffff",
-        "fp", "pf", "sf", "sfz", "sff", "sffz", "sfp", "sfpp",
-        "rfz", "rf", "fz", "m", "r", "s", "z", "n"
+        "fp", "pf", "sf", "sfz", "sff", "sffz", "sfff", "sfffz",
+        "sfp", "sfpp", "rfz", "rf", "fz", "m", "r", "s", "z", "n"
     };
 
     for (const char* dynamicType : defaultPalette ? defaultDynamics : masterDynamics) {
@@ -1058,6 +1058,30 @@ PalettePtr PaletteCreator::newArpeggioPalette()
     cl = Factory::makeChordLine(gpaletteScore->dummy()->chord());
     cl->setChordLineType(ChordLineType::SCOOP);
     cl->setStraight(true);
+    sp->appendElement(cl, cl->chordLineTypeName());
+
+    cl = Factory::makeChordLine(gpaletteScore->dummy()->chord());
+    cl->setChordLineType(ChordLineType::FALL);
+    cl->setStraight(true);
+    cl->setWavy(true);
+    sp->appendElement(cl, cl->chordLineTypeName());
+
+    cl = Factory::makeChordLine(gpaletteScore->dummy()->chord());
+    cl->setChordLineType(ChordLineType::DOIT);
+    cl->setStraight(true);
+    cl->setWavy(true);
+    sp->appendElement(cl, cl->chordLineTypeName());
+
+    cl = Factory::makeChordLine(gpaletteScore->dummy()->chord());
+    cl->setChordLineType(ChordLineType::PLOP);
+    cl->setStraight(true);
+    cl->setWavy(true);
+    sp->appendElement(cl, cl->chordLineTypeName());
+
+    cl = Factory::makeChordLine(gpaletteScore->dummy()->chord());
+    cl->setChordLineType(ChordLineType::SCOOP);
+    cl->setStraight(true);
+    cl->setWavy(true);
     sp->appendElement(cl, cl->chordLineTypeName());
 
     return sp;

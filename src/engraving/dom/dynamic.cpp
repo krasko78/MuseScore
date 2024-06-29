@@ -27,6 +27,7 @@
 #include "anchors.h"
 #include "dynamichairpingroup.h"
 #include "expression.h"
+#include "hairpin.h"
 #include "measure.h"
 #include "mscore.h"
 #include "score.h"
@@ -82,6 +83,10 @@ const std::vector<Dyn> Dynamic::DYN_LIST = {
     { DynamicType::SFF,     126, -18, true, "<sym>dynamicSforzando</sym><sym>dynamicForte</sym><sym>dynamicForte</sym>" },
     { DynamicType::SFFZ,    126, -18, true,
       "<sym>dynamicSforzando</sym><sym>dynamicForte</sym><sym>dynamicForte</sym><sym>dynamicZ</sym>" },
+    { DynamicType::SFFF,    127, -18, true,
+      "<sym>dynamicSforzando</sym><sym>dynamicForte</sym><sym>dynamicForte</sym><sym>dynamicForte</sym>" },
+    { DynamicType::SFFFZ,   127, -18, true,
+      "<sym>dynamicSforzando</sym><sym>dynamicForte</sym><sym>dynamicForte</sym><sym>dynamicForte</sym><sym>dynamicZ</sym>" },
     { DynamicType::SFP,     112, -47, true, "<sym>dynamicSforzando</sym><sym>dynamicForte</sym><sym>dynamicPiano</sym>" },
     { DynamicType::SFPP,    112, -79, true,
       "<sym>dynamicSforzando</sym><sym>dynamicForte</sym><sym>dynamicPiano</sym><sym>dynamicPiano</sym>" },
@@ -134,6 +139,7 @@ Dynamic::Dynamic(const Dynamic& d)
     _avoidBarLines = d._avoidBarLines;
     _dynamicsSize = d._dynamicsSize;
     _centerOnNotehead = d._centerOnNotehead;
+    m_anchorToEndOfPrevious = d.m_anchorToEndOfPrevious;
 }
 
 //---------------------------------------------------------
@@ -208,6 +214,8 @@ bool Dynamic::isVelocityChangeAvailable() const
     case DynamicType::SFZ:
     case DynamicType::SFF:
     case DynamicType::SFFZ:
+    case DynamicType::SFFF:
+    case DynamicType::SFFFZ:
     case DynamicType::SFP:
     case DynamicType::SFPP:
     case DynamicType::RFZ:
@@ -448,18 +456,24 @@ EngravingItem* Dynamic::drop(EditData& ed)
         return item;
     }
 
-    if (!(item->isDynamic() || item->isExpression())) {
-        return nullptr;
+    if (item->isDynamic()) {
+        Dynamic* dynamic = toDynamic(item);
+        undoChangeProperty(Pid::DYNAMIC_TYPE, dynamic->dynamicType());
+        undoChangeProperty(Pid::TEXT, dynamic->xmlText());
+        delete dynamic;
+        ed.dropElement = this;
+        return this;
     }
 
-    item->setTrack(track());
-    item->setParent(segment());
-    score()->undoAddElement(item);
-    item->undoChangeProperty(Pid::PLACEMENT, placement(), PropertyFlags::UNSTYLED);
-    if (item->isDynamic()) {
-        score()->undoRemoveElement(this); // swap this dynamic for the newly added one
+    if (item->isExpression()) {
+        item->setTrack(track());
+        item->setParent(segment());
+        toExpression(item)->setApplyToVoice(applyToVoice());
+        score()->undoAddElement(item);
+        return item;
     }
-    return item;
+
+    return nullptr;
 }
 
 int Dynamic::dynamicVelocity(DynamicType t)
@@ -517,14 +531,21 @@ bool Dynamic::editNonTextual(EditData& ed)
 
     bool changeAnchorType = shiftMod && altMod && leftRightKey;
     if (changeAnchorType) {
-        if (changeTimeAnchorType(ed)) {
-            return true;
-        }
+        undoChangeProperty(Pid::ANCHOR_TO_END_OF_PREVIOUS, !anchorToEndOfPrevious(), propertyFlags(Pid::ANCHOR_TO_END_OF_PREVIOUS));
+    }
+    bool doesntNeedMoveSeg = changeAnchorType && ((ed.key == Key_Left && anchorToEndOfPrevious())
+                                                  || (ed.key == Key_Right && !anchorToEndOfPrevious()));
+    if (doesntNeedMoveSeg) {
+        checkMeasureBoundariesAndMoveIfNeed();
+        return true;
     }
 
     bool moveSeg = shiftMod && (ed.key == Key_Left || ed.key == Key_Right);
     if (moveSeg) {
-        return moveSegment(ed);
+        bool moved = moveSegment(ed);
+        EditTimeTickAnchors::updateAnchors(this, track());
+        checkMeasureBoundariesAndMoveIfNeed();
+        return moved;
     }
 
     if (shiftMod) {
@@ -539,62 +560,107 @@ bool Dynamic::editNonTextual(EditData& ed)
     return true;
 }
 
-bool Dynamic::changeTimeAnchorType(const EditData& ed)
+void Dynamic::checkMeasureBoundariesAndMoveIfNeed()
 {
+    /* Dynamics are always assigned to a ChordRest segment if available at this tick,
+     * EXCEPT if we are at a measure boundary. In this case, if anchorToEndOfPrevious()
+     * we must assign to a TimeTick segment at the end of previous measure, otherwise to a
+     * ChordRest segment at the start of the next measure. */
+
     Segment* curSeg = segment();
+    Fraction curTick = curSeg->tick();
+    Measure* curMeasure = curSeg->measure();
+    Measure* prevMeasure = curMeasure->prevMeasure();
+    bool needMoveToNext = curTick == curMeasure->endTick() && !anchorToEndOfPrevious();
+    bool needMoveToPrevious = curSeg->rtick().isZero() && anchorToEndOfPrevious() && prevMeasure;
 
-    undoChangeProperty(Pid::ANCHOR_TO_END_OF_PREVIOUS, !anchorToEndOfPrevious(), propertyFlags(Pid::ANCHOR_TO_END_OF_PREVIOUS));
-    if (anchorToEndOfPrevious() && curSeg->rtick().isZero() && ed.key == Key_Left) {
-        Segment* endOfPrevMeasTick = curSeg->prev1(SegmentType::TimeTick);
-        if (endOfPrevMeasTick && endOfPrevMeasTick->tick() == curSeg->tick()) {
-            score()->undoChangeParent(this, endOfPrevMeasTick, staffIdx());
-            if (snappedExpression()) {
-                score()->undoChangeParent(snappedExpression(), endOfPrevMeasTick, staffIdx());
-            }
-            return true;
-        }
-    } else if (!anchorToEndOfPrevious() && curSeg->rtick() == curSeg->measure()->ticks() && ed.key == Key_Right) {
-        Segment* startOfNextMeas = curSeg->next1(SegmentType::ChordRest);
-        if (startOfNextMeas && startOfNextMeas->tick() == curSeg->tick()) {
-            score()->undoChangeParent(this, startOfNextMeas, staffIdx());
-            if (snappedExpression()) {
-                score()->undoChangeParent(snappedExpression(), startOfNextMeas, staffIdx());
-            }
-            return true;
-        }
-    }
-    if ((anchorToEndOfPrevious() && ed.key == Key_Left)
-        || (!anchorToEndOfPrevious() && ed.key == Key_Right)) {
-        return true;
+    if (!needMoveToPrevious && !needMoveToNext) {
+        return;
     }
 
-    return false;
+    Segment* newSeg = nullptr;
+    if (needMoveToPrevious) {
+        newSeg = prevMeasure->findSegment(SegmentType::TimeTick, curSeg->tick());
+        if (!newSeg) {
+            TimeTickAnchor* anchor = EditTimeTickAnchors::createTimeTickAnchor(prevMeasure, curTick - prevMeasure->tick(), staffIdx());
+            EditTimeTickAnchors::updateLayout(prevMeasure);
+            newSeg = anchor->segment();
+        }
+    } else {
+        newSeg = curSeg->next1(SegmentType::ChordRest);
+    }
+
+    if (newSeg && newSeg->tick() == curTick) {
+        score()->undoChangeParent(this, newSeg, staffIdx());
+        if (snappedExpression()) {
+            score()->undoChangeParent(snappedExpression(), newSeg, staffIdx());
+        }
+    }
 }
 
 bool Dynamic::moveSegment(const EditData& ed)
 {
-    if (!(ed.modifiers & AltModifier) && anchorToEndOfPrevious()) {
-        undoResetProperty(Pid::ANCHOR_TO_END_OF_PREVIOUS);
-        return true;
+    bool forward = ed.key == Key_Right;
+    if (!(ed.modifiers & AltModifier)) {
+        if (anchorToEndOfPrevious()) {
+            undoResetProperty(Pid::ANCHOR_TO_END_OF_PREVIOUS);
+            if (forward) {
+                return true;
+            }
+        }
     }
+
     Segment* curSeg = segment();
-    if (!curSeg) {
+    IF_ASSERT_FAILED(curSeg) {
         return false;
     }
 
-    bool forward = ed.key == Key_Right;
     Segment* newSeg = forward ? curSeg->next1ChordRestOrTimeTick() : curSeg->prev1ChordRestOrTimeTick();
     if (!newSeg) {
         return false;
     }
 
     score()->undoChangeParent(this, newSeg, staffIdx());
-    if (snappedExpression()) {
-        score()->undoChangeParent(snappedExpression(), newSeg, staffIdx());
+    moveSnappedItems(newSeg, newSeg->tick() - curSeg->tick());
+
+    return true;
+}
+
+void Dynamic::moveSnappedItems(Segment* newSeg, Fraction tickDiff) const
+{
+    if (EngravingItem* itemSnappedBefore = ldata()->itemSnappedBefore()) {
+        if (itemSnappedBefore->isHairpinSegment()) {
+            Hairpin* hairpinBefore = toHairpinSegment(itemSnappedBefore)->hairpin();
+            Fraction newHairpinDuration = hairpinBefore->ticks() + tickDiff;
+            if (newHairpinDuration > Fraction(0, 1)) {
+                hairpinBefore->undoChangeProperty(Pid::SPANNER_TICKS, newHairpinDuration);
+            } else {
+                hairpinBefore->undoChangeProperty(Pid::SPANNER_TICK, hairpinBefore->tick() + tickDiff);
+            }
+        }
     }
 
-    EditTimeTickAnchors::updateAnchors(this, track());
-    return true;
+    if (EngravingItem* itemSnappedAfter = ldata()->itemSnappedAfter()) {
+        Hairpin* hairpinAfter = itemSnappedAfter->isHairpinSegment() ? toHairpinSegment(itemSnappedAfter)->hairpin() : nullptr;
+        if (itemSnappedAfter->isExpression()) {
+            Expression* expressionAfter = toExpression(itemSnappedAfter);
+            Segment* curExpressionSegment = expressionAfter->segment();
+            if (curExpressionSegment != newSeg) {
+                score()->undoChangeParent(expressionAfter, newSeg, expressionAfter->staffIdx());
+            }
+            EngravingItem* possibleHairpinAfterExpr = expressionAfter->ldata()->itemSnappedAfter();
+            if (!hairpinAfter && possibleHairpinAfterExpr->isHairpinSegment()) {
+                hairpinAfter = toHairpinSegment(possibleHairpinAfterExpr)->hairpin();
+            }
+        }
+        if (hairpinAfter) {
+            Fraction newHairpinDuration = hairpinAfter->ticks() - tickDiff;
+            hairpinAfter->undoChangeProperty(Pid::SPANNER_TICK, hairpinAfter->tick() + tickDiff);
+            if (newHairpinDuration > Fraction(0, 1)) {
+                hairpinAfter->undoChangeProperty(Pid::SPANNER_TICKS, newHairpinDuration);
+            }
+        }
+    }
 }
 
 bool Dynamic::nudge(const EditData& ed)
