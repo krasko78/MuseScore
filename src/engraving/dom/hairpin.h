@@ -50,8 +50,6 @@ class HairpinSegment final : public TextLineBaseSegment
 public:
     HairpinSegment(Hairpin* sp, System* parent);
 
-    int subtype() const override;
-
     HairpinSegment* clone() const override { return new HairpinSegment(*this); }
 
     Hairpin* hairpin() const { return (Hairpin*)spanner(); }
@@ -64,6 +62,9 @@ public:
     void setCircledTip(const PointF& p) { m_circledTip = p; }
 
     EngravingItem* propertyDelegate(Pid) override;
+
+    int subtype() const override;
+    TranslatableString subtypeUserName() const override;
 
     int gripsCount() const override;
     std::vector<PointF> gripsPositions(const EditData& = EditData()) const override;
@@ -109,8 +110,6 @@ public:
 
     Hairpin* clone() const override { return new Hairpin(*this); }
 
-    int subtype() const override;
-
     DynamicType dynamicTypeFrom() const;
     DynamicType dynamicTypeTo() const;
 
@@ -140,9 +139,6 @@ public:
 
     ChangeMethod veloChangeMethod() const { return m_veloChangeMethod; }
     void setVeloChangeMethod(ChangeMethod val) { m_veloChangeMethod = val; }
-
-    bool playHairpin() const { return m_playHairpin; }
-    void setPlayHairpin(bool val) { m_playHairpin = val; }
 
     bool isCrescendo() const
     {
@@ -182,6 +178,9 @@ public:
     bool snapToItemAfter() const { return m_snapToItemAfter; }
     void setSnapToItemAfter(bool v) { m_snapToItemAfter = v; }
 
+    int subtype() const override { return int(m_hairpinType); }
+    TranslatableString subtypeUserName() const override;
+
 private:
 
     Sid getPropertyStyle(Pid) const override;
@@ -192,7 +191,6 @@ private:
     DynamicRange m_dynRange = DynamicRange::STAFF;
     bool m_singleNoteDynamics = false;
     ChangeMethod m_veloChangeMethod = ChangeMethod::NORMAL;
-    bool m_playHairpin = false;
 
     Spatium m_hairpinHeight;
     Spatium m_hairpinContHeight;

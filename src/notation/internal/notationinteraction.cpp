@@ -179,9 +179,9 @@ inline QString extractSyllable(const QString& text)
 }
 
 NotationInteraction::NotationInteraction(Notation* notation, INotationUndoStackPtr undoStack)
-    : m_notation(notation), m_undoStack(undoStack), m_editData(&m_scoreCallbacks)
+    : muse::Injectable(notation->iocContext()), m_notation(notation), m_undoStack(undoStack), m_editData(&m_scoreCallbacks)
 {
-    m_noteInput = std::make_shared<NotationNoteInput>(notation, this, m_undoStack);
+    m_noteInput = std::make_shared<NotationNoteInput>(notation, this, m_undoStack, iocContext());
     m_selection = std::make_shared<NotationSelection>(notation);
 
     m_noteInput->stateChanged().onNotify(this, [this]() {
@@ -1130,7 +1130,7 @@ void NotationInteraction::endDrag()
     apply();
     notifyAboutDragChanged();
 
-    MScoreErrorsController::checkAndShowMScoreError();
+    MScoreErrorsController(iocContext()).checkAndShowMScoreError();
 
     //    updateGrips();
     //    if (editData.element->normalModeEditBehavior() == EngravingItem::EditBehavior::Edit
@@ -1518,7 +1518,7 @@ bool NotationInteraction::drop(const PointF& pos, Qt::KeyboardModifiers modifier
         notifyAboutDropChanged();
     }
 
-    MScoreErrorsController::checkAndShowMScoreError();
+    MScoreErrorsController(iocContext()).checkAndShowMScoreError();
 
     return accepted;
 }
@@ -2004,7 +2004,7 @@ bool NotationInteraction::applyPaletteElement(mu::engraving::EngravingItem* elem
 
     setDropTarget(nullptr);
 
-    MScoreErrorsController::checkAndShowMScoreError();
+    MScoreErrorsController(iocContext()).checkAndShowMScoreError();
 
     return true;
 }
@@ -3632,7 +3632,7 @@ void NotationInteraction::splitSelectedMeasure()
     score()->cmdSplitMeasure(chordRest);
     apply();
 
-    MScoreErrorsController::checkAndShowMScoreError();
+    MScoreErrorsController(iocContext()).checkAndShowMScoreError();
 }
 
 void NotationInteraction::joinSelectedMeasures()
@@ -3647,7 +3647,7 @@ void NotationInteraction::joinSelectedMeasures()
     score()->cmdJoinMeasure(measureRange.startMeasure, measureRange.endMeasure);
     apply();
 
-    MScoreErrorsController::checkAndShowMScoreError();
+    MScoreErrorsController(iocContext()).checkAndShowMScoreError();
 }
 
 Ret NotationInteraction::canAddBoxes() const
@@ -3916,7 +3916,7 @@ void NotationInteraction::pasteSelection(const Fraction& scale)
         selectAndStartEditIfNeeded(element);
     }
 
-    MScoreErrorsController::checkAndShowMScoreError();
+    MScoreErrorsController(iocContext()).checkAndShowMScoreError();
 }
 
 void NotationInteraction::swapSelection()
@@ -3987,7 +3987,7 @@ void NotationInteraction::deleteSelection()
         score()->cmdDeleteSelection();
     }
 
-    MScoreErrorsController::checkAndShowMScoreError();
+    MScoreErrorsController(iocContext()).checkAndShowMScoreError();
     apply();
     resetHitElementContext();
 }
@@ -4323,7 +4323,7 @@ void NotationInteraction::addIntervalToSelectedNotes(int interval)
 
     if (notes.empty()) {
         MScore::setError(MsError::NO_NOTE_SELECTED);
-        MScoreErrorsController::checkAndShowMScoreError();
+        MScoreErrorsController(iocContext()).checkAndShowMScoreError();
         return;
     }
 
@@ -4464,7 +4464,7 @@ void NotationInteraction::addImageToItem(const muse::io::path_t& imagePath, Engr
         return;
     }
 
-    static std::map<muse::io::path_t, ImageType> suffixToType {
+    static const std::map<muse::io::path_t, ImageType> suffixToType {
         { "svg", ImageType::SVG },
         { "svgz", ImageType::SVG },
         { "jpg", ImageType::RASTER },

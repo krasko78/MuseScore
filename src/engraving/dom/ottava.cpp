@@ -22,6 +22,8 @@
 
 #include "ottava.h"
 
+#include "types/translatablestring.h"
+
 #include "chordrest.h"
 #include "score.h"
 #include "staff.h"
@@ -301,6 +303,11 @@ PropertyValue Ottava::getProperty(Pid propertyId) const
 bool Ottava::setProperty(Pid propertyId, const PropertyValue& val)
 {
     switch (propertyId) {
+    case Pid::PLAY:
+        setPlaySpanner(val.toBool());
+        staff()->updateOttava();
+        break;
+
     case Pid::OTTAVA_TYPE:
         setOttavaType(OttavaType(val.toInt()));
         break;
@@ -371,6 +378,25 @@ PropertyValue Ottava::propertyDefault(Pid pid) const
 String Ottava::accessibleInfo() const
 {
     return String(u"%1: %2").arg(EngravingItem::accessibleInfo(), String::fromUtf8(ottavaDefault[static_cast<int>(ottavaType())].name));
+}
+
+//---------------------------------------------------------
+//   subtypeUserName
+//---------------------------------------------------------
+
+muse::TranslatableString Ottava::subtypeUserName() const
+{
+    return ottavaDefault[int(ottavaType())].userName;
+}
+
+muse::TranslatableString OttavaSegment::subtypeUserName() const
+{
+    return ottava()->subtypeUserName();
+}
+
+int OttavaSegment::subtype() const
+{
+    return ottava()->subtype();
 }
 
 //---------------------------------------------------------

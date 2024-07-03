@@ -24,8 +24,6 @@
 
 #include <cmath>
 
-#include "translation.h"
-
 #include "draw/types/transform.h"
 
 #include "types/typesconv.h"
@@ -79,11 +77,6 @@ static const ElementStyle hairpinStyle {
 HairpinSegment::HairpinSegment(Hairpin* sp, System* parent)
     : TextLineBaseSegment(ElementType::HAIRPIN_SEGMENT, sp, parent, ElementFlag::MOVABLE | ElementFlag::ON_STAFF)
 {
-}
-
-int HairpinSegment::subtype() const
-{
-    return hairpin()->subtype();
 }
 
 bool HairpinSegment::acceptDrop(EditData& data) const
@@ -232,7 +225,6 @@ EngravingItem* HairpinSegment::propertyDelegate(Pid pid)
         || pid == Pid::HAIRPIN_CONT_HEIGHT
         || pid == Pid::DYNAMIC_RANGE
         || pid == Pid::LINE_STYLE
-        || pid == Pid::PLAY
         || pid == Pid::APPLY_TO_VOICE
         || pid == Pid::DIRECTION
         || pid == Pid::CENTER_BETWEEN_STAVES
@@ -500,12 +492,6 @@ Hairpin::Hairpin(Segment* parent)
     m_dynRange              = DynamicRange::PART;
     m_singleNoteDynamics    = true;
     m_veloChangeMethod      = ChangeMethod::NORMAL;
-    m_playHairpin           = true;
-}
-
-int Hairpin::subtype() const
-{
-    return static_cast<int>(m_hairpinType);
 }
 
 DynamicType Hairpin::dynamicTypeFrom() const
@@ -573,8 +559,6 @@ PropertyValue Hairpin::getProperty(Pid id) const
         return m_singleNoteDynamics;
     case Pid::VELO_CHANGE_METHOD:
         return m_veloChangeMethod;
-    case Pid::PLAY:
-        return m_playHairpin;
     case Pid::APPLY_TO_VOICE:
         return applyToVoice();
     case Pid::CENTER_BETWEEN_STAVES:
@@ -621,9 +605,6 @@ bool Hairpin::setProperty(Pid id, const PropertyValue& v)
         break;
     case Pid::VELO_CHANGE_METHOD:
         m_veloChangeMethod = v.value<ChangeMethod>();
-        break;
-    case Pid::PLAY:
-        setPlayHairpin(v.toBool());
         break;
     case Pid::APPLY_TO_VOICE:
         setApplyToVoice(v.value<VoiceApplication>());
@@ -716,9 +697,6 @@ PropertyValue Hairpin::propertyDefault(Pid id) const
     case Pid::PLACEMENT:
         return style().styleV(Sid::hairpinPlacement);
 
-    case Pid::PLAY:
-        return true;
-
     case Pid::APPLY_TO_VOICE:
         return VoiceApplication::ALL_VOICE_IN_INSTRUMENT;
 
@@ -744,18 +722,7 @@ PropertyValue Hairpin::propertyDefault(Pid id) const
 
 String Hairpin::accessibleInfo() const
 {
-    String rez = TextLineBase::accessibleInfo();
-    switch (hairpinType()) {
-    case HairpinType::CRESC_HAIRPIN:
-        rez += u": " + muse::mtrc("engraving", "Crescendo");
-        break;
-    case HairpinType::DECRESC_HAIRPIN:
-        rez += u": " + muse::mtrc("engraving", "Decrescendo");
-        break;
-    default:
-        rez += u": " + muse::mtrc("engraving", "Custom");
-    }
-    return rez;
+    return String(u"%1: %2").arg(TextLineBase::accessibleInfo(), translatedSubtypeUserName());
 }
 
 PointF Hairpin::linePos(Grip grip, System** system) const
@@ -793,5 +760,31 @@ void Hairpin::reset()
     undoResetProperty(Pid::DIRECTION);
     undoResetProperty(Pid::CENTER_BETWEEN_STAVES);
     TextLineBase::reset();
+}
+
+muse::TranslatableString Hairpin::subtypeUserName() const
+{
+    switch (hairpinType()) {
+    case HairpinType::CRESC_HAIRPIN:
+        return TranslatableString("engraving/hairpintype", "Crescendo hairpin");
+    case HairpinType::DECRESC_HAIRPIN:
+        return TranslatableString("engraving/hairpintype", "Decrescendo hairpin");
+    case HairpinType::CRESC_LINE:
+        return TranslatableString("engraving/hairpintype", "Crescendo line");
+    case HairpinType::DECRESC_LINE:
+        return TranslatableString("engraving/hairpintype", "Decrescendo line");
+    default:
+        return TranslatableString("engraving/hairpintype", "Custom");
+    }
+}
+
+muse::TranslatableString HairpinSegment::subtypeUserName() const
+{
+    return hairpin()->subtypeUserName();
+}
+
+int HairpinSegment::subtype() const
+{
+    return hairpin()->subtype();
 }
 }
