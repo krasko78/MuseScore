@@ -921,7 +921,7 @@ void SystemLayout::layoutSystemElements(System* system, LayoutContext& ctx)
 
     // ties
     if (ctx.conf().isLinearMode()) {
-        doLayoutTiesLinear(system, ctx);
+        doLayoutNoteSpannersLinear(system, ctx);
     } else {
         doLayoutTies(system, sl, stick, etick, ctx);
     }
@@ -1394,7 +1394,19 @@ void SystemLayout::doLayoutTies(System* system, std::vector<Segment*> sl, const 
     }
 }
 
-void SystemLayout::doLayoutTiesLinear(System* system, LayoutContext& ctx)
+void SystemLayout::layoutNoteAnchoredSpanners(System* system, Chord* chord)
+{
+    // Add all spanners attached to notes, otherwise these will be removed if outside of the layout range
+    for (Note* note : chord->notes()) {
+        for (Spanner* spanner : note->spannerFor()) {
+            for (SpannerSegment* spannerSeg : spanner->spannerSegments()) {
+                spannerSeg->setSystem(system);
+            }
+        }
+    }
+}
+
+void SystemLayout::doLayoutNoteSpannersLinear(System* system, LayoutContext& ctx)
 {
     constexpr Fraction start = Fraction(0, 1);
     for (Measure* measure = system->firstMeasure(); measure; measure = measure->nextMeasure()) {
@@ -1409,8 +1421,10 @@ void SystemLayout::doLayoutTiesLinear(System* system, LayoutContext& ctx)
                 Chord* c = toChord(e);
                 for (Chord* ch : c->graceNotes()) {
                     layoutTies(ch, system, start, ctx);
+                    layoutNoteAnchoredSpanners(system, ch);
                 }
                 layoutTies(c, system, start, ctx);
+                layoutNoteAnchoredSpanners(system, c);
             }
         }
     }
@@ -2760,7 +2774,7 @@ void SystemLayout::centerElementsBetweenStaves(const System* system)
 
 bool SystemLayout::elementShouldBeCenteredBetweenStaves(const EngravingItem* item, const System* system)
 {
-    if (!item->isStyled(Pid::OFFSET)) {
+    if (item->offset() != item->propertyDefault(Pid::OFFSET).value<PointF>()) {
         // NOTE: because of current limitations of the offset system, we can't center an element that's been manually moved.
         return false;
     }
