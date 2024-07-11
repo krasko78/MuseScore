@@ -499,7 +499,7 @@ EngravingItem* Dynamic::drop(EditData& ed)
     if (item->isExpression()) {
         item->setTrack(track());
         item->setParent(segment());
-        toExpression(item)->setApplyToVoice(applyToVoice());
+        toExpression(item)->setVoiceAssignment(voiceAssignment());
         score()->undoAddElement(item);
         return item;
     }
@@ -729,7 +729,7 @@ void Dynamic::editDrag(EditData& ed)
         Segment* seg = nullptr; // don't prefer any segment while dragging, just snap to the closest
         static constexpr double spacingFactor = 0.5;
         score()->dragPosition(canvasPos(), &si, &seg, spacingFactor, allowTimeAnchor());
-        if (seg && seg != segment() || staffIdx() != si) {
+        if ((seg && seg != segment()) || staffIdx() != si) {
             const PointF oldOffset = offset();
             PointF pos1(canvasPos());
             score()->undoChangeParent(this, seg, staffIdx());

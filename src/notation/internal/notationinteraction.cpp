@@ -1747,8 +1747,8 @@ bool NotationInteraction::applyPaletteElement(mu::engraving::EngravingItem* elem
             } else {
                 score->cmdAddSpanner(spanner, cr1->staffIdx(), startSegment, endSegment, modifiers & Qt::ControlModifier);
             }
-            if (spanner->hasVoiceApplicationProperties()) {
-                spanner->setInitialTrackAndVoiceApplication(cr1->track());
+            if (spanner->hasVoiceAssignmentProperties()) {
+                spanner->setInitialTrackAndVoiceAssignment(cr1->track());
             } else if (spanner->isVoiceSpecific()) {
                 spanner->setTrack(cr1->track());
             }
@@ -1915,8 +1915,8 @@ bool NotationInteraction::applyPaletteElement(mu::engraving::EngravingItem* elem
                 spanner->setScore(score);
                 spanner->styleChanged();
                 score->cmdAddSpanner(spanner, i, startSegment, endSegment, modifiers & Qt::ControlModifier);
-                if (spanner->hasVoiceApplicationProperties()) {
-                    spanner->setInitialTrackAndVoiceApplication(staff2track(i));
+                if (spanner->hasVoiceAssignmentProperties()) {
+                    spanner->setInitialTrackAndVoiceAssignment(staff2track(i));
                 }
                 selectAndStartEditIfNeeded(spanner);
             }
@@ -2057,10 +2057,10 @@ void NotationInteraction::applyDropPaletteElement(mu::engraving::Score* score, m
             }
         }
 
-        if (el && el->hasVoiceApplicationProperties()) {
-            // If target has voice application properties, dropped element takes those and discards the default
-            if (!target->hasVoiceApplicationProperties()) {
-                el->setInitialTrackAndVoiceApplication(el->track());
+        if (el && el->hasVoiceAssignmentProperties()) {
+            // If target has voice assignment properties, dropped element takes those and discards the default
+            if (!target->hasVoiceAssignmentProperties()) {
+                el->setInitialTrackAndVoiceAssignment(el->track());
             }
         }
 
@@ -2379,8 +2379,8 @@ bool NotationInteraction::dragMeasureAnchorElement(const PointF& pos)
         if (m_dropData.ed.modifiers & Qt::ControlModifier) {
             break;
         }
-        // fall through
     }
+    // fall through
     case ElementType::JUMP:
     case ElementType::LAYOUT_BREAK:
     case ElementType::MARKER:
@@ -2389,6 +2389,7 @@ bool NotationInteraction::dragMeasureAnchorElement(const PointF& pos)
     case ElementType::STAFF_LIST:
         // Target all staves
         staffIdx = 0;
+    // fall through
     default: break;
     }
 
@@ -5060,6 +5061,7 @@ void NotationInteraction::navigateToNextSyllable()
     }
     mu::engraving::Lyrics* lyrics = toLyrics(m_editData.element);
     track_idx_t track = lyrics->track();
+    track_idx_t toLyricTrack = track;
     mu::engraving::Segment* segment = lyrics->segment();
     int verse = lyrics->no();
     mu::engraving::PlacementV placement = lyrics->placement();
@@ -5076,7 +5078,8 @@ void NotationInteraction::navigateToNextSyllable()
             const track_idx_t etrack = strack + VOICES;
             for (track_idx_t t = strack; t < etrack; ++t) {
                 el = nextSegment->element(t);
-                if (el && el->isChord()) {
+                if (el && el->isChord() && toChord(el)->lyrics(verse, placement)) {
+                    toLyricTrack = t;
                     break;
                 }
             }
@@ -5109,7 +5112,7 @@ void NotationInteraction::navigateToNextSyllable()
     }
 
     score()->startCmd();
-    ChordRest* cr = toChordRest(nextSegment->element(track));
+    ChordRest* cr = toChordRest(nextSegment->element(toLyricTrack));
     mu::engraving::Lyrics* toLyrics = cr->lyrics(verse, placement);
 
     // If no lyrics in current track, check others
