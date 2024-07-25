@@ -143,6 +143,7 @@ static void resetElementPosition(void*, EngravingItem* e)
 
     e->undoResetProperty(Pid::AUTOPLACE);
     e->undoResetProperty(Pid::OFFSET);
+    e->undoResetProperty(Pid::LEADING_SPACE);
     e->setOffsetChanged(false);
     if (e->isSpanner()) {
         e->undoResetProperty(Pid::OFFSET2);
@@ -1114,7 +1115,7 @@ Segment* Score::setNoteRest(Segment* segment, track_idx_t track, NoteVal nval, F
                 nr = ncr = Factory::createRest(this->dummy()->segment());
                 nr->setTrack(track);
                 ncr->setDurationType(d);
-                ncr->setTicks(d == DurationType::V_MEASURE ? measure->ticks() : d.fraction());
+                ncr->setTicks(d.isMeasure() ? measure->ticks() : d.fraction());
             } else {
                 nr = note = Factory::createNote(this->dummy()->chord());
 

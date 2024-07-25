@@ -2520,7 +2520,7 @@ void NotationInteraction::drawAnchorLines(Painter* painter)
         return;
     }
 
-    const auto dropAnchorColor = configuration()->anchorLineColor();
+    const auto dropAnchorColor = configuration()->anchorColor();
     Pen pen(dropAnchorColor, 2.0 / currentScaling(painter), PenStyle::DotLine);
 
     for (const LineF& anchor : m_anchorLines) {
@@ -3295,8 +3295,8 @@ bool NotationInteraction::handleKeyPress(QKeyEvent* event)
 
 void NotationInteraction::endEditText()
 {
-    EngravingItem* element = m_editData.element;
-    IF_ASSERT_FAILED(element) {
+    EngravingItem** element = &m_editData.element;
+    IF_ASSERT_FAILED(*element) {
         return;
     }
 
@@ -3306,7 +3306,9 @@ void NotationInteraction::endEditText()
 
     doEndEditElement();
 
-    notifyAboutTextEditingEnded(toTextBase(element));
+    if (*element) {
+        notifyAboutTextEditingEnded(toTextBase(*element));
+    }
     notifyAboutTextEditingChanged();
     notifyAboutSelectionChangedIfNeed();
 }
