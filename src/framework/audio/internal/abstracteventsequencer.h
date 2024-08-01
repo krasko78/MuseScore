@@ -65,8 +65,7 @@ public:
             m_shouldUpdateMainStreamEvents = true;
 
             if (m_isActive) {
-                updateMainStreamEvents(events, dynamics, params);
-                m_shouldUpdateMainStreamEvents = false;
+                updateMainStream();
             }
         });
 
@@ -82,9 +81,13 @@ public:
         return m_playbackData;
     }
 
-    virtual void updateOffStreamEvents(const mpe::PlaybackEventsMap& events, const mpe::PlaybackParamList& params) = 0;
-    virtual void updateMainStreamEvents(const mpe::PlaybackEventsMap& events, const mpe::DynamicLevelLayers& dynamics,
-                                        const mpe::PlaybackParamLayers& params) = 0;
+    void updateMainStream()
+    {
+        if (m_shouldUpdateMainStreamEvents) {
+            updateMainStreamEvents(m_playbackData.originEvents, m_playbackData.dynamics, m_playbackData.params);
+            m_shouldUpdateMainStreamEvents = false;
+        }
+    }
 
     void setActive(const bool active)
     {
@@ -94,9 +97,8 @@ public:
 
         m_isActive = active;
 
-        if (m_isActive && m_shouldUpdateMainStreamEvents) {
-            updateMainStreamEvents(m_playbackData.originEvents, m_playbackData.dynamics, m_playbackData.params);
-            m_shouldUpdateMainStreamEvents = false;
+        if (m_isActive) {
+            updateMainStream();
         }
     }
 
@@ -161,11 +163,12 @@ public:
             return result;
         }
 
+        // Empty sequence means to continue the previous sequence
+        result.emplace(m_playbackPosition, EventSequence());
+
         if (m_currentMainSequenceIt == m_mainStreamEvents.cend()) {
             return result;
         }
-
-        result.emplace(m_playbackPosition, EventSequence());
 
         m_playbackPosition += nextMsecs;
 
@@ -176,6 +179,10 @@ public:
     }
 
 protected:
+    virtual void updateOffStreamEvents(const mpe::PlaybackEventsMap& events, const mpe::PlaybackParamList& params) = 0;
+    virtual void updateMainStreamEvents(const mpe::PlaybackEventsMap& events, const mpe::DynamicLevelLayers& dynamics,
+                                        const mpe::PlaybackParamLayers& params) = 0;
+
     void resetAllIterators()
     {
         updateMainSequenceIterator();
@@ -221,7 +228,7 @@ protected:
     void handleMainStream(EventSequenceMap& result)
     {
         while (m_currentMainSequenceIt != m_mainStreamEvents.end()
-               && m_currentMainSequenceIt->first < m_playbackPosition) {
+               && m_currentMainSequenceIt->first <= m_playbackPosition) {
             EventSequence& sequence = result[m_currentMainSequenceIt->first];
             sequence.insert(m_currentMainSequenceIt->second.cbegin(),
                             m_currentMainSequenceIt->second.cend());
@@ -236,7 +243,7 @@ protected:
         }
 
         while (m_currentDynamicsIt != m_dynamicEvents.end()
-               && m_currentDynamicsIt->first < m_playbackPosition) {
+               && m_currentDynamicsIt->first <= m_playbackPosition) {
             EventSequence& sequence = result[m_currentDynamicsIt->first];
             sequence.insert(m_currentDynamicsIt->second.cbegin(),
                             m_currentDynamicsIt->second.cend());

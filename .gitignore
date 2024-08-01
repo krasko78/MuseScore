@@ -7,6 +7,7 @@
 .idea
 .vscode/
 /builds
+build
 /build_overrides.cmake
 build.release
 build.debug
@@ -14,6 +15,7 @@ build.install
 build.tooldata
 build.qtc
 build-*
+build
 win32build
 win32install
 win64build
