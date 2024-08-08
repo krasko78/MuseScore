@@ -5025,7 +5025,6 @@ void NotationInteraction::navigateToLyrics(bool back, bool moveOnly, bool end)
         cr = toChordRest(nextSegment->element(track));
         nextLyrics->setParent(cr);
         nextLyrics->setNo(verse);
-        nextLyrics->setEven(nextLyrics->isEven());
         nextLyrics->setPlacement(placement);
         nextLyrics->setPropertyFlags(mu::engraving::Pid::PLACEMENT, pFlags);
         nextLyrics->setSyllabic(mu::engraving::LyricsSyllabic::SINGLE);
@@ -5183,7 +5182,6 @@ void NotationInteraction::navigateToNextSyllable()
         toLyrics->setTrack(track);
         toLyrics->setParent(cr);
         toLyrics->setNo(verse);
-        toLyrics->setEven(toLyrics->isEven());
         toLyrics->setPlacement(placement);
         toLyrics->setPropertyFlags(mu::engraving::Pid::PLACEMENT, pFlags);
         toLyrics->setSyllabic(mu::engraving::LyricsSyllabic::END);
@@ -5266,7 +5264,6 @@ void NotationInteraction::navigateToLyricsVerse(MoveDirection direction)
         lyrics->setTrack(track);
         lyrics->setParent(cr);
         lyrics->setNo(verse);
-        lyrics->setEven(lyrics->isEven());
         lyrics->setPlacement(placement);
         lyrics->setPropertyFlags(mu::engraving::Pid::PLACEMENT, pFlags);
         lyrics->setFontStyle(fStyle);
@@ -5832,7 +5829,6 @@ void NotationInteraction::addMelisma()
         toLyrics->setTrack(track);
         toLyrics->setParent(cr);
         toLyrics->setNo(verse);
-        toLyrics->setEven(toLyrics->isEven());
         toLyrics->setPlacement(placement);
         toLyrics->setPropertyFlags(mu::engraving::Pid::PLACEMENT, pFlags);
         toLyrics->setSyllabic(mu::engraving::LyricsSyllabic::SINGLE);
@@ -5894,7 +5890,6 @@ void NotationInteraction::addLyricsVerse()
     lyrics->setPlacement(oldLyrics->placement());
     lyrics->setPropertyFlags(mu::engraving::Pid::PLACEMENT, oldLyrics->propertyFlags(mu::engraving::Pid::PLACEMENT));
     lyrics->setNo(newVerse);
-    lyrics->setEven(lyrics->isEven());
     lyrics->setFontStyle(fStyle);
     lyrics->setPropertyFlags(mu::engraving::Pid::FONT_STYLE, fFlags);
 

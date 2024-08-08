@@ -287,6 +287,11 @@ muse::async::Channel<EngravingItem*> Score::elementDestroyed()
     return m_elementDestroyed;
 }
 
+muse::async::Channel<float> Score::layoutProgressChannel() const
+{
+    return m_layoutProgressChannel;
+}
+
 //---------------------------------------------------------
 //   Score::clone
 //         To create excerpt clone to show when changing PageSettings
@@ -461,8 +466,10 @@ void Score::setUpTempoMap()
             BeatsPerSecond currentBps = tempomap()->tempo(tickPositionFrom);
             BeatsPerSecond newBps = currentBps * tempoChange->tempoChangeFactor();
 
-            std::map<int, double> tempoCurve = TConv::easingValueCurve(tempoChange->ticks().ticks(),
-                                                                       4 /*stepsCount*/,
+            int totalTicks = tempoChange->ticks().ticks();
+            int stepsCount = std::max(8, totalTicks / Constants::DIVISION);
+            std::map<int, double> tempoCurve = TConv::easingValueCurve(totalTicks,
+                                                                       stepsCount,
                                                                        newBps.val - currentBps.val,
                                                                        tempoChange->easingMethod());
 
@@ -724,7 +731,7 @@ void Score::dragPosition(const PointF& p, staff_idx_t* rst, Segment** seg, doubl
     }
     track_idx_t etrack = staff2track(i + 1);
 
-    SegmentType st = allowTimeAnchor ? SegmentType::ChordRest | SegmentType::TimeTick : SegmentType::ChordRest;
+    SegmentType st = allowTimeAnchor ? Segment::CHORD_REST_OR_TIME_TICK_TYPE : SegmentType::ChordRest;
     Segment* segment = m->searchSegment(pppp.x(), st, strack, etrack, *seg, spacingFactor);
     if (segment) {
         *rst = i;
