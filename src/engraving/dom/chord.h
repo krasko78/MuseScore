@@ -193,6 +193,8 @@ public:
     size_t graceIndex() const { return m_graceIndex; }
     void setGraceIndex(size_t val) { m_graceIndex = val; }
 
+    Chord* graceNoteAt(size_t idx) const;
+
     int upLine() const override;
     int downLine() const override;
     PointF stemPos() const override;            ///< page coordinates
@@ -212,7 +214,7 @@ public:
     Note* selectedNote() const;
 
     PointF pagePos() const override;        ///< position in page coordinates
-    void cmdUpdateNotes(AccidentalState*);
+    void cmdUpdateNotes(AccidentalState*, staff_idx_t staffIdx);
 
     NoteType noteType() const { return m_noteType; }
     void setNoteType(NoteType t);

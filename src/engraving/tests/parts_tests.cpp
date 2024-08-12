@@ -38,6 +38,7 @@
 #include "dom/part.h"
 #include "dom/segment.h"
 #include "dom/spanner.h"
+#include "dom/staff.h"
 
 #include "utils/scorerw.h"
 #include "utils/scorecomp.h"
@@ -53,6 +54,7 @@ public:
     Score* createPart(MasterScore* score);
     void createParts(MasterScore* score);
     void testPartCreation(const String& test);
+    void createLinkedStaff(MasterScore* score);
 
     MasterScore* doAddBreath();
     MasterScore* doRemoveBreath();
@@ -129,6 +131,19 @@ void Engraving_PartsTests::createParts(MasterScore* masterScore)
     //nscore->setName(parts.front()->partName());
 
     masterScore->setExcerptsChanged(true);
+}
+
+void Engraving_PartsTests::createLinkedStaff(MasterScore* masterScore)
+{
+    masterScore->startCmd();
+    Staff* sourceStaff = masterScore->staff(0);
+    EXPECT_TRUE(sourceStaff);
+    Staff* linkedStaff = Factory::createStaff(sourceStaff->part());
+    linkedStaff->setPart(sourceStaff->part());
+    masterScore->undoInsertStaff(linkedStaff, 1, false);
+    Excerpt::cloneStaff(sourceStaff, linkedStaff);
+    masterScore->endCmd();
+    EXPECT_TRUE(masterScore->staff(1));
 }
 
 //---------------------------------------------------------
@@ -1270,6 +1285,17 @@ TEST_F(Engraving_PartsTests, partSpanners)
     MScore::useRead302InTestMode = useRead302;
 }
 
+TEST_F(Engraving_PartsTests, partTies) {
+    const String test = u"linked-ties";
+    MasterScore* score = ScoreRW::readScore(PARTS_DATA_DIR + test + u".mscx");
+    ASSERT_TRUE(score);
+    createLinkedStaff(score);
+    EXPECT_TRUE(ScoreComp::saveCompareScore(score, test + u"-1.mscx", PARTS_DATA_DIR + test + u"-1.mscx"));
+    createPart(score);
+    EXPECT_TRUE(ScoreComp::saveCompareScore(score, test + u"-parts.mscx", PARTS_DATA_DIR + test + u"-parts.mscx"));
+    delete score;
+}
+
 TEST_F(Engraving_PartsTests, partVisibleTracks) {
     Score* score = ScoreRW::readScore(PARTS_DATA_DIR + u"part-visible-tracks.mscx");
     EXPECT_TRUE(score);
@@ -1299,6 +1325,77 @@ TEST_F(Engraving_PartsTests, partVisibleTracks) {
     // score->undoRedo(true, 0);
     EXPECT_TRUE(ScoreComp::saveCompareScore(score, u"part-visible-tracks-score.mscx",
                                             PARTS_DATA_DIR + u"part-visible-tracks-score-ref.mscx"));
+}
+
+TEST_F(Engraving_PartsTests, inputFromParts) {
+    bool useRead302 = MScore::useRead302InTestMode;
+    MScore::useRead302InTestMode = false;
+
+    // Enter notes *in parts* and check that they are correctly cloned to the score.
+
+    Score* score = ScoreRW::readScore(PARTS_DATA_DIR + u"input-from-parts.mscz");
+    EXPECT_TRUE(score);
+    staff_idx_t fluteStaff = 0;
+    staff_idx_t oboeStaff = 1;
+    staff_idx_t clarinetStaff = 2;
+    staff_idx_t bassoonStaff = 3;
+
+    Score* flutePart = nullptr;
+    Score* oboePart = nullptr;
+    Score* clarinetPart = nullptr;
+    Score* bassoonPart = nullptr;
+    for (Score* part : score->scoreList()) {
+        String partName = part->name();
+        if (partName == u"Flute") {
+            flutePart = part;
+        } else if (partName == u"Oboe") {
+            oboePart = part;
+        } else if (partName == u"Clarinet in B♭") {
+            clarinetPart = part;
+        } else if (partName == u"Bassoon") {
+            bassoonPart = part;
+        }
+    }
+    EXPECT_TRUE(flutePart && oboePart && clarinetPart && bassoonPart);
+
+    track_idx_t voice = 3;
+    Segment* partSegment = flutePart->firstMeasure()->findFirstR(SegmentType::ChordRest, Fraction(0, 1));
+    EXPECT_TRUE(partSegment);
+    flutePart->setNoteRest(partSegment, voice, NoteVal(60), Fraction(1, 1));
+    Segment* scoreSegment = score->tick2segment(partSegment->tick(), true, SegmentType::ChordRest);
+    EXPECT_TRUE(scoreSegment);
+    Chord* chord = toChord(scoreSegment->elementAt(staff2track(fluteStaff) + voice));
+    EXPECT_TRUE(chord);
+
+    voice = 2;
+    partSegment = oboePart->firstMeasure()->nextMeasure()->findFirstR(SegmentType::ChordRest, Fraction(0, 1));
+    EXPECT_TRUE(partSegment);
+    oboePart->setNoteRest(partSegment, voice, NoteVal(60), Fraction(1, 1));
+    scoreSegment = score->tick2segment(partSegment->tick(), true, SegmentType::ChordRest);
+    EXPECT_TRUE(scoreSegment);
+    chord = toChord(scoreSegment->elementAt(staff2track(oboeStaff) + voice));
+    EXPECT_TRUE(chord);
+
+    voice = 1;
+    partSegment = clarinetPart->firstMeasure()->nextMeasure()->nextMeasure()->findFirstR(SegmentType::ChordRest, Fraction(0, 1));
+    EXPECT_TRUE(partSegment);
+    clarinetPart->setNoteRest(partSegment, voice, NoteVal(60), Fraction(1, 1));
+    scoreSegment = score->tick2segment(partSegment->tick(), true, SegmentType::ChordRest);
+    EXPECT_TRUE(scoreSegment);
+    chord = toChord(scoreSegment->elementAt(staff2track(clarinetStaff) + voice));
+    EXPECT_TRUE(chord);
+
+    voice = 0;
+    partSegment = bassoonPart->firstMeasure()->nextMeasure()->nextMeasure()->nextMeasure()->findFirstR(SegmentType::ChordRest, Fraction(0,
+                                                                                                                                        1));
+    EXPECT_TRUE(partSegment);
+    bassoonPart->setNoteRest(partSegment, voice, NoteVal(60), Fraction(1, 1));
+    scoreSegment = score->tick2segment(partSegment->tick(), true, SegmentType::ChordRest);
+    EXPECT_TRUE(scoreSegment);
+    chord = toChord(scoreSegment->elementAt(staff2track(bassoonStaff) + voice));
+    EXPECT_TRUE(chord);
+
+    MScore::useRead302InTestMode = useRead302;
 }
 
 //---------------------------------------------------------
