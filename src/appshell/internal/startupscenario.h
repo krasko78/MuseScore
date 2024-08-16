@@ -34,17 +34,19 @@
 #include "iappshellhiddenconfiguration.h" // KRASKO
 #include "isessionsmanager.h"
 #include "project/iprojectautosaver.h"
+#include "audioplugins/iregisteraudiopluginsscenario.h"
 
 namespace mu::appshell {
 class StartupScenario : public IStartupScenario, public muse::async::Asyncable
 {
-    INJECT(muse::IInteractive, interactive)
-    INJECT(muse::actions::IActionsDispatcher, dispatcher)
-    INJECT(muse::mi::IMultiInstancesProvider, multiInstancesProvider)
-    INJECT(IAppShellConfiguration, configuration)
-    INJECT(IAppShellHiddenConfiguration, appshellHiddenConfiguration) // KRASKO
-    INJECT(ISessionsManager, sessionsManager)
-    INJECT(project::IProjectAutoSaver, projectAutoSaver)
+    muse::Inject<muse::IInteractive> interactive;
+    muse::Inject<muse::actions::IActionsDispatcher> dispatcher;
+    muse::Inject<muse::mi::IMultiInstancesProvider> multiInstancesProvider;
+    muse::Inject<IAppShellConfiguration> configuration;
+    muse::Inject<IAppShellHiddenConfiguration> appshellHiddenConfiguration; // KRASKO
+    muse::Inject<ISessionsManager> sessionsManager;
+    muse::Inject<project::IProjectAutoSaver> projectAutoSaver;
+    muse::Inject<muse::audioplugins::IRegisterAudioPluginsScenario> registerAudioPluginsScenario;
 
 public:
 
@@ -55,7 +57,8 @@ public:
     const project::ProjectFile& startupScoreFile() const override;
     void setStartupScoreFile(const std::optional<project::ProjectFile>& file) override;
 
-    void run() override;
+    void runOnSplashScreen() override;
+    void runAfterSplashScreen() override;
     bool startupCompleted() const override;
 
 private:

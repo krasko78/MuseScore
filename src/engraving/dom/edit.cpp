@@ -3932,7 +3932,7 @@ void Score::cmdCreateTuplet(ChordRest* ocr, Tuplet* tuplet)
 //   cmdExchangeVoice
 //---------------------------------------------------------
 
-void Score::cmdExchangeVoice(int s, int d)
+void Score::cmdExchangeVoice(voice_idx_t s, voice_idx_t d)
 {
     if (!selection().isRange()) {
         MScore::setError(MsError::NO_STAFF_SELECTED);
@@ -4124,7 +4124,7 @@ MeasureBase* Score::insertBox(ElementType type, MeasureBase* beforeMeasure, cons
     }
 
     Fraction tick;
-    bool isTitleFrame = type == ElementType::VBOX && beforeMeasure == beforeMeasure->score()->first();
+    bool isTitleFrame = type == ElementType::VBOX && beforeMeasure && beforeMeasure == beforeMeasure->score()->first();
     if (beforeMeasure) {
         if (beforeMeasure->isMeasure()) {
             Measure* m = toMeasure(beforeMeasure);
