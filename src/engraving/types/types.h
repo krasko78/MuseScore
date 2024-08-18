@@ -846,6 +846,8 @@ const std::string textStyleNames[] = { // KRASKO
     "INSTRUMENT_CHANGE",
     "HEADER",
     "FOOTER",
+    "COPYRIGHT",
+    "PAGE_NUMBER",
 
     // Measure-oriented styles
     "MEASURE_NUMBER",
@@ -880,6 +882,8 @@ const std::string textStyleNames[] = { // KRASKO
     "RH_GUITAR_FINGERING",
     "STRING_NUMBER",
     "STRING_TUNINGS",
+    "FRET_DIAGRAM_FINGERING",
+    "FRET_DIAGRAM_FRET_NUMBER",
     "HARP_PEDAL_DIAGRAM",
     "HARP_PEDAL_TEXT_DIAGRAM",
 
