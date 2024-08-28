@@ -199,6 +199,7 @@ MenuItem* AppMenuModel::makeViewMenu()
         makeMenuItem("toggle-timeline"),
         makeMenuItem("toggle-mixer"),
         makeMenuItem("toggle-piano-keyboard"),
+        // makeMenuItem("toggle-percussion-panel"), // still in development
         makeMenuItem("playback-setup"),
         //makeMenuItem("toggle-scorecmp-tool"), // not implemented
         makeSeparator(),
@@ -665,6 +666,9 @@ MenuItemList AppMenuModel::makePluginsItems()
         } else {
             MenuItemList sub;
             for (const muse::extensions::Action& a : m.actions) {
+                if (a.hidden) {
+                    continue;
+                }
                 sub << makeMenuItem(makeUriQuery(m.uri, a.code).toString(), TranslatableString::untranslatable(a.title));
             }
             items << makeMenu(TranslatableString::untranslatable(m.title), sub);

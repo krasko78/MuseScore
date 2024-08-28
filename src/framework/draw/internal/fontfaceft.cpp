@@ -22,7 +22,6 @@
 #include "fontfaceft.h"
 
 #include <unordered_map>
-#include <iostream>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -132,7 +131,7 @@ bool FontFaceFT::load(const FaceKey& key, const io::path_t& path, bool isSymbolM
     int rval = FT_New_Memory_Face(ftlib, (FT_Byte*)m_data->fontData.constData(),
                                   (FT_Long)m_data->fontData.size(), 0, &m_data->face);
     if (rval) {
-        LOGE() << "freetype: cannot create face: " << m_key.dataKey.family() << ", rval: " << rval;
+        LOGE() << "freetype: cannot create face: " << m_key.dataKey.family().id() << ", rval: " << rval;
         return false;
     }
 

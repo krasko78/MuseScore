@@ -595,12 +595,15 @@ Note* Score::addNoteToTiedChord(Chord* chord, const NoteVal& noteVal, bool force
     };
     Note* referenceNote = chord->notes().at(0);
 
-    while (referenceNote->tieBack()) {
+    while (true) {
+        // don't add note if it is already part of tied notes previously
+        if (referenceNote->chord()->findNote(noteVal.pitch)) {
+            return nullptr;
+        }
+        if (!referenceNote->tieBack()) {
+            break;
+        }
         referenceNote = referenceNote->tieBack()->startNote();
-    }
-    // don't add note if it is already exist
-    if (referenceNote->chord()->findNote(noteVal.pitch)) {
-        return nullptr;
     }
 
     Tie* tie = nullptr;
@@ -3259,6 +3262,30 @@ void Score::deleteOrShortenOutSpannersFromRange(const Fraction& t1, const Fracti
                     Fraction tickDiff = spEndTick - t1;
                     sp->undoChangeProperty(Pid::SPANNER_TICKS, sp->ticks() - tickDiff);
                 }
+            }
+        }
+    }
+}
+
+void Score::deleteSlursFromRange(const Fraction& t1, const Fraction& t2, track_idx_t trackStart, track_idx_t trackEnd,
+                                 const SelectionFilter& filter)
+{
+    auto spanners = m_spanner.findOverlapping(t1.ticks(), t2.ticks() - 1);
+    for (auto i : spanners) {
+        Spanner* sp = i.value;
+        Fraction spStartTick = sp->tick();
+        Fraction spEndTick = sp->tick2();
+        if (!sp->isSlur()) {
+            continue;
+        }
+        if (!filter.canSelectVoice(sp->track())) {
+            continue;
+        }
+
+        if (sp->track() >= trackStart && sp->track() < trackEnd) {
+            if ((spStartTick >= t1 && spStartTick < t2)
+                || (spEndTick >= t1 && spEndTick <= t2)) {
+                undoRemoveElement(sp);
             }
         }
     }
@@ -6885,11 +6912,13 @@ void Score::undoRemoveMeasures(Measure* m1, Measure* m2, bool preserveTies, bool
     }
 
     // delete staffTypeChanges in removed measures
-    for (Measure* m = m1; m && m != m2->nextMeasure(); m = m->nextMeasure()) {
-        for (size_t i = m->el().size(); i > 0; --i) {
-            EngravingItem* el = m->el().at(i - 1);
-            if (el && el->isStaffTypeChange()) {
-                deleteItem(el);
+    if (moveStaffTypeChanges) {
+        for (Measure* m = m1; m && m != m2->nextMeasure(); m = m->nextMeasure()) {
+            for (size_t i = m->el().size(); i > 0; --i) {
+                EngravingItem* el = m->el().at(i - 1);
+                if (el && el->isStaffTypeChange()) {
+                    deleteItem(el);
+                }
             }
         }
     }
