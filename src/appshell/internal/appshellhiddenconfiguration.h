@@ -28,9 +28,12 @@
 using namespace muse;
 
 namespace mu::appshell {
-class AppShellHiddenConfiguration : public IAppShellHiddenConfiguration
+class AppShellHiddenConfiguration : public IAppShellHiddenConfiguration, public muse::Injectable
 {
 public:
+    AppShellHiddenConfiguration(const muse::modularity::ContextPtr& iocCtx)
+        : muse::Injectable(iocCtx) {}
+
     void init();
 
 
