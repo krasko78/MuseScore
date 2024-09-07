@@ -1109,7 +1109,7 @@ void TextBlock::layout(const TextBase* t)
     }
 
     // Apply style/custom line spacing
-    m_lineSpacing *= t->textLineSpacing() * 0.707;   // KRASKO
+    m_lineSpacing *= t->textLineSpacing();
 
     double rx = 0;
     AlignH alignH = t->align().horizontal;
