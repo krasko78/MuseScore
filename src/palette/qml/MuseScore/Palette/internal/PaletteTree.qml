@@ -83,10 +83,8 @@ StyledListView {
         }
 
         if (paletteModel) {
-            //paletteModel.setFilterFixedString(filter) // KRASKO
-            paletteTree.paletteProvider.setFilter(filter) // KRASKO
-
-            paletteTree.positionViewAtBeginning() // KRASKO: Scroll to top after a search
+            paletteTree.paletteProvider.setFilter(filter)
+            paletteTree.positionViewAtBeginning() // Scroll to top after a search
         }
     }
 

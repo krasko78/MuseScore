@@ -2708,20 +2708,19 @@ void Score::adjustBracketsDel(size_t sidx, size_t eidx)
 
     for (size_t staffIdx = 0; staffIdx < eidx; ++staffIdx) {
         Staff* staff = m_staves[staffIdx];
-        std::vector<BracketItem*> brackets = staff->brackets(); // create copy because it's modified during loop
-        for (BracketItem* bi : brackets) {
+        for (BracketItem* bi : staff->brackets()) {
             size_t span = bi->bracketSpan();
             if ((span == 0) || ((staffIdx + span) <= sidx)) {
                 continue;
             }
             const bool startsOutsideDeletedRange = (staffIdx < sidx);
-            const bool endsOutsideDeletedRange = ((staffIdx + span) > eidx);
+            const bool endsOutsideDeletedRange = ((staffIdx + span) >= eidx);
             if (startsOutsideDeletedRange && endsOutsideDeletedRange) {
                 // Shorten the bracket by the number of staves deleted
                 bi->undoChangeProperty(Pid::BRACKET_SPAN, int(span - (eidx - sidx)));
             } else if (startsOutsideDeletedRange) {
                 // Shorten the bracket by the number of staves deleted that were spanned by it
-                bi->undoChangeProperty(Pid::BRACKET_SPAN, int(staffIdx - sidx));
+                bi->undoChangeProperty(Pid::BRACKET_SPAN, int(sidx - staffIdx));
             } else if (endsOutsideDeletedRange) {
                 if (eidx < m_staves.size()) {
                     // Move the bracket past the end of the deleted range,

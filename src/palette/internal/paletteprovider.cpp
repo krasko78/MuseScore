@@ -601,7 +601,6 @@ void PaletteProvider::init()
 
     m_searchFilterModel = new PaletteCellFilterProxyModel(this);
     m_searchFilterModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
-    //m_searchFilterModel->setSourceModel(m_masterPaletteModel); // KRASKO: The model will be set in setFilter() as soon as there is a filter
 
     m_visibilityFilterModel = new QSortFilterProxyModel(this);
     m_visibilityFilterModel->setFilterRole(PaletteTreeModel::VisibleRole);
@@ -617,15 +616,16 @@ void PaletteProvider::init()
     });
 }
 
-void PaletteProvider::setFilter(const QString& filter) // KRASKO
+void PaletteProvider::setFilter(const QString& filter)
 {
-    // Remove the model when there is no search text so as to return no results
-    // and thus speed up the search. Restore the model as soon as the search text is non-empty.
-    // This HACK of first setting the source model to nullptr seems to help speed up the search
-    // when there are two search characters entered and one of them is deleted.
+    // Remove the model when there is no search text so as to return no results.
+    // This speeds up the opening of the palette search text box in this case.
+    // Restore the model as soon as the search text is non-empty.
+    // First clearing the source model helps speed up the search in some other cases too,
+    // e.g. when there are two search characters entered and one of them is deleted.
     m_searchFilterModel->setSourceModel(nullptr);
     m_searchFilterModel->setFilterFixedString(filter);
-    if (filter.length() > 0) {
+    if (!filter.isEmpty()) {
         m_searchFilterModel->setSourceModel(m_masterPaletteModel);
     }
 }

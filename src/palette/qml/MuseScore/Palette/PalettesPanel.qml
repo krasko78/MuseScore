@@ -127,7 +127,7 @@ Item {
             verticalAlignment: Qt.AlignTop
             wrapMode: Text.WordWrap
 
-            visible: !searchHint.visible && !paletteTree.isResultFound // KRASKO
+            visible: !searchHint.visible && !paletteTree.isResultFound
         }
 
         PaletteTree {

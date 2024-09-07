@@ -89,11 +89,11 @@ std::string AppShellModule::moduleName() const
 
 void AppShellModule::registerExports()
 {
-    m_applicationActionController = std::make_shared<ApplicationActionController>();
-    m_applicationUiActions = std::make_shared<ApplicationUiActions>(m_applicationActionController);
-    m_appShellConfiguration = std::make_shared<AppShellConfiguration>();
-    m_appShellHiddenConfiguration = std::make_shared<AppShellHiddenConfiguration>(); // KRASKO
-    m_sessionsManager = std::make_shared<SessionsManager>();
+    m_applicationActionController = std::make_shared<ApplicationActionController>(iocContext());
+    m_applicationUiActions = std::make_shared<ApplicationUiActions>(m_applicationActionController, iocContext());
+    m_appShellConfiguration = std::make_shared<AppShellConfiguration>(iocContext());
+    m_appShellHiddenConfiguration = std::make_shared<AppShellHiddenConfiguration>(iocContext()); // KRASKO
+    m_sessionsManager = std::make_shared<SessionsManager>(iocContext());
 
     #ifdef Q_OS_MAC
     m_scrollingHook = std::make_shared<MacOSScrollingHook>();
@@ -101,7 +101,7 @@ void AppShellModule::registerExports()
 
     ioc()->registerExport<IAppShellConfiguration>(moduleName(), m_appShellConfiguration);
     ioc()->registerExport<IAppShellHiddenConfiguration>(moduleName(), m_appShellHiddenConfiguration); // KRASKO
-    ioc()->registerExport<IStartupScenario>(moduleName(), new StartupScenario());
+    ioc()->registerExport<IStartupScenario>(moduleName(), new StartupScenario(iocContext()));
     ioc()->registerExport<ISessionsManager>(moduleName(), m_sessionsManager);
 
 #ifdef Q_OS_MAC
