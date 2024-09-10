@@ -618,11 +618,12 @@ void PaletteProvider::init()
 
 void PaletteProvider::setFilter(const QString& filter)
 {
-    // Remove the model when there is no search text so as to return no results.
-    // This speeds up the opening of the palette search text box in this case.
-    // Restore the model as soon as the search text is non-empty.
-    // First clearing the source model helps speed up the search in some other cases too,
-    // e.g. when there are two search characters entered and one of them is deleted.
+    // Unbind the model when there is no search text so as to return no results
+    // and thus speed up the opening of the palette search. Rebind the model
+    // as soon as the search text is non-empty.
+    // Doing this *trick* also when the search text is non-empty helps
+    // speed up the search in certain other scenarios,
+    // e.g. when deleting search characters (going from fewer to more search results).
     m_searchFilterModel->setSourceModel(nullptr);
     m_searchFilterModel->setFilterFixedString(filter);
     if (!filter.isEmpty()) {

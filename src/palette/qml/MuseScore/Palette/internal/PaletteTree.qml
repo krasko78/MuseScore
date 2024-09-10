@@ -82,9 +82,9 @@ StyledListView {
             expandedPopupIndex = null
         }
 
-        if (paletteModel) {
-            paletteTree.paletteProvider.setFilter(filter)
-            paletteTree.positionViewAtBeginning() // Scroll to top after a search
+        if (paletteProvider) {
+            paletteProvider.setFilter(filter)
+            paletteTree.positionViewAtBeginning()   // Scroll to the top after a search
         }
     }
 
@@ -305,9 +305,6 @@ StyledListView {
                     customPaletteRootIndex = paletteTree.paletteProvider.customElementsPaletteIndex(control.modelIndex) // TODO: make a property binding? (but that works incorrectly)
                     customPaletteController = paletteTree.paletteProvider.customElementsPaletteController
                 }
-                if (!isOpened) {
-                    paletteTree.expandedPopupIndex = null
-                }
             }
 
             property bool needScrollToBottom: false
@@ -325,8 +322,8 @@ StyledListView {
 
             function scrollToPopupBottom() {
                 //! FIXME Not worked as should
-    //                        const popupBottom = implicitHeight + y + control.y + 14; // 14 for DropShadow in StyledPopup: depends on blur radius and vertical offset
-    //                        paletteTree.ensureYVisible(popupBottom);
+//                        const popupBottom = implicitHeight + y + control.y + 14; // 14 for DropShadow in StyledPopup: depends on blur radius and vertical offset
+//                        paletteTree.ensureYVisible(popupBottom);
             }
 
             onContentHeightChanged: {
@@ -496,7 +493,7 @@ StyledListView {
             function togglePopup(btn) {
                 const expand = !popupExpanded;
                 paletteTree.expandedPopupIndex = expand ? modelIndex : null;
-                palettePopup.toggleOpened(model, control, btn);
+                palettePopup.toggleOpened(model, control, btn)
             }
 
             property size cellSize: model.gridSize

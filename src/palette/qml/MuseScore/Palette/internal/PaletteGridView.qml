@@ -495,11 +495,11 @@ StyledGridView {
         anchors.fill: parent
         acceptedButtons: Qt.RightButton
         onClicked: function(mouseEvent) {
-            var itemClicked = paletteView.itemAt(mouseEvent.x, mouseEvent.y)
-            if (Boolean(itemClicked)) {
-                contextMenu.modelIndex = itemClicked.modelIndex
+            var paletteCell = paletteView.itemAt(mouseEvent.x, mouseEvent.y)
+            if (Boolean(paletteCell)) {
+                contextMenu.modelIndex = paletteCell.modelIndex
                 contextMenu.canEdit = paletteView.paletteController.canEdit(paletteView.paletteRootIndex)
-                contextMenu.parent = itemClicked
+                contextMenu.parent = paletteCell
                 contextMenu.toggleOpened(contextMenu.items, mouseEvent.x, mouseEvent.y)
             }
         }
