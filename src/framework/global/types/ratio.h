@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore BVBA and others
+ * Copyright (C) 2024 MuseScore BVBA and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -19,32 +19,36 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef MUSE_API_APIOBJECT_H
-#define MUSE_API_APIOBJECT_H
+#pragma once
 
-#include <QObject>
+#include <cmath>
 
-#include "iapiengine.h"
-#include "modularity/ioc.h"
+#include "number.h"
 
-//! NOTE This class requires a `cpp` file.
-//! If we move it to the `api` module, we will have to link it to all other modules.
-//! That’s why it’s located here, because the `global` module links to everything.
-
-namespace muse::api {
-class ApiObject : public QObject, public Injectable
+namespace muse {
+inline float db_to_linear(float v)
 {
-    Q_OBJECT
-
-public:
-    explicit ApiObject(IApiEngine* e);
-
-    IApiEngine* engine() const;
-
-private:
-
-    IApiEngine* m_engine = nullptr;
-};
+    return std::pow(10.0, v / 20.0);
 }
 
-#endif // MUSE_API_APIOBJECT_H
+inline float linear_to_db(float v)
+{
+    return 20.0 * std::log10(std::abs(v));
+}
+
+//! NOTE Just linear ratio
+using ratio_t = number_t<float>;
+
+//! NOTE logarithmic ratio (decibel)
+using db_t = number_t<float>;
+
+inline ratio_t db_to_linear(db_t v)
+{
+    return muse::db_to_linear(v.raw());
+}
+
+inline db_t linear_to_db(ratio_t v)
+{
+    return muse::linear_to_db(v.raw());
+}
+}
