@@ -1763,6 +1763,15 @@ bool NotationInteraction::applyPaletteElement(mu::engraving::EngravingItem* elem
             }
         } else if (isLineNoteToNote) {
             applyLineNoteToNote(score, toNote(sel.elements()[0]), toNote(sel.elements()[1]), element);
+        } else if ((element->isClef() || element->isTimeSig() || element->isKeySig()) && score->noteEntryMode()) {
+            // in note input mode place clef / time sig / key sig before cursor
+            EngravingItem* e = score->inputState().cr();
+            if (!e) {
+                e = sel.elements().front();
+            } else if (e->isChord()) {
+                e = toChord(e)->notes().front();
+            }
+            applyDropPaletteElement(score, e, element, modifiers);
         } else {
             for (EngravingItem* e : sel.elements()) {
                 applyDropPaletteElement(score, e, element, modifiers);
@@ -1848,22 +1857,22 @@ bool NotationInteraction::applyPaletteElement(mu::engraving::EngravingItem* elem
                     }
                 }
                 if (m2 || e2) {
-                    // restore original clef/keysig/timesig
+                    // restore clef/keysig/timesig that was in effect at end of selection
                     mu::engraving::Staff* staff = score->staff(i);
-                    mu::engraving::Fraction tick1 = sel.startSegment()->tick();
+                    mu::engraving::Fraction tick2 = sel.endSegment()->tick();
                     mu::engraving::EngravingItem* oelement = nullptr;
                     switch (element->type()) {
                     case mu::engraving::ElementType::CLEF:
                     {
                         mu::engraving::Clef* oclef = engraving::Factory::createClef(score->dummy()->segment());
-                        oclef->setClefType(staff->clef(tick1));
+                        oclef->setClefType(staff->clef(tick2));
                         oelement = oclef;
                         break;
                     }
                     case mu::engraving::ElementType::KEYSIG:
                     {
                         mu::engraving::KeySig* okeysig = engraving::Factory::createKeySig(score->dummy()->segment());
-                        okeysig->setKeySigEvent(staff->keySigEvent(tick1));
+                        okeysig->setKeySigEvent(staff->keySigEvent(tick2));
                         Key ck = okeysig->concertKey();
                         okeysig->setKey(ck);
                         oelement = okeysig;
@@ -1872,7 +1881,7 @@ bool NotationInteraction::applyPaletteElement(mu::engraving::EngravingItem* elem
                     case mu::engraving::ElementType::TIMESIG:
                     {
                         mu::engraving::TimeSig* otimesig = engraving::Factory::createTimeSig(score->dummy()->segment());
-                        otimesig->setFrom(staff->timeSig(tick1));
+                        otimesig->setFrom(staff->timeSig(tick2));
                         oelement = otimesig;
                         break;
                     }
