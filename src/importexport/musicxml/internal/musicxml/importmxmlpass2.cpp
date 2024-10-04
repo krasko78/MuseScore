@@ -91,6 +91,7 @@
 #include "importmxmlpass2.h"
 #include "musicxmlfonthandler.h"
 #include "musicxmlsupport.h"
+#include "musicxmltypes.h"
 
 #include "modularity/ioc.h"
 #include "importexport/musicxml/imusicxmlconfiguration.h"
@@ -120,6 +121,8 @@ static std::shared_ptr<mu::engraving::IEngravingFontsProvider> engravingFonts()
 //---------------------------------------------------------
 
 //#define DEBUG_VOICE_MAPPER true
+
+constexpr int MAX_LYRICS       = 16;
 
 //---------------------------------------------------------
 //   function declarations
@@ -267,7 +270,7 @@ static int MusicXMLStepAltOct2Pitch(int step, int alter, int octave)
  Note that n's staff and track have not been set yet
  */
 
-static void xmlSetPitch(Note* n, int step, int alter, int octave, const int octaveShift, const Instrument* const instr)
+static void xmlSetPitch(Note* n, int step, int alter, double tuning, int octave, const int octaveShift, const Instrument* const instr)
 {
     //LOGD("xmlSetPitch(n=%p, step=%d, alter=%d, octave=%d, octaveShift=%d)",
     //       n, step, alter, octave, octaveShift);
@@ -289,6 +292,7 @@ static void xmlSetPitch(Note* n, int step, int alter, int octave, const int octa
     int tpc2 = step2tpc(step, AccidentalVal(alter));
     int tpc1 = mu::engraving::transposeTpc(tpc2, intval, true);
     n->setPitch(pitch, tpc1, tpc2);
+    n->setTuning(tuning);
     //LOGD("  pitch=%d tpc1=%d tpc2=%d", n->pitch(), n->tpc1(), n->tpc2());
 }
 
@@ -2257,7 +2261,7 @@ void MusicXMLParserPass2::part()
         }
 
         if (!unendedTie->endNote()) {
-            cleanupUnterminatedTie(unendedTie, m_score, m_pass1.exporterString().contains(u"dolet 6"));
+            cleanupUnterminatedTie(unendedTie, m_score, m_pass1.exporterSoftware() == MusicXMLExporterSoftware::DOLET6);
         }
     }
 
@@ -3276,7 +3280,7 @@ void MusicXMLParserDirection::direction(const String& partId,
     bool isVocalStaff = m_pass1.isVocalStaff(partId);
     bool isPercussionStaff = m_pass1.isPercussionStaff(partId);
     bool isExpressionText = false;
-    bool delayOttava = m_pass1.exporterString().contains(u"sibelius");
+    bool delayOttava = m_pass1.exporterSoftware() == MusicXMLExporterSoftware::SIBELIUS;
     m_systemDirection = m_e.attribute("system") == "only-top";
     //LOGD("direction track %d", track);
     std::vector<MusicXmlSpannerDesc> starts;
@@ -3583,19 +3587,23 @@ void MusicXMLParserDirection::direction(const String& partId,
             delete desc.sp;
         } else {
             if (spdesc.isStarted) {
+                // Adjustments to ottavas by the offset value are unwanted
+                const Fraction spTick = spdesc.sp && spdesc.sp->isOttava() ? tick : tick + m_offset;
                 if (spdesc.sp && spdesc.sp->isOttava() && delayOttava) {
                     // Sibelius writes ottava ends 1 note too early
                     m_pass2.setDelayedOttava(spdesc.sp);
                     m_pass2.delayedOttava()->setTrack2(m_track);
-                    m_pass2.delayedOttava()->setTick2(tick + m_offset);
+                    m_pass2.delayedOttava()->setTick2(spTick);
+                    // need to set tick again later
                     m_pass2.clearSpanner(desc);
                 } else {
-                    handleSpannerStop(spdesc.sp, m_track, tick + m_offset, spanners);
+                    handleSpannerStop(spdesc.sp, m_track, spTick, spanners);
                     m_pass2.clearSpanner(desc);
                 }
             } else {
                 spdesc.sp = desc.sp;
-                spdesc.tick2 = tick + m_offset;
+                const Fraction spTick = spdesc.sp && spdesc.sp->isOttava() ? tick : tick + m_offset;
+                spdesc.tick2 = spTick;
                 spdesc.track2 = m_track;
                 spdesc.isStopped = true;
             }
@@ -3939,7 +3947,7 @@ void MusicXMLParserDirection::otherDirection()
         // TODO: Multiple sets of maps for exporters other than Dolet 6/Sibelius
         // TODO: Add more symbols from Sibelius
         std::map<String, String> otherDirectionStrings;
-        if (m_pass1.exporterString().contains(u"dolet")) {
+        if (m_pass1.dolet()) {
             otherDirectionStrings = {
                 { String(u"To Coda"), String(u"To Coda") },
                 { String(u"Segno"), String(u"<sym>segno</sym>") },
@@ -4177,7 +4185,7 @@ void MusicXMLParserDirection::textToDynamic(String& text)
     }
     String simplifiedText = MScoreTextToMXML::toPlainText(text).simplified();
     // Correct finale's incorrect dynamic export
-    if (m_pass1.exporterString().contains(u"finale")) {
+    if (m_pass1.exporterSoftware() == MusicXMLExporterSoftware::FINALE) {
         static const std::map<String,
                               String> finaleDynamicSubs
             = { { u"π", u"pp" }, { u"P", u"mp" }, { u"F", u"mf" }, { u"ƒ", u"ff" }, { u"Ï", u"fff" }, { u"S", u"sf" }, { u"ß", u"sfz" },
@@ -4578,7 +4586,7 @@ void MusicXMLParserDirection::handleTempo(String& wordsString)
     };
 
     MetronomeTextMap textMap;
-    if (m_pass1.exporterString().contains(u"sibelius")) {
+    if (m_pass1.sibOrDolet()) {
         textMap = sibeliusSyms;
     } else if (m_fontFamily == u"MetTimes Plain") {
         textMap = metTimesSyms;
@@ -4885,19 +4893,20 @@ void MusicXMLParserDirection::octaveShift(const String& type, const int number,
         } else {
             Ottava* o = spdesc.isStopped ? toOttava(spdesc.sp) : Factory::createOttava(m_score->dummy());
 
-            // if (placement.empty()) placement = "above";  // TODO ? set default
-
-            if (type == u"down" && ottavasize == 8) {
-                o->setOttavaType(OttavaType::OTTAVA_8VA);
-            }
-            if (type == u"down" && ottavasize == 15) {
-                o->setOttavaType(OttavaType::OTTAVA_15MA);
-            }
-            if (type == u"up" && ottavasize == 8) {
-                o->setOttavaType(OttavaType::OTTAVA_8VB);
-            }
-            if (type == u"up" && ottavasize == 15) {
-                o->setOttavaType(OttavaType::OTTAVA_15MB);
+            if (type == u"down") {
+                m_placement = m_placement.empty() ? u"above" : m_placement;
+                if (ottavasize == 8) {
+                    o->setOttavaType(OttavaType::OTTAVA_8VA);
+                } else if (ottavasize == 15) {
+                    o->setOttavaType(OttavaType::OTTAVA_15MA);
+                }
+            } else if (type == u"up") {
+                m_placement = m_placement.empty() ? u"below" : m_placement;
+                if (ottavasize == 8) {
+                    o->setOttavaType(OttavaType::OTTAVA_8VB);
+                } else if (ottavasize == 15) {
+                    o->setOttavaType(OttavaType::OTTAVA_15MB);
+                }
             }
 
             const Color color = Color::fromString(m_e.asciiAttribute("color").ascii());
@@ -6401,10 +6410,10 @@ static void setPitch(Note* note, const MusicXMLInstruments& instruments, const S
             note->setTpc(pitch2tpc(unpitched, Key::C, Prefer::NEAREST));             // TODO: necessary ?
         } else {
             //LOGD("disp step %d oct %d", displayStep, displayOctave);
-            xmlSetPitch(note, mnp.displayStep(), 0, mnp.displayOctave(), 0, instrument);
+            xmlSetPitch(note, mnp.displayStep(), 0, 0.0, mnp.displayOctave(), 0, instrument);
         }
     } else {
-        xmlSetPitch(note, mnp.step(), mnp.alter(), mnp.octave(), octaveShift, instrument);
+        xmlSetPitch(note, mnp.step(), mnp.alter(), mnp.tuning(), mnp.octave(), octaveShift, instrument);
     }
 }
 
@@ -6613,7 +6622,7 @@ Note* MusicXMLParserPass2::note(const String& partId,
             String noteheadValue = m_e.readText();
             if (noteheadValue == "none") {
                 hasHead = false;
-            } else if (noteheadValue == "named" && m_pass1.exporterString().contains(u"noteflight")) {
+            } else if (noteheadValue == "named" && m_pass1.exporterSoftware() == MusicXMLExporterSoftware::NOTEFLIGHT) {
                 headScheme = NoteHeadScheme::HEAD_PITCHNAME;
             } else {
                 headGroup = convertNotehead(noteheadValue);
@@ -7515,7 +7524,7 @@ void MusicXMLParserPass2::harmony(const String& partId, Measure* measure, const 
 
     const HarmonyDesc newHarmonyDesc(track, ha, fd);
     bool insert = true;
-    if (m_pass1.exporterString().contains(u"dolet")) {
+    if (m_pass1.sibOrDolet()) {
         const int ticks = (sTime + offset).ticks();
         for (auto itr = harmonyMap.begin(); itr != harmonyMap.end(); itr++) {
             if (itr->first != ticks) {
