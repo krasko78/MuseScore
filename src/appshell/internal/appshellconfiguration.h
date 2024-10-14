@@ -61,6 +61,7 @@ public:
 
     // Editing
     bool editElementKeyCyclesThroughGrips() const override;
+    bool escapeKeyWhileEditingKeepsSelection() const override;
     bool showSameColorCheckBoxOnSelectMoreDialog() const override;
     bool enableAltModifierKeyForNudging() const override;
     bool enableHighPrecisionNudging() const override;

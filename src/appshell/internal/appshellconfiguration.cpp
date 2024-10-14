@@ -61,6 +61,12 @@ static const Settings::Key EDIT_ELEMENT_KEY_CYCLES_THROUGH_GRIPS(module_name, "k
         //  once to diplay the grips/handles (the element must be selected) and then continue pressing the same key
         //  (instead of TAB) to activate the desired grip/handle to adjust it.
 
+static const Settings::Key ESCAPE_KEY_WHILE_EDITING_KEEPS_SELECTION(module_name, "krasko/EscapeKeyWhileEditingKeepsSelection");
+        static constexpr bool ESCAPE_KEY_WHILE_EDITING_KEEPS_SELECTION_DEFAULT = true;
+        //  When true, pressing the ESC key while editing an element, e.g. a slur or hairpin, will stop the editing
+        //  but not deselect the element. This enables you to press the "Edit Element" key and continue editing
+        //  until you are happy with the result. When the value is false, the element will also be deselected.
+
 static const Settings::Key SHOW_SAME_COLOR_CHECKBOX_ON_SELECT_MORE_DIALOG(module_name, "krasko/ShowSameColorCheckBoxOnSelectMoreDialog");
         static constexpr bool SHOW_SAME_COLOR_CHECKBOX_ON_SELECT_MORE_DIALOG_DEFAULT = true;
         //  When true, will display a "Same color" checkbox on the Select More... dialogs (for note and non-note) so that
@@ -144,6 +150,7 @@ void AppShellConfiguration::init()
     settings()->setDefaultValue(NAV_NEXT_PREV_PANEL_NAVIGATES_TO_NEXT_PREV_CONTROL, Val(NAV_NEXT_PREV_PANEL_NAVIGATES_TO_NEXT_PREV_CONTROL_DEFAULT));
 
     settings()->setDefaultValue(EDIT_ELEMENT_KEY_CYCLES_THROUGH_GRIPS, Val(EDIT_ELEMENT_KEY_CYCLES_THROUGH_GRIPS_DEFAULT));
+    settings()->setDefaultValue(ESCAPE_KEY_WHILE_EDITING_KEEPS_SELECTION, Val(ESCAPE_KEY_WHILE_EDITING_KEEPS_SELECTION_DEFAULT));
     settings()->setDefaultValue(SHOW_SAME_COLOR_CHECKBOX_ON_SELECT_MORE_DIALOG, Val(SHOW_SAME_COLOR_CHECKBOX_ON_SELECT_MORE_DIALOG_DEFAULT));
     settings()->setDefaultValue(ENABLE_ALT_MODIFIER_KEY_FOR_NUDGING, Val(ENABLE_ALT_MODIFIER_KEY_FOR_NUDGING_DEFAULT));
     settings()->setDefaultValue(ENABLE_HIGH_PRECISION_NUDGING, Val(ENABLE_HIGH_PRECISION_NUDGING_DEFAULT));
@@ -212,6 +219,11 @@ bool AppShellConfiguration::navNextPrevPanelNavigatesToNextPrevControl() const
 bool AppShellConfiguration::editElementKeyCyclesThroughGrips() const
 {
     return settings()->value(EDIT_ELEMENT_KEY_CYCLES_THROUGH_GRIPS).toBool();
+}
+
+bool AppShellConfiguration::escapeKeyWhileEditingKeepsSelection() const
+{
+    return settings()->value(ESCAPE_KEY_WHILE_EDITING_KEEPS_SELECTION).toBool();
 }
 
 bool AppShellConfiguration::showSameColorCheckBoxOnSelectMoreDialog() const

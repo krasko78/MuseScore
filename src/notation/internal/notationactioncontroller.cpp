@@ -671,6 +671,9 @@ void NotationActionController::resetState()
         return;
     } else if (interaction->isElementEditStarted()) {
         interaction->endEditElement();
+        if (appshellConfiguration()->escapeKeyWhileEditingKeepsSelection()) { // KRASKO
+            return;
+        }
     }
 
     if (!interaction->selection()->isNone()) {

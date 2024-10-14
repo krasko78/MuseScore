@@ -34,7 +34,7 @@ class IAppShellConfiguration : MODULE_EXPORT_INTERFACE
 {
     INTERFACE_ID(IAppshellConfiguration)
 
-// --- HIDDEN SETTINGS START ---
+// --- HIDDEN SETTINGS START --- // KRASKO START
 public:
     // General/Miscellaneous
     virtual bool autoRestoreSessionAfterCrash() const = 0;
@@ -45,6 +45,7 @@ public:
 
     // Editing
     virtual bool editElementKeyCyclesThroughGrips() const = 0;
+    virtual bool escapeKeyWhileEditingKeepsSelection() const = 0;
     virtual bool showSameColorCheckBoxOnSelectMoreDialog() const = 0;
     virtual bool enableAltModifierKeyForNudging() const = 0;
     virtual bool enableHighPrecisionNudging() const = 0;
@@ -56,7 +57,7 @@ public:
     virtual bool fixNonWorkingLeadingSpaceOnClefChange() const = 0;
     virtual bool fixBeamedNotesFingeringTooCloseToStaff() const = 0;
     virtual bool fixExtraSpacingOnMultilineFingering() const = 0;
-// --- HIDDEN SETTINGS END ---
+// --- HIDDEN SETTINGS END --- // KRASKO END
 
 public:
     virtual ~IAppShellConfiguration() = default;
