@@ -51,8 +51,8 @@ public:
     virtual double stepForSpinControlsOnAppearanceTab() const = 0;
 
     // Engraving / Layout
-    virtual bool fixNonWorkingLeadingSpaceOnClefChange() const = 0;
     virtual bool textStylesToUseFontHeight(const std::string csvTextStyles) const = 0;
+    virtual bool fixNonWorkingLeadingSpaceOnClefChange() const = 0;
     virtual bool fixBeamedNotesFingeringTooCloseToStaff() const = 0;
     virtual bool fixExtraSpacingOnMultilineFingering() const = 0;
 // --- HIDDEN SETTINGS END ---

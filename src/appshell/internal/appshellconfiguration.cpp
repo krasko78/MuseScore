@@ -81,11 +81,6 @@ static const Settings::Key STEP_FOR_SPIN_CONTROLS_ON_APPEARANCE_TAB(module_name,
         //  Specifies the step (amount) by which spin controls on the Appearance tab of the Properties panel such as the Offsets,
         //  Leading space, Min distance, etc. will change their values.
 
-static const Settings::Key FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE(module_name, "krasko/FixNonWorkingLeadingSpaceOnClefChange");
-        static constexpr bool FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE_DEFAULT = true;
-        //  When true, will make MuseScore respect the leading space on a clef added to indicate a clef change.
-        //  Normal clefs at the start of staves are not affected.
-
 static const Settings::Key TEXT_STYLES_TO_USE_FONT_HEIGHT(module_name, "krasko/textStylesToUseFontHeight");
         static constexpr char TEXT_STYLES_TO_USE_FONT_HEIGHT_DEFAULT[] = "HEADER,FOOTER,PAGE_NUMBER";
         //  Comma-separated list of text styles. The height of any text (i.e. text object) with any of those text styles
@@ -95,6 +90,11 @@ static const Settings::Key TEXT_STYLES_TO_USE_FONT_HEIGHT(module_name, "krasko/t
         //  such as on fingerings above the staff. When a text with style NOT specified in this setting is drawn, its height
         //  will be the actual height of the characters of the text - the so called tight bounding rectange.
         //  The allowed values are the TextStyleType enum values.
+
+static const Settings::Key FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE(module_name, "krasko/FixNonWorkingLeadingSpaceOnClefChange");
+        static constexpr bool FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE_DEFAULT = true;
+        //  When true, will make MuseScore respect the leading space on a clef added to indicate a clef change.
+        //  Normal clefs at the start of staves are not affected.
 
 static const Settings::Key FIX_BEAMED_NOTES_FINGERING_TOO_CLOSE_TO_STAFF(module_name, "krasko/FixBeamedNotesFingeringTooCloseToStaff");
         static constexpr bool FIX_BEAMED_NOTES_FINGERING_TOO_CLOSE_TO_STAFF_DEFAULT = true;
@@ -145,8 +145,8 @@ void AppShellConfiguration::init()
     settings()->setDefaultValue(ENABLE_HIGH_PRECISION_NUDGING, Val(ENABLE_HIGH_PRECISION_NUDGING_DEFAULT));
     settings()->setDefaultValue(STEP_FOR_SPIN_CONTROLS_ON_APPEARANCE_TAB, Val(STEP_FOR_SPIN_CONTROLS_ON_APPEARANCE_TAB_DEFAULT));
 
-    settings()->setDefaultValue(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE, Val(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE_DEFAULT));
     settings()->setDefaultValue(TEXT_STYLES_TO_USE_FONT_HEIGHT, Val(TEXT_STYLES_TO_USE_FONT_HEIGHT_DEFAULT));
+    settings()->setDefaultValue(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE, Val(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE_DEFAULT));
     settings()->setDefaultValue(FIX_BEAMED_NOTES_FINGERING_TOO_CLOSE_TO_STAFF, Val(FIX_BEAMED_NOTES_FINGERING_TOO_CLOSE_TO_STAFF_DEFAULT));
     settings()->setDefaultValue(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING, Val(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING_DEFAULT));
     // --- HIDDEN SETTINGS END ---
@@ -229,15 +229,15 @@ double AppShellConfiguration::stepForSpinControlsOnAppearanceTab() const
     return settings()->value(STEP_FOR_SPIN_CONTROLS_ON_APPEARANCE_TAB).toDouble();
 }
 
-bool AppShellConfiguration::fixNonWorkingLeadingSpaceOnClefChange() const
-{
-    return settings()->value(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE).toBool();
-}
-
 bool AppShellConfiguration::textStylesToUseFontHeight(const std::string csvTextStyles) const
 {
     std::string value = settings()->value(TEXT_STYLES_TO_USE_FONT_HEIGHT).toString();
     return isStrInCSVString(csvTextStyles, value);
+}
+
+bool AppShellConfiguration::fixNonWorkingLeadingSpaceOnClefChange() const
+{
+    return settings()->value(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE).toBool();
 }
 
 bool AppShellConfiguration::fixBeamedNotesFingeringTooCloseToStaff() const

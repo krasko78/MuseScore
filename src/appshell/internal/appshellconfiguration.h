@@ -67,8 +67,8 @@ public:
     double stepForSpinControlsOnAppearanceTab() const override;
 
     // Engraving / Layout
-    bool fixNonWorkingLeadingSpaceOnClefChange() const override;
     bool textStylesToUseFontHeight(const std::string csvTextStyles) const override;
+    bool fixNonWorkingLeadingSpaceOnClefChange() const override;
     bool fixBeamedNotesFingeringTooCloseToStaff() const override;
     bool fixExtraSpacingOnMultilineFingering() const override;
 
