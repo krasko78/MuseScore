@@ -31,7 +31,7 @@
 #include "ui/imainwindow.h"
 #include "actions/iactionsdispatcher.h"
 #include "actions/actionable.h"
-#include "appshell/iappshellhiddenconfiguration.h" // KRASKO
+#include "appshell/iappshellconfiguration.h" // KRASKO
 
 #include "../inavigationcontroller.h"
 
@@ -39,7 +39,7 @@ namespace muse::ui {
 class NavigationController : public QObject, public INavigationController, public Injectable, public actions::Actionable,
     public async::Asyncable
 {
-    INJECT(mu::appshell::IAppShellHiddenConfiguration, appshellHiddenConfiguration) // KRASKO
+    INJECT(mu::appshell::IAppShellConfiguration, appshellConfiguration) // KRASKO
 public:
     Inject<actions::IActionsDispatcher> dispatcher = { this };
     Inject<IInteractive> interactive = { this };

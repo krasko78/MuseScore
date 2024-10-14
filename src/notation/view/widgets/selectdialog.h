@@ -26,7 +26,7 @@
 
 #include "modularity/ioc.h"
 #include "context/iglobalcontext.h"
-#include "appshell/iappshellhiddenconfiguration.h" // KRASKO
+#include "appshell/iappshellconfiguration.h" // KRASKO
 
 namespace mu::engraving {
 class System;
@@ -42,7 +42,7 @@ class SelectDialog : public QDialog, Ui::SelectDialog, public muse::Injectable
     Q_OBJECT
 
     muse::Inject<context::IGlobalContext> globalContext = { this };
-    muse::Inject<appshell::IAppShellHiddenConfiguration> appshellHiddenConfiguration; // KRASKO
+    muse::Inject<appshell::IAppShellConfiguration> appshellConfiguration; // KRASKO
 
 public:
     SelectDialog(QWidget* parent = nullptr);

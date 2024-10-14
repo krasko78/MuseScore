@@ -1488,7 +1488,7 @@ void NotationActionController::startEditSelectedElement(const ActionData& args)
         if (!interaction->isGripEditStarted()) { // KRASKO {START}
             interaction->startEditGrip(element, element->defaultGrip());
         }
-        else if (appshellHiddenConfiguration()->editElementKeyWillCycleThroughGrips()) {
+        else if (appshellConfiguration()->editElementKeyCyclesThroughGrips()) {
             interaction->nextGrip(); // KRASKO {END}
         }
     } else {

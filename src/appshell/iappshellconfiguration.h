@@ -34,6 +34,29 @@ class IAppShellConfiguration : MODULE_EXPORT_INTERFACE
 {
     INTERFACE_ID(IAppshellConfiguration)
 
+// --- HIDDEN SETTINGS START ---
+public:
+    // General/Miscellaneous
+    virtual bool autoRestoreSessionAfterCrash() const = 0;
+    virtual bool focusExportButtonOnExportDialog() const = 0;
+
+    // Navigation
+    virtual bool navNextPrevPanelNavigatesToNextPrevControl() const = 0;
+
+    // Editing
+    virtual bool editElementKeyCyclesThroughGrips() const = 0;
+    virtual bool showSameColorCheckBoxOnSelectMoreDialog() const = 0;
+    virtual bool enableAltModifierKeyForNudging() const = 0;
+    virtual bool enableHighPrecisionNudging() const = 0;
+    virtual double stepForSpinControlsOnAppearanceTab() const = 0;
+
+    // Engraving / Layout
+    virtual bool fixNonWorkingLeadingSpaceOnClefChange() const = 0;
+    virtual bool textStylesToUseFontHeight(const std::string csvTextStyles) const = 0;
+    virtual bool fixBeamedNotesFingeringTooCloseToStaff() const = 0;
+    virtual bool fixExtraSpacingOnMultilineFingering() const = 0;
+// --- HIDDEN SETTINGS END ---
+
 public:
     virtual ~IAppShellConfiguration() = default;
 

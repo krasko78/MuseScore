@@ -92,6 +92,8 @@ SelectNoteDialog::SelectNoteDialog(QWidget* parent)
     inSelection->setCheckState(isSingleSelection ? Qt::CheckState::Unchecked : Qt::CheckState::Checked);
     inSelection->setEnabled(!isSingleSelection);
 
+    sameColor->setVisible(appshellConfiguration()->showSameColorCheckBoxOnSelectMoreDialog()); // KRASKO
+
     connect(buttonBox, &QDialogButtonBox::clicked, this, &SelectNoteDialog::buttonClicked);
 
     WidgetStateStore::restoreGeometry(this);

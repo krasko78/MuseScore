@@ -37,6 +37,79 @@ using namespace mu::notation;
 
 static const std::string module_name("appshell");
 
+// --- HIDDEN SETTINGS START ---
+
+static const Settings::Key AUTO_RESTORE_SESSION_AFTER_CRASH(module_name, "krasko/AutoRestoreSessionAfterCrash");
+        static constexpr bool AUTO_RESTORE_SESSION_AFTER_CRASH_DEFAULT = true;
+        //  When true, the previous/last session will be automatically restored after a crash without asking.
+        //  For this to work, "Preferences" -> "General" -> "Program start" must be set to "Continue last session".
+
+static const Settings::Key FOCUS_EXPORT_BUTTON_ON_EXPORT_DIALOG(module_name, "krasko/FocusExportButtonOnExportDialog");
+        static constexpr bool FOCUS_EXPORT_BUTTON_ON_EXPORT_DIALOG_DEFAULT = true;
+        //  When true, the Export dialog will focus the Export button on open so the export can be completed
+        //  quickly by simply pressing the ENTER key.
+
+static const Settings::Key NAV_NEXT_PREV_PANEL_NAVIGATES_TO_NEXT_PREV_CONTROL(module_name, "krasko/NavNextPrevPanelNavigatesToNextPrevControl");
+        static constexpr bool NAV_NEXT_PREV_PANEL_NAVIGATES_TO_NEXT_PREV_CONTROL_DEFAULT = true;
+        //  Determines whether pressing the shortcut keys for "nav-next-panel" and "nav-prev-panel" (TAB and SHIFT+TAB
+        //  by default) will navigate to the next/prev control (when true) or the next/prev panel (when false).
+
+static const Settings::Key EDIT_ELEMENT_KEY_CYCLES_THROUGH_GRIPS(module_name, "krasko/EditElementKeyCyclesThroughGrips");
+        static constexpr bool EDIT_ELEMENT_KEY_CYCLES_THROUGH_GRIPS_DEFAULT = true;
+        //  When true, pressing the "Edit Element" shortcut key (F2 by default) will cycle through an element's grips
+        //  just like the TAB key if the element already has the grips displayed. This lets you press the "Edit Element" key
+        //  once to diplay the grips/handles (the element must be selected) and then continue pressing the same key
+        //  (instead of TAB) to activate the desired grip/handle to adjust it.
+
+static const Settings::Key SHOW_SAME_COLOR_CHECKBOX_ON_SELECT_MORE_DIALOG(module_name, "krasko/ShowSameColorCheckBoxOnSelectMoreDialog");
+        static constexpr bool SHOW_SAME_COLOR_CHECKBOX_ON_SELECT_MORE_DIALOG_DEFAULT = true;
+        //  When true, will display a "Same color" checkbox on the Select More... dialogs (for note and non-note) so that
+        //  the selection can be limited to the elements having the same color as the selected element.
+
+static const Settings::Key ENABLE_ALT_MODIFIER_KEY_FOR_NUDGING(module_name, "krasko/EnableAltModifierKeyForNudging");
+        static constexpr bool ENABLE_ALT_MODIFIER_KEY_FOR_NUDGING_DEFAULT = true;
+        //  When true, the ALT key will be enabled to participate in shortcuts such as ALT+arrow keys
+        //  for nudging grips/handles/elements.
+
+static const Settings::Key ENABLE_HIGH_PRECISION_NUDGING(module_name, "krasko/EnableHighPrecisionNudging");
+        static constexpr bool ENABLE_HIGH_PRECISION_NUDGING_DEFAULT = false;
+        //  When true, nudging things such as grips, beams, etc. with the arrow keys will nudge by a smaller amount
+        //  thus allowing for better control. If the ALT modifier is enabled, using ALT+arrow keys will nudge even less.
+
+static const Settings::Key STEP_FOR_SPIN_CONTROLS_ON_APPEARANCE_TAB(module_name, "krasko/StepForSpinControlsOnAppearanceTab");
+        static constexpr double STEP_FOR_SPIN_CONTROLS_ON_APPEARANCE_TAB_DEFAULT = 0.5;
+        //  Specifies the step (amount) by which spin controls on the Appearance tab of the Properties panel such as the Offsets,
+        //  Leading space, Min distance, etc. will change their values.
+
+static const Settings::Key FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE(module_name, "krasko/FixNonWorkingLeadingSpaceOnClefChange");
+        static constexpr bool FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE_DEFAULT = true;
+        //  When true, will make MuseScore respect the leading space on a clef added to indicate a clef change.
+        //  Normal clefs at the start of staves are not affected.
+
+static const Settings::Key TEXT_STYLES_TO_USE_FONT_HEIGHT(module_name, "krasko/textStylesToUseFontHeight");
+        static constexpr char TEXT_STYLES_TO_USE_FONT_HEIGHT_DEFAULT[] = "HEADER,FOOTER,PAGE_NUMBER";
+        //  Comma-separated list of text styles. The height of any text (i.e. text object) with any of those text styles
+        //  will use the font's full height. This will fix vertical misalignment issues when different texts are displayed
+        //  on the same line/row and some of the texts contain characters with ascenders/descenders and the others do not.
+        //  Multiline texts are affected as well. The caveat is that this could slightly increase the spacing below the texts
+        //  such as on fingerings above the staff. When a text with style NOT specified in this setting is drawn, its height
+        //  will be the actual height of the characters of the text - the so called tight bounding rectange.
+        //  The allowed values are the TextStyleType enum values.
+
+static const Settings::Key FIX_BEAMED_NOTES_FINGERING_TOO_CLOSE_TO_STAFF(module_name, "krasko/FixBeamedNotesFingeringTooCloseToStaff");
+        static constexpr bool FIX_BEAMED_NOTES_FINGERING_TOO_CLOSE_TO_STAFF_DEFAULT = true;
+        //  When true, will fix an issue where fingering on beamed notes does not respect the min distance to staff. The fingering
+        //  must be on the side of the beam(s) and the beams should be far enough into the staff (from the edge of the staff).
+        //  In this case the fingering is placed too close to the staff.
+
+static const Settings::Key FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING(module_name, "krasko/FixExtraSpacingOnMultilineFingering");
+        static constexpr bool FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING_DEFAULT = true;
+        //  When true, will fix an issue where multiline fingering has extra spacing above/below. The more lines, the larger
+        //  the spacing. The larger the font size, the larger the spacing too.
+
+// --- HIDDEN SETTINGS END ---
+
+
 static const Settings::Key HAS_COMPLETED_FIRST_LAUNCH_SETUP(module_name, "application/hasCompletedFirstLaunchSetup");
 
 static const Settings::Key STARTUP_MODE_TYPE(module_name, "application/startup/modeStart");
@@ -60,6 +133,24 @@ static const std::string SESSION_RESOURCE_NAME("SESSION");
 
 void AppShellConfiguration::init()
 {
+    // --- HIDDEN SETTINGS START ---
+    settings()->setDefaultValue(AUTO_RESTORE_SESSION_AFTER_CRASH, Val(AUTO_RESTORE_SESSION_AFTER_CRASH_DEFAULT));
+    settings()->setDefaultValue(FOCUS_EXPORT_BUTTON_ON_EXPORT_DIALOG, Val(FOCUS_EXPORT_BUTTON_ON_EXPORT_DIALOG_DEFAULT));
+
+    settings()->setDefaultValue(NAV_NEXT_PREV_PANEL_NAVIGATES_TO_NEXT_PREV_CONTROL, Val(NAV_NEXT_PREV_PANEL_NAVIGATES_TO_NEXT_PREV_CONTROL_DEFAULT));
+
+    settings()->setDefaultValue(EDIT_ELEMENT_KEY_CYCLES_THROUGH_GRIPS, Val(EDIT_ELEMENT_KEY_CYCLES_THROUGH_GRIPS_DEFAULT));
+    settings()->setDefaultValue(SHOW_SAME_COLOR_CHECKBOX_ON_SELECT_MORE_DIALOG, Val(SHOW_SAME_COLOR_CHECKBOX_ON_SELECT_MORE_DIALOG_DEFAULT));
+    settings()->setDefaultValue(ENABLE_ALT_MODIFIER_KEY_FOR_NUDGING, Val(ENABLE_ALT_MODIFIER_KEY_FOR_NUDGING_DEFAULT));
+    settings()->setDefaultValue(ENABLE_HIGH_PRECISION_NUDGING, Val(ENABLE_HIGH_PRECISION_NUDGING_DEFAULT));
+    settings()->setDefaultValue(STEP_FOR_SPIN_CONTROLS_ON_APPEARANCE_TAB, Val(STEP_FOR_SPIN_CONTROLS_ON_APPEARANCE_TAB_DEFAULT));
+
+    settings()->setDefaultValue(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE, Val(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE_DEFAULT));
+    settings()->setDefaultValue(TEXT_STYLES_TO_USE_FONT_HEIGHT, Val(TEXT_STYLES_TO_USE_FONT_HEIGHT_DEFAULT));
+    settings()->setDefaultValue(FIX_BEAMED_NOTES_FINGERING_TOO_CLOSE_TO_STAFF, Val(FIX_BEAMED_NOTES_FINGERING_TOO_CLOSE_TO_STAFF_DEFAULT));
+    settings()->setDefaultValue(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING, Val(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING_DEFAULT));
+    // --- HIDDEN SETTINGS END ---
+
     settings()->setDefaultValue(HAS_COMPLETED_FIRST_LAUNCH_SETUP, Val(false));
 
     settings()->setDefaultValue(STARTUP_MODE_TYPE, Val(StartupModeType::StartEmpty));
@@ -67,6 +158,100 @@ void AppShellConfiguration::init()
 
     fileSystem()->makePath(sessionDataPath());
 }
+
+// --- HIDDEN SETTINGS START ---
+
+bool AppShellConfiguration::isStrInCSVString(std::string s, std::string csvStr) const
+{
+    std::size_t pos;
+
+    if (csvStr == s)
+        return true;
+
+    if (csvStr.find(s + ",") == 0)
+        return true;
+
+    if (csvStr.find(s + ", ") == 0)
+        return true;
+
+    if (((pos = csvStr.find("," + s)) != std::string::npos) && (pos == (csvStr.length() - s.length() - 1)))
+        return true;
+
+    if (((pos = csvStr.find(", " + s)) != std::string::npos) && (pos == (csvStr.length() - s.length() - 2)))
+        return true;
+
+    if (csvStr.find("," + s+ ",") != std::string::npos)
+        return true;
+
+    if (csvStr.find(", " + s + ",") != std::string::npos)
+        return true;
+
+    return false;
+}
+
+bool AppShellConfiguration::autoRestoreSessionAfterCrash() const
+{
+    return settings()->value(AUTO_RESTORE_SESSION_AFTER_CRASH).toBool();
+}
+
+bool AppShellConfiguration::focusExportButtonOnExportDialog() const
+{
+    return settings()->value(FOCUS_EXPORT_BUTTON_ON_EXPORT_DIALOG).toBool();
+}
+
+bool AppShellConfiguration::navNextPrevPanelNavigatesToNextPrevControl() const
+{
+    return settings()->value(NAV_NEXT_PREV_PANEL_NAVIGATES_TO_NEXT_PREV_CONTROL).toBool();
+}
+
+bool AppShellConfiguration::editElementKeyCyclesThroughGrips() const
+{
+    return settings()->value(EDIT_ELEMENT_KEY_CYCLES_THROUGH_GRIPS).toBool();
+}
+
+bool AppShellConfiguration::showSameColorCheckBoxOnSelectMoreDialog() const
+{
+    return settings()->value(SHOW_SAME_COLOR_CHECKBOX_ON_SELECT_MORE_DIALOG).toBool();
+}
+
+bool AppShellConfiguration::enableAltModifierKeyForNudging() const
+{
+    return settings()->value(ENABLE_ALT_MODIFIER_KEY_FOR_NUDGING).toBool();
+}
+
+bool AppShellConfiguration::enableHighPrecisionNudging() const
+{
+    return settings()->value(ENABLE_HIGH_PRECISION_NUDGING).toBool();
+}
+
+double AppShellConfiguration::stepForSpinControlsOnAppearanceTab() const
+{
+    return settings()->value(STEP_FOR_SPIN_CONTROLS_ON_APPEARANCE_TAB).toDouble();
+}
+
+bool AppShellConfiguration::fixNonWorkingLeadingSpaceOnClefChange() const
+{
+    return settings()->value(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE).toBool();
+}
+
+bool AppShellConfiguration::textStylesToUseFontHeight(const std::string csvTextStyles) const
+{
+    std::string value = settings()->value(TEXT_STYLES_TO_USE_FONT_HEIGHT).toString();
+    return isStrInCSVString(csvTextStyles, value);
+}
+
+bool AppShellConfiguration::fixBeamedNotesFingeringTooCloseToStaff() const
+{
+    return settings()->value(FIX_BEAMED_NOTES_FINGERING_TOO_CLOSE_TO_STAFF).toBool();
+}
+
+bool AppShellConfiguration::fixExtraSpacingOnMultilineFingering() const
+{
+    return settings()->value(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING).toBool();
+}
+
+// --- HIDDEN SETTINGS END ---
+
 
 bool AppShellConfiguration::hasCompletedFirstLaunchSetup() const
 {

@@ -31,7 +31,6 @@
 #include "actions/iactionsdispatcher.h"
 #include "multiinstances/imultiinstancesprovider.h"
 #include "iappshellconfiguration.h"
-#include "iappshellhiddenconfiguration.h" // KRASKO
 #include "isessionsmanager.h"
 #include "project/iprojectautosaver.h"
 #include "audioplugins/iregisteraudiopluginsscenario.h"
@@ -43,7 +42,6 @@ class StartupScenario : public IStartupScenario, public muse::Injectable, public
     muse::Inject<muse::actions::IActionsDispatcher> dispatcher = { this };
     muse::Inject<muse::mi::IMultiInstancesProvider> multiInstancesProvider = { this };
     muse::Inject<IAppShellConfiguration> configuration = { this };
-    muse::Inject<IAppShellHiddenConfiguration> appshellHiddenConfiguration = { this }; // KRASKO
     muse::Inject<ISessionsManager> sessionsManager = { this };
     muse::Inject<project::IProjectAutoSaver> projectAutoSaver = { this };
     muse::Inject<muse::audioplugins::IRegisterAudioPluginsScenario> registerAudioPluginsScenario = { this };

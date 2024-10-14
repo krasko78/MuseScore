@@ -50,6 +50,32 @@ class AppShellConfiguration : public IAppShellConfiguration, public muse::Inject
     muse::Inject<playback::IPlaybackConfiguration> playbackConfiguration = { this };
     muse::Inject<muse::languages::ILanguagesConfiguration> languagesConfiguration = { this };
 
+// --- HIDDEN SETTINGS START ---
+public:
+    // General/Miscellaneous
+    bool autoRestoreSessionAfterCrash() const override;
+    bool focusExportButtonOnExportDialog() const override;
+
+    // Navigation
+    bool navNextPrevPanelNavigatesToNextPrevControl() const override;
+
+    // Editing
+    bool editElementKeyCyclesThroughGrips() const override;
+    bool showSameColorCheckBoxOnSelectMoreDialog() const override;
+    bool enableAltModifierKeyForNudging() const override;
+    bool enableHighPrecisionNudging() const override;
+    double stepForSpinControlsOnAppearanceTab() const override;
+
+    // Engraving / Layout
+    bool fixNonWorkingLeadingSpaceOnClefChange() const override;
+    bool textStylesToUseFontHeight(const std::string csvTextStyles) const override;
+    bool fixBeamedNotesFingeringTooCloseToStaff() const override;
+    bool fixExtraSpacingOnMultilineFingering() const override;
+
+private:
+    bool isStrInCSVString(std::string s, std::string csvStr) const;
+// --- HIDDEN SETTINGS END ---
+
 public:
     AppShellConfiguration(const muse::modularity::ContextPtr& iocCtx)
         : muse::Injectable(iocCtx) {}

@@ -1079,7 +1079,7 @@ void TextBlock::layout(const TextBase* t)
                 x += w;
             }
 
-            RectF textBRect = (appshellHiddenConfiguration()->textObjectShouldUseFontHeight(textStyleNames[(int)t->textStyleType()]) // KRASKO
+            RectF textBRect = (appshellConfiguration()->textStylesToUseFontHeight(textStyleNames[(int)t->textStyleType()]) // KRASKO
                 ? fm.boundingRect(f.text) : fm.tightBoundingRect(f.text)).translated(f.pos);
             bool useDynamicSymShape = fragmentFont.type() == Font::Type::MusicSymbol && t->isDynamic();
             if (useDynamicSymShape) {

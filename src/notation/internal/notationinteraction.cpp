@@ -103,6 +103,7 @@ static mu::engraving::KeyboardModifier keyboardModifier(Qt::KeyboardModifiers km
 
 static qreal nudgeDistance(const mu::engraving::EditData& editData, bool allowSmallerNudge) // KRASKO
 {
+    allowSmallerNudge = false;
     qreal spatium = editData.element->spatium();
 
     if (editData.element->isBeam()) {
@@ -3248,7 +3249,7 @@ bool NotationInteraction::needStartEditGrip(QKeyEvent* event) const
 
 bool NotationInteraction::handleKeyPress(QKeyEvent* event)
 {
-    if (event->modifiers() & Qt::KeyboardModifier::AltModifier && !appshellHiddenConfiguration()->enableAltModifierKey()) { // KRASKO
+    if (event->modifiers() & Qt::KeyboardModifier::AltModifier && !appshellConfiguration()->enableAltModifierKeyForNudging()) { // KRASKO
         return false;
     }
 
@@ -3277,16 +3278,16 @@ bool NotationInteraction::handleKeyPress(QKeyEvent* event)
 
         return true;
     case Qt::Key_Left:
-        m_editData.delta = QPointF(-nudgeDistance(m_editData, hRaster, appshellHiddenConfiguration()->enableHighPrecisionNudging()), 0); // KRASKO
+        m_editData.delta = QPointF(-nudgeDistance(m_editData, hRaster, appshellConfiguration()->enableHighPrecisionNudging()), 0); // KRASKO
         break;
     case Qt::Key_Right:
-        m_editData.delta = QPointF(nudgeDistance(m_editData, hRaster, appshellHiddenConfiguration()->enableHighPrecisionNudging()), 0); // KRASKO
+        m_editData.delta = QPointF(nudgeDistance(m_editData, hRaster, appshellConfiguration()->enableHighPrecisionNudging()), 0); // KRASKO
         break;
     case Qt::Key_Up:
-        m_editData.delta = QPointF(0, -nudgeDistance(m_editData, vRaster, appshellHiddenConfiguration()->enableHighPrecisionNudging())); // KRASKO
+        m_editData.delta = QPointF(0, -nudgeDistance(m_editData, vRaster, appshellConfiguration()->enableHighPrecisionNudging())); // KRASKO
         break;
     case Qt::Key_Down:
-        m_editData.delta = QPointF(0, nudgeDistance(m_editData, vRaster, appshellHiddenConfiguration()->enableHighPrecisionNudging())); // KRASKO
+        m_editData.delta = QPointF(0, nudgeDistance(m_editData, vRaster, appshellConfiguration()->enableHighPrecisionNudging())); // KRASKO
         break;
     default:
         return false;
@@ -3557,7 +3558,7 @@ bool NotationInteraction::isEditAllowed(QKeyEvent* event)
         return true;
     }
 
-    if (event->modifiers() & Qt::KeyboardModifier::AltModifier && !appshellHiddenConfiguration()->enableAltModifierKey()) { // KRASKO
+    if (event->modifiers() & Qt::KeyboardModifier::AltModifier && !appshellConfiguration()->enableAltModifierKeyForNudging()) { // KRASKO
         return false;
     }
 

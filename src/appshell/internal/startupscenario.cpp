@@ -203,11 +203,11 @@ void StartupScenario::openScore(const project::ProjectFile& file)
 
 void StartupScenario::restoreLastSession()
 {
-    // KRASKO: Restore lass session automatically after crash
+    // KRASKO: Restore last session automatically after crash
     bool restore = true;
 
     StartupModeType modeType = resolveStartupModeType();
-    if (!appshellHiddenConfiguration()->autoRestoreSessionAfterCrash() || modeType != StartupModeType::ContinueLastSession) {
+    if (modeType != StartupModeType::ContinueLastSession || !configuration()->autoRestoreSessionAfterCrash()) {
         IInteractive::Result result = interactive()->question(muse::trc("appshell", "The previous session quit unexpectedly."),
                                                               muse::trc("appshell", "Do you want to restore the session?"),
                                                               { IInteractive::Button::No, IInteractive::Button::Yes });

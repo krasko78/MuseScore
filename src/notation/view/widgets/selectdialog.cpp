@@ -59,7 +59,7 @@ SelectDialog::SelectDialog(QWidget* parent)
 
     sameDuration->setEnabled(m_element->isRest());
 
-    sameColor->setVisible(appshellHiddenConfiguration()->enableSameColorSelection()); // KRASKO
+    sameColor->setVisible(appshellConfiguration()->showSameColorCheckBoxOnSelectMoreDialog()); // KRASKO
 
     connect(buttonBox, &QDialogButtonBox::clicked, this, &SelectDialog::buttonClicked);
 

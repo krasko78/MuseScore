@@ -25,7 +25,7 @@
 #include "async/asyncable.h"
 #include "actions/actionable.h"
 #include "actions/actiontypes.h"
-#include "appshell/iappshellhiddenconfiguration.h" // KRASKO
+#include "appshell/iappshellconfiguration.h" // KRASKO
 
 #include "modularity/ioc.h"
 #include "iinteractive.h"
@@ -50,7 +50,7 @@ class NotationActionController : public muse::actions::Actionable, public muse::
     INJECT(playback::IPlaybackController, playbackController)
     INJECT(INotationConfiguration, configuration)
     INJECT(engraving::IEngravingConfiguration, engravingConfiguration)
-    INJECT(appshell::IAppShellHiddenConfiguration, appshellHiddenConfiguration) // KRASKO
+    INJECT(appshell::IAppShellConfiguration, appshellConfiguration) // KRASKO
 
 public:
     void init();

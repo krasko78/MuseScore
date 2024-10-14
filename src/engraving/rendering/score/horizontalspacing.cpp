@@ -270,7 +270,7 @@ void HorizontalSpacing::spaceRightAlignedSegments(Measure* m, double segmentShap
             raSegment->setWidth(raSegment->width() + minDistAfter);
         }
         // 2) Make sure the segment isn't colliding with anything behind
-        double minDistBefore = appshellHiddenConfiguration()->fixNonWorkingLeadingSpaceOnClefChange() // KRASKO: Take the leading space into account
+        double minDistBefore = appshellConfiguration()->fixNonWorkingLeadingSpaceOnClefChange() // KRASKO: Take the leading space into account
                                 ? raSegment->extraLeadingSpace().val() * m->spatium() : 0.0;
         for (Segment* seg = raSegment->prevActive(); seg; seg = seg->prevActive()) {
             double xDiff = raSegment->x() - seg->x();

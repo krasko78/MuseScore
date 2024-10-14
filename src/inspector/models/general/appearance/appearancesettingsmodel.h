@@ -25,7 +25,7 @@
 #include "models/abstractinspectormodel.h"
 
 #include "notation/inotationconfiguration.h"
-#include "appshell/iappshellhiddenconfiguration.h" // KRASKO
+#include "appshell/iappshellconfiguration.h" // KRASKO
 
 namespace mu::inspector {
 class AppearanceSettingsModel : public AbstractInspectorModel
@@ -33,7 +33,7 @@ class AppearanceSettingsModel : public AbstractInspectorModel
     Q_OBJECT
 
     INJECT(notation::INotationConfiguration, notationConfiguration)
-    INJECT(appshell::IAppShellHiddenConfiguration, appshellHiddenConfiguration) // KRASKO
+    INJECT(appshell::IAppShellConfiguration, appshellConfiguration) // KRASKO
 
     Q_PROPERTY(PropertyItem * leadingSpace READ leadingSpace CONSTANT)
     Q_PROPERTY(PropertyItem * measureWidth READ measureWidth CONSTANT)
