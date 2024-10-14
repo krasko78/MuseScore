@@ -91,6 +91,10 @@ static const Settings::Key TEXT_STYLES_TO_USE_FONT_HEIGHT(module_name, "krasko/t
         //  will be the actual height of the characters of the text - the so called tight bounding rectange.
         //  The allowed values are the TextStyleType enum values.
 
+static const Settings::Key INVISIBLE_ELEMENTS_COLOR(module_name, "krasko/InvisibleElementsColor");
+        static constexpr char INVISIBLE_ELEMENTS_COLOR_DEFAULT[] = "#808080";
+        // The color to use for the invisible elements.
+
 static const Settings::Key FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE(module_name, "krasko/FixNonWorkingLeadingSpaceOnClefChange");
         static constexpr bool FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE_DEFAULT = true;
         //  When true, will make MuseScore respect the leading space on a clef added to indicate a clef change.
@@ -146,6 +150,7 @@ void AppShellConfiguration::init()
     settings()->setDefaultValue(STEP_FOR_SPIN_CONTROLS_ON_APPEARANCE_TAB, Val(STEP_FOR_SPIN_CONTROLS_ON_APPEARANCE_TAB_DEFAULT));
 
     settings()->setDefaultValue(TEXT_STYLES_TO_USE_FONT_HEIGHT, Val(TEXT_STYLES_TO_USE_FONT_HEIGHT_DEFAULT));
+    settings()->setDefaultValue(INVISIBLE_ELEMENTS_COLOR, Val(INVISIBLE_ELEMENTS_COLOR_DEFAULT));
     settings()->setDefaultValue(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE, Val(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE_DEFAULT));
     settings()->setDefaultValue(FIX_BEAMED_NOTES_FINGERING_TOO_CLOSE_TO_STAFF, Val(FIX_BEAMED_NOTES_FINGERING_TOO_CLOSE_TO_STAFF_DEFAULT));
     settings()->setDefaultValue(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING, Val(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING_DEFAULT));
@@ -233,6 +238,11 @@ bool AppShellConfiguration::textStylesToUseFontHeight(const std::string csvTextS
 {
     std::string value = settings()->value(TEXT_STYLES_TO_USE_FONT_HEIGHT).toString();
     return isStrInCSVString(csvTextStyles, value);
+}
+
+std::string AppShellConfiguration::invisibleElementsColor() const
+{
+    return settings()->value(INVISIBLE_ELEMENTS_COLOR).toString();
 }
 
 bool AppShellConfiguration::fixNonWorkingLeadingSpaceOnClefChange() const

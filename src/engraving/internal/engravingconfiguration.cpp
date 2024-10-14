@@ -201,7 +201,7 @@ Color EngravingConfiguration::scoreInversionColor() const
 
 Color EngravingConfiguration::invisibleColor() const
 {
-    return "#808080";
+    return Color::fromString(appShellConfiguration()->invisibleElementsColor());
 }
 
 Color EngravingConfiguration::lassoColor() const

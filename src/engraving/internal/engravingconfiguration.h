@@ -28,6 +28,7 @@
 #include "global/iglobalconfiguration.h"
 #include "ui/iuiconfiguration.h"
 #include "accessibility/iaccessibilityconfiguration.h"
+#include "appshell/iappshellconfiguration.h"
 #include "importexport/guitarpro/iguitarproconfiguration.h"
 
 #include "../iengravingconfiguration.h"
@@ -39,6 +40,7 @@ class EngravingConfiguration : public IEngravingConfiguration, public muse::Inje
     muse::Inject<muse::ui::IUiConfiguration> uiConfiguration = { this };
     muse::Inject<muse::accessibility::IAccessibilityConfiguration> accessibilityConfiguration = { this };
     muse::Inject<iex::guitarpro::IGuitarProConfiguration> guitarProConfiguration = { this };
+    muse::Inject<mu::appshell::IAppShellConfiguration> appShellConfiguration = { this };
 
 public:
     EngravingConfiguration(const muse::modularity::ContextPtr& iocCtx)

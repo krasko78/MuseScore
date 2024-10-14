@@ -52,6 +52,7 @@ public:
 
     // Engraving / Layout
     virtual bool textStylesToUseFontHeight(const std::string csvTextStyles) const = 0;
+    virtual std::string invisibleElementsColor() const = 0;
     virtual bool fixNonWorkingLeadingSpaceOnClefChange() const = 0;
     virtual bool fixBeamedNotesFingeringTooCloseToStaff() const = 0;
     virtual bool fixExtraSpacingOnMultilineFingering() const = 0;
