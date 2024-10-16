@@ -134,6 +134,7 @@ void ThemeApi::initThemeValues()
     m_fontSecondaryColor = themeValues[FONT_SECONDARY_COLOR].toString();
     m_linkColor = themeValues[LINK_COLOR].toString();
     m_focusColor = themeValues[FOCUS_COLOR].toString();
+    m_scrollbarColor = appshellConfiguration()->scrollbarColor(); // KRASKO
 
     m_borderWidth = themeValues[BORDER_WIDTH].toReal();
     m_navCtrlBorderWidth = themeValues[NAVIGATION_CONTROL_BORDER_WIDTH].toReal();
@@ -222,6 +223,20 @@ QColor ThemeApi::linkColor() const
 QColor ThemeApi::focusColor() const
 {
     return m_focusColor;
+}
+
+QColor ThemeApi::scrollbarColor() const // KRASKO
+{
+    if (!m_scrollbarColor.empty()) {
+        if (m_scrollbarColor == "accentColor") {
+            return accentColor();
+        }
+        QColor c(m_scrollbarColor.data());
+        if (c.isValid()) {
+            return c;
+        }
+    }
+    return fontPrimaryColor();
 }
 
 QFont ThemeApi::bodyFont() const

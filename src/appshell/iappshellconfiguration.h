@@ -57,6 +57,9 @@ public:
     virtual bool fixNonWorkingLeadingSpaceOnClefChange() const = 0;
     virtual bool fixBeamedNotesFingeringTooCloseToStaff() const = 0;
     virtual bool fixExtraSpacingOnMultilineFingering() const = 0;
+
+    // UI
+    virtual std::string scrollbarColor() const = 0;
 // --- HIDDEN SETTINGS END --- // KRASKO END
 
 public:

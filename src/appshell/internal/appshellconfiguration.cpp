@@ -117,6 +117,11 @@ static const Settings::Key FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING(module_name,
         //  When true, will fix an issue where multiline fingering has extra spacing above/below. The more lines, the larger
         //  the spacing. The larger the font size, the larger the spacing too.
 
+static const Settings::Key SCROLLBAR_COLOR(module_name, "krasko/ScrollbarColor");
+        static constexpr char SCROLLBAR_COLOR_DEFAULT[] = "accentColor";
+        //  The color to use for the scrollbars. Some special values like "accentColor" can be used to
+        //  state that the color should match any of the theme colors already defined.
+
 // --- HIDDEN SETTINGS END ---
 
 
@@ -161,6 +166,8 @@ void AppShellConfiguration::init()
     settings()->setDefaultValue(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE, Val(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE_DEFAULT));
     settings()->setDefaultValue(FIX_BEAMED_NOTES_FINGERING_TOO_CLOSE_TO_STAFF, Val(FIX_BEAMED_NOTES_FINGERING_TOO_CLOSE_TO_STAFF_DEFAULT));
     settings()->setDefaultValue(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING, Val(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING_DEFAULT));
+
+    settings()->setDefaultValue(SCROLLBAR_COLOR, Val(SCROLLBAR_COLOR_DEFAULT));
     // --- HIDDEN SETTINGS END ---
 
     settings()->setDefaultValue(HAS_COMPLETED_FIRST_LAUNCH_SETUP, Val(false));
@@ -270,6 +277,11 @@ bool AppShellConfiguration::fixBeamedNotesFingeringTooCloseToStaff() const
 bool AppShellConfiguration::fixExtraSpacingOnMultilineFingering() const
 {
     return settings()->value(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING).toBool();
+}
+
+std::string AppShellConfiguration::scrollbarColor() const
+{
+    return settings()->value(SCROLLBAR_COLOR).toString();
 }
 
 // --- HIDDEN SETTINGS END ---

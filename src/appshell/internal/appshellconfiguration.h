@@ -74,6 +74,9 @@ public:
     bool fixBeamedNotesFingeringTooCloseToStaff() const override;
     bool fixExtraSpacingOnMultilineFingering() const override;
 
+    // UI
+    std::string scrollbarColor() const override;
+
 private:
     bool isStrInCSVString(std::string s, std::string csvStr) const;
 // --- HIDDEN SETTINGS END ---
