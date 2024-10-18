@@ -88,7 +88,8 @@ class ThemeApi : public api::ApiObject, public async::Asyncable
 
     Q_PROPERTY(qreal defaultButtonSize READ defaultButtonSize NOTIFY themeChanged)
 
-    Q_PROPERTY(int flickableMaxVelocity READ flickableMaxVelocity CONSTANT)
+    Q_PROPERTY(int flickableMaxVelocity READ flickableMaxVelocity CONSTANT) // KRASKO: not used
+    Q_PROPERTY(int flickDeceleration READ flickDeceleration CONSTANT) // KRASKO
 
     Q_PROPERTY(int tooltipDelay READ tooltipDelay CONSTANT)
 
@@ -151,8 +152,11 @@ public:
     qreal itemOpacityDisabled() const;
 
     int flickableMaxVelocity() const;
+    int flickDeceleration() const; // KRASKO
 
     int tooltipDelay() const;
+
+    Q_INVOKABLE qreal calcFlickVelocity(const qreal contentHeight, const qreal viewHeight) const; // KRASKO
 
 signals:
     void themeChanged();
@@ -216,6 +220,13 @@ private:
     qreal m_itemOpacityDisabled = 0;
 
     ProxyStyle* m_style = nullptr;
+
+    qreal m_baseFlickVelocity; // KRASKO START
+    qreal m_minFlickVelocity;
+    qreal m_maxFlickVelocity;
+    qreal m_sizeForBaseVelocity;
+    qreal m_contentSizeFactor;
+    qreal m_viewSizeFactor; // KRASKO END
 };
 
 class ProxyStyle : public QProxyStyle

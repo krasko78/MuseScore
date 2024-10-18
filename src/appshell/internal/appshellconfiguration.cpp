@@ -122,6 +122,11 @@ static const Settings::Key SCROLLBAR_COLOR(module_name, "krasko/ScrollbarColor")
         //  The color to use for the scrollbars. Some special values like "accentColor" can be used to
         //  state that the color should match any of the theme colors already defined.
 
+static const Settings::Key FLICK_DECELERATION(module_name, "krasko/FlickDeceleration");
+        static constexpr int FLICK_DECELERATION_DEFAULT = 12000;
+        //  The deceleration to use when scrolling flickable controls (palettes, properties panel, etc.). The higher the value,
+        //  the sooner the scrolling will stop when the user stops scrolling. Lower values will make the scrolling continue longer.
+
 // --- HIDDEN SETTINGS END ---
 
 
@@ -168,6 +173,7 @@ void AppShellConfiguration::init()
     settings()->setDefaultValue(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING, Val(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING_DEFAULT));
 
     settings()->setDefaultValue(SCROLLBAR_COLOR, Val(SCROLLBAR_COLOR_DEFAULT));
+    settings()->setDefaultValue(FLICK_DECELERATION, Val(FLICK_DECELERATION_DEFAULT));
     // --- HIDDEN SETTINGS END ---
 
     settings()->setDefaultValue(HAS_COMPLETED_FIRST_LAUNCH_SETUP, Val(false));
@@ -282,6 +288,11 @@ bool AppShellConfiguration::fixExtraSpacingOnMultilineFingering() const
 std::string AppShellConfiguration::scrollbarColor() const
 {
     return settings()->value(SCROLLBAR_COLOR).toString();
+}
+
+int AppShellConfiguration::flickDeceleration() const
+{
+    return settings()->value(FLICK_DECELERATION).toInt();
 }
 
 // --- HIDDEN SETTINGS END ---

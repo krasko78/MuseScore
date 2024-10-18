@@ -60,6 +60,7 @@ public:
 
     // UI
     virtual std::string scrollbarColor() const = 0;
+    virtual int flickDeceleration() const = 0;
 // --- HIDDEN SETTINGS END --- // KRASKO END
 
 public:

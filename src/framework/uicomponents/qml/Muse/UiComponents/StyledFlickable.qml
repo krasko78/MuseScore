@@ -23,10 +23,31 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 
 Flickable {
+    id: flickable // KRASKO
     clip: true
     boundsBehavior: Flickable.StopAtBounds
-    maximumFlickVelocity: ui.theme.flickableMaxVelocity
+    flickDeceleration: ui.theme.flickDeceleration // KRASKO
 
     ScrollBar.vertical: StyledScrollBar {}
     ScrollBar.horizontal: StyledScrollBar {}
+
+    onContentHeightChanged: { // KRASKO
+        updateMaxFlickVelocity()
+    }
+
+    onContentWidthChanged: { // KRASKO
+        updateMaxFlickVelocity()
+    }
+
+    onHeightChanged: { // KRASKO
+        updateMaxFlickVelocity()
+    }
+
+    onWidthChanged: { // KRASKO
+        updateMaxFlickVelocity()
+    }
+
+    function updateMaxFlickVelocity() { // KRASKO
+        flickable.maximumFlickVelocity = ui.theme.calcFlickVelocity(flickable.contentHeight, flickable.height)
+    }
 }

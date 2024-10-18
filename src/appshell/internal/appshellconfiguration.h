@@ -76,6 +76,7 @@ public:
 
     // UI
     std::string scrollbarColor() const override;
+    int flickDeceleration() const override;
 
 private:
     bool isStrInCSVString(std::string s, std::string csvStr) const;

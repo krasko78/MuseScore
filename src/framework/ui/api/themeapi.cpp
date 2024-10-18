@@ -145,6 +145,13 @@ void ThemeApi::initThemeValues()
     m_buttonOpacityHover = themeValues[BUTTON_OPACITY_HOVER].toReal();
     m_buttonOpacityHit = themeValues[BUTTON_OPACITY_HIT].toReal();
     m_itemOpacityDisabled = themeValues[ITEM_OPACITY_DISABLED].toReal();
+
+    m_baseFlickVelocity = 900; // KRASKO: TODO: add these to the hidden settings
+    m_minFlickVelocity = 550;
+    m_maxFlickVelocity = 1500;
+    m_sizeForBaseVelocity = 700;
+    m_contentSizeFactor = 100;
+    m_viewSizeFactor = (m_baseFlickVelocity - m_minFlickVelocity) / m_sizeForBaseVelocity;
 }
 
 void ThemeApi::update()
@@ -354,7 +361,7 @@ qreal ThemeApi::itemOpacityDisabled() const
     return m_itemOpacityDisabled;
 }
 
-int ThemeApi::flickableMaxVelocity() const
+int ThemeApi::flickableMaxVelocity() const // KRASKO: not used
 {
     return configuration()->flickableMaxVelocity();
 }
@@ -1108,4 +1115,30 @@ void ProxyStyle::drawToolbarGrip(QPainter* painter, const QRect& rect, bool hori
     painter->rotate(rotation);
     painter->drawText(r, Qt::AlignCenter, iconCodeToChar(IconCode::Code::TOOLBAR_GRIP));
     painter->rotate(-rotation);
+}
+
+int ThemeApi::flickDeceleration() const // KRASKO
+{
+    return appshellConfiguration()->flickDeceleration();
+}
+
+qreal ThemeApi::calcFlickVelocity(const qreal contentHeight, const qreal viewHeight) const // KRASKO
+{
+    // 1. If content size is not greater then view size, then no scrolling is needed.
+    //    Just return the baseFlickVelocity.
+    if (contentHeight <= viewHeight) {
+        return m_baseFlickVelocity;
+    }
+
+    // 2. The smaller the view, the lower the speed.
+    //    The speed cannot drop below minFlickVelocity and go above baseFlickVelocity.
+    qreal result = m_minFlickVelocity + viewHeight * m_viewSizeFactor;
+    result = std::min(result, m_baseFlickVelocity);
+
+    // 3. The bigger the content size, the higher the speed but take the view size into account.
+    //    The speed cannot exceed maxFlickVelocity.
+    result += (contentHeight / m_sizeForBaseVelocity) * (viewHeight / m_sizeForBaseVelocity) * m_contentSizeFactor;
+    result = std::min(result, m_maxFlickVelocity);
+
+    return result;
 }

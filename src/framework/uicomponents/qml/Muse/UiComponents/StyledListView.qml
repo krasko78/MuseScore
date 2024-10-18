@@ -38,13 +38,33 @@ ListView {
 
     clip: true
     boundsBehavior: Flickable.StopAtBounds
-    maximumFlickVelocity: ui.theme.flickableMaxVelocity
+    flickDeceleration: ui.theme.flickDeceleration // KRASKO
 
     ScrollBar.vertical: root.arrowControlsAvailable ? null : scrollBarComp.createObject(root)
     ScrollBar.horizontal: root.arrowControlsAvailable ? null : scrollBarComp.createObject(root)
 
     property alias navigation: navPanel
     property alias accessible: navPanel.accessible
+
+    onContentHeightChanged: { // KRASKO
+        updateMaxFlickVelocity()
+    }
+
+    onContentWidthChanged: { // KRASKO
+        updateMaxFlickVelocity()
+    }
+
+    onHeightChanged: { // KRASKO
+        updateMaxFlickVelocity()
+    }
+
+    onWidthChanged: { // KRASKO
+        updateMaxFlickVelocity()
+    }
+
+    function updateMaxFlickVelocity() { // KRASKO
+        root.maximumFlickVelocity = ui.theme.calcFlickVelocity(root.contentHeight, root.height)
+    }
 
     NavigationPanel {
         id: navPanel
