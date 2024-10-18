@@ -29,7 +29,7 @@ PercussionPanelPadListModel::PercussionPanelPadListModel(QObject* parent)
 
 QVariant PercussionPanelPadListModel::data(const QModelIndex& index, int role) const
 {
-    if (index.row() < 0 || index.row() >= m_padModels.count()) {
+    if (!indexIsValid(index.row())) {
         return QVariant();
     }
 
@@ -61,7 +61,7 @@ void PercussionPanelPadListModel::load()
 void PercussionPanelPadListModel::addRow()
 {
     for (size_t i = 0; i < NUM_COLUMNS; ++i) {
-        m_padModels.append(new PercussionPanelPadModel(QObject::parent()));
+        m_padModels.append(new PercussionPanelPadModel(this));
     }
     emit layoutChanged();
     emit numPadsChanged();
@@ -74,6 +74,11 @@ void PercussionPanelPadListModel::deleteRow(int row)
     emit numPadsChanged();
 }
 
+bool PercussionPanelPadListModel::rowIsEmpty(int row) const
+{
+    return numEmptySlotsAtRow(row) == NUM_COLUMNS;
+}
+
 void PercussionPanelPadListModel::startDrag(int startIndex)
 {
     m_dragStartIndex = startIndex;
@@ -81,13 +86,12 @@ void PercussionPanelPadListModel::startDrag(int startIndex)
 
 void PercussionPanelPadListModel::endDrag(int endIndex)
 {
-    movePad(m_dragStartIndex, endIndex);
+    if (indexIsValid(m_dragStartIndex) && indexIsValid(endIndex)) {
+        movePad(m_dragStartIndex, endIndex);
+    } else {
+        emit layoutChanged();
+    }
     m_dragStartIndex = -1;
-}
-
-bool PercussionPanelPadListModel::isDragActive() const
-{
-    return m_dragStartIndex > -1;
 }
 
 void PercussionPanelPadListModel::resetLayout()
@@ -136,8 +140,41 @@ QList<PercussionPanelPadModel*> PercussionPanelPadListModel::createDefaultItems(
     return padModels;
 }
 
+bool PercussionPanelPadListModel::indexIsValid(int index) const
+{
+    return index > -1 && index < m_padModels.count();
+}
+
 void PercussionPanelPadListModel::movePad(int fromIndex, int toIndex)
 {
+    const int fromRow = fromIndex / NUM_COLUMNS;
+    const int toRow = toIndex / NUM_COLUMNS;
+
+    // fromRow will become empty if there's only 1 "occupied" slot, toRow will no longer be empty if it was previously...
+    const bool fromRowEmptyChanged = numEmptySlotsAtRow(fromRow) == NUM_COLUMNS - 1;
+    const bool toRowEmptyChanged = rowIsEmpty(toRow);
+
     m_padModels.swapItemsAt(fromIndex, toIndex);
     emit layoutChanged();
+
+    if (fromRowEmptyChanged) {
+        emit rowIsEmptyChanged(fromRow, /*isEmpty*/ true);
+    }
+
+    if (toRowEmptyChanged) {
+        emit rowIsEmptyChanged(toRow, /*isEmpty*/ false);
+    }
+}
+
+int PercussionPanelPadListModel::numEmptySlotsAtRow(int row) const
+{
+    int count = 0;
+    const size_t rowStartIdx = row * NUM_COLUMNS;
+    for (size_t i = rowStartIdx; i < rowStartIdx + NUM_COLUMNS; ++i) {
+        const PercussionPanelPadModel* model = m_padModels.at(i);
+        if (model && model->isEmptySlot()) {
+            ++count;
+        }
+    }
+    return count;
 }

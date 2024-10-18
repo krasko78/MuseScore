@@ -959,6 +959,9 @@ static void addElemOffset(EngravingItem* el, track_idx_t track, const String& pl
         } else {
             el->setPlacement(placement == u"above" ? PlacementV::ABOVE : PlacementV::BELOW);
             el->setPropertyFlags(Pid::PLACEMENT, PropertyFlags::UNSTYLED);
+            if (!el->isSticking()) {
+                el->resetProperty(Pid::OFFSET);
+            }
         }
     }
     const Fraction& endTick = measure->score()->endTick();
@@ -1203,6 +1206,7 @@ static void addFermataToChord(const Notation& notation, ChordRest* cr)
     }
     if (!direction.empty()) {
         na->setPlacement(direction == "inverted" ? PlacementV::BELOW : PlacementV::ABOVE);
+        na->resetProperty(Pid::OFFSET);
     } else {
         na->setPlacement(na->propertyDefault(Pid::PLACEMENT).value<PlacementV>());
     }
@@ -1465,6 +1469,7 @@ static void addTextToNote(int l, int c, String txt, String placement, String fon
             if (!placement.empty()) {
                 t->setPlacement(placement == u"below" ? PlacementV::BELOW : PlacementV::ABOVE);
                 t->setPropertyFlags(Pid::PLACEMENT, PropertyFlags::UNSTYLED);
+                t->resetProperty(Pid::OFFSET);
             }
             if (color.isValid()) {
                 t->setColor(color);
@@ -1496,6 +1501,7 @@ static void setSLinePlacement(SLine* sli, const String& placement)
         } else {
             sli->setPlacement(placement == u"above" ? PlacementV::ABOVE : PlacementV::BELOW);
             sli->setPropertyFlags(Pid::PLACEMENT, PropertyFlags::UNSTYLED);
+            sli->resetProperty(Pid::OFFSET);
         }
     }
 }
@@ -3089,7 +3095,7 @@ void MusicXmlParserPass2::staffTuning(StringData* t)
     int octave = 0;
     while (m_e.readNextStartElement()) {
         if (m_e.name() == "tuning-alter") {
-            alter = m_e.readInt();
+            alter = m_e.readText().trimmed().toInt();
         } else if (m_e.name() == "tuning-octave") {
             octave = m_e.readInt();
         } else if (m_e.name() == "tuning-step") {
@@ -3442,6 +3448,7 @@ void MusicXmlParserDirection::direction(const String& partId,
                 if (!m_hasDefaultY) {
                     t->setPlacement(PlacementV::ABOVE);            // crude way to force placement TODO improve ?
                     t->setPropertyFlags(Pid::PLACEMENT, PropertyFlags::UNSTYLED);
+                    t->resetProperty(Pid::OFFSET);
                 }
             }
         }
@@ -4540,6 +4547,7 @@ void MusicXmlParserDirection::handleChordSym(const Fraction& tick, HarmonyMap& h
     ha->setTrack(m_track);
     ha->setPlacement(placement() == u"above" ? PlacementV::ABOVE : PlacementV::BELOW);
     ha->setPropertyFlags(Pid::PLACEMENT, PropertyFlags::UNSTYLED);
+    ha->resetProperty(Pid::OFFSET);
     ha->setVisible(m_visible);
     HarmonyDesc newHarmonyDesc(m_track, ha, nullptr);
 
@@ -5385,7 +5393,8 @@ void MusicXmlParserPass2::barline(const String& partId, Measure* measure, const 
             }
             if (fermataType == u"inverted") {
                 fermata->setPlacement(PlacementV::BELOW);
-            } else if (fermataType == u"") {
+                fermata->resetProperty(Pid::OFFSET);
+            } else if (fermataType.empty()) {
                 fermata->setPlacement(fermata->propertyDefault(Pid::PLACEMENT).value<PlacementV>());
             }
 
@@ -5715,7 +5724,7 @@ void MusicXmlParserPass2::key(const String& partId, Measure* measure, const Frac
             flushAlteredTone(key, keyStep, keyAlter, keyAccidental, smufl);
             keyStep = m_e.readText();
         } else if (m_e.name() == "key-alter") {
-            keyAlter = m_e.readText();
+            keyAlter = m_e.readText().trimmed();
         } else if (m_e.name() == "key-accidental") {
             smufl = m_e.attribute("smufl");
             keyAccidental = m_e.readText();
@@ -6021,12 +6030,8 @@ void MusicXmlParserPass2::divisions()
 // the type for all rests.
 // Sibelius calls all whole-measure rests "whole", even if the duration != 4/4
 
-static bool isWholeMeasureRest(const bool rest, const String& type, const Fraction dura, const Fraction mDura)
+static bool isWholeMeasureRest(const String& type, const Fraction dura, const Fraction mDura)
 {
-    if (!rest) {
-        return false;
-    }
-
     if (!dura.isValid()) {
         return false;
     }
@@ -6036,7 +6041,7 @@ static bool isWholeMeasureRest(const bool rest, const String& type, const Fracti
     }
 
     return (type.empty() && dura == mDura)
-           || (type == u"whole" && dura == mDura && dura != Fraction(1, 1));
+           || (type == u"whole" && dura == mDura);
 }
 
 //---------------------------------------------------------
@@ -6048,14 +6053,15 @@ static bool isWholeMeasureRest(const bool rest, const String& type, const Fracti
  * This includes whole measure rest detection.
  */
 
-static TDuration determineDuration(const bool rest, const String& type, const int dots, const Fraction dura, const Fraction mDura)
+static TDuration determineDuration(const bool rest, const bool measureRest, const String& type, const int dots, const Fraction dura,
+                                   const Fraction mDura)
 {
     //LOGD("determineDuration rest %d type '%s' dots %d dura %s mDura %s",
     //       rest, muPrintable(type), dots, muPrintable(dura.print()), muPrintable(mDura.print()));
 
     TDuration res;
     if (rest) {
-        if (isWholeMeasureRest(rest, type, dura, mDura)) {
+        if (measureRest || isWholeMeasureRest(type, dura, mDura)) {
             res.setType(DurationType::V_MEASURE);
         } else if (type.empty()) {
             // If no type, set duration type based on duration.
@@ -6562,6 +6568,7 @@ Note* MusicXmlParserPass2::note(const String& partId,
     bool isSmall = false;
     bool grace = false;
     bool rest = false;
+    bool measureRest = false;
     int staff = 0;
     String type;
     String voice;
@@ -6631,6 +6638,7 @@ Note* MusicXmlParserPass2::note(const String& partId,
             }
         } else if (m_e.name() == "rest") {
             rest = true;
+            measureRest = m_e.asciiAttribute("measure") == "yes";
             mnp.displayStepOctave(m_e);
         } else if (m_e.name() == "staff") {
             bool ok = false;
@@ -6742,7 +6750,7 @@ Note* MusicXmlParserPass2::note(const String& partId,
     ChordRest* cr { nullptr };
     Note* note { nullptr };
 
-    TDuration duration = determineDuration(rest, type, mnd.dots(), dura, measure->ticks());
+    TDuration duration = determineDuration(rest, measureRest, type, mnd.dots(), dura, measure->ticks());
 
     Part* part = m_pass1.getPart(partId);
     Instrument* instrument = part->instrument(noteStartTime);
@@ -7238,6 +7246,7 @@ FiguredBass* MusicXmlParserPass2::figuredBass()
 
     fb->setPlacement(placement == "above" ? PlacementV::ABOVE : PlacementV::BELOW);
     fb->setPropertyFlags(Pid::PLACEMENT, PropertyFlags::UNSTYLED);
+    fb->resetProperty(Pid::OFFSET);
 
     if (normalizedText.empty()) {
         delete fb;
@@ -7384,6 +7393,7 @@ void MusicXmlParserPass2::harmony(const String& partId, Measure* measure, const 
     if (!placement.isEmpty()) {
         ha->setPlacement(placement == "below" ? PlacementV::BELOW : PlacementV::ABOVE);
         ha->setPropertyFlags(Pid::PLACEMENT, PropertyFlags::UNSTYLED);
+        ha->resetProperty(Pid::OFFSET);
     }
     while (m_e.readNextStartElement()) {
         if (m_e.name() == "root") {
@@ -7402,8 +7412,7 @@ void MusicXmlParserPass2::harmony(const String& partId, Measure* measure, const 
                 } else if (m_e.name() == "root-alter") {
                     // attributes: print-object, print-style
                     //             location (left-right)
-                    // Cubase exports this value with a trailing newline
-                    alter = m_e.readText().simplified().toInt();
+                    alter = m_e.readText().trimmed().toInt();
                 } else {
                     skipLogCurrElem();
                 }
@@ -7445,7 +7454,7 @@ void MusicXmlParserPass2::harmony(const String& partId, Measure* measure, const 
                 } else if (m_e.name() == "bass-alter") {
                     // attributes: print-object, print-style
                     //             location (left-right)
-                    alter = m_e.readInt();
+                    alter = m_e.readText().trimmed().toInt();
                 } else {
                     skipLogCurrElem();
                 }
@@ -7459,7 +7468,7 @@ void MusicXmlParserPass2::harmony(const String& partId, Measure* measure, const 
                 if (m_e.name() == "degree-value") {
                     degreeValue = m_e.readInt();
                 } else if (m_e.name() == "degree-alter") {
-                    degreeAlter = m_e.readInt();
+                    degreeAlter = m_e.readText().trimmed().toInt();
                 } else if (m_e.name() == "degree-type") {
                     degreeType = m_e.readText();
                 } else {
@@ -7518,6 +7527,7 @@ void MusicXmlParserPass2::harmony(const String& partId, Measure* measure, const 
     ha->setVisible(printObject);
     if (placement == u"below") {
         ha->setPlacement(PlacementV::BELOW);
+        ha->resetProperty(Pid::OFFSET);
     }
     if (color.isValid()) {
         ha->setColor(color);
@@ -7732,6 +7742,7 @@ void MusicXmlParserLyric::parse()
 
     item->setPlacement(placement() == "above" ? PlacementV::ABOVE : PlacementV::BELOW);
     item->setPropertyFlags(Pid::PLACEMENT, PropertyFlags::UNSTYLED);
+    item->resetProperty(Pid::OFFSET);
 
     if (!RealIsNull(relX)) {
         PointF offset = item->offset();

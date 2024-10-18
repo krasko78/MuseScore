@@ -20,8 +20,6 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-cmake_policy(SET CMP0091 OLD) # not set MSVC default args
-
 project(mscore LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -152,6 +150,7 @@ if (MUE_COMPILE_MACOS_PRECOMPILED_DEPS_PATH)
 endif()
 
 set(QT_MIN_VERSION "6.2.4")
+set(QT_ADD_STATEMACHINE ON)
 if (MUSE_MODULE_NETWORK_WEBSOCKET)
     set(QT_ADD_WEBSOCKET ON)
 endif()
