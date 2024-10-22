@@ -54,7 +54,7 @@ Item {
 
         property bool active: false
 
-        color: ui.theme.scrollbarColor // KRASKO
+        color: ui.theme.scrollbarColor // krasko
         border.color: "white"
         border.width: 1
         radius: root.thickness / 2

@@ -671,7 +671,7 @@ void NotationActionController::resetState()
         return;
     } else if (interaction->isElementEditStarted()) {
         interaction->endEditElement();
-        if (appshellConfiguration()->escapeKeyWhileEditingKeepsSelection()) { // KRASKO
+        if (appshellConfiguration()->escapeKeyWhileEditingKeepsSelection()) { // krasko
             return;
         }
     }
@@ -1489,11 +1489,11 @@ void NotationActionController::startEditSelectedElement(const ActionData& args)
         PointF cursorPos = !args.empty() ? args.arg<PointF>(0) : PointF();
         interaction->startEditText(element, cursorPos);
     } else if (element->hasGrips()) {
-        if (!interaction->isGripEditStarted()) { // KRASKO {START}
+        if (!interaction->isGripEditStarted()) { // krasko start
             interaction->startEditGrip(element, element->defaultGrip());
         }
         else if (appshellConfiguration()->editElementKeyCyclesThroughGrips()) {
-            interaction->nextGrip(); // KRASKO {END}
+            interaction->nextGrip(); // krasko end
         }
     } else {
         interaction->startEditElement(element);

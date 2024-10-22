@@ -119,7 +119,7 @@ public:
     MOCK_METHOD(void, startEditGrip, (const muse::PointF&), (override));
     MOCK_METHOD(void, startEditGrip, (EngravingItem*, mu::engraving::Grip), (override));
     MOCK_METHOD(void, endEditGrip, (), (override));
-    MOCK_METHOD(bool, nextGrip, (), (override)); // KRASKO
+    MOCK_METHOD(bool, nextGrip, (), (override)); // krasko
 
     MOCK_METHOD(bool, isElementEditStarted, (), (const, override));
     MOCK_METHOD(void, startEditElement, (EngravingItem*, bool), (override));

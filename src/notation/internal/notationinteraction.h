@@ -39,7 +39,7 @@
 #include "engraving/dom/elementgroup.h"
 #include "scorecallbacks.h"
 
-#include "appshell/iappshellconfiguration.h" // KRASKO
+#include "appshell/iappshellconfiguration.h" // krasko
 
 namespace mu::engraving {
 class Lasso;
@@ -56,7 +56,7 @@ class NotationInteraction : public INotationInteraction, public muse::Injectable
     muse::Inject<ISelectInstrumentsScenario> selectInstrumentScenario = { this };
     muse::Inject<muse::IInteractive> interactive = { this };
     muse::Inject<engraving::rendering::ISingleRenderer> engravingRenderer = { this };
-    muse::Inject<appshell::IAppShellConfiguration> appshellConfiguration = { this }; // KRASKO
+    muse::Inject<appshell::IAppShellConfiguration> appshellConfiguration = { this }; // krasko
 
 public:
     NotationInteraction(Notation* notation, INotationUndoStackPtr undoStack);
@@ -162,7 +162,7 @@ public:
     void startEditGrip(const muse::PointF& pos) override;
     void startEditGrip(EngravingItem* element, mu::engraving::Grip grip) override;
     void endEditGrip() override;
-    bool nextGrip() override; // KRASKO
+    bool nextGrip() override; // krasko
 
     bool isElementEditStarted() const override;
     void startEditElement(EngravingItem* element, bool editTextualProperties = true) override;

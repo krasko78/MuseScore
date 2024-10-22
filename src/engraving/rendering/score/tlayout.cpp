@@ -2438,7 +2438,7 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                     double d = sk.minDistance(ss->skyline().north());
                     double yd = 0.0;
                     if (d > 0.0 && item->isStyled(Pid::MIN_DISTANCE)) {
-                        double extraSpacingBelow = !appshellConfiguration()->fixExtraSpacingOnMultilineFingering() // KRASKO
+                        double extraSpacingBelow = !appshellConfiguration()->fixExtraSpacingOnMultilineFingering() // krasko
                                                 ? item->ldata()->bbox().height() * .25
                                                 : item->lineHeight() * 0.15;
                         yd -= d + extraSpacingBelow;
@@ -2449,7 +2449,7 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                         top = stem->y() + stem->ldata()->bbox().top();
                     } else {
                         const Note* un = chord->upNote();
-                        if (!appshellConfiguration()->fixBeamedNotesFingeringTooCloseToStaff()) { // KRASKO: {START} Fingering on beamed notes should respect the min ditance to staff
+                        if (!appshellConfiguration()->fixBeamedNotesFingeringTooCloseToStaff()) { // krasko start: Fingering on beamed notes should respect the min ditance to staff
                             top = std::min(0.0, un->y() + un->ldata()->bbox().top());
                         }
                         else {
@@ -2458,7 +2458,7 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                     }
                     if (appshellConfiguration()->fixBeamedNotesFingeringTooCloseToStaff()) {
                         top = std::min(0.0, top);
-                    } // KRASKO: {END}
+                    } // krasko end
                     top -= md;
                     double diff = (ldata->bbox().bottom() + ldata->pos().y() + yd + note->y()) - top;
                     if (diff > 0.0) {
@@ -2485,7 +2485,7 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                     double d = ss->skyline().south().minDistance(sk);
                     double yd = 0.0;
                     if (d > 0.0 && item->isStyled(Pid::MIN_DISTANCE)) {
-                        double extraSpacingAbove = !appshellConfiguration()->fixExtraSpacingOnMultilineFingering() // KRASKO
+                        double extraSpacingAbove = !appshellConfiguration()->fixExtraSpacingOnMultilineFingering() // krasko
                                                 ? item->ldata()->bbox().height() * .25
                                                 : item->lineHeight() * .15;
                         yd += d + extraSpacingAbove;
@@ -2496,7 +2496,7 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                         bottom = stem->y() + stem->ldata()->bbox().bottom();
                     } else {
                         const Note* dn = chord->downNote();
-                        if (!appshellConfiguration()->fixBeamedNotesFingeringTooCloseToStaff()) { // KRASKO: {START} Fingering on beamed notes should respect the min ditance to staff
+                        if (!appshellConfiguration()->fixBeamedNotesFingeringTooCloseToStaff()) { // krasko start: Fingering on beamed notes should respect the min ditance to staff
                             bottom = std::max(vStaff->staffHeight(item->tick()), dn->y() + dn->ldata()->bbox().bottom());
                         }
                         else {
@@ -2505,7 +2505,7 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                     }
                     if (appshellConfiguration()->fixBeamedNotesFingeringTooCloseToStaff()) {
                         bottom = std::max(vStaff->staffHeight(item->tick()), bottom);
-                    } // KRASKO: {END}
+                    } // krasko end
                     bottom += md;
                     double diff = bottom - (ldata->bbox().top() + ldata->pos().y() + yd + note->y());
                     if (diff > 0.0) {

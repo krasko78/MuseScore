@@ -134,7 +134,7 @@ void ThemeApi::initThemeValues()
     m_fontSecondaryColor = themeValues[FONT_SECONDARY_COLOR].toString();
     m_linkColor = themeValues[LINK_COLOR].toString();
     m_focusColor = themeValues[FOCUS_COLOR].toString();
-    m_scrollbarColor = appshellConfiguration()->scrollbarColor(); // KRASKO
+    m_scrollbarColor = appshellConfiguration()->scrollbarColor(); // krasko
 
     m_borderWidth = themeValues[BORDER_WIDTH].toReal();
     m_navCtrlBorderWidth = themeValues[NAVIGATION_CONTROL_BORDER_WIDTH].toReal();
@@ -146,7 +146,7 @@ void ThemeApi::initThemeValues()
     m_buttonOpacityHit = themeValues[BUTTON_OPACITY_HIT].toReal();
     m_itemOpacityDisabled = themeValues[ITEM_OPACITY_DISABLED].toReal();
 
-    m_baseFlickVelocity = 900; // KRASKO: TODO: add these to the hidden settings
+    m_baseFlickVelocity = 900; // krasko: TODO: add these to the hidden settings
     m_minFlickVelocity = 550;
     m_maxFlickVelocity = 1500;
     m_sizeForBaseVelocity = 700;
@@ -232,7 +232,7 @@ QColor ThemeApi::focusColor() const
     return m_focusColor;
 }
 
-QColor ThemeApi::scrollbarColor() const // KRASKO
+QColor ThemeApi::scrollbarColor() const // krasko
 {
     if (!m_scrollbarColor.empty()) {
         if (m_scrollbarColor == "accentColor") {
@@ -361,7 +361,7 @@ qreal ThemeApi::itemOpacityDisabled() const
     return m_itemOpacityDisabled;
 }
 
-int ThemeApi::flickableMaxVelocity() const // KRASKO: not used
+int ThemeApi::flickableMaxVelocity() const // krasko: not used
 {
     return configuration()->flickableMaxVelocity();
 }
@@ -1117,12 +1117,12 @@ void ProxyStyle::drawToolbarGrip(QPainter* painter, const QRect& rect, bool hori
     painter->rotate(-rotation);
 }
 
-int ThemeApi::flickDeceleration() const // KRASKO
+int ThemeApi::flickDeceleration() const // krasko
 {
     return appshellConfiguration()->flickDeceleration();
 }
 
-qreal ThemeApi::calcFlickVelocity(const qreal contentHeight, const qreal viewHeight) const // KRASKO
+qreal ThemeApi::calcFlickVelocity(const qreal contentHeight, const qreal viewHeight) const // krasko
 {
     // 1. If content size is not greater then view size, then no scrolling is needed.
     //    Just return the baseFlickVelocity.

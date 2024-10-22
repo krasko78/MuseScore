@@ -125,7 +125,7 @@ static T* findNearestEnabled(const std::set<T*>& set, const INavigation::Index& 
             }
         } break;
         case MoveDirection::Down: {
-            if (v->index().column != currentIndex.column && currentIndex.column >= 0) { // KRASKO
+            if (v->index().column != currentIndex.column && currentIndex.column >= 0) { // krasko
                 continue;
             }
 
@@ -136,14 +136,14 @@ static T* findNearestEnabled(const std::set<T*>& set, const INavigation::Index& 
                 }
 
                 if (v->index().row < ret->index().row
-                    || ((v->index().row == ret->index().row) && (currentIndex.column < 0) && v->index().column < ret->index().column)) // KRASKO
+                    || ((v->index().row == ret->index().row) && (currentIndex.column < 0) && v->index().column < ret->index().column)) // krasko
                 {
                     ret = v;
                 }
             }
         } break;
         case MoveDirection::Up: {
-            if (v->index().column != currentIndex.column && currentIndex.column >= 0) { // KRASKO
+            if (v->index().column != currentIndex.column && currentIndex.column >= 0) { // krasko
                 continue;
             }
 
@@ -154,7 +154,7 @@ static T* findNearestEnabled(const std::set<T*>& set, const INavigation::Index& 
                 }
 
                 if (v->index().row > ret->index().row
-                        || ((v->index().row == ret->index().row) && (currentIndex.column < 0) && v->index().column > ret->index().column)) // KRASKO
+                        || ((v->index().row == ret->index().row) && (currentIndex.column < 0) && v->index().column > ret->index().column)) // krasko
                 {
                     ret = v;
                 }
@@ -281,8 +281,8 @@ void NavigationController::init()
 {
     dispatcher()->reg(this, "nav-next-section", [this]() { navigateTo(NavigationType::NextSection); });
     dispatcher()->reg(this, "nav-prev-section", [this]() { navigateTo(NavigationType::PrevSection); });
-    dispatcher()->reg(this, "nav-next-panel", [this]() { navigateTo(appshellConfiguration()->navNextPrevPanelNavigatesToNextPrevControl() ? NavigationType::NextControl : NavigationType::NextPanel); }); // KRASKO
-    dispatcher()->reg(this, "nav-prev-panel", [this]() { navigateTo(appshellConfiguration()->navNextPrevPanelNavigatesToNextPrevControl() ? NavigationType::PrevControl : NavigationType::PrevPanel); }); // KRASKO
+    dispatcher()->reg(this, "nav-next-panel", [this]() { navigateTo(appshellConfiguration()->navNextPrevPanelNavigatesToNextPrevControl() ? NavigationType::NextControl : NavigationType::NextPanel); }); // krasko
+    dispatcher()->reg(this, "nav-prev-panel", [this]() { navigateTo(appshellConfiguration()->navNextPrevPanelNavigatesToNextPrevControl() ? NavigationType::PrevControl : NavigationType::PrevPanel); }); // krasko
     //! NOTE Same as panel at the moment
     dispatcher()->reg(this, "nav-next-tab", [this]() { navigateTo(NavigationType::NextPanel); });
     dispatcher()->reg(this, "nav-prev-tab", [this]() { navigateTo(NavigationType::PrevPanel); });
@@ -432,14 +432,14 @@ void NavigationController::navigateTo(NavigationController::NavigationType type)
     case NavigationType::PrevRowControl:
         goToPrevRowControl();
         break;
-    // KRASKO {START}
+    // krasko start
     case NavigationType::NextControl:
         goToNextControl();
         break;
     case NavigationType::PrevControl:
         goToPrevControl();
         break;
-    // KRASKO {END}
+    // krasko end
     }
 
     setIsHighlight(true);
@@ -1052,7 +1052,7 @@ void NavigationController::goToPrevRowControl()
     m_navigationChanged.notify();
 }
 
-// KRASKO {START}
+// krasko start
 void NavigationController::goToNextControl()
 {
     INavigationPanel* activePanel = this->activePanel();
@@ -1147,7 +1147,7 @@ void NavigationController::goToPrevControl()
 
     m_navigationChanged.notify();
 }
-// KRASKO {END}
+// krasko end
 
 void NavigationController::goToControl(MoveDirection direction, INavigationPanel* activePanel)
 {

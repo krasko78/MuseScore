@@ -22,8 +22,6 @@
 #ifndef MU_ENGRAVING_HORIZONTALSPACINGUTILS_DEV_H
 #define MU_ENGRAVING_HORIZONTALSPACINGUTILS_DEV_H
 
-#include <modularity/ioc.h> // KRASKO
-#include "appshell/iappshellconfiguration.h" // KRASKO
 #include "types/fraction.h"
 
 namespace mu::engraving {
@@ -46,7 +44,6 @@ enum class KerningType;
 namespace mu::engraving::rendering::score {
 class HorizontalSpacing
 {
-    INJECT_STATIC(appshell::IAppShellConfiguration, appshellConfiguration) // KRASKO
 public:
 
     static double computeSpacingForFullSystem(System* system, double stretchReduction = 1.0, double squeezeFactor = 1.0,

@@ -829,7 +829,7 @@ enum class TextStyleType {
     IGNORED_TYPES         // used for types no longer relevant (mainly Figured bass text type)
 };
 
-const std::string textStyleNames[] = { // KRASKO
+const std::string textStyleNames[] = { // krasko
     "DEFAULT",
 
     // Page-oriented styles

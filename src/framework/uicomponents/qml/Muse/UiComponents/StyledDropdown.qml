@@ -107,7 +107,7 @@ Item {
         id: mainItem
 
         anchors.fill: parent
-        label.anchors.rightMargin: 4 + dropIconItem.width + dropIconItem.anchors.rightMargin // KRASKO
+        label.anchors.rightMargin: 4 + dropIconItem.width + dropIconItem.anchors.rightMargin // krasko
 
         text: root.displayText
 

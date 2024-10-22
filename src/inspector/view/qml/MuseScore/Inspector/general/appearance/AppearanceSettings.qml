@@ -34,7 +34,7 @@ Column {
 
     property NavigationPanel navigationPanel: null
 
-    readonly property double step: model ? model.step : 0.5 // KRASKO
+    readonly property double step: model ? model.step : 0.5 // krasko
 
     height: implicitHeight
     width: parent.width
@@ -49,7 +49,7 @@ Column {
         id: horizontalSpacingSection
         leadingSpace: model ? model.leadingSpace : null
         measureWidth: model ? model.measureWidth : null
-        step: root.step // KRASKO
+        step: root.step // krasko
 
         navigationPanel: root.navigationPanel
         navigationRowStart: 0
@@ -61,7 +61,7 @@ Column {
         id: verticalSpacingSection
 
         minimumDistance: model ? model.minimumDistance : null
-        step: root.step // KRASKO
+        step: root.step // krasko
 
         navigationPanel: root.navigationPanel
         navigationRowStart: horizontalSpacingSection.navigationRowEnd + 1
@@ -75,7 +75,7 @@ Column {
         offset: model ? model.offset : null
         isSnappedToGrid: model ? model.isSnappedToGrid : null
         isVerticalOffsetAvailable: model ? model.isVerticalOffsetAvailable : false
-        step: root.step // KRASKO
+        step: root.step // krasko
 
         navigationPanel: root.navigationPanel
         navigationRowStart: verticalSpacingSection.navigationRowEnd + 1

@@ -24,7 +24,7 @@
 
 #include "layoutcontext.h"
 
-#include "appshell/iappshellconfiguration.h" // KRASKO
+#include "appshell/iappshellconfiguration.h" // krasko
 
 #include "../../dom/accidental.h"
 #include "../../dom/actionicon.h"
@@ -189,7 +189,7 @@ class WhammyBarSegment;
 namespace mu::engraving::rendering::score {
 class TLayout
 {
-    INJECT_STATIC(appshell::IAppShellConfiguration, appshellConfiguration) // KRASKO
+    INJECT_STATIC(appshell::IAppShellConfiguration, appshellConfiguration) // krasko
 
 public:
 

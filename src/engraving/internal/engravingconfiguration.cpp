@@ -201,7 +201,7 @@ Color EngravingConfiguration::scoreInversionColor() const
 
 Color EngravingConfiguration::invisibleColor() const
 {
-    return Color::fromString(appShellConfiguration()->invisibleElementsColor()); // KRASKO
+    return Color::fromString(appShellConfiguration()->invisibleElementsColor()); // krasko
 }
 
 Color EngravingConfiguration::lassoColor() const

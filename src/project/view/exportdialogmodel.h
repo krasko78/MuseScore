@@ -40,7 +40,7 @@
 #include "iprojectconfiguration.h"
 #include "internal/iexportprojectscenario.h"
 #include "types/projecttypes.h"
-#include "appshell/iappshellconfiguration.h" // KRASKO
+#include "appshell/iappshellconfiguration.h" // krasko
 
 class QItemSelectionModel;
 
@@ -59,7 +59,7 @@ class ExportDialogModel : public QAbstractListModel, public muse::async::Asyncab
     INJECT(iex::audioexport::IAudioExportConfiguration, audioExportConfiguration)
     INJECT(iex::mei::IMeiConfiguration, meiConfiguration)
     INJECT(IExportProjectScenario, exportProjectScenario)
-    INJECT(appshell::IAppShellConfiguration, appshellConfiguration) // KRASKO
+    INJECT(appshell::IAppShellConfiguration, appshellConfiguration) // krasko
 
     Q_PROPERTY(int selectionLength READ selectionLength NOTIFY selectionChanged)
 
@@ -116,7 +116,7 @@ public:
 
     Q_INVOKABLE bool exportScores();
 
-    Q_INVOKABLE bool focusTheExportButton() const; // KRASKO
+    Q_INVOKABLE bool focusTheExportButton() const; // krasko
 
     int pdfResolution() const;
     void setPdfResolution(const int& resolution);

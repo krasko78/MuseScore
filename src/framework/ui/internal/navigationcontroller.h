@@ -31,7 +31,7 @@
 #include "ui/imainwindow.h"
 #include "actions/iactionsdispatcher.h"
 #include "actions/actionable.h"
-#include "appshell/iappshellconfiguration.h" // KRASKO
+#include "appshell/iappshellconfiguration.h" // krasko
 
 #include "../inavigationcontroller.h"
 
@@ -39,7 +39,7 @@ namespace muse::ui {
 class NavigationController : public QObject, public INavigationController, public Injectable, public actions::Actionable,
     public async::Asyncable
 {
-    INJECT(mu::appshell::IAppShellConfiguration, appshellConfiguration) // KRASKO
+    INJECT(mu::appshell::IAppShellConfiguration, appshellConfiguration) // krasko
 public:
     Inject<actions::IActionsDispatcher> dispatcher = { this };
     Inject<IInteractive> interactive = { this };
@@ -102,8 +102,8 @@ private:
         LastControl,
         NextRowControl,
         PrevRowControl,
-        NextControl, // KRASKO
-        PrevControl // KRASKO
+        NextControl, // krasko
+        PrevControl // krasko
     };
 
     bool eventFilter(QObject* watched, QEvent* event) override;
@@ -119,8 +119,8 @@ private:
     void goToLastControl();
     void goToNextRowControl();
     void goToPrevRowControl();
-    void goToNextControl(); // KRASKO
-    void goToPrevControl(); // KRASKO
+    void goToNextControl(); // krasko
+    void goToPrevControl(); // krasko
 
     void goToControl(MoveDirection direction, INavigationPanel* activePanel = nullptr);
 

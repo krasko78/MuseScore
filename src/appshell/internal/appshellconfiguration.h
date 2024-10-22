@@ -70,7 +70,6 @@ public:
     // Engraving / Layout
     bool textStylesToUseFontHeight(const std::string csvTextStyles) const override;
     std::string invisibleElementsColor() const override;
-    bool fixNonWorkingLeadingSpaceOnClefChange() const override;
     bool fixBeamedNotesFingeringTooCloseToStaff() const override;
     bool fixExtraSpacingOnMultilineFingering() const override;
 

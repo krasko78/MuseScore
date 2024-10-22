@@ -391,7 +391,7 @@ bool ExportDialogModel::exportScores()
     return true;
 }
 
-bool ExportDialogModel::focusTheExportButton() const { // KRASKO
+bool ExportDialogModel::focusTheExportButton() const { // krasko
     return appshellConfiguration()->focusExportButtonOnExportDialog();
 }
 

@@ -92,7 +92,7 @@ SelectNoteDialog::SelectNoteDialog(QWidget* parent)
     inSelection->setCheckState(isSingleSelection ? Qt::CheckState::Unchecked : Qt::CheckState::Checked);
     inSelection->setEnabled(!isSingleSelection);
 
-    sameColor->setVisible(appshellConfiguration()->showSameColorCheckBoxOnSelectMoreDialog()); // KRASKO
+    sameColor->setVisible(appshellConfiguration()->showSameColorCheckBoxOnSelectMoreDialog()); // krasko
 
     connect(buttonBox, &QDialogButtonBox::clicked, this, &SelectNoteDialog::buttonClicked);
 
@@ -160,7 +160,7 @@ FilterNotesOptions SelectNoteDialog::noteOptions() const
         options.system = m_note->chord()->segment()->system();
     }
 
-    if (sameColor->isChecked()) { // KRASKO: Filter elements by color
+    if (sameColor->isChecked()) { // krasko: Filter elements by color
         options.color = m_note->color();
     }
 

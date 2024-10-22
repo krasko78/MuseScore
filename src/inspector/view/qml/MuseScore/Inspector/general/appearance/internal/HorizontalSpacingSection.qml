@@ -32,7 +32,7 @@ Item {
 
     property PropertyItem leadingSpace: null
     property PropertyItem measureWidth: null
-    property double step // KRASKO
+    property double step // krasko
 
     property NavigationPanel navigationPanel: null
     property int navigationRowStart: 0
@@ -48,7 +48,7 @@ Item {
     SpinBoxPropertyView {
         id: leadingValue
 
-        step: root.step // KRASKO
+        step: root.step // krasko
         anchors.left: parent.left
         anchors.right: parent.horizontalCenter
         anchors.rightMargin: 4
@@ -69,7 +69,7 @@ Item {
         anchors.leftMargin: 4
         anchors.right: parent.right
 
-        step: root.step // KRASKO
+        step: root.step // krasko
         navigationName: "Measure width"
         navigationPanel: root.navigationPanel
         navigationRowStart: leadingValue.navigationRowEnd + 1

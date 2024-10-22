@@ -34,7 +34,7 @@ class IAppShellConfiguration : MODULE_EXPORT_INTERFACE
 {
     INTERFACE_ID(IAppshellConfiguration)
 
-// --- HIDDEN SETTINGS START --- // KRASKO START
+// --- HIDDEN SETTINGS START --- // krasko start
 public:
     // General/Miscellaneous
     virtual bool autoRestoreSessionAfterCrash() const = 0;
@@ -54,14 +54,13 @@ public:
     // Engraving / Layout
     virtual bool textStylesToUseFontHeight(const std::string csvTextStyles) const = 0;
     virtual std::string invisibleElementsColor() const = 0;
-    virtual bool fixNonWorkingLeadingSpaceOnClefChange() const = 0;
     virtual bool fixBeamedNotesFingeringTooCloseToStaff() const = 0;
     virtual bool fixExtraSpacingOnMultilineFingering() const = 0;
 
     // UI
     virtual std::string scrollbarColor() const = 0;
     virtual int flickDeceleration() const = 0;
-// --- HIDDEN SETTINGS END --- // KRASKO END
+// --- HIDDEN SETTINGS END --- // krasko end
 
 public:
     virtual ~IAppShellConfiguration() = default;

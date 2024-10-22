@@ -157,7 +157,7 @@ public:
     virtual void startEditGrip(const muse::PointF& pos) = 0;
     virtual void startEditGrip(EngravingItem* element, mu::engraving::Grip grip) = 0;
     virtual void endEditGrip() = 0;
-    virtual bool nextGrip() = 0; // KRASKO
+    virtual bool nextGrip() = 0; // krasko
 
     virtual bool isElementEditStarted() const = 0;
     virtual void startEditElement(EngravingItem* element, bool editTextualProperties = true) = 0;

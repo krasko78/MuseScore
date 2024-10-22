@@ -31,7 +31,7 @@
 #include "modularity/ioc.h"
 #include "ui/iuiconfiguration.h"
 #include "async/asyncable.h"
-#include "appshell/iappshellconfiguration.h" // KRASKO
+#include "appshell/iappshellconfiguration.h" // krasko
 
 namespace muse::api {
 class ProxyStyle;
@@ -54,7 +54,7 @@ class ThemeApi : public api::ApiObject, public async::Asyncable
     Q_PROPERTY(QColor fontSecondaryColor READ fontSecondaryColor NOTIFY themeChanged)
     Q_PROPERTY(QColor linkColor READ linkColor NOTIFY themeChanged)
     Q_PROPERTY(QColor focusColor READ focusColor NOTIFY themeChanged)
-    Q_PROPERTY(QColor scrollbarColor READ scrollbarColor NOTIFY themeChanged) // KRASKO
+    Q_PROPERTY(QColor scrollbarColor READ scrollbarColor NOTIFY themeChanged) // krasko
 
     Q_PROPERTY(qreal borderWidth READ borderWidth NOTIFY themeChanged)
     Q_PROPERTY(qreal navCtrlBorderWidth READ navCtrlBorderWidth NOTIFY themeChanged)
@@ -88,15 +88,15 @@ class ThemeApi : public api::ApiObject, public async::Asyncable
 
     Q_PROPERTY(qreal defaultButtonSize READ defaultButtonSize NOTIFY themeChanged)
 
-    Q_PROPERTY(int flickableMaxVelocity READ flickableMaxVelocity CONSTANT) // KRASKO: not used
-    Q_PROPERTY(int flickDeceleration READ flickDeceleration CONSTANT) // KRASKO
+    Q_PROPERTY(int flickableMaxVelocity READ flickableMaxVelocity CONSTANT) // krasko: not used
+    Q_PROPERTY(int flickDeceleration READ flickDeceleration CONSTANT) // krasko
 
     Q_PROPERTY(int tooltipDelay READ tooltipDelay CONSTANT)
 
 public:
 
     Inject<ui::IUiConfiguration> configuration = { this };
-    Inject<mu::appshell::IAppShellConfiguration> appshellConfiguration; // KRASKO
+    Inject<mu::appshell::IAppShellConfiguration> appshellConfiguration; // krasko
 
 public:
     ThemeApi(IApiEngine* e);
@@ -120,7 +120,7 @@ public:
     QColor fontSecondaryColor() const;
     QColor linkColor() const;
     QColor focusColor() const;
-    QColor scrollbarColor() const; // KRASKO
+    QColor scrollbarColor() const; // krasko
 
     QFont bodyFont() const;
     QFont bodyBoldFont() const;
@@ -152,11 +152,11 @@ public:
     qreal itemOpacityDisabled() const;
 
     int flickableMaxVelocity() const;
-    int flickDeceleration() const; // KRASKO
+    int flickDeceleration() const; // krasko
 
     int tooltipDelay() const;
 
-    Q_INVOKABLE qreal calcFlickVelocity(const qreal contentHeight, const qreal viewHeight) const; // KRASKO
+    Q_INVOKABLE qreal calcFlickVelocity(const qreal contentHeight, const qreal viewHeight) const; // krasko
 
 signals:
     void themeChanged();
@@ -206,7 +206,7 @@ private:
     QColor m_fontSecondaryColor;
     QColor m_linkColor;
     QColor m_focusColor;
-    std::string m_scrollbarColor; // KRASKO
+    std::string m_scrollbarColor; // krasko
 
     qreal m_defaultButtonSize = 0;
     qreal m_borderWidth = 0;
@@ -221,12 +221,12 @@ private:
 
     ProxyStyle* m_style = nullptr;
 
-    qreal m_baseFlickVelocity; // KRASKO START
+    qreal m_baseFlickVelocity; // krasko start
     qreal m_minFlickVelocity;
     qreal m_maxFlickVelocity;
     qreal m_sizeForBaseVelocity;
     qreal m_contentSizeFactor;
-    qreal m_viewSizeFactor; // KRASKO END
+    qreal m_viewSizeFactor; // krasko end
 };
 
 class ProxyStyle : public QProxyStyle

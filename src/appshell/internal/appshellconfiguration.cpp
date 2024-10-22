@@ -87,7 +87,7 @@ static const Settings::Key STEP_FOR_SPIN_CONTROLS_ON_APPEARANCE_TAB(module_name,
         //  Specifies the step (amount) by which spin controls on the Appearance tab of the Properties panel such as the Offsets,
         //  Leading space, Min distance, etc. will change their values.
 
-static const Settings::Key TEXT_STYLES_TO_USE_FONT_HEIGHT(module_name, "krasko/textStylesToUseFontHeight");
+static const Settings::Key TEXT_STYLES_TO_USE_FONT_HEIGHT(module_name, "krasko/TextStylesToUseFontHeight");
         static constexpr char TEXT_STYLES_TO_USE_FONT_HEIGHT_DEFAULT[] = "HEADER,FOOTER,PAGE_NUMBER";
         //  Comma-separated list of text styles. The height of any text (i.e. text object) with any of those text styles
         //  will use the font's full height. This will fix vertical misalignment issues when different texts are displayed
@@ -100,11 +100,6 @@ static const Settings::Key TEXT_STYLES_TO_USE_FONT_HEIGHT(module_name, "krasko/t
 static const Settings::Key INVISIBLE_ELEMENTS_COLOR(module_name, "krasko/InvisibleElementsColor");
         static constexpr char INVISIBLE_ELEMENTS_COLOR_DEFAULT[] = "#808080";
         // The color to use for the invisible elements.
-
-static const Settings::Key FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE(module_name, "krasko/FixNonWorkingLeadingSpaceOnClefChange");
-        static constexpr bool FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE_DEFAULT = true;
-        //  When true, will make MuseScore respect the leading space on a clef added to indicate a clef change.
-        //  Normal clefs at the start of staves are not affected.
 
 static const Settings::Key FIX_BEAMED_NOTES_FINGERING_TOO_CLOSE_TO_STAFF(module_name, "krasko/FixBeamedNotesFingeringTooCloseToStaff");
         static constexpr bool FIX_BEAMED_NOTES_FINGERING_TOO_CLOSE_TO_STAFF_DEFAULT = true;
@@ -168,7 +163,6 @@ void AppShellConfiguration::init()
 
     settings()->setDefaultValue(TEXT_STYLES_TO_USE_FONT_HEIGHT, Val(TEXT_STYLES_TO_USE_FONT_HEIGHT_DEFAULT));
     settings()->setDefaultValue(INVISIBLE_ELEMENTS_COLOR, Val(INVISIBLE_ELEMENTS_COLOR_DEFAULT));
-    settings()->setDefaultValue(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE, Val(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE_DEFAULT));
     settings()->setDefaultValue(FIX_BEAMED_NOTES_FINGERING_TOO_CLOSE_TO_STAFF, Val(FIX_BEAMED_NOTES_FINGERING_TOO_CLOSE_TO_STAFF_DEFAULT));
     settings()->setDefaultValue(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING, Val(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING_DEFAULT));
 
@@ -268,11 +262,6 @@ bool AppShellConfiguration::textStylesToUseFontHeight(const std::string csvTextS
 std::string AppShellConfiguration::invisibleElementsColor() const
 {
     return settings()->value(INVISIBLE_ELEMENTS_COLOR).toString();
-}
-
-bool AppShellConfiguration::fixNonWorkingLeadingSpaceOnClefChange() const
-{
-    return settings()->value(FIX_NON_WORKING_LEADING_SPACE_ON_CLEF_CHANGE).toBool();
 }
 
 bool AppShellConfiguration::fixBeamedNotesFingeringTooCloseToStaff() const

@@ -19,7 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 declare_module("inspector")
 
-set(CMAKE_CXX_FLAGS "/bigobj") # KRASKO
+set(CMAKE_CXX_FLAGS "/bigobj") # krasko
 
 set(MODULE_QRC ${CMAKE_CURRENT_LIST_DIR}/view/inspector_resources.qrc )
 

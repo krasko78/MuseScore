@@ -25,7 +25,7 @@
 #include "models/abstractinspectormodel.h"
 
 #include "notation/inotationconfiguration.h"
-#include "appshell/iappshellconfiguration.h" // KRASKO
+#include "appshell/iappshellconfiguration.h" // krasko
 
 namespace mu::inspector {
 class AppearanceSettingsModel : public AbstractInspectorModel
@@ -33,7 +33,7 @@ class AppearanceSettingsModel : public AbstractInspectorModel
     Q_OBJECT
 
     INJECT(notation::INotationConfiguration, notationConfiguration)
-    INJECT(appshell::IAppShellConfiguration, appshellConfiguration) // KRASKO
+    INJECT(appshell::IAppShellConfiguration, appshellConfiguration) // krasko
 
     Q_PROPERTY(PropertyItem * leadingSpace READ leadingSpace CONSTANT)
     Q_PROPERTY(PropertyItem * measureWidth READ measureWidth CONSTANT)
@@ -43,7 +43,7 @@ class AppearanceSettingsModel : public AbstractInspectorModel
     Q_PROPERTY(PropertyItem * offset READ offset CONSTANT)
     Q_PROPERTY(bool isSnappedToGrid READ isSnappedToGrid WRITE setIsSnappedToGrid NOTIFY isSnappedToGridChanged)
     Q_PROPERTY(bool isVerticalOffsetAvailable READ isVerticalOffsetAvailable NOTIFY isVerticalOffsetAvailableChanged)
-    Q_PROPERTY(double step READ step CONSTANT) // KRASKO
+    Q_PROPERTY(double step READ step CONSTANT) // krasko
 
 public:
     explicit AppearanceSettingsModel(QObject* parent, IElementRepositoryService* repository);
@@ -70,7 +70,7 @@ public:
     bool isSnappedToGrid() const;
 
     bool isVerticalOffsetAvailable() const;
-    double step() const; // KRASKO
+    double step() const; // krasko
 
 public slots:
     void setIsSnappedToGrid(bool isSnapped);

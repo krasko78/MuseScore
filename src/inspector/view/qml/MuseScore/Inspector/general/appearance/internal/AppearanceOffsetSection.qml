@@ -34,7 +34,7 @@ Column {
 
     property bool isSnappedToGrid: false
     property alias isVerticalOffsetAvailable: offsets.isVerticalOffsetAvailable
-    property alias step: offsets.step // KRASKO
+    property alias step: offsets.step // krasko
 
     property NavigationPanel navigationPanel: null
     property int navigationRowStart: 0
