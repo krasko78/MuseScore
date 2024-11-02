@@ -213,6 +213,9 @@ private:
 
     bool canUndo() const;
     bool canRedo() const;
+    bool canUndoOrRedo() const;
+    void openUndoRedoHistory();
+
     bool isNotationPage() const;
     bool isStandardStaff() const;
     bool isTablatureStaff() const;
