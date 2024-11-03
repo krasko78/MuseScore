@@ -3393,13 +3393,12 @@ void NotationInteraction::endEditText()
         return;
     }
 
-    doEndEditElement(false /*clearEditData*/);
+    EngravingItem* editedElement = m_editData.element;
+    doEndEditElement();
 
-    if (m_editData.element) {
-        notifyAboutTextEditingEnded(toTextBase(m_editData.element));
+    if (editedElement) {
+        notifyAboutTextEditingEnded(toTextBase(editedElement));
     }
-
-    m_editData.clear();
 
     notifyAboutTextEditingChanged();
     notifyAboutSelectionChangedIfNeed();
@@ -3767,15 +3766,12 @@ void NotationInteraction::endEditElement()
     notifyAboutNotationChanged();
 }
 
-void NotationInteraction::doEndEditElement(bool clearEditData)
+void NotationInteraction::doEndEditElement()
 {
     if (m_editData.element) {
         m_editData.element->endEdit(m_editData);
     }
-
-    if (clearEditData) {
-        m_editData.clear();
-    }
+    m_editData.clear();
 }
 
 void NotationInteraction::onElementDestroyed(EngravingItem* element)
