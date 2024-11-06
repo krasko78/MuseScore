@@ -4622,6 +4622,7 @@ Ret NotationInteraction::canAddTextToItem(TextStyleType type, const EngravingIte
     static const std::set<TextStyleType> needSelectNoteOrRestTypes {
         TextStyleType::SYSTEM,
         TextStyleType::STAFF,
+        TextStyleType::DYNAMICS,
         TextStyleType::EXPRESSION,
         TextStyleType::REHEARSAL_MARK,
         TextStyleType::INSTRUMENT_CHANGE,
@@ -4682,6 +4683,10 @@ void NotationInteraction::addText(TextStyleType type, EngravingItem* item)
             rollback();
             return;
         }
+    }
+
+    if (text->hasVoiceAssignmentProperties()) {
+        text->setInitialTrackAndVoiceAssignment(item->track(), false);
     }
 
     apply();
