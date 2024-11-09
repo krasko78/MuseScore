@@ -80,6 +80,7 @@ UiEngine::UiEngine(const modularity::ContextPtr& iocCtx)
     m_interactiveProvider = std::make_shared<InteractiveProvider>(iocContext());
     m_api = new QmlApi(this, iocContext());
     m_tooltip = new QmlToolTip(this, iocContext());
+    m_appshellConfigurationProxy = new AppShellConfigurationProxy(); // krasko
 
     //! NOTE At the moment, UiTheme is also QProxyStyle
     //! Inside the theme, QApplication::setStyle(this) is calling and the QStyleSheetStyle becomes as parent.
@@ -90,6 +91,7 @@ UiEngine::UiEngine(const modularity::ContextPtr& iocCtx)
 UiEngine::~UiEngine()
 {
     delete m_translation;
+    delete m_appshellConfigurationProxy; // krasko
 }
 
 void UiEngine::init()
@@ -98,6 +100,7 @@ void UiEngine::init()
     m_tooltip->init();
     m_engine->rootContext()->setContextProperty("ui", this);
     m_engine->rootContext()->setContextProperty("api", m_api);
+    m_engine->rootContext()->setContextProperty("appshellConfig", m_appshellConfigurationProxy); // krasko
 
     QmlIoCContext* qmlIoc = new QmlIoCContext(this);
     qmlIoc->ctx = iocContext();

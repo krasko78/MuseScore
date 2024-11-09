@@ -34,9 +34,11 @@
 #include "../view/qmlapi.h"
 
 #include "languages/ilanguagesservice.h"
+#include "appshell/iappshellconfiguration.h" // krasko
 
 namespace muse::ui {
 class QmlApiEngine;
+class AppShellConfigurationProxy; // krasko
 class UiEngine : public QObject, public IUiEngine, public Injectable
 {
     Q_OBJECT
@@ -98,6 +100,7 @@ private:
 
     QQmlApplicationEngine* m_engine = nullptr;
     QmlApiEngine* m_apiEngine = nullptr;
+    AppShellConfigurationProxy* m_appshellConfigurationProxy = nullptr; // krasko
     QStringList m_sourceImportPaths;
     api::ThemeApi* m_theme = nullptr;
     QmlTranslation* m_translation = nullptr;
@@ -107,6 +110,13 @@ private:
     QQuickItem* m_rootItem = nullptr;
     mutable int m_isEffectsAllowed = -1;
 };
+
+class AppShellConfigurationProxy : public QObject // krasko start
+{
+    Q_OBJECT
+
+    Inject<mu::appshell::IAppShellConfiguration> appshellConfiguration;
+}; // krasko end
 }
 
 #endif // MUSE_UI_UIENGINE_H
