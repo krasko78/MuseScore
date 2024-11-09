@@ -60,6 +60,10 @@ public:
     // UI
     virtual std::string scrollbarColor() const = 0;
     virtual int flickDeceleration() const = 0;
+    virtual int verticalPanelDefaultWidth() const = 0;
+
+    // Notifications
+    virtual muse::async::Channel<int> verticalPanelDefaultWidthChanged() const = 0;
 // --- HIDDEN SETTINGS END --- // krasko end
 
 public:

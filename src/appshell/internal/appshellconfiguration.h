@@ -76,8 +76,15 @@ public:
     // UI
     std::string scrollbarColor() const override;
     int flickDeceleration() const override;
+    int verticalPanelDefaultWidth() const override;
+
+    // Notifications
+    muse::async::Channel<int> verticalPanelDefaultWidthChanged() const override;
 
 private:
+    muse::async::Channel<int> m_verticalPanelDefaultWidthChanged;
+
+    void initHiddenSettings();
     bool isStrInCSVString(std::string s, std::string csvStr) const;
 // --- HIDDEN SETTINGS END ---
 

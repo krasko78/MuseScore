@@ -98,6 +98,7 @@ void UiEngine::init()
 {
     m_theme->init();
     m_tooltip->init();
+    m_appshellConfigurationProxy->init(); // krasko
     m_engine->rootContext()->setContextProperty("ui", this);
     m_engine->rootContext()->setContextProperty("api", m_api);
     m_engine->rootContext()->setContextProperty("appshellConfig", m_appshellConfigurationProxy); // krasko

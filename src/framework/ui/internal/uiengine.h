@@ -111,11 +111,25 @@ private:
     mutable int m_isEffectsAllowed = -1;
 };
 
-class AppShellConfigurationProxy : public QObject // krasko start
+class AppShellConfigurationProxy : public QObject, muse::async::Asyncable // krasko start
 {
     Q_OBJECT
 
     Inject<mu::appshell::IAppShellConfiguration> appshellConfiguration;
+
+    Q_PROPERTY(int verticalPanelDefaultWidth READ verticalPanelDefaultWidth NOTIFY verticalPanelDefaultWidthChanged)
+    int verticalPanelDefaultWidth() { return appshellConfiguration()->verticalPanelDefaultWidth(); }
+
+public:
+    void init()
+    {
+        appshellConfiguration()->verticalPanelDefaultWidthChanged().onReceive(this, [this](int newValue) {
+            emit verticalPanelDefaultWidthChanged(newValue);
+        });
+    }
+
+signals:
+    void verticalPanelDefaultWidthChanged(int newValue);
 }; // krasko end
 }
 
