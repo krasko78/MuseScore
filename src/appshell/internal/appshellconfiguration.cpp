@@ -130,6 +130,11 @@ static const Settings::Key EXPAND_SHOW_MORE(module_name, "krasko/expandShowMore"
         static constexpr bool EXPAND_SHOW_MORE_DEFAULT = true;
         //  When true, all "Show more" sections will be initially expanded. Later on, the user can collapse them.
 
+static const Settings::Key HOVER_DISABLED_ITEMS(module_name, "krasko/hoverDisabledItems");
+        static constexpr bool HOVER_DISABLED_ITEMS_DEFAULT = false;
+        //  When true, disabled menu and list items will be highlighted on hover. When false, they will not be highlighted
+        //  when the mouse passes over them to create a better perception of the disabledness of the items.
+
 // --- HIDDEN SETTINGS END ---
 
 
@@ -196,6 +201,7 @@ void AppShellConfiguration::initHiddenSettings()
     });
 
     settings()->setDefaultValue(EXPAND_SHOW_MORE, Val(EXPAND_SHOW_MORE_DEFAULT));
+    settings()->setDefaultValue(HOVER_DISABLED_ITEMS, Val(HOVER_DISABLED_ITEMS_DEFAULT));
 }
 
 bool AppShellConfiguration::isStrInCSVString(std::string s, std::string csvStr) const
@@ -315,6 +321,11 @@ muse::async::Channel<int> AppShellConfiguration::verticalPanelDefaultWidthChange
 bool AppShellConfiguration::expandShowMore() const
 {
     return settings()->value(EXPAND_SHOW_MORE).toBool();
+}
+
+bool AppShellConfiguration::hoverDisabledItems() const
+{
+    return settings()->value(HOVER_DISABLED_ITEMS).toBool();
 }
 // --- HIDDEN SETTINGS END ---
 

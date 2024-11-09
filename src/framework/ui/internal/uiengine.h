@@ -123,6 +123,9 @@ class AppShellConfigurationProxy : public QObject, muse::async::Asyncable // kra
     Q_PROPERTY(bool expandShowMore READ expandShowMore CONSTANT)
     bool expandShowMore() { return appshellConfiguration()->expandShowMore(); }
 
+    Q_PROPERTY(bool hoverDisabledItems READ hoverDisabledItems CONSTANT)
+    bool hoverDisabledItems() { return appshellConfiguration()->hoverDisabledItems(); }
+
 public:
     void init()
     {

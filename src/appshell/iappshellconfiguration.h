@@ -62,6 +62,7 @@ public:
     virtual int flickDeceleration() const = 0;
     virtual int verticalPanelDefaultWidth() const = 0;
     virtual bool expandShowMore() const = 0;
+    virtual bool hoverDisabledItems() const = 0;
 
     // Notifications
     virtual muse::async::Channel<int> verticalPanelDefaultWidthChanged() const = 0;

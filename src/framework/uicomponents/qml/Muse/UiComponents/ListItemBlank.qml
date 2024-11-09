@@ -102,7 +102,7 @@ FocusableControl {
     states: [
         State {
             name: "HOVERED"
-            when: mouseArea.containsMouse && !mouseArea.pressed && !root.isSelected
+            when: mouseArea.containsMouse && !mouseArea.pressed && !root.isSelected && (root.enabled || appshellConfig.hoverDisabledItems) // krasko
 
             PropertyChanges {
                 target: root.background
