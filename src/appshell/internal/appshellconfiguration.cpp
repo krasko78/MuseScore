@@ -126,6 +126,10 @@ static const Settings::Key VERTICAL_PANEL_DEFAULT_WIDTH(module_name, "krasko/ver
         static constexpr int VERTICAL_PANEL_DEFAULT_WIDTH_DEFAULT = 300;
         //  The default width of the vertical panels such as the Palettes, Instruments, Properties, Selection filter.
 
+static const Settings::Key EXPAND_SHOW_MORE(module_name, "krasko/expandShowMore");
+        static constexpr bool EXPAND_SHOW_MORE_DEFAULT = true;
+        //  When true, all "Show more" sections will be initially expanded. Later on, the user can collapse them.
+
 // --- HIDDEN SETTINGS END ---
 
 
@@ -190,6 +194,8 @@ void AppShellConfiguration::initHiddenSettings()
     settings()->valueChanged(VERTICAL_PANEL_DEFAULT_WIDTH).onReceive(this, [this](const Val& val) {
         m_verticalPanelDefaultWidthChanged.send(val.toInt());
     });
+
+    settings()->setDefaultValue(EXPAND_SHOW_MORE, Val(EXPAND_SHOW_MORE_DEFAULT));
 }
 
 bool AppShellConfiguration::isStrInCSVString(std::string s, std::string csvStr) const
@@ -304,6 +310,11 @@ int AppShellConfiguration::verticalPanelDefaultWidth() const
 muse::async::Channel<int> AppShellConfiguration::verticalPanelDefaultWidthChanged() const
 {
     return m_verticalPanelDefaultWidthChanged;
+}
+
+bool AppShellConfiguration::expandShowMore() const
+{
+    return settings()->value(EXPAND_SHOW_MORE).toBool();
 }
 // --- HIDDEN SETTINGS END ---
 

@@ -41,6 +41,10 @@ FocusScope {
     implicitHeight: contentColumn.height
     implicitWidth: parent.width
 
+    Component.onCompleted: { // krasko
+        root.isExpanded = root.isExpanded || appshellConfig.expandShowMore
+    }
+
     Keys.onSpacePressed: {
         root.isExpanded = !root.isExpanded
     }

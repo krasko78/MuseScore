@@ -77,6 +77,7 @@ public:
     std::string scrollbarColor() const override;
     int flickDeceleration() const override;
     int verticalPanelDefaultWidth() const override;
+    bool expandShowMore() const override;
 
     // Notifications
     muse::async::Channel<int> verticalPanelDefaultWidthChanged() const override;
