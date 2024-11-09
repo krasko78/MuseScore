@@ -34,6 +34,7 @@
 #include "types/val.h"
 #include "uiarrangement.h"
 #include "async/asyncable.h"
+#include "appshell/iappshellconfiguration.h" // krasko
 
 namespace muse::ui {
 class UiConfiguration : public IUiConfiguration, public Injectable, public async::Asyncable
@@ -41,6 +42,7 @@ class UiConfiguration : public IUiConfiguration, public Injectable, public async
     Inject<IMainWindow> mainWindow = { this };
     Inject<IPlatformTheme> platformTheme = { this };
     Inject<IGlobalConfiguration> globalConfiguration = { this };
+    Inject<mu::appshell::IAppShellConfiguration> appshellConfiguration = { this }; // krasko
 
 public:
 
@@ -87,6 +89,7 @@ public:
 
     std::string defaultFontFamily() const override;
     int defaultFontSize() const override;
+    async::Notification defaultFontChanged() const override; // krasko
 
     void resetFonts() override;
 
@@ -137,12 +140,16 @@ private:
     ThemeList readThemes() const;
     void writeThemes(const ThemeList& themes);
 
+    void calculateDefaultFontSize(); // krasko
+
     void updateToolConfig(const QString& toolName, ToolConfig& userConfig, const ToolConfig& defaultConfig) const;
 
     UiArrangement m_uiArrangement;
+    int m_defaultFontSize; // krasko
 
     async::Notification m_currentThemeChanged;
     async::Notification m_fontChanged;
+    async::Notification m_defaultFontChanged; // krasko
     async::Notification m_musicalFontChanged;
     async::Notification m_iconsFontChanged;
     async::Notification m_windowGeometryChanged;

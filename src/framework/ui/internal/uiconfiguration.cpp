@@ -84,12 +84,24 @@ void UiConfiguration::init()
 
     settings()->valueChanged(UI_FONT_FAMILY_KEY).onReceive(this, [this](const Val&) {
         m_fontChanged.notify();
+        m_defaultFontChanged.notify(); // krasko
     });
 
     settings()->valueChanged(UI_FONT_SIZE_KEY).onReceive(this, [this](const Val&) {
+        calculateDefaultFontSize(); // krasko
         m_fontChanged.notify();
+        m_defaultFontChanged.notify(); // krasko
         m_iconsFontChanged.notify();
     });
+
+    appshellConfiguration()->menuFontFollowsPreferencesFontChanged().onReceive(this, [this](bool) { // krasko start
+        m_defaultFontChanged.notify();
+    });
+
+    appshellConfiguration()->menuFontSizeRatioChanged().onReceive(this, [this](const std::string&) {
+        calculateDefaultFontSize();
+        m_defaultFontChanged.notify();
+    }); // krasko end
 
     settings()->valueChanged(UI_ICONS_FONT_FAMILY_KEY).onReceive(this, [this](const Val&) {
         m_iconsFontChanged.notify();
@@ -122,6 +134,7 @@ void UiConfiguration::deinit()
 
 void UiConfiguration::initThemes()
 {
+    calculateDefaultFontSize(); // krasko
     m_isFollowSystemTheme.val = settings()->value(UI_FOLLOW_SYSTEM_THEME_KEY).toBool();
 
     platformTheme()->platformThemeChanged().onNotify(this, [this]() {
@@ -530,6 +543,9 @@ muse::async::Notification UiConfiguration::musicalFontChanged() const
 
 std::string UiConfiguration::defaultFontFamily() const
 {
+    if (appshellConfiguration()->menuFontFollowsPreferencesFont()) // krasko
+        return fontFamily();
+
 #ifdef Q_OS_WIN
     static const QString defaultWinFamily = "Segoe UI";
 
@@ -543,7 +559,26 @@ std::string UiConfiguration::defaultFontFamily() const
 
 int UiConfiguration::defaultFontSize() const
 {
-    return 12;
+    return m_defaultFontSize; // krasko
+}
+
+void UiConfiguration::calculateDefaultFontSize() // krasko start
+{
+    m_defaultFontSize = fontSize();
+
+    QString ratio = QString::fromStdString(appshellConfiguration()->menuFontSizeRatio());
+
+    QStringList values = ratio.split('/');
+    if (values.count() > 1) {
+        m_defaultFontSize = std::round((values[0].toDouble() / values[1].toDouble()) * m_defaultFontSize);
+    } else {
+        m_defaultFontSize = values[0].toInt();
+    }
+} // krasko end
+
+muse::async::Notification UiConfiguration::defaultFontChanged() const // krasko
+{
+    return m_defaultFontChanged;
 }
 
 void UiConfiguration::resetFonts()

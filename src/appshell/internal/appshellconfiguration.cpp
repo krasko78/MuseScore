@@ -135,6 +135,15 @@ static const Settings::Key HOVER_DISABLED_ITEMS(module_name, "krasko/hoverDisabl
         //  When true, disabled menu and list items will be highlighted on hover. When false, they will not be highlighted
         //  when the mouse passes over them to create a better perception of the disabledness of the items.
 
+static const Settings::Key MENU_FONT_FOLLOWS_PREFERENCES_FONT(module_name, "krasko/menuFontFollowsPreferencesFont");
+        static constexpr bool MENU_FONT_FOLLOWS_PREFERENCES_FONT_DEFAULT = true;
+        //  When true, the font of the main menu will be the same as the font of all other UI elements set in the preferences.
+
+static const Settings::Key MENU_FONT_SIZE_RATIO(module_name, "krasko/menuFontSizeRatio");
+        static constexpr bool MENU_FONT_SIZE_RATIO_DEFAULT = "1/1";
+        //  Specifies a ratio, e.g. "9/10" that will be multiplied with the font size set in the preferences for the rest of
+        //  the UI elements to obtain the size of the main menubar.
+
 // --- HIDDEN SETTINGS END ---
 
 
@@ -202,6 +211,16 @@ void AppShellConfiguration::initHiddenSettings()
 
     settings()->setDefaultValue(EXPAND_SHOW_MORE, Val(EXPAND_SHOW_MORE_DEFAULT));
     settings()->setDefaultValue(HOVER_DISABLED_ITEMS, Val(HOVER_DISABLED_ITEMS_DEFAULT));
+
+    settings()->setDefaultValue(MENU_FONT_FOLLOWS_PREFERENCES_FONT, Val(MENU_FONT_FOLLOWS_PREFERENCES_FONT_DEFAULT));
+    settings()->valueChanged(MENU_FONT_FOLLOWS_PREFERENCES_FONT).onReceive(this, [this](const Val& val) {
+        m_menuFontFollowsPreferencesFontChanged.send(val.toBool());
+    });
+
+    settings()->setDefaultValue(MENU_FONT_SIZE_RATIO, Val(MENU_FONT_SIZE_RATIO_DEFAULT));
+    settings()->valueChanged(MENU_FONT_SIZE_RATIO).onReceive(this, [this](const Val& val) {
+        m_menuFontSizeRatioChanged.send(val.toString());
+    });
 }
 
 bool AppShellConfiguration::isStrInCSVString(std::string s, std::string csvStr) const
@@ -326,6 +345,26 @@ bool AppShellConfiguration::expandShowMore() const
 bool AppShellConfiguration::hoverDisabledItems() const
 {
     return settings()->value(HOVER_DISABLED_ITEMS).toBool();
+}
+
+bool AppShellConfiguration::menuFontFollowsPreferencesFont() const
+{
+    return settings()->value(MENU_FONT_FOLLOWS_PREFERENCES_FONT).toBool();
+}
+
+muse::async::Channel<bool> AppShellConfiguration::menuFontFollowsPreferencesFontChanged() const
+{
+    return m_menuFontFollowsPreferencesFontChanged;
+}
+
+std::string AppShellConfiguration::menuFontSizeRatio() const
+{
+    return settings()->value(MENU_FONT_SIZE_RATIO).toString();
+}
+
+muse::async::Channel<std::string> AppShellConfiguration::menuFontSizeRatioChanged() const
+{
+    return m_menuFontSizeRatioChanged;
 }
 // --- HIDDEN SETTINGS END ---
 

@@ -84,7 +84,7 @@ class ThemeApi : public api::ApiObject, public async::Asyncable
 
     Q_PROPERTY(QFont musicalFont READ musicalFont NOTIFY themeChanged)
 
-    Q_PROPERTY(QFont defaultFont READ defaultFont CONSTANT)
+    Q_PROPERTY(QFont defaultFont READ defaultFont NOTIFY themeChanged) // krasko
 
     Q_PROPERTY(qreal defaultButtonSize READ defaultButtonSize NOTIFY themeChanged)
 
@@ -170,6 +170,7 @@ private:
     void initMusicalFont();
 
     void setupUiFonts();
+    void setupDefaultFont(); // krasko
     void setupIconsFont();
     void setupMusicFont();
 

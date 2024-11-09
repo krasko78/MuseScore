@@ -63,9 +63,13 @@ public:
     virtual int verticalPanelDefaultWidth() const = 0;
     virtual bool expandShowMore() const = 0;
     virtual bool hoverDisabledItems() const = 0;
+    virtual bool menuFontFollowsPreferencesFont() const = 0;
+    virtual std::string menuFontSizeRatio() const = 0;
 
     // Notifications
     virtual muse::async::Channel<int> verticalPanelDefaultWidthChanged() const = 0;
+    virtual muse::async::Channel<bool> menuFontFollowsPreferencesFontChanged() const = 0;
+    virtual muse::async::Channel<std::string> menuFontSizeRatioChanged() const = 0;
 // --- HIDDEN SETTINGS END --- // krasko end
 
 public:

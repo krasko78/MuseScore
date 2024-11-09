@@ -81,6 +81,7 @@ public:
 
     virtual std::string defaultFontFamily() const = 0;
     virtual int defaultFontSize() const = 0;
+    virtual async::Notification defaultFontChanged() const = 0; // krasko
 
     virtual void resetFonts() = 0;
 

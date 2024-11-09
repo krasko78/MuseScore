@@ -79,12 +79,18 @@ public:
     int verticalPanelDefaultWidth() const override;
     bool expandShowMore() const override;
     bool hoverDisabledItems() const override;
+    bool menuFontFollowsPreferencesFont() const override;
+    std::string menuFontSizeRatio() const override;
 
     // Notifications
     muse::async::Channel<int> verticalPanelDefaultWidthChanged() const override;
+    muse::async::Channel<bool> menuFontFollowsPreferencesFontChanged() const override;
+    muse::async::Channel<std::string> menuFontSizeRatioChanged() const override;
 
 private:
     muse::async::Channel<int> m_verticalPanelDefaultWidthChanged;
+    muse::async::Channel<bool> m_menuFontFollowsPreferencesFontChanged;
+    muse::async::Channel<std::string> m_menuFontSizeRatioChanged;
 
     void initHiddenSettings();
     bool isStrInCSVString(std::string s, std::string csvStr) const;
