@@ -494,6 +494,10 @@ EditStyle::EditStyle(QWidget* parent)
         { StyleId::tieDottedWidth,          false, tieDottedLineWidth,      resetTieDottedLineWidth },
         { StyleId::tieMinDistance,          false, tieMinDistance,          resetTieMinDistance },
         { StyleId::minTieLength,            false, minTieLength,            resetMinTieLength },
+
+        { StyleId::minLaissezVibLength,            false, minLaissezVibLength,            resetMinLaissezVibLength },
+        { StyleId::laissezVibUseSmuflSym,          false, laissezVibUseSmufl,            0 },
+
         { StyleId::bracketWidth,            false, bracketWidth,            resetBracketThickness },
         { StyleId::bracketDistance,         false, bracketDistance,         resetBracketDistance },
         { StyleId::akkoladeWidth,           false, akkoladeWidth,           resetBraceThickness },
@@ -584,6 +588,7 @@ EditStyle::EditStyle(QWidget* parent)
         { StyleId::graceNoteMag,             true,  graceNoteSize,                resetGraceNoteSize },
         { StyleId::smallStaffMag,            true,  smallStaffSize,               resetSmallStaffSize },
         { StyleId::smallNoteMag,             true,  smallNoteSize,                resetSmallNoteSize },
+        { StyleId::scaleRythmicSpacingForSmallNotes, true, reduceRythmicSpacing, 0 },
         { StyleId::smallClefMag,             true,  smallClefSize,                resetSmallClefSize },
         { StyleId::lastSystemFillLimit,      true,  lastSystemFillThreshold,      resetLastSystemFillThreshold },
         { StyleId::hideTabClefAfterFirst,    false, hideTabClefs,                 0 },
@@ -852,12 +857,13 @@ EditStyle::EditStyle(QWidget* parent)
     groupBox_rests->layout()->addWidget(restOffsetSelector.widget);
 
     // ====================================================
-    // Measure repeats
+    // Measure repeats / (Multimeasure) rests
     // ====================================================
 
     // Define string here instead of in the .ui file to avoid MSVC compiler warning C4125, which would
     // be triggered by the decimal digit immediately following a non-ASCII character (curly quote).
     oneMeasureRepeatShow1->setText(muse::qtrc("EditStyleBase", "Show ‘1’ on 1-measure repeats"));
+    singleMMRestShowNumber->setText(muse::qtrc("EditStyleBase", "Show number ‘1’"));
 
     // ====================================================
     // BEAMS (QML)
@@ -1546,6 +1552,8 @@ QString EditStyle::pageCodeForElement(const EngravingItem* element)
     case ElementType::SLUR_SEGMENT:
     case ElementType::TIE:
     case ElementType::TIE_SEGMENT:
+    case ElementType::LAISSEZ_VIB:
+    case ElementType::LAISSEZ_VIB_SEGMENT:
         return "slurs-and-ties";
 
     case ElementType::HAIRPIN:

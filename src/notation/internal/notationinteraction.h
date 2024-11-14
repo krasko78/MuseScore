@@ -188,6 +188,7 @@ public:
     void deleteSelection() override;
     void flipSelection() override;
     void addTieToSelection() override;
+    void addLaissezVibToSelection() override;
     void addTiedNoteToChord() override;
     void addSlurToSelection() override;
     void addOttavaToSelection(OttavaType type) override;

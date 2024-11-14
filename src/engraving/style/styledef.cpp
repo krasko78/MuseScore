@@ -432,6 +432,7 @@ const std::array<StyleDef::StyleValue, size_t(Sid::STYLES)> StyleDef::styleValue
     styleDef(measureNumberSystem,                        true),
     styleDef(measureNumberAllStaves,                     false),
     styleDef(smallNoteMag,                               PropertyValue(.7)),
+    styleDef(scaleRythmicSpacingForSmallNotes,           true),
     styleDef(graceNoteMag,                               PropertyValue(0.7)),
     styleDef(graceToMainNoteDist,                        Spatium(0.45)),
     styleDef(graceToGraceNoteDist,                       Spatium(0.3)),
@@ -518,12 +519,16 @@ const std::array<StyleDef::StyleValue, size_t(Sid::STYLES)> StyleDef::styleValue
     styleDef(minWigglyGlissandoLength,                   Spatium(2.0)),
     styleDef(slurMinDistance,                            Spatium(0.5)),
     styleDef(tieMinDistance,                             Spatium(0.5)),
+    styleDef(laissezVibMinDistance,                      Spatium(0.5)),
     styleDef(headerToLineStartDistance,                  Spatium(1.0)),
 
     styleDef(tiePlacementSingleNote,                     TiePlacement::OUTSIDE),
     styleDef(tiePlacementChord,                          TiePlacement::OUTSIDE),
     styleDef(tieMinShoulderHeight,                       Spatium(0.3)),
     styleDef(tieMaxShoulderHeight,                       Spatium(2.0)),
+
+    styleDef(minLaissezVibLength,                        Spatium(2.0)),
+    styleDef(laissezVibUseSmuflSym,                      false),
 
     styleDef(sectionPause,                               PropertyValue(double(3.0))),
     styleDef(musicalSymbolFont,                          PropertyValue(String(u"Leland"))),

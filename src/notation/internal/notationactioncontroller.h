@@ -110,6 +110,7 @@ private:
     void repeatSelection();
     void addTie();
     void chordTie();
+    void addLaissezVib();
     void addSlur();
     void addFret(int num);
 

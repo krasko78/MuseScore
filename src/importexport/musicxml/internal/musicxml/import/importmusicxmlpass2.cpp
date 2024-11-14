@@ -1726,24 +1726,6 @@ SpannerSet MusicXmlParserPass2::findIncompleteSpannersAtPartEnd()
 }
 
 //---------------------------------------------------------
-//   addArticLaissezVibrer
-//---------------------------------------------------------
-
-static void addArticLaissezVibrer(const Note* const note)
-{
-    IF_ASSERT_FAILED(note) {
-        return;
-    }
-
-    Chord* chord = note->chord();
-    if (!findLaissezVibrer(chord)) {
-        Articulation* na = Factory::createArticulation(chord);
-        na->setSymId(SymId::articLaissezVibrerBelow);
-        chord->add(na);
-    }
-}
-
-//---------------------------------------------------------
 //   cleanupUnterminatedTie
 //---------------------------------------------------------
 /**
@@ -6913,8 +6895,8 @@ Note* MusicXmlParserPass2::note(const String& partId,
     // handle notations
     if (cr) {
         notations.addToScore(cr, note,
-                             noteStartTime.ticks(), m_slurs, m_glissandi, m_spanners, m_trills, m_ties, m_unstartedTieNotes, m_unendedTieNotes, arpMap,
-                             delayedArps);
+                             noteStartTime.ticks(), m_slurs, m_glissandi, m_spanners, m_trills, m_ties, m_unstartedTieNotes,
+                             m_unendedTieNotes, arpMap, delayedArps);
 
         // if no tie added yet, convert the "tie" into "tied" and add it.
         if (note && !note->tieFor() && !note->tieBack() && !tieType.empty()) {
@@ -7374,7 +7356,7 @@ void MusicXmlParserPass2::harmony(const String& partId, Measure* measure, const 
     const String placement = m_e.attribute("placement");
     const bool printObject = m_e.asciiAttribute("print-object") != "no";
 
-    String kind, kindText, functionText, symbols, parens;
+    String kind, kindText, functionText, inversionText, symbols, parens;
     std::list<HDegree> degreeList;
 
     FretDiagram* fd = nullptr;
@@ -7418,8 +7400,36 @@ void MusicXmlParserPass2::harmony(const String& partId, Measure* measure, const 
             ha->setRootTpc(Tpc::TPC_INVALID);
             ha->setBaseTpc(Tpc::TPC_INVALID);
             functionText = m_e.readText();
-            // TODO: parse to decide between ROMAN and NASHVILLE
             ha->setHarmonyType(HarmonyType::ROMAN);
+        } else if (m_e.name() == "numeral") {
+            ha->setRootTpc(Tpc::TPC_INVALID);
+            ha->setBaseTpc(Tpc::TPC_INVALID);
+            while (m_e.readNextStartElement()) {
+                if (m_e.name() == "numeral-root") {
+                    functionText = m_e.attribute("text");
+                    const String numeralRoot = m_e.readText();
+                    if (functionText.isEmpty() || functionText.at(0).isDigit()) {
+                        ha->setHarmonyType(HarmonyType::NASHVILLE);
+                        ha->setFunction(numeralRoot);
+                    } else {
+                        ha->setHarmonyType(HarmonyType::ROMAN);
+                    }
+                } else if (m_e.name() == "numeral-alter") {
+                    const int alter = m_e.readText().toInt();
+                    switch (alter) {
+                    case -1:
+                        ha->setFunction(u"b" + ha->hFunction());
+                        break;
+                    case 1:
+                        ha->setFunction(u"#" + ha->hFunction());
+                        break;
+                    default:
+                        break;
+                    }
+                } else {
+                    skipLogCurrElem();
+                }
+            }
         } else if (m_e.name() == "kind") {
             // attributes: use-symbols  yes-no
             //             text, stack-degrees, parentheses-degree, bracket-degrees,
@@ -7432,8 +7442,16 @@ void MusicXmlParserPass2::harmony(const String& partId, Measure* measure, const 
                 ha->setRootTpc(Tpc::TPC_INVALID);
             }
         } else if (m_e.name() == "inversion") {
-            // attributes: print-style
-            skipLogCurrElem();
+            const int inversion = m_e.readText().toInt();
+            switch (inversion) {
+            case 1: inversionText = u"6";
+                break;
+            case 2: inversionText = u"64";
+                break;
+            default:
+                inversionText = u"";
+                break;
+            }
         } else if (m_e.name() == "bass") {
             String step;
             int alter = 0;
@@ -7501,7 +7519,7 @@ void MusicXmlParserPass2::harmony(const String& partId, Measure* measure, const 
     }
 
     const ChordDescription* d = nullptr;
-    if (ha->rootTpc() != Tpc::TPC_INVALID) {
+    if (ha->rootTpc() != Tpc::TPC_INVALID || ha->harmonyType() == HarmonyType::NASHVILLE) {
         d = ha->fromXml(kind, kindText, symbols, parens, degreeList);
     }
     if (d) {
@@ -7509,7 +7527,7 @@ void MusicXmlParserPass2::harmony(const String& partId, Measure* measure, const 
         ha->setTextName(d->names.front());
     } else {
         ha->setId(-1);
-        String textName = functionText + kindText;
+        String textName = functionText + kindText + inversionText;
         ha->setTextName(textName);
     }
     ha->render();
@@ -8466,7 +8484,9 @@ static void addTie(const Notation& notation, Note* note, const track_idx_t track
             logger->logError(String(u"Non-started tie terminated. No-op."), xmlreader);
         }
     } else if (type == "let-ring") {
-        addArticLaissezVibrer(note);
+        LaissezVib* lvTie = Factory::createLaissezVib(note);
+        lvTie->setParent(note);
+        note->score()->undoAddElement(lvTie);
     } else {
         logger->logError(String(u"unknown tied type %1").arg(type), xmlreader);
     }

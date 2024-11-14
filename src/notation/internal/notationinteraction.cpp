@@ -1833,7 +1833,9 @@ bool NotationInteraction::applyPaletteElement(mu::engraving::EngravingItem* elem
                     continue;
                 }
                 measuresWithSelectedContent.push_back(m);
-                applyDropPaletteElement(score, m, element, modifiers);
+                const RectF r = m->staffPageBoundingRect(e->staff()->idx());
+                const PointF pt = r.center() + m->system()->page()->pos();
+                applyDropPaletteElement(score, m, element, modifiers, pt);
                 if (element->type() == ElementType::BRACKET) {
                     break;
                 }
@@ -1847,7 +1849,9 @@ bool NotationInteraction::applyPaletteElement(mu::engraving::EngravingItem* elem
         if (element->type() == ElementType::BAR_LINE || isMeasureAnchoredElement) {
             Measure* last = sel.endSegment() ? sel.endSegment()->measure() : nullptr;
             for (Measure* m = sel.startSegment()->measure(); m; m = m->nextMeasureMM()) {
-                applyDropPaletteElement(score, m, element, modifiers);
+                const RectF r = m->staffPageBoundingRect(sel.staffStart());
+                const PointF pt = r.center() + m->system()->page()->pos();
+                applyDropPaletteElement(score, m, element, modifiers, pt);
                 if ((m == last) || (element->type() == ElementType::BRACKET)) {
                     break;
                 }
@@ -4224,6 +4228,14 @@ void NotationInteraction::addTieToSelection()
 {
     // Calls `startEdit` internally
     score()->cmdToggleTie();
+
+    notifyAboutNotationChanged();
+}
+
+void NotationInteraction::addLaissezVibToSelection()
+{
+    // Calls `startEdit` internally
+    score()->cmdToggleLaissezVib();
 
     notifyAboutNotationChanged();
 }
