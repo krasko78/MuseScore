@@ -32,6 +32,8 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/internal/applicationuiactions.h
     ${CMAKE_CURRENT_LIST_DIR}/internal/appshellconfiguration.cpp
     ${CMAKE_CURRENT_LIST_DIR}/internal/appshellconfiguration.h
+    ${CMAKE_CURRENT_LIST_DIR}/internal/appshellconfigurationproxy.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/internal/appshellconfigurationproxy.h
     ${CMAKE_CURRENT_LIST_DIR}/internal/applicationactioncontroller.cpp
     ${CMAKE_CURRENT_LIST_DIR}/internal/applicationactioncontroller.h
     ${CMAKE_CURRENT_LIST_DIR}/internal/framelesswindowcontroller.cpp
@@ -145,5 +147,7 @@ if (NOT OS_IS_MAC)
     # we use QKeyMapper to fix https://github.com/musescore/MuseScore/issues/10181
     set(MODULE_INCLUDE_PRIVATE ${Qt6Gui_PRIVATE_INCLUDE_DIRS} )
 endif(NOT OS_IS_MAC)
+
+set(MODULE_LINK ${MODULE_LINK} engraving) # krasko
 
 setup_module()

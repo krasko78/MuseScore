@@ -160,6 +160,8 @@ if (OS_IS_MAC)
     set(MODULE_LINK ${MODULE_LINK} ${AppKit})
 endif()
 
+set(MODULE_LINK ${MODULE_LINK} appshell) # krasko
+
 setup_module()
 
 if (MUSE_MODULE_UI_TESTS)

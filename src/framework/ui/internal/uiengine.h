@@ -34,11 +34,10 @@
 #include "../view/qmlapi.h"
 
 #include "languages/ilanguagesservice.h"
-#include "appshell/iappshellconfiguration.h" // krasko
+#include "appshell/internal/appshellconfigurationproxy.h" // krasko
 
 namespace muse::ui {
 class QmlApiEngine;
-class AppShellConfigurationProxy; // krasko
 class UiEngine : public QObject, public IUiEngine, public Injectable
 {
     Q_OBJECT
@@ -100,7 +99,7 @@ private:
 
     QQmlApplicationEngine* m_engine = nullptr;
     QmlApiEngine* m_apiEngine = nullptr;
-    AppShellConfigurationProxy* m_appshellConfigurationProxy = nullptr; // krasko
+    mu::appshell::AppShellConfigurationProxy* m_appshellConfigurationProxy = nullptr; // krasko
     QStringList m_sourceImportPaths;
     api::ThemeApi* m_theme = nullptr;
     QmlTranslation* m_translation = nullptr;
@@ -110,33 +109,5 @@ private:
     QQuickItem* m_rootItem = nullptr;
     mutable int m_isEffectsAllowed = -1;
 };
-
-class AppShellConfigurationProxy : public QObject, muse::async::Asyncable // krasko start
-{
-    Q_OBJECT
-
-    Inject<mu::appshell::IAppShellConfiguration> appshellConfiguration;
-
-    Q_PROPERTY(int verticalPanelDefaultWidth READ verticalPanelDefaultWidth NOTIFY verticalPanelDefaultWidthChanged)
-    int verticalPanelDefaultWidth() { return appshellConfiguration()->verticalPanelDefaultWidth(); }
-
-    Q_PROPERTY(bool expandShowMore READ expandShowMore CONSTANT)
-    bool expandShowMore() { return appshellConfiguration()->expandShowMore(); }
-
-    Q_PROPERTY(bool hoverDisabledItems READ hoverDisabledItems CONSTANT)
-    bool hoverDisabledItems() { return appshellConfiguration()->hoverDisabledItems(); }
-
-public:
-    void init()
-    {
-        appshellConfiguration()->verticalPanelDefaultWidthChanged().onReceive(this, [this](int newValue) {
-            emit verticalPanelDefaultWidthChanged(newValue);
-        });
-    }
-
-signals:
-    void verticalPanelDefaultWidthChanged(int newValue);
-}; // krasko end
 }
-
 #endif // MUSE_UI_UIENGINE_H
