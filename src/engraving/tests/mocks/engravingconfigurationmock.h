@@ -74,6 +74,9 @@ public:
     MOCK_METHOD(Color, formattingColor, (), (const, override));
     MOCK_METHOD(muse::async::Channel<Color>, formattingColorChanged, (), (const, override));
 
+    MOCK_METHOD(Color, activeGripColor, (), (const, override));
+    MOCK_METHOD(muse::async::Channel<Color>, activeGripColorChanged, (), (const, override));
+
     MOCK_METHOD(Color, highlightSelectionColor, (engraving::voice_idx_t), (const, override));
 
     MOCK_METHOD(const DebuggingOptions&, debuggingOptions, (), (const, override));

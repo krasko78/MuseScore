@@ -117,6 +117,10 @@ static const Settings::Key SCROLLBAR_COLOR(module_name, "krasko/scrollbarColor")
         //  The color to use for the scrollbars. Some special values like "accentColor" can be used to
         //  state that the color should match any of the theme colors already defined.
 
+static const Settings::Key ACTIVE_GRIP_COLOR(module_name, "krasko/activeGripColor");
+        static constexpr char ACTIVE_GRIP_COLOR_DEFAULT[] = "#A0A0A4";
+        //  The color to use for the active grip.
+
 static const Settings::Key FLICK_DECELERATION(module_name, "krasko/flickDeceleration");
         static constexpr int FLICK_DECELERATION_DEFAULT = 12000;
         //  The deceleration to use when scrolling flickable controls (palettes, properties panel, etc.). The higher the value,
@@ -202,6 +206,14 @@ void AppShellConfiguration::initHiddenSettings()
     settings()->setDefaultValue(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING, Val(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING_DEFAULT));
 
     settings()->setDefaultValue(SCROLLBAR_COLOR, Val(SCROLLBAR_COLOR_DEFAULT));
+
+    settings()->setDefaultValue(ACTIVE_GRIP_COLOR, Val(mu::engraving::Color(ACTIVE_GRIP_COLOR_DEFAULT).toQColor()));
+    settings()->setDescription(ACTIVE_GRIP_COLOR, muse::trc("engraving", "Active grip color"));
+    settings()->setCanBeManuallyEdited(ACTIVE_GRIP_COLOR, true); // make it appear and be editable on the Advanced page of Preferences dialog
+    settings()->valueChanged(ACTIVE_GRIP_COLOR).onReceive(this, [this](const Val& val) {
+        m_activeGripColorChanged.send(mu::engraving::Color::fromQColor(val.toQColor()));
+    });
+
     settings()->setDefaultValue(FLICK_DECELERATION, Val(FLICK_DECELERATION_DEFAULT));
 
     settings()->setDefaultValue(VERTICAL_PANEL_DEFAULT_WIDTH, Val(VERTICAL_PANEL_DEFAULT_WIDTH_DEFAULT));
@@ -320,6 +332,16 @@ bool AppShellConfiguration::fixExtraSpacingOnMultilineFingering() const
 std::string AppShellConfiguration::scrollbarColor() const
 {
     return settings()->value(SCROLLBAR_COLOR).toString();
+}
+
+mu::engraving::Color AppShellConfiguration::activeGripColor() const
+{
+    return mu::engraving::Color::fromQColor(settings()->value(ACTIVE_GRIP_COLOR).toQColor());
+}
+
+muse::async::Channel<mu::engraving::Color> AppShellConfiguration::activeGripColorChanged() const
+{
+    return m_activeGripColorChanged;
 }
 
 int AppShellConfiguration::flickDeceleration() const

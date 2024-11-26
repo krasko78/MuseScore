@@ -28,6 +28,7 @@
 #include "io/path.h"
 #include "appshelltypes.h"
 #include "async/notification.h"
+#include "engraving/types/types.h" // krasko
 
 namespace mu::appshell {
 class IAppShellConfiguration : MODULE_EXPORT_INTERFACE
@@ -59,6 +60,7 @@ public:
 
     // UI
     virtual std::string scrollbarColor() const = 0;
+    virtual mu::engraving::Color activeGripColor() const = 0;
     virtual int flickDeceleration() const = 0;
     virtual int verticalPanelDefaultWidth() const = 0;
     virtual bool expandShowMore() const = 0;
@@ -67,6 +69,7 @@ public:
     virtual std::string menuFontSizeRatio() const = 0;
 
     // Notifications
+    virtual muse::async::Channel<mu::engraving::Color> activeGripColorChanged() const = 0;
     virtual muse::async::Channel<int> verticalPanelDefaultWidthChanged() const = 0;
     virtual muse::async::Channel<bool> menuFontFollowsPreferencesFontChanged() const = 0;
     virtual muse::async::Channel<std::string> menuFontSizeRatioChanged() const = 0;

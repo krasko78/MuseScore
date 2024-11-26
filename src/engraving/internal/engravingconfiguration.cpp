@@ -118,6 +118,10 @@ void EngravingConfiguration::init()
     settings()->valueChanged(UNLINKED_COLOR).onReceive(nullptr, [this](const Val& val) {
         m_unlinkedColorChanged.send(Color::fromQColor(val.toQColor()));
     });
+
+    appShellConfiguration()->activeGripColorChanged().onReceive(this, [this](const Color& val) { // krasko
+        m_activeGripColorChanged.send(val);
+    });
 }
 
 muse::io::path_t EngravingConfiguration::appDataPath() const
@@ -327,6 +331,16 @@ Color EngravingConfiguration::unlinkedColor() const
 muse::async::Channel<Color> EngravingConfiguration::unlinkedColorChanged() const
 {
     return m_unlinkedColorChanged;
+}
+
+Color EngravingConfiguration::activeGripColor() const // krasko
+{
+    return appShellConfiguration()->activeGripColor();
+}
+
+muse::async::Channel<Color> EngravingConfiguration::activeGripColorChanged() const // krasko
+{
+    return m_activeGripColorChanged;
 }
 
 const IEngravingConfiguration::DebuggingOptions& EngravingConfiguration::debuggingOptions() const

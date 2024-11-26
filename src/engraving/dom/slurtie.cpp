@@ -332,7 +332,7 @@ void SlurTieSegment::drawEditMode(Painter* p, EditData& ed, double /*currentView
     for (int i = 0; i < ed.grips; ++i) {
         // Can't use ternary operator, because we want different overloads of `setBrush`
         if (Grip(i) == ed.curGrip) {
-            p->setBrush(configuration()->formattingColor());
+            p->setBrush(configuration()->activeGripColor()); // krasko
         } else {
             p->setBrush(BrushStyle::NoBrush);
         }

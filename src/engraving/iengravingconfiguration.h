@@ -84,6 +84,9 @@ public:
     virtual Color unlinkedColor() const = 0;
     virtual muse::async::Channel<Color> unlinkedColorChanged() const = 0;
 
+    virtual Color activeGripColor() const = 0; // krasko
+    virtual muse::async::Channel<Color> activeGripColorChanged() const = 0; // krasko
+
     virtual Color highlightSelectionColor(voice_idx_t voiceIndex = 0) const = 0;
 
     struct DebuggingOptions {

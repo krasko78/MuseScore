@@ -95,6 +95,9 @@ public:
     Color unlinkedColor() const override;
     muse::async::Channel<Color> unlinkedColorChanged() const override;
 
+    Color activeGripColor() const override; // krasko
+    muse::async::Channel<Color> activeGripColorChanged() const override; // krasko
+
     const DebuggingOptions& debuggingOptions() const override;
     void setDebuggingOptions(const DebuggingOptions& options) override;
     muse::async::Notification debuggingOptionsChanged() const override;
@@ -117,6 +120,7 @@ private:
     muse::async::Notification m_scoreInversionChanged;
     muse::async::Channel<Color> m_formattingColorChanged;
     muse::async::Channel<Color> m_unlinkedColorChanged;
+    muse::async::Channel<Color> m_activeGripColorChanged; // krasko
 
     muse::ValNt<DebuggingOptions> m_debuggingOptions;
 
