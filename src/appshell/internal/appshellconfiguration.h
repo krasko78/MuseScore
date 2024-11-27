@@ -74,7 +74,7 @@ public:
     bool fixExtraSpacingOnMultilineFingering() const override;
 
     // UI
-    std::string scrollbarColor() const override;
+    mu::engraving::Color scrollbarColor() const override;
     mu::engraving::Color activeGripColor() const override;
     int flickDeceleration() const override;
     int verticalPanelDefaultWidth() const override;
@@ -84,12 +84,14 @@ public:
     std::string menuFontSizeRatio() const override;
 
     // Notifications
+    muse::async::Channel<mu::engraving::Color> scrollbarColorChanged() const override;
     muse::async::Channel<mu::engraving::Color> activeGripColorChanged() const override;
     muse::async::Channel<int> verticalPanelDefaultWidthChanged() const override;
     muse::async::Channel<bool> menuFontFollowsPreferencesFontChanged() const override;
     muse::async::Channel<std::string> menuFontSizeRatioChanged() const override;
 
 private:
+    muse::async::Channel<mu::engraving::Color> m_scrollbarColorChanged;
     muse::async::Channel<mu::engraving::Color> m_activeGripColorChanged;
     muse::async::Channel<int> m_verticalPanelDefaultWidthChanged;
     muse::async::Channel<bool> m_menuFontFollowsPreferencesFontChanged;

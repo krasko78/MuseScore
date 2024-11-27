@@ -134,7 +134,10 @@ void ThemeApi::initThemeValues()
     m_fontSecondaryColor = themeValues[FONT_SECONDARY_COLOR].toString();
     m_linkColor = themeValues[LINK_COLOR].toString();
     m_focusColor = themeValues[FOCUS_COLOR].toString();
-    m_scrollbarColor = appshellConfiguration()->scrollbarColor(); // krasko
+    m_scrollbarColor = appshellConfiguration()->scrollbarColor().toQColor(); // krasko
+    appshellConfiguration()->scrollbarColorChanged().onReceive(this, [this](const mu::engraving::Color&) { // krasko
+        update();
+    });
 
     m_borderWidth = themeValues[BORDER_WIDTH].toReal();
     m_navCtrlBorderWidth = themeValues[NAVIGATION_CONTROL_BORDER_WIDTH].toReal();
@@ -234,14 +237,8 @@ QColor ThemeApi::focusColor() const
 
 QColor ThemeApi::scrollbarColor() const // krasko
 {
-    if (!m_scrollbarColor.empty()) {
-        if (m_scrollbarColor == "accentColor") {
-            return accentColor();
-        }
-        QColor c(m_scrollbarColor.data());
-        if (c.isValid()) {
-            return c;
-        }
+    if (m_scrollbarColor.isValid()) {
+        return m_scrollbarColor;
     }
     return fontPrimaryColor();
 }

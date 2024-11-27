@@ -59,7 +59,7 @@ public:
     virtual bool fixExtraSpacingOnMultilineFingering() const = 0;
 
     // UI
-    virtual std::string scrollbarColor() const = 0;
+    virtual mu::engraving::Color scrollbarColor() const = 0;
     virtual mu::engraving::Color activeGripColor() const = 0;
     virtual int flickDeceleration() const = 0;
     virtual int verticalPanelDefaultWidth() const = 0;
@@ -69,6 +69,7 @@ public:
     virtual std::string menuFontSizeRatio() const = 0;
 
     // Notifications
+    virtual muse::async::Channel<mu::engraving::Color> scrollbarColorChanged() const = 0;
     virtual muse::async::Channel<mu::engraving::Color> activeGripColorChanged() const = 0;
     virtual muse::async::Channel<int> verticalPanelDefaultWidthChanged() const = 0;
     virtual muse::async::Channel<bool> menuFontFollowsPreferencesFontChanged() const = 0;

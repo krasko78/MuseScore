@@ -207,7 +207,7 @@ private:
     QColor m_fontSecondaryColor;
     QColor m_linkColor;
     QColor m_focusColor;
-    std::string m_scrollbarColor; // krasko
+    QColor m_scrollbarColor; // krasko
 
     qreal m_defaultButtonSize = 0;
     qreal m_borderWidth = 0;
