@@ -45,6 +45,7 @@ public:
     MOCK_METHOD(Color, defaultColor, (), (const, override));
     MOCK_METHOD(Color, scoreInversionColor, (), (const, override));
     MOCK_METHOD(Color, invisibleColor, (), (const, override));
+    MOCK_METHOD(muse::async::Channel<Color>, invisibleColorChanged, (), (const, override)); // krasko
     MOCK_METHOD(Color, lassoColor, (), (const, override));
     MOCK_METHOD(Color, warningColor, (), (const, override));
     MOCK_METHOD(Color, warningSelectedColor, (), (const, override));
@@ -74,8 +75,8 @@ public:
     MOCK_METHOD(Color, formattingColor, (), (const, override));
     MOCK_METHOD(muse::async::Channel<Color>, formattingColorChanged, (), (const, override));
 
-    MOCK_METHOD(Color, activeGripColor, (), (const, override));
-    MOCK_METHOD(muse::async::Channel<Color>, activeGripColorChanged, (), (const, override));
+    MOCK_METHOD(Color, activeGripColor, (), (const, override)); // krasko
+    MOCK_METHOD(muse::async::Channel<Color>, activeGripColorChanged, (), (const, override)); // krasko
 
     MOCK_METHOD(Color, highlightSelectionColor, (engraving::voice_idx_t), (const, override));
 

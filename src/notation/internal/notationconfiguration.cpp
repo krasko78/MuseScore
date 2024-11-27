@@ -253,6 +253,10 @@ void NotationConfiguration::init()
         m_foregroundChanged.notify();
     });
 
+    engravingConfiguration()->invisibleColorChanged().onReceive(this, [this](const Color&) { // krasko
+        m_foregroundChanged.notify();
+    });
+
     engravingConfiguration()->activeGripColorChanged().onReceive(this, [this](const Color&) { // krasko
         m_foregroundChanged.notify();
     });

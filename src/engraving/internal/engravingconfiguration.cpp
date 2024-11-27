@@ -119,6 +119,10 @@ void EngravingConfiguration::init()
         m_unlinkedColorChanged.send(Color::fromQColor(val.toQColor()));
     });
 
+    appShellConfiguration()->invisibleElementsColorChanged().onReceive(this, [this](const Color& val) { // krasko
+        m_invisibleColorChanged.send(val);
+    });
+
     appShellConfiguration()->activeGripColorChanged().onReceive(this, [this](const Color& val) { // krasko
         m_activeGripColorChanged.send(val);
     });
@@ -205,7 +209,12 @@ Color EngravingConfiguration::scoreInversionColor() const
 
 Color EngravingConfiguration::invisibleColor() const
 {
-    return Color::fromString(appShellConfiguration()->invisibleElementsColor()); // krasko
+    return appShellConfiguration()->invisibleElementsColor(); // krasko
+}
+
+muse::async::Channel<Color> EngravingConfiguration::invisibleColorChanged() const // krasko
+{
+    return m_invisibleColorChanged;
 }
 
 Color EngravingConfiguration::lassoColor() const

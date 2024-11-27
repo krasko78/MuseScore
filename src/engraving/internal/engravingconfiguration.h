@@ -62,7 +62,10 @@ public:
 
     Color defaultColor() const override;
     Color scoreInversionColor() const override;
+
     Color invisibleColor() const override;
+    muse::async::Channel<Color> invisibleColorChanged() const override; // krasko
+
     Color lassoColor() const override;
     Color warningColor() const override;
     Color warningSelectedColor() const override;
@@ -120,6 +123,7 @@ private:
     muse::async::Notification m_scoreInversionChanged;
     muse::async::Channel<Color> m_formattingColorChanged;
     muse::async::Channel<Color> m_unlinkedColorChanged;
+    muse::async::Channel<Color> m_invisibleColorChanged; // krasko
     muse::async::Channel<Color> m_activeGripColorChanged; // krasko
 
     muse::ValNt<DebuggingOptions> m_debuggingOptions;

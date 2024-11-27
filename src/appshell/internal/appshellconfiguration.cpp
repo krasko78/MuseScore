@@ -200,7 +200,14 @@ void AppShellConfiguration::initHiddenSettings()
     settings()->setDefaultValue(STEP_FOR_SPIN_CONTROLS_ON_APPEARANCE_TAB, Val(STEP_FOR_SPIN_CONTROLS_ON_APPEARANCE_TAB_DEFAULT));
 
     settings()->setDefaultValue(TEXT_STYLES_TO_USE_FONT_HEIGHT, Val(TEXT_STYLES_TO_USE_FONT_HEIGHT_DEFAULT));
-    settings()->setDefaultValue(INVISIBLE_ELEMENTS_COLOR, Val(INVISIBLE_ELEMENTS_COLOR_DEFAULT));
+
+    settings()->setDefaultValue(INVISIBLE_ELEMENTS_COLOR, Val(QColor(INVISIBLE_ELEMENTS_COLOR_DEFAULT)));
+    settings()->setDescription(INVISIBLE_ELEMENTS_COLOR, muse::trc("ui", "Invisible elements color"));
+    settings()->setCanBeManuallyEdited(INVISIBLE_ELEMENTS_COLOR, true); // make it appear and be editable on the Advanced page of Preferences dialog
+    settings()->valueChanged(INVISIBLE_ELEMENTS_COLOR).onReceive(this, [this](const Val& val) {
+        m_invisibleElementsColorChanged.send(mu::engraving::Color::fromQColor(val.toQColor()));
+    });
+
     settings()->setDefaultValue(FIX_BEAMED_NOTES_FINGERING_TOO_CLOSE_TO_STAFF, Val(FIX_BEAMED_NOTES_FINGERING_TOO_CLOSE_TO_STAFF_DEFAULT));
     settings()->setDefaultValue(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING, Val(FIX_EXTRA_SPACING_ON_MULTILINE_FINGERING_DEFAULT));
 
@@ -318,9 +325,14 @@ bool AppShellConfiguration::textStylesToUseFontHeight(const std::string csvTextS
     return isStrInCSVString(csvTextStyles, value);
 }
 
-std::string AppShellConfiguration::invisibleElementsColor() const
+mu::engraving::Color AppShellConfiguration::invisibleElementsColor() const
 {
-    return settings()->value(INVISIBLE_ELEMENTS_COLOR).toString();
+    return mu::engraving::Color::fromQColor(settings()->value(INVISIBLE_ELEMENTS_COLOR).toQColor());
+}
+
+muse::async::Channel<mu::engraving::Color> AppShellConfiguration::invisibleElementsColorChanged() const
+{
+    return m_invisibleElementsColorChanged;
 }
 
 bool AppShellConfiguration::fixBeamedNotesFingeringTooCloseToStaff() const

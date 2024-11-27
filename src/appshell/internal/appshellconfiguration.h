@@ -69,7 +69,7 @@ public:
 
     // Engraving / Layout
     bool textStylesToUseFontHeight(const std::string csvTextStyles) const override;
-    std::string invisibleElementsColor() const override;
+    mu::engraving::Color invisibleElementsColor() const override;
     bool fixBeamedNotesFingeringTooCloseToStaff() const override;
     bool fixExtraSpacingOnMultilineFingering() const override;
 
@@ -84,6 +84,7 @@ public:
     std::string menuFontSizeRatio() const override;
 
     // Notifications
+    muse::async::Channel<mu::engraving::Color> invisibleElementsColorChanged() const override;
     muse::async::Channel<mu::engraving::Color> scrollbarColorChanged() const override;
     muse::async::Channel<mu::engraving::Color> activeGripColorChanged() const override;
     muse::async::Channel<int> verticalPanelDefaultWidthChanged() const override;
@@ -91,6 +92,7 @@ public:
     muse::async::Channel<std::string> menuFontSizeRatioChanged() const override;
 
 private:
+    muse::async::Channel<mu::engraving::Color> m_invisibleElementsColorChanged;
     muse::async::Channel<mu::engraving::Color> m_scrollbarColorChanged;
     muse::async::Channel<mu::engraving::Color> m_activeGripColorChanged;
     muse::async::Channel<int> m_verticalPanelDefaultWidthChanged;
