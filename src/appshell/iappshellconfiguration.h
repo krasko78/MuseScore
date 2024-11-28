@@ -67,6 +67,7 @@ public:
     virtual bool hoverDisabledItems() const = 0;
     virtual bool menuFontFollowsPreferencesFont() const = 0;
     virtual std::string menuFontSizeRatio() const = 0;
+    virtual bool showScrollbarOnDropDownLists() const = 0;
 
     // Notifications
     virtual muse::async::Channel<mu::engraving::Color> invisibleElementsColorChanged() const = 0;

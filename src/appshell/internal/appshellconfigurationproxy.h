@@ -44,6 +44,9 @@ class AppShellConfigurationProxy : public QObject, muse::async::Asyncable
     Q_PROPERTY(bool hoverDisabledItems READ hoverDisabledItems CONSTANT)
     bool hoverDisabledItems() { return appshellConfiguration()->hoverDisabledItems(); }
 
+    Q_PROPERTY(bool showScrollbarOnDropDownLists READ showScrollbarOnDropDownLists CONSTANT)
+    bool showScrollbarOnDropDownLists() { return appshellConfiguration()->showScrollbarOnDropDownLists(); }
+
 public:
     void init();
 

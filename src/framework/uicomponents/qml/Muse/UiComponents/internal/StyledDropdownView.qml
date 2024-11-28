@@ -21,6 +21,7 @@
  */
 
 import QtQuick 2.15
+import QtQuick.Controls 2.15
 
 import Muse.Ui 1.0
 import Muse.UiComponents 1.0
@@ -141,6 +142,12 @@ DropdownView {
             anchors.fill: parent
 
             model: root.model
+
+            Component.onCompleted: { // krasko
+                if (appshellConfig.showScrollbarOnDropDownLists) {
+                    scrollBarPolicy = ScrollBar.AlwaysOn
+                }
+            }
 
             property NavigationPanel navigationPanel: NavigationPanel {
                 name: "Dropdown"

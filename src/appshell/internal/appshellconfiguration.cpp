@@ -147,6 +147,11 @@ static const Settings::Key MENU_FONT_SIZE_RATIO(module_name, "krasko/menuFontSiz
         //  Specifies a ratio, e.g. "9/10" that will be multiplied with the font size set in the preferences for the rest of
         //  the UI elements to obtain the size of the main menubar.
 
+static const Settings::Key SHOW_SCROLLBAR_ON_DROPDOWN_LISTS(module_name, "krasko/showScrollbarOnDropDownLists");
+        static constexpr bool SHOW_SCROLLBAR_ON_DROPDOWN_LISTS_DEFAULT = true;
+        //  When true, the scrollbar on scrollable drop-down lists will always be visible. When false,
+        //  it will only appear when the scrollbar is hovered.
+
 // --- HIDDEN SETTINGS END ---
 
 
@@ -244,6 +249,8 @@ void AppShellConfiguration::initHiddenSettings()
     settings()->valueChanged(MENU_FONT_SIZE_RATIO).onReceive(this, [this](const Val& val) {
         m_menuFontSizeRatioChanged.send(val.toString());
     });
+
+    settings()->setDefaultValue(SHOW_SCROLLBAR_ON_DROPDOWN_LISTS, Val(SHOW_SCROLLBAR_ON_DROPDOWN_LISTS_DEFAULT));
 }
 
 bool AppShellConfiguration::isStrInCSVString(std::string s, std::string csvStr) const
@@ -409,6 +416,12 @@ muse::async::Channel<std::string> AppShellConfiguration::menuFontSizeRatioChange
 {
     return m_menuFontSizeRatioChanged;
 }
+
+bool AppShellConfiguration::showScrollbarOnDropDownLists() const
+{
+    return settings()->value(SHOW_SCROLLBAR_ON_DROPDOWN_LISTS).toBool();
+}
+
 // --- HIDDEN SETTINGS END ---
 
 

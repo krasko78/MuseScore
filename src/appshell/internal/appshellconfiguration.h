@@ -82,6 +82,7 @@ public:
     bool hoverDisabledItems() const override;
     bool menuFontFollowsPreferencesFont() const override;
     std::string menuFontSizeRatio() const override;
+    bool showScrollbarOnDropDownLists() const override;
 
     // Notifications
     muse::async::Channel<mu::engraving::Color> invisibleElementsColorChanged() const override;
