@@ -80,7 +80,7 @@ ListItemBlank {
 
         anchors.fill: parent
 
-        Row {
+        RowLayout { // krasko
             Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
             Layout.fillWidth: true
             Layout.leftMargin: root.sideMargin
@@ -89,10 +89,12 @@ ListItemBlank {
 
             StyledIconLabel {
                 iconCode: Boolean(root.item[iconRoleName]) ? root.item[iconRoleName] : IconCode.NONE
+                visible: iconCode != IconCode.NONE // krasko
             }
 
             StyledTextLabel {
                 id: titleLabel
+                Layout.fillWidth: true // krasko
                 text: root.item[keyRoleName]
                 horizontalAlignment: Text.AlignLeft
             }
