@@ -89,7 +89,7 @@ DockPage {
         Qt.callLater(pageModel.init)
     }
 
-    readonly property int verticalPanelDefaultWidth: appshellConfig.VerticalPanelDefaultWidth // krasko
+    readonly property int verticalPanelDefaultWidth: appshellConfig.verticalPanelDefaultWidth // krasko
 
     readonly property int horizontalPanelMinHeight: 100
     readonly property int horizontalPanelMaxHeight: 520
