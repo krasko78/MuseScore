@@ -149,7 +149,7 @@ void ThemeApi::initThemeValues()
     m_buttonOpacityHit = themeValues[BUTTON_OPACITY_HIT].toReal();
     m_itemOpacityDisabled = themeValues[ITEM_OPACITY_DISABLED].toReal();
 
-    m_baseFlickVelocity = 900; // krasko: TODO: add these to the hidden settings
+    m_baseFlickVelocity = 900; // krasko: TODO: add these to krasko's settings
     m_minFlickVelocity = 550;
     m_maxFlickVelocity = 1500;
     m_sizeForBaseVelocity = 700;

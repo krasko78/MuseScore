@@ -35,7 +35,7 @@ class IAppShellConfiguration : MODULE_EXPORT_INTERFACE
 {
     INTERFACE_ID(IAppshellConfiguration)
 
-// --- HIDDEN SETTINGS START --- // krasko start
+// --- KRASKO'S SETTINGS START --- // krasko start
 public:
     // General/Miscellaneous
     virtual bool autoRestoreSessionAfterCrash() const = 0;
@@ -76,7 +76,7 @@ public:
     virtual muse::async::Channel<int> verticalPanelDefaultWidthChanged() const = 0;
     virtual muse::async::Channel<bool> menuFontFollowsPreferencesFontChanged() const = 0;
     virtual muse::async::Channel<std::string> menuFontSizeRatioChanged() const = 0;
-// --- HIDDEN SETTINGS END --- // krasko end
+// --- KRASKO'S SETTINGS END --- // krasko end
 
 public:
     virtual ~IAppShellConfiguration() = default;

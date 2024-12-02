@@ -50,7 +50,7 @@ class AppShellConfiguration : public IAppShellConfiguration, public muse::Inject
     muse::Inject<playback::IPlaybackConfiguration> playbackConfiguration = { this };
     muse::Inject<muse::languages::ILanguagesConfiguration> languagesConfiguration = { this };
 
-// --- HIDDEN SETTINGS START ---
+// --- KRASKO'S SETTINGS START ---
 public:
     // General/Miscellaneous
     bool autoRestoreSessionAfterCrash() const override;
@@ -100,9 +100,9 @@ private:
     muse::async::Channel<bool> m_menuFontFollowsPreferencesFontChanged;
     muse::async::Channel<std::string> m_menuFontSizeRatioChanged;
 
-    void initHiddenSettings();
+    void initKraskoSettings();
     bool isStrInCSVString(std::string s, std::string csvStr) const;
-// --- HIDDEN SETTINGS END ---
+// --- KRASKO'S SETTINGS END ---
 
 public:
     AppShellConfiguration(const muse::modularity::ContextPtr& iocCtx)

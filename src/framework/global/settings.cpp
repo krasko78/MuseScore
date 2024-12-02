@@ -228,7 +228,7 @@ void Settings::setDefaultValue(const Key& key, const Val& value)
     Item& item = findItem(key);
 
     if (item.isNull()) {
-        m_items[key] = Item{ key, value, value, "", false, Val(), Val() };
+        m_items[key] = Item{ key, value, value, "", "", false, Val(), Val() }; // krasko
     } else {
         item.defaultValue = value;
         item.value.setType(value.type());
@@ -245,12 +245,22 @@ void Settings::setDescription(const Key& key, const std::string& value)
     item.description = value;
 }
 
+void Settings::setExplanation(const Key& key, const std::string& value) // krasko
+{
+    Item& item = findItem(key);
+    if (item.isNull()) {
+        return;
+    }
+
+    item.explanation = value;
+}
+
 void Settings::setCanBeManuallyEdited(const Settings::Key& key, bool canBeManuallyEdited, const Val& minValue, const Val& maxValue)
 {
     Item& item = findItem(key);
 
     if (item.isNull()) {
-        m_items[key] = Item{ key, Val(), Val(), "", canBeManuallyEdited, minValue, maxValue };
+        m_items[key] = Item{ key, Val(), Val(), "", "", canBeManuallyEdited, minValue, maxValue }; // krasko
     } else {
         item.canBeManuallyEdited = canBeManuallyEdited;
         item.minValue = minValue;
@@ -260,7 +270,7 @@ void Settings::setCanBeManuallyEdited(const Settings::Key& key, bool canBeManual
 
 void Settings::insertNewItem(const Settings::Key& key, const Val& value)
 {
-    Item item = Item{ key, value, value, "", false, Val(), Val() };
+    Item item = Item{ key, value, value, "", "", false, Val(), Val() }; // krasko
     if (m_isTransactionStarted) {
         m_localSettings[key] = item;
     } else {
