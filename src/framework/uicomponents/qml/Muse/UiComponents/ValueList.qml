@@ -38,6 +38,7 @@ Item {
     property string keyRoleName: "key"
     //: As in a "key/value" pair: for example, the "key" could be
     //: the name of a setting and the "value" the value of that setting.
+    property string helpStringRoleName: "helpString" // krasko
     property string keyTitle: qsTrc("ui", "Key", "key/value")
     property string valueRoleName: "value"
     property string valueTitle: qsTrc("ui", "Value")
@@ -214,6 +215,7 @@ Item {
             property var modelIndex: sortFilterProxyModel.index(model.index, 0)
 
             keyRoleName: root.keyRoleName
+            helpStringRoleName: root.helpStringRoleName // krasko
             valueRoleName: root.valueRoleName
             valueTypeRole: root.valueTypeRole
             valueEnabledRoleName: root.valueEnabledRoleName

@@ -31,6 +31,7 @@ ListItemBlank {
 
     property var item: null
     property string keyRoleName: "key"
+    property string helpStringRoleName: "helpString" // krasko
     property string valueRoleName: "value"
     property string valueTypeRole: "valueType"
     property string valueEnabledRoleName: "enabled"
@@ -98,6 +99,21 @@ ListItemBlank {
                 text: root.item[keyRoleName]
                 horizontalAlignment: Text.AlignLeft
             }
+
+            FlatButton { // krasko start
+                width: 20
+                height: width
+
+                icon: IconCode.QUESTION
+                transparent: true
+
+                toolTipTitle: Boolean(root.item[helpStringRoleName]) ? root.item[helpStringRoleName] : ""
+                visible: Boolean(toolTipTitle)
+
+                navigation.panel: root.navigation.panel
+                navigation.row: root.navigation.row
+                navigation.column: 1
+            } // krasko end
         }
 
         Loader {
@@ -154,7 +170,7 @@ ListItemBlank {
 
             navigation.panel: root.navigation.panel
             navigation.row: root.navigation.row
-            navigation.column: 1
+            navigation.column: 2 // krasko
 
             currentText: val
 
@@ -177,7 +193,7 @@ ListItemBlank {
 
             navigation.panel: root.navigation.panel
             navigation.row: root.navigation.row
-            navigation.column: 1
+            navigation.column: 2 // krasko
 
             color: val
 
@@ -200,7 +216,7 @@ ListItemBlank {
 
             navigation.panel: root.navigation.panel
             navigation.row: root.navigation.row
-            navigation.column: 1
+            navigation.column: 2 // krasko
 
             currentValue: val
 
@@ -226,7 +242,7 @@ ListItemBlank {
 
             navigation.panel: root.navigation.panel
             navigation.row: root.navigation.row
-            navigation.column: 1
+            navigation.column: 2 // krasko
 
             currentValue: val
             step: 1.0
@@ -250,7 +266,7 @@ ListItemBlank {
 
             navigation.panel: root.navigation.panel
             navigation.row: root.navigation.row
-            navigation.column: 1
+            navigation.column: 2 // krasko
 
             checked: val ? true : false
             onClicked: {

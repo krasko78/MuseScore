@@ -64,6 +64,7 @@ PreferencesPage {
             Layout.fillHeight: true
 
             keyRoleName: "descriptionRole"
+            helpStringRoleName: "helpStringRole" // krasko
             keyTitle: qsTrc("appshell/preferences", "Preference")
             valueRoleName: "valueRole"
             valueTitle: qsTrc("appshell/preferences", "Value")

@@ -42,6 +42,7 @@ QVariant AdvancedPreferencesModel::data(const QModelIndex& index, int role) cons
     switch (role) {
     case KeyRole: return QString::fromStdString(item.key.key);
     case DescriptionRole: return QString::fromStdString(item.description);
+    case HelpStringRole: return QString::fromStdString(item.explanation); // krasko
     case TypeRole: return typeToString(item.value.type());
     case ValueRole: return item.value.toQVariant();
     case MinValueRole: return !item.minValue.isNull() ? item.minValue.toQVariant() : -1000;
@@ -76,6 +77,7 @@ QHash<int, QByteArray> AdvancedPreferencesModel::roleNames() const
     static const QHash<int, QByteArray> roles = {
         { KeyRole, "keyRole" },
         { DescriptionRole, "descriptionRole" },
+        { HelpStringRole, "helpStringRole" }, // krasko
         { TypeRole, "typeRole" },
         { ValueRole, "valueRole" },
         { MinValueRole, "minValueRole" },
@@ -98,6 +100,12 @@ void AdvancedPreferencesModel::load()
             m_items << it->second;
         }
     }
+
+    for (auto it = items.cbegin(); it != items.cend(); ++it) { // krasko start
+        if (QString::fromStdString(it->second.key.key).startsWith("krasko/")) {
+            m_items << it->second;
+        }
+    } // krasko end
 
     endResetModel();
 }

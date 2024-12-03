@@ -47,6 +47,7 @@ private:
     enum Roles {
         KeyRole = Qt::UserRole + 1,
         DescriptionRole,
+        HelpStringRole, // krasko
         TypeRole,
         ValueRole,
         MinValueRole,
