@@ -131,7 +131,7 @@ void AppShellConfiguration::initKraskoSettings()
         .setDefaultValue(Val(false))
         .setDescription(muse::trc("krasko", "Auto-restore session on startup"))
         .setExplanation(muse::trc("krasko",
-            "When true, the previous/last <i>session</i> will be automatically restored after a crash without asking. "
+            "When true, the previous/last session will be automatically restored after a crash without asking. "
             "For this to work, \"Preferences\" -> \"General\" -> \"Program start\" must be set to \"Continue last session\"."));
 
     sc.createSetting(KEY_FocusExportButtonOnExportDialog)
