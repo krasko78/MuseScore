@@ -80,6 +80,8 @@ private:
     INotationUndoStackPtr currentNotationUndoStack() const;
     INotationMidiInputPtr currentNotationMidiInput() const;
 
+    mu::engraving::Score* currentNotationScore() const;
+
     void toggleNoteInput();
     void toggleNoteInputMethod(NoteInputMethod method);
     void toggleNoteInputInsert();

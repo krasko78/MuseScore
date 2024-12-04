@@ -19,30 +19,32 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef MU_ENGRAVING_GETEID_H
-#define MU_ENGRAVING_GETEID_H
+#pragma once
 
 #include <cstdint>
+#include <unordered_map>
 
 #include "eid.h"
 #include "../types/types.h"
 
 namespace mu::engraving {
-class GetEID
+class EngravingObject;
+
+class EIDRegister
 {
 public:
-    GetEID() = default;
+    EIDRegister() = default;
 
-    void init(uint32_t val);
-    uint32_t lastID() const { return m_lastID; }
+    EID newEIDForItem(const EngravingObject* item);
+    void registerItemEID(const EID& eid, const EngravingObject* item);
 
-    EID newEID(ElementType type);
+    EngravingObject* itemFromEID(const EID& eid) const;
+    EID EIDFromItem(const EngravingObject* item) const;
 
 private:
-    GetEID(const GetEID&) = delete;
+    EIDRegister(const EIDRegister&) = delete;
 
-    uint32_t m_lastID = 0;
+    std::unordered_map<EID, EngravingObject*> m_eidToItem;
+    std::unordered_map<EngravingObject*, EID> m_itemToEid;
 };
 }
-
-#endif // MU_ENGRAVING_GETEID_H

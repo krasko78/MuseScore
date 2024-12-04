@@ -1384,6 +1384,7 @@ bool NotationInteraction::isDropAccepted(const PointF& pos, Qt::KeyboardModifier
         case ActionIconType::TFRAME:
         case ActionIconType::FFRAME:
         case ActionIconType::MEASURE:
+        case ActionIconType::SYSTEM_LOCK:
         case ActionIconType::STAFF_TYPE_CHANGE: {
             m_dropData.ed.modifiers = keyboardModifier(modifiers);
             return dragMeasureAnchorElement(pos);
@@ -1640,13 +1641,14 @@ bool NotationInteraction::selectInstrument(mu::engraving::InstrumentChange* inst
         return false;
     }
 
-    RetVal<Instrument> selectedInstrument = selectInstrumentScenario()->selectInstrument();
-    if (!selectedInstrument.ret) {
+    RetVal<InstrumentTemplate> templ = selectInstrumentScenario()->selectInstrument();
+    if (!templ.ret) {
         return false;
     }
 
+    Instrument newInstrument = Instrument::fromTemplate(&templ.val);
     instrumentChange->setInit(true);
-    instrumentChange->setupInstrument(&selectedInstrument.val);
+    instrumentChange->setupInstrument(&newInstrument);
 
     return true;
 }
@@ -1762,6 +1764,8 @@ bool NotationInteraction::applyPaletteElement(mu::engraving::EngravingItem* elem
         } else if (element->isLayoutBreak()) {
             mu::engraving::LayoutBreak* breakElement = toLayoutBreak(element);
             score->cmdToggleLayoutBreak(breakElement->layoutBreakType());
+        } else if (element->isActionIcon() && toActionIcon(element)->actionType() == ActionIconType::SYSTEM_LOCK) {
+            score->cmdToggleSystemLock();
         } else if (element->isSlur() && addSingle) {
             doAddSlur(toSlur(element));
         } else if (element->isSLine() && !element->isGlissando() && !element->isGuitarBend() && addSingle) {
@@ -2018,6 +2022,10 @@ bool NotationInteraction::applyPaletteElement(mu::engraving::EngravingItem* elem
                         applyDropPaletteElement(score, note, element, modifiers);
                     }
                 }
+            }
+        } else if (element->isActionIcon() && toActionIcon(element)->actionType() == ActionIconType::SYSTEM_LOCK) {
+            if (sel.isRange()) {
+                score->toggleSystemLock(sel.selectedSystems());
             }
         } else {
             track_idx_t track1 = sel.staffStart() * mu::engraving::VOICES;
@@ -2588,7 +2596,7 @@ void NotationInteraction::drawAnchorLines(Painter* painter)
         return;
     }
 
-    const auto dropAnchorColor = configuration()->anchorColor();
+    const auto dropAnchorColor = score()->configuration()->formattingColor();
     Pen pen(dropAnchorColor, 2.0 / currentScaling(painter), PenStyle::DotLine);
 
     for (const LineF& anchor : m_anchorLines) {
@@ -4500,13 +4508,48 @@ void NotationInteraction::toggleLayoutBreak(LayoutBreakType breakType)
     apply();
 }
 
-void NotationInteraction::setBreaksSpawnInterval(BreaksSpawnIntervalType intervalType, int interval)
+void NotationInteraction::moveMeasureToPrevSystem()
 {
-    interval = intervalType == BreaksSpawnIntervalType::MeasuresInterval ? interval : 0;
-    bool afterEachSystem = intervalType == BreaksSpawnIntervalType::AfterEachSystem;
+    startEdit(TranslatableString("undoableAction", "Move measure to previous system"));
+    score()->cmdMoveMeasureToPrevSystem();
+    apply();
+}
 
-    startEdit(TranslatableString("undoableAction", "Add/remove system breaks"));
-    score()->addRemoveBreaks(interval, afterEachSystem);
+void NotationInteraction::moveMeasureToNextSystem()
+{
+    startEdit(TranslatableString("undoableAction", "Move measure to next system"));
+    score()->cmdMoveMeasureToNextSystem();
+    apply();
+}
+
+void NotationInteraction::toggleSystemLock()
+{
+    startEdit(TranslatableString("undoableAction", "Toggle system lock"));
+    score()->cmdToggleSystemLock();
+    apply();
+}
+
+void NotationInteraction::toggleScoreLock()
+{
+    startEdit(TranslatableString("undoableAction", "Toggle score lock"));
+    score()->cmdToggleScoreLock();
+    apply();
+}
+
+void NotationInteraction::makeIntoSystem()
+{
+    startEdit(TranslatableString("undoableAction", "Make measure(s) into one system"));
+    score()->cmdMakeIntoSystem();
+    apply();
+}
+
+void NotationInteraction::addRemoveSystemLocks(AddRemoveSystemLockType intervalType, int interval)
+{
+    interval = intervalType == AddRemoveSystemLockType::MeasuresInterval ? interval : 0;
+    bool afterEachSystem = intervalType == AddRemoveSystemLockType::AfterEachSystem;
+
+    startEdit(TranslatableString("undoableAction", "Measures per system"));
+    score()->addRemoveSystemLocks(interval, afterEachSystem);
     apply();
 }
 

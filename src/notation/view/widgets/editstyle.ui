@@ -176,6 +176,11 @@
       </item>
       <item>
        <property name="text">
+        <string>Glissandos &amp; note-anchored lines</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
         <string>Bends</string>
        </property>
       </item>
@@ -3877,7 +3882,7 @@
            <item>
             <widget class="QGroupBox" name="groupBox_TABClef">
              <property name="accessibleName">
-              <string>Default TAB Clef</string>
+              <string>Default TAB clef</string>
              </property>
              <property name="title">
               <string>Default TAB clef</string>
@@ -6073,7 +6078,7 @@
                <item row="6" column="0" colspan="7">
                 <widget class="QGroupBox" name="groupBox_1">
                  <property name="accessibleName">
-                  <string>Number Layout</string>
+                  <string>Number layout</string>
                  </property>
                  <property name="title">
                   <string>Number layout</string>
@@ -6274,7 +6279,7 @@
                <item row="7" column="0" colspan="7">
                 <widget class="QGroupBox" name="groupBox_2">
                  <property name="accessibleName">
-                  <string>H-Bar</string>
+                  <string>H-bar</string>
                  </property>
                  <property name="title">
                   <string>H-bar</string>
@@ -8936,6 +8941,9 @@
              <property name="suffix">
               <string>sp</string>
              </property>
+             <property name="singleStep">
+              <double>0.010000000000000</double>
+             </property>
             </widget>
            </item>
            <item row="4" column="2">
@@ -9452,6 +9460,9 @@
              <property name="suffix">
               <string extracomment="spatium unit">sp</string>
              </property>
+             <property name="singleStep">
+              <double>0.010000000000000</double>
+             </property>
             </widget>
            </item>
            <item row="2" column="1">
@@ -9580,7 +9591,7 @@
               <string>sp</string>
              </property>
              <property name="singleStep">
-              <double>0.100000000000000</double>
+              <double>0.010000000000000</double>
              </property>
             </widget>
            </item>
@@ -10139,6 +10150,45 @@
            <size>
             <width>0</width>
             <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="PageGlissNoteLines">
+       <layout class="QVBoxLayout" name="verticalLayout_691">
+        <item>
+         <widget class="QGroupBox" name="groupBox_glissando">
+          <property name="accessibleName">
+           <string>Glissandos</string>
+          </property>
+          <property name="title">
+           <string>Glissandos</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout0_2"/>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox_noteline">
+          <property name="accessibleName">
+           <string>Note-anchored lines</string>
+          </property>
+          <property name="title">
+           <string>Note-anchored lines</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout0_3"/>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_39">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
            </size>
           </property>
          </spacer>
@@ -10960,7 +11010,7 @@
          </widget>
         </item>
         <item>
-         <spacer name="verticalSpacer_39">
+         <spacer name="verticalSpacer_391">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
@@ -10980,7 +11030,7 @@
           <property name="title">
            <string>Trill cue note</string>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout_691">
+          <layout class="QVBoxLayout" name="verticalLayout_692">
            <item>
             <widget class="QRadioButton" name="ornamentShowCueNoteOnlyNonSeconds">
              <property name="text">
@@ -12953,7 +13003,7 @@ first note of the system</string>
            <item>
             <widget class="QGroupBox" name="groupFBAlign">
              <property name="accessibleName">
-              <string>Aligment</string>
+              <string>Alignment</string>
              </property>
              <property name="title">
               <string>Alignment</string>
@@ -13698,8 +13748,8 @@ first note of the system</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>28</height>
+             <width>701</width>
+             <height>744</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_3">

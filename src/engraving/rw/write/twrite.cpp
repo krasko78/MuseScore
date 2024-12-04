@@ -420,6 +420,43 @@ void TWrite::writeProperty(const EngravingItem* item, XmlWriter& xml, Pid pid, b
     xml.tagProperty(pid, p, d);
 }
 
+void TWrite::writeSystemLocks(const Score* score, XmlWriter& xml)
+{
+    std::vector<const SystemLock*> locks = score->systemLocks()->allLocks();
+    if (locks.empty()) {
+        return;
+    }
+
+    xml.startElement("SystemLocks");
+    for (const SystemLock* sl : locks) {
+        writeSystemLock(sl, xml);
+    }
+    xml.endElement();
+}
+
+void TWrite::writeItemEid(const EngravingObject* item, XmlWriter& xml, WriteContext& ctx)
+{
+    if (MScore::testMode || item->score()->isPaletteScore() || ctx.clipboardmode()) {
+        return;
+    }
+
+    EID eid = item->eid();
+    if (!eid.isValid()) {
+        eid = item->assignNewEID();
+    }
+    xml.tag("eid", eid.toStdString());
+}
+
+void TWrite::writeSystemLock(const SystemLock* systemLock, XmlWriter& xml)
+{
+    xml.startElement("systemLock");
+
+    xml.tag("startMeasure", systemLock->startMB()->eid().toStdString());
+    xml.tag("endMeasure", systemLock->endMB()->eid().toStdString());
+
+    xml.endElement();
+}
+
 void TWrite::writeStyledProperties(const EngravingItem* item, XmlWriter& xml)
 {
     for (const StyledProperty& spp : *item->styledProperties()) {
@@ -429,9 +466,7 @@ void TWrite::writeStyledProperties(const EngravingItem* item, XmlWriter& xml)
 
 void TWrite::writeItemProperties(const EngravingItem* item, XmlWriter& xml, WriteContext& ctx)
 {
-    if (!MScore::testMode && !item->score()->isPaletteScore() && !ctx.clipboardmode()) {
-        xml.tag("eid", item->eid().toUint64());
-    }
+    TWrite::writeItemEid(item, xml, ctx);
 
     bool autoplaceEnabled = item->score()->style().styleB(Sid::autoplaceEnabled);
     if (!autoplaceEnabled) {
@@ -1447,14 +1482,14 @@ void TWrite::write(const Glissando* item, XmlWriter& xml, WriteContext& ctx)
     }
     xml.startElement(item);
     if (item->showText() && !item->text().isEmpty()) {
-        xml.tag("text", item->text());
+        xml.tagProperty("text", item->text(), item->propertyDefault(Pid::GLISS_TEXT));
     }
 
     if (ctx.clipboardmode() && item->isHarpGliss().has_value()) {
         xml.tagProperty("isHarpGliss", PropertyValue(item->isHarpGliss().value()));
     }
 
-    for (auto id : { Pid::GLISS_TYPE, Pid::GLISS_STYLE, Pid::GLISS_SHIFT, Pid::GLISS_EASEIN, Pid::GLISS_EASEOUT }) {
+    for (auto id : { Pid::GLISS_SHIFT, Pid::GLISS_EASEIN, Pid::GLISS_EASEOUT }) {
         writeProperty(item, xml, id);
     }
     for (const StyledProperty& spp : *item->styledProperties()) {

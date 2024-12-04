@@ -722,6 +722,23 @@ Segment* Measure::getChordRestOrTimeTickSegment(const Fraction& f)
     return seg;
 }
 
+Segment* Measure::undoGetChordRestOrTimeTickSegment(const Fraction& f)
+{
+    Segment* seg = findSegment(SegmentType::ChordRest, f);
+    if (!seg) {
+        seg = findSegment(SegmentType::TimeTick, f);
+    }
+    if (!seg) {
+        if (f - tick() == ticks()) { // end of measure
+            seg = undoGetSegment(SegmentType::TimeTick, f);
+        } else {
+            seg = undoGetSegment(SegmentType::ChordRest, f);
+        }
+    }
+
+    return seg;
+}
+
 //---------------------------------------------------------
 //   getSegmentR
 ///   Get a segment of type st at relative tick position t.
@@ -763,6 +780,9 @@ void Measure::add(EngravingItem* e)
         while (s && s->rtick() == t) {
             if (!seg->isChordRestType() && (seg->segmentType() == s->segmentType())) {
                 LOGD("there is already a <%s> segment", seg->subTypeName());
+                /// HACK: REMOVED to prevent crash in 4.4.3.
+                /// Adding multiple identical segments may cause problems, so we should resolve this properly
+                // return;
             }
             if (seg->goesBefore(s)) {
                 break;
@@ -1376,6 +1396,16 @@ bool Measure::acceptDrop(EditData& data) const
         case ActionIconType::STAFF_TYPE_CHANGE:
             viewer->setDropRectangle(staffRect);
             return true;
+        case ActionIconType::SYSTEM_LOCK:
+        {
+            LayoutMode layoutMode = score()->layoutMode();
+            if (layoutMode == LayoutMode::PAGE || layoutMode == LayoutMode::SYSTEM) {
+                const System* sys = system();
+                viewer->setDropRectangle(sys->canvasBoundingRect().adjusted(sys->leftMargin(), 0.0, 0.0, 0.0));
+                return true;
+            }
+            return false;
+        }
         default:
             break;
         }
@@ -1712,6 +1742,9 @@ EngravingItem* Measure::drop(EditData& data)
             score()->undoAddElement(stc);
             break;
         }
+        case ActionIconType::SYSTEM_LOCK:
+            score()->toggleSystemLock({ system() });
+            break;
         default:
             break;
         }
