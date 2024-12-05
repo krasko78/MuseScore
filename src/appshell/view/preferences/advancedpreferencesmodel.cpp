@@ -42,7 +42,7 @@ QVariant AdvancedPreferencesModel::data(const QModelIndex& index, int role) cons
     switch (role) {
     case KeyRole: return QString::fromStdString(item.key.key);
     case DescriptionRole: return QString::fromStdString(item.description);
-    case HelpStringRole: return QString::fromStdString(item.explanation); // krasko
+    case HelpStringRole: return QString::fromStdString(item.helpString); // krasko
     case TypeRole: return typeToString(item.value.type());
     case ValueRole: return item.value.toQVariant();
     case MinValueRole: return !item.minValue.isNull() ? item.minValue.toQVariant() : -1000;

@@ -228,7 +228,7 @@ void Settings::setDefaultValue(const Key& key, const Val& value)
     Item& item = findItem(key);
 
     if (item.isNull()) {
-        m_items[key] = Item{ key, value, value, "", "", false, Val(), Val() }; // krasko
+        m_items[key] = Item{ key, value, value, "", "" /*helpString*/, false, Val(), Val() }; // krasko
     } else {
         item.defaultValue = value;
         item.value.setType(value.type());
@@ -245,14 +245,14 @@ void Settings::setDescription(const Key& key, const std::string& value)
     item.description = value;
 }
 
-void Settings::setExplanation(const Key& key, const std::string& value) // krasko
+void Settings::setHelpString(const Key& key, const std::string& value) // krasko
 {
     Item& item = findItem(key);
     if (item.isNull()) {
         return;
     }
 
-    item.explanation = value;
+    item.helpString = value;
 }
 
 void Settings::setCanBeManuallyEdited(const Settings::Key& key, bool canBeManuallyEdited, const Val& minValue, const Val& maxValue)
@@ -260,7 +260,7 @@ void Settings::setCanBeManuallyEdited(const Settings::Key& key, bool canBeManual
     Item& item = findItem(key);
 
     if (item.isNull()) {
-        m_items[key] = Item{ key, Val(), Val(), "", "", canBeManuallyEdited, minValue, maxValue }; // krasko
+        m_items[key] = Item{ key, Val(), Val(), "", "" /*helpString*/, canBeManuallyEdited, minValue, maxValue }; // krasko
     } else {
         item.canBeManuallyEdited = canBeManuallyEdited;
         item.minValue = minValue;
@@ -270,7 +270,7 @@ void Settings::setCanBeManuallyEdited(const Settings::Key& key, bool canBeManual
 
 void Settings::insertNewItem(const Settings::Key& key, const Val& value)
 {
-    Item item = Item{ key, value, value, "", "", false, Val(), Val() }; // krasko
+    Item item = Item{ key, value, value, "", "" /*helpString*/, false, Val(), Val() }; // krasko
     if (m_isTransactionStarted) {
         m_localSettings[key] = item;
     } else {
@@ -398,4 +398,73 @@ bool Settings::Key::operator<(const Key& k) const
 bool Settings::Key::isNull() const
 {
     return key.empty();
+}
+
+
+// --- SettingsCreator --- // krasko
+
+SettingsCreator::SettingsCreator(Settings* settings)
+{
+    m_settings = settings;
+}
+
+SettingsCreator SettingsCreator::createSetting(const Settings::Key& key)
+{
+    m_key = &key;
+    return *this;
+}
+
+SettingsCreator SettingsCreator::setDefaultValue(const Val& value) const
+{
+    m_settings->setDefaultValue(*m_key, value);
+    return *this;
+}
+
+SettingsCreator SettingsCreator::setDescription(const std::string& value) const
+{
+    m_settings->setDescription(*m_key, value);
+    return *this;
+}
+
+SettingsCreator SettingsCreator::setHelpString(const std::string& value) const
+{
+    m_settings->setHelpString(*m_key, value);
+    return *this;
+}
+
+SettingsCreator SettingsCreator::setMinValue(const Val& minValue) const
+{
+    bool canBeManuallyEdited = false;
+    Val maxValue = Val();
+
+    auto it = m_settings->items().find(*m_key);
+
+    if (it != m_settings->items().end()) {
+        canBeManuallyEdited = it->second.canBeManuallyEdited;
+        maxValue = it->second.maxValue;
+    }
+
+    m_settings->setCanBeManuallyEdited(*m_key, canBeManuallyEdited, minValue, maxValue);
+    return *this;
+}
+
+SettingsCreator SettingsCreator::setMaxValue(const Val& maxValue) const
+{
+    bool canBeManuallyEdited = false;
+    Val minValue = Val();
+
+    auto it = m_settings->items().find(*m_key);
+
+    if (it != m_settings->items().end()) {
+        canBeManuallyEdited = it->second.canBeManuallyEdited;
+        minValue = it->second.minValue;
+    }
+
+    m_settings->setCanBeManuallyEdited(*m_key, canBeManuallyEdited, minValue, maxValue);
+    return *this;
+}
+
+async::Channel<Val> SettingsCreator::valueChanged() const
+{
+    return m_settings->valueChanged(*m_key);
 }

@@ -69,7 +69,7 @@ public:
         Val value;
         Val defaultValue;
         std::string description;
-        std::string explanation; // krasko
+        std::string helpString; // krasko
 
         bool canBeManuallyEdited = false;
         Val minValue;
@@ -102,7 +102,7 @@ public:
 
     void setDescription(const Key& key, const std::string& value);
 
-    void setExplanation(const Key& key, const std::string& value); // krasko
+    void setHelpString(const Key& key, const std::string& value); // krasko
 
     void setCanBeManuallyEdited(const Settings::Key& key, bool canBeManuallyEdited, const Val& minValue = Val(),
                                 const Val& maxValue = Val());
@@ -144,38 +144,21 @@ inline Settings* settings()
 class SettingsCreator // krasko
 {
 public:
-    SettingsCreator(Settings* settings) {
-        m_settings = settings;
-    }
+    SettingsCreator(Settings* settings);
 
-    SettingsCreator createSetting(const Settings::Key& key) {
-        m_key = &key;
-        return *this;
-    }
+    SettingsCreator createSetting(const Settings::Key& key);
 
-    SettingsCreator setDefaultValue(const Val& value) const {
-        m_settings->setDefaultValue(*m_key, value);
-        return *this;
-    }
+    SettingsCreator setDefaultValue(const Val& value) const;
 
-    SettingsCreator setDescription(const std::string& value) {
-        m_settings->setDescription(*m_key, value);
-        return *this;
-    }
+    SettingsCreator setDescription(const std::string& value) const;
 
-    SettingsCreator setExplanation(const std::string& value) {
-        m_settings->setExplanation(*m_key, value);
-        return *this;
-    }
+    SettingsCreator setHelpString(const std::string& value) const;
 
-    SettingsCreator setCanBeManuallyEdited(bool canBeManuallyEdited, const Val& minValue = Val(), const Val& maxValue = Val()) {
-        m_settings->setCanBeManuallyEdited(*m_key, canBeManuallyEdited, minValue, maxValue);
-        return *this;
-    }
+    SettingsCreator setMinValue(const Val& minValue) const;
 
-    async::Channel<Val> valueChanged() {
-        return m_settings->valueChanged(*m_key);
-    }
+    SettingsCreator setMaxValue(const Val& maxValue) const;
+
+    async::Channel<Val> valueChanged() const;
 
 private:
     Settings* m_settings;
