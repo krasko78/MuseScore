@@ -34,6 +34,7 @@
 #include "notation/inotationconfiguration.h"
 #include "playback/iplaybackconfiguration.h"
 #include "languages/ilanguagesconfiguration.h"
+#include "settings.h" // krasko
 
 #include "iappshellconfiguration.h"
 
@@ -101,12 +102,15 @@ private:
     muse::async::Channel<std::string> m_menuFontSizeRatioChanged;
 
     void initKraskoSettings();
+    muse::Val kraskoSettingValue(const std::string& key) const; // krasko
     bool isStrInCSVString(std::string s, std::string csvStr) const;
 // --- KRASKO'S SETTINGS END ---
 
 public:
     AppShellConfiguration(const muse::modularity::ContextPtr& iocCtx)
         : muse::Injectable(iocCtx) {}
+
+    ~AppShellConfiguration(); // krasko
 
     void init();
 
@@ -152,6 +156,8 @@ public:
     muse::Ret setSessionProjectsPaths(const muse::io::paths_t& paths) override;
 
 private:
+    std::vector<const muse::Settings::Key*> m_kraskoSettingsKeys; // krasko
+
     std::string utmParameters(const std::string& utmMedium) const;
 
     std::string currentLanguageCode() const;

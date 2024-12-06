@@ -408,9 +408,15 @@ SettingsCreator::SettingsCreator(Settings* settings)
     m_settings = settings;
 }
 
-SettingsCreator SettingsCreator::createSetting(const Settings::Key& key)
+SettingsCreator SettingsCreator::createSetting(const std::string& moduleName, const std::string& key)
 {
-    m_key = &key;
+    m_key = new Settings::Key(moduleName, key);
+    return *this;
+}
+
+SettingsCreator SettingsCreator::addKeyTo(std::vector<const Settings::Key*>& collection) const
+{
+    collection.push_back(m_key);
     return *this;
 }
 

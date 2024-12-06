@@ -146,7 +146,9 @@ class SettingsCreator // krasko
 public:
     SettingsCreator(Settings* settings);
 
-    SettingsCreator createSetting(const Settings::Key& key);
+    SettingsCreator createSetting(const std::string& moduleName, const std::string& key);
+
+    SettingsCreator addKeyTo(std::vector<const Settings::Key*>& collection) const;
 
     SettingsCreator setDefaultValue(const Val& value) const;
 
@@ -162,7 +164,7 @@ public:
 
 private:
     Settings* m_settings;
-    const Settings::Key *m_key;
+    const Settings::Key* m_key;
 };
 }
 
