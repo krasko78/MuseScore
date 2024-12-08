@@ -48,6 +48,7 @@ private:
         KeyRole = Qt::UserRole + 1,
         DescriptionRole,
         HelpStringRole, // krasko
+        OrdinalRole, // krasko
         TypeRole,
         ValueRole,
         MinValueRole,

@@ -43,6 +43,7 @@ QVariant AdvancedPreferencesModel::data(const QModelIndex& index, int role) cons
     case KeyRole: return QString::fromStdString(item.key.key);
     case DescriptionRole: return QString::fromStdString(item.description);
     case HelpStringRole: return QString::fromStdString(item.helpString); // krasko
+    case OrdinalRole: return QString::fromStdString(item.ordinal); // krasko
     case TypeRole: return typeToString(item.value.type());
     case ValueRole: return item.value.toQVariant();
     case MinValueRole: return !item.minValue.isNull() ? item.minValue.toQVariant() : -1000;
@@ -78,6 +79,7 @@ QHash<int, QByteArray> AdvancedPreferencesModel::roleNames() const
         { KeyRole, "keyRole" },
         { DescriptionRole, "descriptionRole" },
         { HelpStringRole, "helpStringRole" }, // krasko
+        { OrdinalRole, "ordinalRole" }, // krasko
         { TypeRole, "typeRole" },
         { ValueRole, "valueRole" },
         { MinValueRole, "minValueRole" },

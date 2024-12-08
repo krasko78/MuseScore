@@ -228,7 +228,7 @@ void Settings::setDefaultValue(const Key& key, const Val& value)
     Item& item = findItem(key);
 
     if (item.isNull()) {
-        m_items[key] = Item{ key, value, value, "", "" /*helpString*/, false, Val(), Val() }; // krasko
+        m_items[key] = Item{ key, value, value, "", "" /*helpString*/, "" /*ordinal*/, false, Val(), Val() }; // krasko
     } else {
         item.defaultValue = value;
         item.value.setType(value.type());
@@ -255,12 +255,22 @@ void Settings::setHelpString(const Key& key, const std::string& value) // krasko
     item.helpString = value;
 }
 
+void Settings::setOrdinal(const Key& key, const std::string& value) // krasko
+{
+    Item& item = findItem(key);
+    if (item.isNull()) {
+        return;
+    }
+
+    item.ordinal = value;
+}
+
 void Settings::setCanBeManuallyEdited(const Settings::Key& key, bool canBeManuallyEdited, const Val& minValue, const Val& maxValue)
 {
     Item& item = findItem(key);
 
     if (item.isNull()) {
-        m_items[key] = Item{ key, Val(), Val(), "", "" /*helpString*/, canBeManuallyEdited, minValue, maxValue }; // krasko
+        m_items[key] = Item{ key, Val(), Val(), "", "" /*helpString*/, "" /*ordinal*/, canBeManuallyEdited, minValue, maxValue }; // krasko
     } else {
         item.canBeManuallyEdited = canBeManuallyEdited;
         item.minValue = minValue;
@@ -270,7 +280,7 @@ void Settings::setCanBeManuallyEdited(const Settings::Key& key, bool canBeManual
 
 void Settings::insertNewItem(const Settings::Key& key, const Val& value)
 {
-    Item item = Item{ key, value, value, "", "" /*helpString*/, false, Val(), Val() }; // krasko
+    Item item = Item{ key, value, value, "", "" /*helpString*/, "" /*ordinal*/, false, Val(), Val() }; // krasko
     if (m_isTransactionStarted) {
         m_localSettings[key] = item;
     } else {
@@ -468,6 +478,15 @@ SettingsCreator SettingsCreator::setDescription(const std::string& value) const
 SettingsCreator SettingsCreator::setHelpString(const std::string& value) const
 {
     m_settings->setHelpString(*m_key, value);
+    return *this;
+}
+
+SettingsCreator SettingsCreator::setOrdinal(int ordinal)
+{
+    char buffer[10];
+    sprintf(buffer, "%08d", ordinal);
+
+    m_settings->setOrdinal(*m_key, "krasko-" + std::string(buffer));
     return *this;
 }
 

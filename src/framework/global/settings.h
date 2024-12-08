@@ -70,6 +70,7 @@ public:
         Val defaultValue;
         std::string description;
         std::string helpString; // krasko
+        std::string ordinal; // krasko
 
         bool canBeManuallyEdited = false;
         Val minValue;
@@ -103,6 +104,8 @@ public:
     void setDescription(const Key& key, const std::string& value);
 
     void setHelpString(const Key& key, const std::string& value); // krasko
+
+    void setOrdinal(const Key& key, const std::string& ordinal); // krasko
 
     void setCanBeManuallyEdited(const Settings::Key& key, bool canBeManuallyEdited, const Val& minValue = Val(),
                                 const Val& maxValue = Val());
@@ -159,6 +162,8 @@ public:
     SettingsCreator setDescription(const std::string& value) const;
 
     SettingsCreator setHelpString(const std::string& value) const;
+
+    SettingsCreator setOrdinal(int ordinal);
 
     SettingsCreator setMinValue(const Val& minValue) const;
 

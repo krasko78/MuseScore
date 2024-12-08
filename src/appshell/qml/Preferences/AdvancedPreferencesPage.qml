@@ -65,6 +65,7 @@ PreferencesPage {
 
             keyRoleName: "descriptionRole"
             helpStringRoleName: "helpStringRole" // krasko
+            sortRoleName: "ordinalRole" // krasko
             keyTitle: qsTrc("appshell/preferences", "Preference")
             valueRoleName: "valueRole"
             valueTitle: qsTrc("appshell/preferences", "Value")
