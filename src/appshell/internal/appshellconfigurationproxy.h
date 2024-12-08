@@ -35,8 +35,8 @@ class AppShellConfigurationProxy : public QObject, muse::async::Asyncable
 
     Inject<mu::appshell::IAppShellConfiguration> appshellConfiguration;
 
-    Q_PROPERTY(int verticalPanelDefaultWidth READ verticalPanelDefaultWidth NOTIFY verticalPanelDefaultWidthChanged)
-    int verticalPanelDefaultWidth() { return appshellConfiguration()->verticalPanelDefaultWidth(); }
+    Q_PROPERTY(int verticalPanelsWidth READ verticalPanelsWidth NOTIFY verticalPanelsWidthChanged)
+    int verticalPanelsWidth() { return appshellConfiguration()->verticalPanelsWidth(); }
 
     Q_PROPERTY(bool expandShowMore READ expandShowMore CONSTANT)
     bool expandShowMore() { return appshellConfiguration()->expandShowMore(); }
@@ -51,7 +51,7 @@ public:
     void init();
 
 signals:
-    void verticalPanelDefaultWidthChanged(int newValue);
+    void verticalPanelsWidthChanged(int newValue);
 };
 }
 // krasko end

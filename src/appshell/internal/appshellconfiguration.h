@@ -78,7 +78,7 @@ public:
     mu::engraving::Color scrollbarColor() const override;
     mu::engraving::Color activeGripColor() const override;
     int flickDeceleration() const override;
-    int verticalPanelDefaultWidth() const override;
+    int verticalPanelsWidth() const override;
     bool expandShowMore() const override;
     bool hoverDisabledItems() const override;
     bool menuFontFollowsPreferencesFont() const override;
@@ -89,7 +89,7 @@ public:
     muse::async::Channel<mu::engraving::Color> invisibleElementsColorChanged() const override;
     muse::async::Channel<mu::engraving::Color> scrollbarColorChanged() const override;
     muse::async::Channel<mu::engraving::Color> activeGripColorChanged() const override;
-    muse::async::Channel<int> verticalPanelDefaultWidthChanged() const override;
+    muse::async::Channel<int> verticalPanelsWidthChanged() const override;
     muse::async::Channel<bool> menuFontFollowsPreferencesFontChanged() const override;
     muse::async::Channel<std::string> menuFontSizeRatioChanged() const override;
 
@@ -97,12 +97,18 @@ private:
     muse::async::Channel<mu::engraving::Color> m_invisibleElementsColorChanged;
     muse::async::Channel<mu::engraving::Color> m_scrollbarColorChanged;
     muse::async::Channel<mu::engraving::Color> m_activeGripColorChanged;
-    muse::async::Channel<int> m_verticalPanelDefaultWidthChanged;
+    muse::async::Channel<int> m_verticalPanelsWidthChanged;
     muse::async::Channel<bool> m_menuFontFollowsPreferencesFontChanged;
     muse::async::Channel<std::string> m_menuFontSizeRatioChanged;
 
     void initKraskoSettings();
-    muse::Val kraskoSettingValue(const std::string& key) const; // krasko
+    void createKraskoSettings();
+    void updateRenamedKraskoSettings();
+    void deleteUnusedKraskoSettings();
+
+    const muse::Settings::Key* findKraskoSettingKey(const std::string& keyName) const;
+    bool existsKraskoSetting(const std::string& keyName) const;
+    muse::Val kraskoSettingValue(const std::string& keyName) const;
     bool isStrInCSVString(std::string s, std::string csvStr) const;
 // --- KRASKO'S SETTINGS END ---
 

@@ -73,7 +73,7 @@ static constexpr char KEY_ActiveGripColor[] = "krasko/activeGripColor";
 
 static constexpr char KEY_FlickDeceleration[] = "krasko/flickDeceleration";
 
-static constexpr char KEY_VerticalPanelDefaultWidth[] = "krasko/verticalPanelDefaultWidth";
+static constexpr char KEY_VerticalPanelsWidth[] = "krasko/verticalPanelsWidth";
 
 static constexpr char KEY_ExpandShowMore[] = "krasko/expandShowMore";
 
@@ -129,6 +129,13 @@ void AppShellConfiguration::init()
 // --- KRASKO'S SETTINGS START ---
 
 void AppShellConfiguration::initKraskoSettings()
+{
+    createKraskoSettings();
+    updateRenamedKraskoSettings();
+    deleteUnusedKraskoSettings();
+}
+
+void AppShellConfiguration::createKraskoSettings()
 {
     SettingsCreator sc(settings());
 
@@ -275,14 +282,14 @@ void AppShellConfiguration::initKraskoSettings()
             "The deceleration to use when scrolling flickable controls (palettes, properties panel, etc.). The higher the value, "
             "the sooner the scrolling will stop when the user stops scrolling. Lower values will make the scrolling last longer."));
 
-    sc.createSetting(krasko_module_name, KEY_VerticalPanelDefaultWidth)
+    sc.createSetting(krasko_module_name, KEY_VerticalPanelsWidth)
         .addKeyTo(m_kraskoSettingsKeys)
         .setDefaultValue(Val(300))
         .setDescription(muse::trc("krasko", "Width of the vertical panels"))
         .setHelpString(muse::trc("krasko",
-            "The default width of the vertical panels such as the Palettes, Instruments, Properties, Selection filter."))
+            "The width of the vertical panels such as the Palettes, Instruments, Properties, Selection filter."))
         .valueChanged().onReceive(this, [this](const Val& val) {
-            m_verticalPanelDefaultWidthChanged.send(val.toInt());
+            m_verticalPanelsWidthChanged.send(val.toInt());
         });
 
     sc.createSetting(krasko_module_name, KEY_ExpandShowMore)
@@ -330,14 +337,75 @@ void AppShellConfiguration::initKraskoSettings()
             "When false, it will only appear when the scrollbar is hovered."));
 }
 
-Val AppShellConfiguration::kraskoSettingValue(const std::string& key) const
+void AppShellConfiguration::updateRenamedKraskoSettings()
+{
+    // When a krasko setting is renamed, it should receive (inherit) the value of whichever predecessor
+    // with an older name exists in the config file (if any). This ensures the renaming happens
+    // seemlessly. At most one such predecessor should exist: as soon as a successor is added,
+    // the predecessor will be deleted. Typically the predecessor will be the most recent one
+    // if the user updates MuseScore Studio regularly. If not and the setting has been renamed more
+    // than once between the user's previous verion of MuseScore Studio and the current version, then
+    // the predecessor will not be the latest. For example: if setting A gets renamed to B and later
+    // to C, below we should have a call to copy the value of A into C, then a call to copy B's value
+    // into C since one user can have setting A in their config file, and another user may have B.
+    // The user that has setting A has skipped all of the versions of MuseScore studio where B is present.
+    //
+    // We must preserve the type of the target setting (last param of the calls to copyValue below)
+    // because the setting we are copying the value from no longer exists in the code: it is present
+    // only in the user's config file and will be removed by deleteUnusedKraskoSettings().
+
+    const Settings::Key* keyVerticalPanelsWidth = findKraskoSettingKey(KEY_VerticalPanelsWidth);
+    if (keyVerticalPanelsWidth != nullptr) {
+        settings()->copyValue(*keyVerticalPanelsWidth, "krasko/verticalPanelDefaultWidth", true);
+    }
+}
+
+void AppShellConfiguration::deleteUnusedKraskoSettings()
+{
+    // Deletes all unused settings: those that are in the user's config file
+    // but are no longer in this version of MuseScore Studio (i.e. are not in the code).
+
+    Settings::Items allSettings = settings()->items();
+
+    QList<Settings::Item> settingsToDelete;
+
+    for (auto it = allSettings.cbegin(); it != allSettings.cend(); ++it) {
+        const std::string& key = it->second.key.key;
+        if (QString::fromStdString(key).startsWith("krasko/") && !existsKraskoSetting(key)) {
+            settingsToDelete << it->second;
+        }
+    }
+
+    for (auto& settingToDelete : settingsToDelete)
+    {
+        LOGW() << "Removing unused setting " << settingToDelete.key.key << "...";
+        settings()->remove(settingToDelete.key);
+    }
+}
+
+const Settings::Key* AppShellConfiguration::findKraskoSettingKey(const std::string& keyName) const
 {
     for (auto& currentKey : m_kraskoSettingsKeys)
     {
-        if (currentKey->key == key)
+        if (currentKey->key == keyName)
         {
-            return settings()->value(*currentKey);
+            return currentKey;
         }
+    }
+    return nullptr;
+}
+
+bool AppShellConfiguration::existsKraskoSetting(const std::string& keyName) const
+{
+    return findKraskoSettingKey(keyName) != nullptr;
+}
+
+Val AppShellConfiguration::kraskoSettingValue(const std::string& keyName) const
+{
+    const Settings::Key* foundKey = findKraskoSettingKey(keyName);
+    if (foundKey != nullptr)
+    {
+        return settings()->value(*foundKey);
     }
     return Val();
 }
@@ -466,14 +534,14 @@ int AppShellConfiguration::flickDeceleration() const
     return kraskoSettingValue(KEY_FlickDeceleration).toInt();
 }
 
-int AppShellConfiguration::verticalPanelDefaultWidth() const
+int AppShellConfiguration::verticalPanelsWidth() const
 {
-    return kraskoSettingValue(KEY_VerticalPanelDefaultWidth).toInt();
+    return kraskoSettingValue(KEY_VerticalPanelsWidth).toInt();
 }
 
-muse::async::Channel<int> AppShellConfiguration::verticalPanelDefaultWidthChanged() const
+muse::async::Channel<int> AppShellConfiguration::verticalPanelsWidthChanged() const
 {
-    return m_verticalPanelDefaultWidthChanged;
+    return m_verticalPanelsWidthChanged;
 }
 
 bool AppShellConfiguration::expandShowMore() const

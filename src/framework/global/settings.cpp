@@ -349,6 +349,39 @@ void Settings::rollbackTransaction(bool notifyToOtherInstances)
 #endif
 }
 
+void Settings::copyValue(const Key& targetKey, const std::string& sourceKeyName, bool preserveType /*= false*/) // krasko
+{
+    // Preserve the module name
+    copyValue(targetKey, Settings::Key(targetKey.moduleName, sourceKeyName), preserveType);
+}
+
+void Settings::copyValue(const Key& targetKey, const Key& sourceKey, bool preserveType /*= false*/) // krasko
+{
+    const Settings::Item& sourceItem = findItem(sourceKey);
+    if (!sourceItem.isNull()) {
+        Settings::Item& targetItem = findItem(targetKey);
+        if (!targetItem.isNull()) {
+            Val::Type type = targetItem.value.type();
+            setSharedValue(targetKey, value(sourceKey));
+            if (preserveType) {
+                targetItem.value.setType(type);
+            }
+        }
+    }
+}
+
+// Used to remove settings no longer used / needed
+void Settings::remove(const Key& key) // krasko
+{
+    m_settings->remove(QString::fromStdString(key.key));
+
+    Items& allItems = m_isTransactionStarted ? m_localSettings : m_items;
+    auto it = allItems.find(key);
+    if (it != allItems.end()) {
+        allItems.erase(it);
+    }
+}
+
 Settings::Item& Settings::findItem(const Key& key) const
 {
     Items& items = m_isTransactionStarted ? m_localSettings : m_items;

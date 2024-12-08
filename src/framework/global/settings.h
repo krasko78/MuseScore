@@ -111,6 +111,10 @@ public:
     void commitTransaction(bool notifyToOtherInstances = true);
     void rollbackTransaction(bool notifyToOtherInstances = true);
 
+    void copyValue(const Key& targetKey, const std::string& sourceKeyName, bool preserveType = false); // krasko
+    void copyValue(const Key& targetKey, const Key& sourceKey, bool preserveType = false); // krasko
+    void remove(const Key& key); // krasko
+
     async::Channel<Val> valueChanged(const Key& key) const;
 
     io::path_t filePath() const;

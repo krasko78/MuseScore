@@ -25,7 +25,7 @@ using namespace mu::appshell;
 
 void AppShellConfigurationProxy::init()
 {
-    appshellConfiguration()->verticalPanelDefaultWidthChanged().onReceive(this, [this](int newValue) {
-        emit verticalPanelDefaultWidthChanged(newValue);
+    appshellConfiguration()->verticalPanelsWidthChanged().onReceive(this, [this](int newValue) {
+        emit verticalPanelsWidthChanged(newValue);
     });
 }

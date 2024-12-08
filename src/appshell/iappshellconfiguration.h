@@ -62,7 +62,7 @@ public:
     virtual mu::engraving::Color scrollbarColor() const = 0;
     virtual mu::engraving::Color activeGripColor() const = 0;
     virtual int flickDeceleration() const = 0;
-    virtual int verticalPanelDefaultWidth() const = 0;
+    virtual int verticalPanelsWidth() const = 0;
     virtual bool expandShowMore() const = 0;
     virtual bool hoverDisabledItems() const = 0;
     virtual bool menuFontFollowsPreferencesFont() const = 0;
@@ -73,7 +73,7 @@ public:
     virtual muse::async::Channel<mu::engraving::Color> invisibleElementsColorChanged() const = 0;
     virtual muse::async::Channel<mu::engraving::Color> scrollbarColorChanged() const = 0;
     virtual muse::async::Channel<mu::engraving::Color> activeGripColorChanged() const = 0;
-    virtual muse::async::Channel<int> verticalPanelDefaultWidthChanged() const = 0;
+    virtual muse::async::Channel<int> verticalPanelsWidthChanged() const = 0;
     virtual muse::async::Channel<bool> menuFontFollowsPreferencesFontChanged() const = 0;
     virtual muse::async::Channel<std::string> menuFontSizeRatioChanged() const = 0;
 // --- KRASKO'S SETTINGS END --- // krasko end
