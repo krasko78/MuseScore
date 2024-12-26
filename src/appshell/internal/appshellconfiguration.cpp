@@ -41,15 +41,15 @@ static const std::string module_name("appshell");
 
 static constexpr char krasko_module_name[] = "krasko";
 
-static constexpr char KEY_AutoRestoreSessionAfterCrash[] = "krasko/autoRestoreSessionAfterCrash";
+static constexpr char KEY_AutoRestoreSessionOnStart[] = "krasko/autoRestoreSessionOnStart";
 
 static constexpr char KEY_FocusExportButtonOnExportDialog[] = "krasko/focusExportButtonOnExportDialog";
 
-static constexpr char KEY_NavNextPrevPanelNavigatesToNextPrevControl[] = "krasko/navNextPrevPanelNavigatesToNextPrevControl";
+static constexpr char KEY_TabAndShiftTabNavigateBetweenControls[] = "krasko/tabAndShiftTabNavigateBetweenControls";
 
 static constexpr char KEY_EditElementKeyCyclesThroughGrips[] = "krasko/editElementKeyCyclesThroughGrips";
 
-static constexpr char KEY_EscapeKeyWhileEditingKeepsSelection[] = "krasko/escapeKeyWhileEditingKeepsSelection";
+static constexpr char KEY_EscKeyKeepsSelectionWhenEditing[] = "krasko/escKeyKeepsSelectionWhenEditing";
 
 static constexpr char KEY_ShowSameColorCheckBoxOnSelectMoreDialog[] = "krasko/showSameColorCheckBoxOnSelectMoreDialog";
 
@@ -111,7 +111,7 @@ static const std::string SESSION_RESOURCE_NAME("SESSION");
 
 AppShellConfiguration::~AppShellConfiguration() // krasko
 {
-    qDeleteAll(m_kraskoSettingsKeys);
+    delete m_settingsCreator;
 }
 
 void AppShellConfiguration::init()
@@ -137,95 +137,85 @@ void AppShellConfiguration::initKraskoSettings()
 
 void AppShellConfiguration::createKraskoSettings()
 {
-    SettingsCreator sc(settings());
-    int ordinal = 0;
+    m_settingsCreator = new SettingsCreator(settings());
+    SettingsCreator& sc = *m_settingsCreator;
 
-    sc.createSetting(krasko_module_name, KEY_AutoRestoreSessionAfterCrash)
-        .addKeyTo(m_kraskoSettingsKeys)
+    sc.createSetting(krasko_module_name, KEY_AutoRestoreSessionOnStart)
         .setDefaultValue(Val(false))
-        .setDescription(muse::trc("krasko", "Auto-restore session on startup"))
+        .setDescription(muse::trc("krasko", "Auto-restore session on start"))
         .setHelpString(muse::trc("krasko",
-            "When true, the previous/last session will be automatically restored after a crash without asking. "
-            "For this to work, \"Preferences\" -> \"General\" -> \"Program start\" must be set to \"Continue last session\"."))
-        .setOrdinal(++ordinal);
+            "Determines whether the last session will be restored automatically without asking when MuseScore Studio starts. "
+            "This only has effect when \"Preferences\" -> \"General\" -> \"Program start\" is set to \"Continue last session\"."))
+        .noValueChangedNeeded();
 
     sc.createSetting(krasko_module_name, KEY_FocusExportButtonOnExportDialog)
-        .addKeyTo(m_kraskoSettingsKeys)
         .setDefaultValue(Val(false))
-        .setDescription(muse::trc("krasko", "Focus the Export button on the Export dialog on open"))
+        .setDescription(muse::trc("krasko", "Focus Export button on Export dialog"))
         .setHelpString(muse::trc("krasko",
-            "When true, the Export dialog will focus the Export button on open so the export can be completed "
-            "quickly by simply pressing the ENTER key."))
-        .setOrdinal(++ordinal);
+            "When enabled, the Export dialog will focus the Export button on open. This allows the export to be completed "
+            "quickly by pressing Enter or Space."))
+        .noValueChangedNeeded();
 
-    sc.createSetting(krasko_module_name, KEY_NavNextPrevPanelNavigatesToNextPrevControl)
-        .addKeyTo(m_kraskoSettingsKeys)
+    sc.createSetting(krasko_module_name, KEY_TabAndShiftTabNavigateBetweenControls)
         .setDefaultValue(Val(false))
-        .setDescription(muse::trc("krasko", "TAB navigates between controls"))
+        .setDescription(muse::trc("krasko", "Tab and Shift+Tab navigate between controls"))
         .setHelpString(muse::trc("krasko",
-            "Determines whether pressing the shortcut keys for \"nav-next-panel\" and \"nav-prev-panel\" (TAB and SHIFT+TAB "
-            "by default) will navigate to the next/prev control (when true) or the next/prev panel (when false)."))
-        .setOrdinal(++ordinal);
+            "Determines whether pressing the shortcut keys for \"nav-next-panel\" and \"nav-prev-panel\" (Tab and Shift+Tab "
+            "by default) will navigate to the next/prev control (when setting is on) or next/prev panel (when it is off)."))
+        .noValueChangedNeeded();
 
     sc.createSetting(krasko_module_name, KEY_EditElementKeyCyclesThroughGrips)
-        .addKeyTo(m_kraskoSettingsKeys)
         .setDefaultValue(Val(false))
-        .setDescription(muse::trc("krasko", "Edit key cycles through grips"))
+        .setDescription(muse::trc("krasko", "Edit element key cycles through grips"))
         .setHelpString(muse::trc("krasko",
-            "When true, pressing the \"Edit Element\" shortcut key (F2 by default) will cycle through an element's grips "
-            "just like the TAB key if the element already has the grips displayed. This lets you press the \"Edit Element\" key "
-            "once to diplay the grips/handles (the element must be selected) and then continue pressing the same key "
-            "(instead of TAB) to activate the desired grip/handle to adjust it."))
-        .setOrdinal(++ordinal);
+            "When on, pressing the \"Edit Element\" key (F2 by default) will cycle through an element's grips "
+            "(just like the Tab key) if the grips are already displayed. This lets you press the \"Edit Element\" key "
+            "once to diplay the grips (the element must be selected) and then continue pressing the same key "
+            "(instead of Tab) to activate the desired grip that you want to adjust."))
+        .noValueChangedNeeded();
 
-    sc.createSetting(krasko_module_name, KEY_EscapeKeyWhileEditingKeepsSelection)
-        .addKeyTo(m_kraskoSettingsKeys)
+    sc.createSetting(krasko_module_name, KEY_EscKeyKeepsSelectionWhenEditing)
         .setDefaultValue(Val(false))
-        .setDescription(muse::trc("krasko", "ESC key keeps selection when editing"))
+        .setDescription(muse::trc("krasko", "Esc key keeps selection when editing"))
         .setHelpString(muse::trc("krasko",
-            "When true, pressing the ESC key while editing an element, e.g. a slur or hairpin, will stop the editing "
+            "When on, pressing the Esc key while editing an element, e.g. a slur or hairpin, will end the editing "
             "but not deselect the element. This enables you to press the \"Edit Element\" key and continue editing "
-            "until you are happy with the result. When the value is false, the element will also be deselected."))
-        .setOrdinal(++ordinal);
+            "until you are happy with the result. When off, the element will also be deselected."))
+        .noValueChangedNeeded();
 
     sc.createSetting(krasko_module_name, KEY_ShowSameColorCheckBoxOnSelectMoreDialog)
-        .addKeyTo(m_kraskoSettingsKeys)
         .setDefaultValue(Val(false))
         .setDescription(muse::trc("krasko", "Show 'Same Color' checkbox on Select more dialog"))
         .setHelpString(muse::trc("krasko",
             "When true, will display a \"Same color\" checkbox on the Select More... dialogs (for note and non-note) so that "
             "the selection can be limited to the elements having the same color as the selected element."))
-        .setOrdinal(++ordinal);
+        .noValueChangedNeeded();
 
     sc.createSetting(krasko_module_name, KEY_EnableAltModifierKeyForNudging)
-        .addKeyTo(m_kraskoSettingsKeys)
         .setDefaultValue(Val(false))
         .setDescription(muse::trc("krasko", "Enable the ALT key for nudging"))
         .setHelpString(muse::trc("krasko",
             "When true, the ALT key will be enabled to participate in shortcuts such as ALT+arrow keys "
             "for nudging grips/handles/elements."))
-        .setOrdinal(++ordinal);
+        .noValueChangedNeeded();
 
     sc.createSetting(krasko_module_name, KEY_EnableHighPrecisionNudging)
-        .addKeyTo(m_kraskoSettingsKeys)
         .setDefaultValue(Val(false))
         .setDescription(muse::trc("krasko", "Enable high-precision nudging"))
         .setHelpString(muse::trc("krasko",
             "When true, nudging things such as grips, beams, etc. with the arrow keys will nudge by a smaller amount "
             "thus allowing for better control. If the ALT modifier is enabled, using ALT+arrow keys will nudge even less."))
-        .setOrdinal(++ordinal);
+        .noValueChangedNeeded();
 
     sc.createSetting(krasko_module_name, KEY_StepForSpinControlsOnAppearanceTab)
-        .addKeyTo(m_kraskoSettingsKeys)
         .setDefaultValue(Val(0.5))
         .setDescription(muse::trc("krasko", "Step for spin controls on Appearance tab of Properties panel"))
         .setHelpString(muse::trc("krasko",
             "Specifies the step (amount) by which spin controls on the Appearance tab of the Properties panel such as the Offsets, "
             "Leading space, Min distance, etc. will change their values."))
-        .setOrdinal(++ordinal);
+        .noValueChangedNeeded();
 
     sc.createSetting(krasko_module_name, KEY_TextStylesToUseFontHeight)
-        .addKeyTo(m_kraskoSettingsKeys)
         .setDefaultValue(Val(""))
         .setDescription(muse::trc("krasko", "Text styles to use font height"))
         .setHelpString(muse::trc("krasko",
@@ -236,128 +226,110 @@ void AppShellConfiguration::createKraskoSettings()
             "such as on fingerings above the staff. When a text with style NOT specified in this setting is drawn, its height "
             "will be the actual height of the characters of the text - the so called tight bounding rectange. "
             "The allowed values are the TextStyleType enum values."))
-        .setOrdinal(++ordinal);
+        .noValueChangedNeeded();
 
     sc.createSetting(krasko_module_name, KEY_InvisibleElementsColor)
-        .addKeyTo(m_kraskoSettingsKeys)
         .setDefaultValue(Val(QColor("#808080")))
         .setDescription(muse::trc("krasko", "Invisible elements color"))
         .setHelpString(muse::trc("krasko",
             "The color to use for the invisible elements."))
-        .setOrdinal(++ordinal)
         .valueChanged().onReceive(this, [this](const Val& val) {
             m_invisibleElementsColorChanged.send(mu::engraving::Color::fromQColor(val.toQColor()));
         });
 
     sc.createSetting(krasko_module_name, KEY_FixBeamedNotesFingeringTooCloseToStaff)
-        .addKeyTo(m_kraskoSettingsKeys)
         .setDefaultValue(Val(false))
         .setDescription(muse::trc("krasko", "Fix fingering-to-staff issue on beamed notes"))
         .setHelpString(muse::trc("krasko",
             "When true, will fix an issue where fingering on beamed notes does not respect the min distance to staff. The fingering "
             "must be on the side of the beam(s) and the beams should be far enough into the staff (from the edge of the staff). "
             "In this case the fingering is placed too close to the staff."))
-        .setOrdinal(++ordinal);
+        .noValueChangedNeeded();
 
     sc.createSetting(krasko_module_name, KEY_FixExtraSpacingOnMultilineFingering)
-        .addKeyTo(m_kraskoSettingsKeys)
         .setDefaultValue(Val(false))
         .setDescription(muse::trc("krasko", "Fix extra line spacing on multi-line fingering"))
         .setHelpString(muse::trc("krasko",
             "When true, will fix an issue where multiline fingering has extra spacing above/below. The more lines, the larger "
             "the spacing. The larger the font size, the larger the spacing too."))
-        .setOrdinal(++ordinal);
+        .noValueChangedNeeded();
 
     sc.createSetting(krasko_module_name, KEY_ScrollbarColor)
-        .addKeyTo(m_kraskoSettingsKeys)
         .setDefaultValue(Val(QColor("")))
         .setDescription(muse::trc("krasko", "Scrollbar color"))
         .setHelpString(muse::trc("krasko",
             "The color to use for the scrollbars."))
-        .setOrdinal(++ordinal)
         .valueChanged().onReceive(this, [this](const Val& val) {
             m_scrollbarColorChanged.send(mu::engraving::Color::fromQColor(val.toQColor()));
         });
 
     sc.createSetting(krasko_module_name, KEY_ActiveGripColor)
-        .addKeyTo(m_kraskoSettingsKeys)
         .setDefaultValue(Val(mu::engraving::Color("#A0A0A4").toQColor()))
         .setDescription(muse::trc("krasko", "Active grip color"))
         .setHelpString(muse::trc("krasko",
             "The color to use for the active grip."))
-        .setOrdinal(++ordinal)
         .valueChanged().onReceive(this, [this](const Val& val) {
             m_activeGripColorChanged.send(mu::engraving::Color::fromQColor(val.toQColor()));
         });
 
     sc.createSetting(krasko_module_name, KEY_FlickDeceleration)
-        .addKeyTo(m_kraskoSettingsKeys)
         .setDefaultValue(Val(12000))
         .setDescription(muse::trc("krasko", "Scroll deceleration"))
         .setHelpString(muse::trc("krasko",
             "The deceleration to use when scrolling flickable controls (palettes, properties panel, etc.). The higher the value, "
             "the sooner the scrolling will stop when the user stops scrolling. Lower values will make the scrolling last longer."))
-        .setOrdinal(++ordinal);
+        .noValueChangedNeeded();
 
     sc.createSetting(krasko_module_name, KEY_VerticalPanelsWidth)
-        .addKeyTo(m_kraskoSettingsKeys)
         .setDefaultValue(Val(300))
         .setDescription(muse::trc("krasko", "Width of the vertical panels"))
         .setHelpString(muse::trc("krasko",
             "The width of the vertical panels such as the Palettes, Instruments, Properties, Selection filter."))
-        .setOrdinal(++ordinal)
         .valueChanged().onReceive(this, [this](const Val& val) {
             m_verticalPanelsWidthChanged.send(val.toInt());
         });
 
     sc.createSetting(krasko_module_name, KEY_ExpandShowMore)
-        .addKeyTo(m_kraskoSettingsKeys)
         .setDefaultValue(Val(false))
         .setDescription(muse::trc("krasko", "Expand 'Show more' sections"))
         .setHelpString(muse::trc("krasko",
             "When true, all \"Show more\" sections will be initially expanded. Later on, the user can collapse them."))
-        .setOrdinal(++ordinal);
+        .noValueChangedNeeded();
 
     sc.createSetting(krasko_module_name, KEY_HoverDisabledItems)
-        .addKeyTo(m_kraskoSettingsKeys)
         .setDefaultValue(Val(true))
         .setDescription(muse::trc("krasko", "Hover disabled items"))
         .setHelpString(muse::trc("krasko",
             "When true, disabled menu and list items will be highlighted on hover. When false, they will not be highlighted "
             "when the mouse passes over them to create a better perception of the disabledness of the items."))
-        .setOrdinal(++ordinal);
+        .noValueChangedNeeded();
 
     sc.createSetting(krasko_module_name, KEY_MenuFontFollowsPreferencesFont)
-        .addKeyTo(m_kraskoSettingsKeys)
         .setDefaultValue(Val(false))
         .setDescription(muse::trc("krasko", "Menu font will follow Preferences font"))
         .setHelpString(muse::trc("krasko",
             "When true, the font of the main menu will be the same as the font of all other UI elements set in the preferences."))
-        .setOrdinal(++ordinal)
         .valueChanged().onReceive(this, [this](const Val& val) {
             m_menuFontFollowsPreferencesFontChanged.send(val.toBool());
         });
 
     sc.createSetting(krasko_module_name, KEY_MenuFontSizeRatio)
-        .addKeyTo(m_kraskoSettingsKeys)
         .setDefaultValue(Val("1/1"))
         .setDescription(muse::trc("krasko", "Menu font size ratio"))
         .setHelpString(muse::trc("krasko",
             "Specifies a ratio, e.g. \"9/10\" that will be multiplied by the font size set in the preferences "
             "for the rest of the UI elements to obtain the size of the main menubar."))
-        .setOrdinal(++ordinal)
         .valueChanged().onReceive(this, [this](const Val& val) {
             m_menuFontSizeRatioChanged.send(val.toString());
         });
 
     sc.createSetting(krasko_module_name, KEY_ShowScrollbarOnDropDownLists)
-        .addKeyTo(m_kraskoSettingsKeys)
         .setDefaultValue(Val(false))
         .setDescription(muse::trc("krasko", "Show scrollbar on scrollable drop-down lists"))
         .setHelpString(muse::trc("krasko",
             "When true, the scrollbar on scrollable drop-down lists will always be visible. "
             "When false, it will only appear when the scrollbar is hovered."))
-        .setOrdinal(++ordinal);
+        .noValueChangedNeeded();
 }
 
 void AppShellConfiguration::updateRenamedKraskoSettings()
@@ -408,11 +380,14 @@ void AppShellConfiguration::deleteUnusedKraskoSettings()
 
 const Settings::Key* AppShellConfiguration::findKraskoSettingKey(const std::string& keyName) const
 {
-    for (auto& currentKey : m_kraskoSettingsKeys)
+    if (m_settingsCreator != nullptr)
     {
-        if (currentKey->key == keyName)
+        for (auto& currentKey : m_settingsCreator->allKeys())
         {
-            return currentKey;
+            if (currentKey->key == keyName)
+            {
+                return currentKey;
+            }
         }
     }
     return nullptr;
@@ -461,9 +436,9 @@ bool AppShellConfiguration::isStrInCSVString(std::string s, std::string csvStr) 
     return false;
 }
 
-bool AppShellConfiguration::autoRestoreSessionAfterCrash() const
+bool AppShellConfiguration::autoRestoreSessionOnStart() const
 {
-    return kraskoSettingValue(KEY_AutoRestoreSessionAfterCrash).toBool();
+    return kraskoSettingValue(KEY_AutoRestoreSessionOnStart).toBool();
 }
 
 bool AppShellConfiguration::focusExportButtonOnExportDialog() const
@@ -471,9 +446,9 @@ bool AppShellConfiguration::focusExportButtonOnExportDialog() const
     return kraskoSettingValue(KEY_FocusExportButtonOnExportDialog).toBool();
 }
 
-bool AppShellConfiguration::navNextPrevPanelNavigatesToNextPrevControl() const
+bool AppShellConfiguration::tabAndShiftTabNavigateBetweenControls() const
 {
-    return kraskoSettingValue(KEY_NavNextPrevPanelNavigatesToNextPrevControl).toBool();
+    return kraskoSettingValue(KEY_TabAndShiftTabNavigateBetweenControls).toBool();
 }
 
 bool AppShellConfiguration::editElementKeyCyclesThroughGrips() const
@@ -481,9 +456,9 @@ bool AppShellConfiguration::editElementKeyCyclesThroughGrips() const
     return kraskoSettingValue(KEY_EditElementKeyCyclesThroughGrips).toBool();
 }
 
-bool AppShellConfiguration::escapeKeyWhileEditingKeepsSelection() const
+bool AppShellConfiguration::escKeyKeepsSelectionWhenEditing() const
 {
-    return kraskoSettingValue(KEY_EscapeKeyWhileEditingKeepsSelection).toBool();
+    return kraskoSettingValue(KEY_EscKeyKeepsSelectionWhenEditing).toBool();
 }
 
 bool AppShellConfiguration::showSameColorCheckBoxOnSelectMoreDialog() const

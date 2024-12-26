@@ -54,15 +54,15 @@ class AppShellConfiguration : public IAppShellConfiguration, public muse::Inject
 // --- KRASKO'S SETTINGS START ---
 public:
     // General/Miscellaneous
-    bool autoRestoreSessionAfterCrash() const override;
+    bool autoRestoreSessionOnStart() const override;
     bool focusExportButtonOnExportDialog() const override;
 
     // Navigation
-    bool navNextPrevPanelNavigatesToNextPrevControl() const override;
+    bool tabAndShiftTabNavigateBetweenControls() const override;
 
     // Editing
     bool editElementKeyCyclesThroughGrips() const override;
-    bool escapeKeyWhileEditingKeepsSelection() const override;
+    bool escKeyKeepsSelectionWhenEditing() const override;
     bool showSameColorCheckBoxOnSelectMoreDialog() const override;
     bool enableAltModifierKeyForNudging() const override;
     bool enableHighPrecisionNudging() const override;
@@ -162,7 +162,7 @@ public:
     muse::Ret setSessionProjectsPaths(const muse::io::paths_t& paths) override;
 
 private:
-    std::vector<const muse::Settings::Key*> m_kraskoSettingsKeys; // krasko
+    muse::SettingsCreator* m_settingsCreator = nullptr;
 
     std::string utmParameters(const std::string& utmMedium) const;
 

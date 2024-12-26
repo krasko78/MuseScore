@@ -35,6 +35,9 @@ class AppShellConfigurationProxy : public QObject, muse::async::Asyncable
 
     Inject<mu::appshell::IAppShellConfiguration> appshellConfiguration;
 
+    Q_PROPERTY(bool focusExportButtonOnExportDialog READ focusExportButtonOnExportDialog CONSTANT)
+    bool focusExportButtonOnExportDialog() { return appshellConfiguration()->focusExportButtonOnExportDialog(); }
+
     Q_PROPERTY(int verticalPanelsWidth READ verticalPanelsWidth NOTIFY verticalPanelsWidthChanged)
     int verticalPanelsWidth() { return appshellConfiguration()->verticalPanelsWidth(); }
 

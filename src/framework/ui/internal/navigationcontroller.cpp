@@ -281,8 +281,10 @@ void NavigationController::init()
 {
     dispatcher()->reg(this, "nav-next-section", [this]() { navigateTo(NavigationType::NextSection); });
     dispatcher()->reg(this, "nav-prev-section", [this]() { navigateTo(NavigationType::PrevSection); });
-    dispatcher()->reg(this, "nav-next-panel", [this]() { navigateTo(appshellConfiguration()->navNextPrevPanelNavigatesToNextPrevControl() ? NavigationType::NextControl : NavigationType::NextPanel); }); // krasko
-    dispatcher()->reg(this, "nav-prev-panel", [this]() { navigateTo(appshellConfiguration()->navNextPrevPanelNavigatesToNextPrevControl() ? NavigationType::PrevControl : NavigationType::PrevPanel); }); // krasko
+    dispatcher()->reg(this, "nav-next-panel", [this]() { navigateTo(appshellConfiguration()->tabAndShiftTabNavigateBetweenControls()
+                                                                        ? NavigationType::NextControl : NavigationType::NextPanel); }); // krasko
+    dispatcher()->reg(this, "nav-prev-panel", [this]() { navigateTo(appshellConfiguration()->tabAndShiftTabNavigateBetweenControls()
+                                                                        ? NavigationType::PrevControl : NavigationType::PrevPanel); }); // krasko
     //! NOTE Same as panel at the moment
     dispatcher()->reg(this, "nav-next-tab", [this]() { navigateTo(NavigationType::NextPanel); });
     dispatcher()->reg(this, "nav-prev-tab", [this]() { navigateTo(NavigationType::PrevPanel); });

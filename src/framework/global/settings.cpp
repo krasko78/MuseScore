@@ -449,39 +449,46 @@ bool Settings::Key::isNull() const
 SettingsCreator::SettingsCreator(Settings* settings)
 {
     m_settings = settings;
+    m_ordinal = 0;
 }
 
-SettingsCreator SettingsCreator::createSetting(const std::string& moduleName, const std::string& key)
+SettingsCreator::~SettingsCreator()
+{
+    qDeleteAll(m_allKeys);
+}
+
+const std::vector<const muse::Settings::Key*>& SettingsCreator::allKeys()
+{
+    return m_allKeys;
+}
+
+const SettingsCreator& SettingsCreator::createSetting(const std::string& moduleName, const std::string& key)
 {
     m_key = new Settings::Key(moduleName, key);
+    setOrdinal(++m_ordinal);
+    m_allKeys.push_back(m_key);
     return *this;
 }
 
-SettingsCreator SettingsCreator::addKeyTo(std::vector<const Settings::Key*>& collection) const
-{
-    collection.push_back(m_key);
-    return *this;
-}
-
-SettingsCreator SettingsCreator::setDefaultValue(const Val& value) const
+const SettingsCreator& SettingsCreator::setDefaultValue(const Val& value) const
 {
     m_settings->setDefaultValue(*m_key, value);
     return *this;
 }
 
-SettingsCreator SettingsCreator::setDescription(const std::string& value) const
+const SettingsCreator& SettingsCreator::setDescription(const std::string& value) const
 {
     m_settings->setDescription(*m_key, value);
     return *this;
 }
 
-SettingsCreator SettingsCreator::setHelpString(const std::string& value) const
+const SettingsCreator& SettingsCreator::setHelpString(const std::string& value) const
 {
     m_settings->setHelpString(*m_key, value);
     return *this;
 }
 
-SettingsCreator SettingsCreator::setOrdinal(int ordinal)
+const SettingsCreator& SettingsCreator::setOrdinal(int ordinal) const
 {
     char buffer[10];
     sprintf(buffer, "%08d", ordinal);
@@ -490,7 +497,7 @@ SettingsCreator SettingsCreator::setOrdinal(int ordinal)
     return *this;
 }
 
-SettingsCreator SettingsCreator::setMinValue(const Val& minValue) const
+const SettingsCreator& SettingsCreator::setMinValue(const Val& minValue) const
 {
     bool canBeManuallyEdited = false;
     Val maxValue = Val();
@@ -506,7 +513,7 @@ SettingsCreator SettingsCreator::setMinValue(const Val& minValue) const
     return *this;
 }
 
-SettingsCreator SettingsCreator::setMaxValue(const Val& maxValue) const
+const SettingsCreator& SettingsCreator::setMaxValue(const Val& maxValue) const
 {
     bool canBeManuallyEdited = false;
     Val minValue = Val();
@@ -525,4 +532,12 @@ SettingsCreator SettingsCreator::setMaxValue(const Val& maxValue) const
 async::Channel<Val> SettingsCreator::valueChanged() const
 {
     return m_settings->valueChanged(*m_key);
+}
+
+const SettingsCreator& SettingsCreator::noValueChangedNeeded() const
+{
+    // No work needed here. This method is just an indication that the setting
+    // currently does not need to be listened for changes. If it does, call
+    // valueChanged() instead and subscribe for notifications using the channel returned.
+    return *this;
 }

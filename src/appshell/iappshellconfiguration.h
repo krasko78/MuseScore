@@ -38,15 +38,15 @@ class IAppShellConfiguration : MODULE_EXPORT_INTERFACE
 // --- KRASKO'S SETTINGS START --- // krasko start
 public:
     // General/Miscellaneous
-    virtual bool autoRestoreSessionAfterCrash() const = 0;
+    virtual bool autoRestoreSessionOnStart() const = 0;
     virtual bool focusExportButtonOnExportDialog() const = 0;
 
     // Navigation
-    virtual bool navNextPrevPanelNavigatesToNextPrevControl() const = 0;
+    virtual bool tabAndShiftTabNavigateBetweenControls() const = 0;
 
     // Editing
     virtual bool editElementKeyCyclesThroughGrips() const = 0;
-    virtual bool escapeKeyWhileEditingKeepsSelection() const = 0;
+    virtual bool escKeyKeepsSelectionWhenEditing() const = 0;
     virtual bool showSameColorCheckBoxOnSelectMoreDialog() const = 0;
     virtual bool enableAltModifierKeyForNudging() const = 0;
     virtual bool enableHighPrecisionNudging() const = 0;

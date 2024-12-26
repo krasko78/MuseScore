@@ -699,7 +699,7 @@ void NotationActionController::resetState()
         return;
     } else if (interaction->isElementEditStarted()) {
         interaction->endEditElement();
-        if (appshellConfiguration()->escapeKeyWhileEditingKeepsSelection()) { // krasko
+        if (appshellConfiguration()->escKeyKeepsSelectionWhenEditing()) { // krasko
             return;
         }
     }

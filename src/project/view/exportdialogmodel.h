@@ -119,8 +119,6 @@ public:
 
     Q_INVOKABLE bool exportScores();
 
-    Q_INVOKABLE bool focusTheExportButton() const; // krasko
-
     int pdfResolution() const;
     void setPdfResolution(const int& resolution);
 

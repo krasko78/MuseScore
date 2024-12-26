@@ -47,7 +47,7 @@ StyledDialogView {
     }
 
     onNavigationActivateRequested: {
-        if (exportModel.focusTheExportButton()) { // krasko start
+        if (appshellConfig.focusExportButtonOnExportDialog) { // krasko start
             exportButton.navigation.requestActive(true)
         }
         else {

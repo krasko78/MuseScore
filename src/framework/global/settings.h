@@ -153,27 +153,33 @@ class SettingsCreator // krasko
 public:
     SettingsCreator(Settings* settings);
 
-    SettingsCreator createSetting(const std::string& moduleName, const std::string& key);
+    ~SettingsCreator();
 
-    SettingsCreator addKeyTo(std::vector<const Settings::Key*>& collection) const;
+    const std::vector<const muse::Settings::Key*>& allKeys();
 
-    SettingsCreator setDefaultValue(const Val& value) const;
+    const SettingsCreator& createSetting(const std::string& moduleName, const std::string& key);
 
-    SettingsCreator setDescription(const std::string& value) const;
+    const SettingsCreator& setDefaultValue(const Val& value) const;
 
-    SettingsCreator setHelpString(const std::string& value) const;
+    const SettingsCreator& setDescription(const std::string& value) const;
 
-    SettingsCreator setOrdinal(int ordinal);
+    const SettingsCreator& setHelpString(const std::string& value) const;
 
-    SettingsCreator setMinValue(const Val& minValue) const;
+    const SettingsCreator& setOrdinal(int ordinal) const;
 
-    SettingsCreator setMaxValue(const Val& maxValue) const;
+    const SettingsCreator& setMinValue(const Val& minValue) const;
+
+    const SettingsCreator& setMaxValue(const Val& maxValue) const;
 
     async::Channel<Val> valueChanged() const;
 
+    const SettingsCreator& noValueChangedNeeded() const;
+
 private:
     Settings* m_settings;
-    const Settings::Key* m_key;
+    std::vector<const muse::Settings::Key*> m_allKeys;
+    int m_ordinal;
+    const Settings::Key* m_key = nullptr;
 };
 }
 
