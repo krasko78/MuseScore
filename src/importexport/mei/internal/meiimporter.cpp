@@ -497,6 +497,8 @@ Spanner* MeiImporter::addSpanner(const libmei::Element& meiElement, Measure* mea
         item = Factory::createPedal(chordRest->segment());
     } else if (meiElement.m_name == "slur") {
         item = Factory::createSlur(chordRest->segment());
+    } else if (meiElement.m_name == "trill") {
+        item = Factory::createTrill(chordRest->segment());
     } else {
         return nullptr;
     }
@@ -2586,6 +2588,24 @@ bool MeiImporter::readHarm(pugi::xml_node harmNode, Measure* measure)
 }
 
 /**
+ * Read a instrDef (instrument definition).
+ */
+
+bool MeiImporter::readInstrDef(pugi::xml_node instrDefNode, Part* part)
+{
+    IF_ASSERT_FAILED(part) {
+        return false;
+    }
+
+    libmei::InstrDef meiInstrDef;
+    meiInstrDef.Read(instrDefNode);
+
+    part->setMidiProgram(meiInstrDef.GetMidiInstrnum());
+
+    return true;
+}
+
+/**
  * Read a lv.
  */
 
@@ -2885,6 +2905,17 @@ bool MeiImporter::readTrill(pugi::xml_node trillNode, Measure* measure)
         return true;
     }
 
+    if (meiTrill.HasEndid()) {
+        Trill* trill = static_cast<Trill*>(this->addSpanner(meiTrill, measure, trillNode));
+        if (trill) {
+            // move ornament to spanner
+            ornament->parentItem()->remove(ornament);
+            trill->setOrnament(ornament);
+            // @color
+            Convert::colorlineFromMEI(trill, meiTrill);
+        }
+    }
+
     Convert::OrnamStruct ornamSt = Convert::trillFromMEI(ornament, meiTrill, warning);
     this->setOrnamentAccid(ornament, ornamSt);
 
@@ -3128,6 +3159,9 @@ bool MeiImporter::buildScoreParts(pugi::xml_node scoreDefNode)
             part->setShortName(abbrLines.join(u"\n"));
         }
 
+        pugi::xml_node instrDefNode = labelNode.select_node("./following-sibling::instrDef").node();
+        readInstrDef(instrDefNode, part);
+
         m_score->appendPart(part);
 
         // If the label is a child of a staffGrp, the part contains all the child staffDefs
@@ -3286,10 +3320,10 @@ void MeiImporter::addSpannerEnds()
             spannerMapEntry.first->setTick2(chordRest->tick());
             spannerMapEntry.first->setEndElement(chordRest);
             spannerMapEntry.first->setTrack2(chordRest->track());
-            if (spannerMapEntry.first->isOttava()) {
+            if (spannerMapEntry.first->isOttava() || spannerMapEntry.first->isTrill()) {
                 // Set the tick2 to include the duration of the ChordRest
                 spannerMapEntry.first->setTick2(chordRest->tick() + chordRest->ticks());
-                // Special handling of ottava
+                // Special handling of ottavas
                 if (spannerMapEntry.first->isOttava()) {
                     Ottava* ottava = toOttava(spannerMapEntry.first);
                     // Make the staff fill the pitch offsets accordingly since we use Note::ppitch in export

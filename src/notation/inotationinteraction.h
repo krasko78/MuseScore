@@ -206,6 +206,7 @@ public:
     virtual void toggleSystemLock() = 0;
     virtual void toggleScoreLock() = 0;
     virtual void makeIntoSystem() = 0;
+    virtual void applySystemLock() = 0;
 
     virtual void addRemoveSystemLocks(AddRemoveSystemLockType intervalType, int interval = 0) = 0;
     virtual bool transpose(const TransposeOptions& options) = 0;

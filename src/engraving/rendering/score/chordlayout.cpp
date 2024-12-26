@@ -57,7 +57,6 @@
 #include "dom/staff.h"
 #include "dom/stem.h"
 #include "dom/stemslash.h"
-#include "dom/stretchedbend.h"
 #include "dom/system.h"
 #include "dom/tie.h"
 #include "dom/slur.h"
@@ -2496,7 +2495,7 @@ void ChordLayout::layoutChords3(const std::vector<Chord*>& chords,
 
         std::vector<Note*> chordNotes = chord->notes();
         std::sort(chordNotes.begin(), chordNotes.end(),
-                  [](Note* n1, const Note* n2) ->bool { return n1->line() <= n2->line(); });
+                  [](Note* n1, const Note* n2) ->bool { return n1->line() < n2->line(); });
         for (Note* note : chordNotes) {
             double noteX = 0.0;
             if (note->ldata()->mirror()) {
@@ -3075,25 +3074,6 @@ void ChordLayout::layoutChordBaseFingering(Chord* chord, System* system, LayoutC
     }
     for (staff_idx_t staffIdx : shapesToRecreate) {
         segment->createShape(staffIdx);
-    }
-}
-
-void ChordLayout::layoutStretchedBends(Chord* chord, LayoutContext& ctx)
-{
-    if (!chord->configuration()->useStretchedBends()) {
-        return;
-    }
-
-    for (EngravingItem* item : chord->el()) {
-        if (item && item->isStretchedBend()) {
-            toStretchedBend(item)->adjustBendInChord();
-        }
-    }
-
-    for (EngravingItem* item : chord->el()) {
-        if (item && item->isStretchedBend()) {
-            TLayout::layoutStretched(toStretchedBend(item), ctx);
-        }
     }
 }
 

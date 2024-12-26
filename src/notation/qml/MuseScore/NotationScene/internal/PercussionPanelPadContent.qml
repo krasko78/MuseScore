@@ -33,15 +33,15 @@ Column {
     property int panelMode: -1
     property bool useNotationPreview: false
 
-    property bool dragActive: false
+    property alias footerHeight: footerArea.height
 
-    Rectangle {
+    property bool padSwapActive: false
+
+    Item {
         id: mainContentArea
 
         width: parent.width
         height: parent.height - separator.height - footerArea.height
-
-        color: Utils.colorWithAlpha(ui.theme.accentColor, ui.theme.buttonOpacityNormal)
 
         MouseArea {
             id: mouseArea
@@ -50,15 +50,40 @@ Column {
             hoverEnabled: true
 
             onPressed: {
+                ui.tooltip.hide(root)
+
                 if (!Boolean(root.padModel)) {
                     return
                 }
+
                 root.padModel.triggerPad()
+            }
+
+            onContainsMouseChanged: {
+                if (!Boolean(root.padModel)) {
+                    ui.tooltip.hide(root)
+                    return
+                }
+
+                if (mouseArea.containsMouse && root.useNotationPreview) {
+                    ui.tooltip.show(root, root.padModel.padName)
+                } else {
+                    ui.tooltip.hide(root)
+                }
             }
         }
 
+        Rectangle {
+            id: padNameBackground
+
+            visible: !root.useNotationPreview
+            anchors.fill: parent
+
+            color: Utils.colorWithAlpha(ui.theme.accentColor, ui.theme.buttonOpacityNormal)
+        }
+
         StyledTextLabel {
-            id: instrumentNameLabel
+            id: padNameLabel
 
             visible: !root.useNotationPreview
 
@@ -69,7 +94,7 @@ Column {
             maximumLineCount: 4
             font: ui.theme.bodyBoldFont
 
-            text: Boolean(root.padModel) ? root.padModel.instrumentName : ""
+            text: Boolean(root.padModel) ? root.padModel.padName : ""
         }
 
         PaintedEngravingItem {
@@ -80,23 +105,34 @@ Column {
             anchors.fill: parent
 
             engravingItem: Boolean(root.padModel) ? root.padModel.notationPreviewItem : null
+            spatium: 6.25 // Value approximated visually (needs to accomodate "extreme ledger line" situations)
+
+            opacity: 0.9
         }
 
         states: [
             State {
                 name: "MOUSE_HOVERED"
-                when: mouseArea.containsMouse && !mouseArea.pressed && !root.dragActive
+                when: mouseArea.containsMouse && !mouseArea.pressed && !root.padSwapActive
                 PropertyChanges {
-                    target: mainContentArea
+                    target: padNameBackground
                     color: Utils.colorWithAlpha(ui.theme.accentColor, ui.theme.buttonOpacityHover)
+                }
+                PropertyChanges {
+                    target: notationPreview
+                    opacity: 0.7
                 }
             },
             State {
                 name: "MOUSE_HIT"
-                when: mouseArea.pressed || root.dragActive
+                when: mouseArea.pressed || root.padSwapActive
                 PropertyChanges {
-                    target: mainContentArea
+                    target: padNameBackground
                     color: Utils.colorWithAlpha(ui.theme.accentColor, ui.theme.buttonOpacityHit)
+                }
+                PropertyChanges {
+                    target: notationPreview
+                    opacity: 1.0
                 }
             }
         ]
@@ -115,7 +151,6 @@ Column {
         id: footerArea
 
         width: parent.width
-        height: 24
 
         color: Utils.colorWithAlpha(ui.theme.buttonColor, ui.theme.buttonOpacityNormal)
 

@@ -195,6 +195,10 @@ TEST_F(Mei_Tests, mei_key_signature_01) {
     meiReadTest("key-signature-01");
 }
 
+TEST_F(Mei_Tests, mei_midi_01) {
+    meiReadTest("midi-01");
+}
+
 TEST_F(Mei_Tests, mei_label_01) {
     meiReadTest("label-01");
 }
@@ -305,6 +309,10 @@ TEST_F(Mei_Tests, mei_time_signature_02) {
 
 TEST_F(Mei_Tests, mei_transpose_01) {
     meiReadTest("transpose-01");
+}
+
+TEST_F(Mei_Tests, mei_trill_01) {
+    meiReadTest("trill-01");
 }
 
 TEST_F(Mei_Tests, mei_tuplet_01) {

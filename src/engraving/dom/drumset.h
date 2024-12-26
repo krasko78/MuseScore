@@ -54,22 +54,23 @@ struct DrumInstrument {
 
     // if notehead = HEAD_CUSTOM, custom, use noteheads
     NoteHeadGroup notehead = NoteHeadGroup::HEAD_INVALID;   ///< notehead symbol set
-    SymId noteheads[int(NoteHeadType::HEAD_TYPES)]
+    std::array<SymId, int(NoteHeadType::HEAD_TYPES)> noteheads
         = { SymId::noteheadWhole, SymId::noteheadHalf, SymId::noteheadBlack, SymId::noteheadDoubleWhole };
 
     int line = 0;               ///< place notehead onto this line
     DirectionV stemDirection = DirectionV::AUTO;
-    int voice = 0;
-    char shortcut = '\0';      ///< accelerator key (CDEFGAB)
-    std::list<DrumInstrumentVariant> variants;
 
     int panelRow = -1;
     int panelColumn = -1;
 
+    int voice = 0;
+    char shortcut = '\0';      ///< accelerator key (CDEFGAB)
+    std::list<DrumInstrumentVariant> variants;
+
     DrumInstrument() {}
     DrumInstrument(const char* s, NoteHeadGroup nh, int l, DirectionV d,
-                   int v = 0, char sc = 0)
-        : name(String::fromUtf8(s)), notehead(nh), line(l), stemDirection(d), voice(v), shortcut(sc) {}
+                   int pr = -1, int pc = -1, int v = 0, char sc = 0)
+        : name(String::fromUtf8(s)), notehead(nh), line(l), stemDirection(d), panelRow(pr), panelColumn(pc), voice(v), shortcut(sc) {}
 
     void addVariant(DrumInstrumentVariant v) { variants.push_back(v); }
 

@@ -33,6 +33,7 @@
         <trackName></trackName>
         <instrumentId>wind.reed.oboe</instrumentId>
         <Channel>
+          <program value="68"/>
           </Channel>
         </Instrument>
       </Part>
@@ -125,6 +126,7 @@
           <Dynamic>
             <subtype>pp</subtype>
             <velocity>33</velocity>
+            <direction>down</direction>
             </Dynamic>
           <Chord>
             <durationType>whole</durationType>

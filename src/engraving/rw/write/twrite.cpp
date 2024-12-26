@@ -436,7 +436,7 @@ void TWrite::writeSystemLocks(const Score* score, XmlWriter& xml)
 
 void TWrite::writeItemEid(const EngravingObject* item, XmlWriter& xml, WriteContext& ctx)
 {
-    if (MScore::testMode || item->score()->isPaletteScore() || ctx.clipboardmode()) {
+    if (MScore::testMode || ctx.configuration()->doNotSaveEIDsForBackCompat() || item->score()->isPaletteScore() || ctx.clipboardmode()) {
         return;
     }
 
@@ -1549,7 +1549,6 @@ void TWrite::writeProperties(const SLine* item, XmlWriter& xml, WriteContext& ct
     }
     writeProperty(item, xml, Pid::LINE_WIDTH);
     writeProperty(item, xml, Pid::LINE_STYLE);
-    writeProperty(item, xml, Pid::COLOR);
     writeProperty(item, xml, Pid::ANCHOR);
     writeProperty(item, xml, Pid::DASH_LINE_LEN);
     writeProperty(item, xml, Pid::DASH_GAP_LEN);

@@ -52,6 +52,8 @@ static const Settings::Key UNLINKED_COLOR("engraving", "engraving/colors/unlinke
 
 static const Settings::Key DYNAMICS_APPLY_TO_ALL_VOICES("engraving", "score/dynamicsApplyToAllVoices");
 
+static const Settings::Key DO_NOT_SAVE_EIDS_FOR_BACK_COMPAT("engraving", "engraving/compat/doNotSaveEIDsForBackCompat");
+
 struct VoiceColor {
     Settings::Key key;
     Color color;
@@ -134,6 +136,12 @@ void EngravingConfiguration::init()
     appShellConfiguration()->activeGripColorChanged().onReceive(this, [this](const Color& val) { // krasko
         m_activeGripColorChanged.send(val);
     });
+
+    settings()->setDefaultValue(DO_NOT_SAVE_EIDS_FOR_BACK_COMPAT, Val(false));
+    settings()->setDescription(DO_NOT_SAVE_EIDS_FOR_BACK_COMPAT, muse::trc("engraving", "Do not save EIDs"));
+    settings()->setCanBeManuallyEdited(DO_NOT_SAVE_EIDS_FOR_BACK_COMPAT, false);
+
+    setExperimentalGuitarBendImport(guitarProImportExperimental());
 }
 
 muse::io::path_t EngravingConfiguration::appDataPath() const
@@ -390,14 +398,29 @@ bool EngravingConfiguration::isAccessibleEnabled() const
     return accessibilityConfiguration() ? accessibilityConfiguration()->enabled() : false;
 }
 
+bool EngravingConfiguration::doNotSaveEIDsForBackCompat() const
+{
+    return settings()->value(DO_NOT_SAVE_EIDS_FOR_BACK_COMPAT).toBool();
+}
+
+void EngravingConfiguration::setDoNotSaveEIDsForBackCompat(bool doNotSave)
+{
+    settings()->setSharedValue(DO_NOT_SAVE_EIDS_FOR_BACK_COMPAT, Val(doNotSave));
+}
+
 bool EngravingConfiguration::guitarProImportExperimental() const
 {
     return guitarProConfiguration() ? guitarProConfiguration()->experimental() : false;
 }
 
-bool EngravingConfiguration::useStretchedBends() const
+bool EngravingConfiguration::experimentalGuitarBendImport() const
 {
-    return guitarProImportExperimental();
+    return m_experimentalGuitarBendImport;
+}
+
+void EngravingConfiguration::setExperimentalGuitarBendImport(bool enabled)
+{
+    m_experimentalGuitarBendImport = enabled;
 }
 
 bool EngravingConfiguration::shouldAddParenthesisOnStandardStaff() const

@@ -75,6 +75,9 @@ void PercussionPanelPadListModel::addEmptyRow()
     }
     emit layoutChanged();
     emit numPadsChanged();
+
+    const int indexToFocus = numPads() - NUM_COLUMNS;
+    emit padFocusRequested(indexToFocus);
 }
 
 void PercussionPanelPadListModel::deleteRow(int row)
@@ -106,19 +109,59 @@ bool PercussionPanelPadListModel::rowIsEmpty(int row) const
     return numEmptySlotsAtRow(row) == NUM_COLUMNS;
 }
 
-void PercussionPanelPadListModel::startDrag(int startIndex)
+void PercussionPanelPadListModel::startPadSwap(int startIndex)
 {
-    m_dragStartIndex = startIndex;
+    m_padSwapStartIndex = startIndex;
 }
 
-void PercussionPanelPadListModel::endDrag(int endIndex)
+void PercussionPanelPadListModel::endPadSwap(int endIndex)
 {
-    if (indexIsValid(m_dragStartIndex) && indexIsValid(endIndex)) {
-        movePad(m_dragStartIndex, endIndex);
-    } else {
+    const auto endSwap = [this, endIndex]() {
+        m_padSwapStartIndex = -1;
+        emit padFocusRequested(endIndex);
+    };
+
+    if (m_padSwapStartIndex == endIndex || !indexIsValid(m_padSwapStartIndex) || !indexIsValid(endIndex)) {
+        // Put everything back where it was...
         emit layoutChanged();
+        endSwap();
+        return;
     }
-    m_dragStartIndex = -1;
+
+    movePad(m_padSwapStartIndex, endIndex);
+
+    if (!m_padModels.at(m_padSwapStartIndex) || !m_padModels.at(endIndex)) {
+        // Swapping with an empty pad - no extra options...
+        endSwap();
+        return;
+    }
+
+    // Give Qt a chance to process pending UI updates before opening the options dialog...
+    QMetaObject::invokeMethod(this, [this, endSwap, endIndex]() {
+        bool moveMidiNotesAndShortcuts = configuration()->percussionPanelMoveMidiNotesAndShortcuts();
+
+        if (configuration()->showPercussionPanelPadSwapDialog()) {
+            const muse::RetVal<muse::Val> rv = openPadSwapDialog();
+            if (!rv.ret) {
+                // Cancelled, revert the swap...
+                movePad(m_padSwapStartIndex, endIndex);
+                endSwap();
+                return;
+            }
+
+            const QVariantMap vals = rv.val.toQVariant().toMap();
+            moveMidiNotesAndShortcuts = vals["moveMidiNotesAndShortcuts"].toBool();
+        }
+
+        if (moveMidiNotesAndShortcuts) {
+            // MIDI notes and shortcuts were moved with the pad itself, so we can return...
+            endSwap();
+            return;
+        }
+
+        swapMidiNotesAndShortcuts(m_padSwapStartIndex, endIndex);
+        endSwap();
+    }, Qt::QueuedConnection);
 }
 
 void PercussionPanelPadListModel::setDrumset(const engraving::Drumset* drumset)
@@ -134,6 +177,62 @@ void PercussionPanelPadListModel::setDrumset(const engraving::Drumset* drumset)
 
     load();
     removeEmptyRows();
+}
+
+mu::engraving::Drumset PercussionPanelPadListModel::constructDefaultLayout(const engraving::Drumset* defaultDrumset) const
+{
+    //! NOTE: The idea of this method is take a "default" (template) drumset, find matching drums in the current drumset, and evaluate/return
+    //! the default panel layout based on this information. The reason we can't simply revert to the default drumset in its entirety is that
+    //! there's no guarantee that all drums will match (the user may have added some of their own drums, removed some, tweaked some, etc). Any
+    //! drums that aren't accounted for in the default drumset are appended chromatically once the rest of the layout has been decided...
+
+    mu::engraving::Drumset defaultLayout = *m_drumset;
+
+    int highestIndex = -1;
+    QList<int /*pitch*/> noTemplateFound;
+
+    for (int pitch = 0; pitch < mu::engraving::DRUM_INSTRUMENTS; ++pitch) {
+        if (!defaultLayout.isValid(pitch)) {
+            // We aren't currently using this pitch, doesn't matter if it's valid in the template..
+            continue;
+        }
+        //! NOTE: Pitch + drum name isn't exactly the most robust identifier, but this will probably change with the new percussion ID system
+        if (!defaultDrumset->isValid(pitch) || defaultLayout.name(pitch) != defaultDrumset->name(pitch)) {
+            // Drum is valid, but we can't find a template for it. Set the position chromatically later...
+            noTemplateFound.emplaceBack(pitch);
+            continue;
+        }
+
+        const int templateRow = defaultDrumset->drum(pitch).panelRow;
+        const int templateColumn = defaultDrumset->drum(pitch).panelColumn;
+
+        defaultLayout.drum(pitch).panelRow = templateRow;
+        defaultLayout.drum(pitch).panelColumn = templateColumn;
+
+        const int modelIndex = templateRow * NUM_COLUMNS + templateColumn;
+
+        if (modelIndex > highestIndex) {
+            highestIndex = modelIndex;
+        }
+    }
+
+    for (int pitch : noTemplateFound) {
+        ++highestIndex;
+        defaultLayout.drum(pitch).panelRow = highestIndex / NUM_COLUMNS;
+        defaultLayout.drum(pitch).panelColumn = highestIndex % NUM_COLUMNS;
+    }
+
+    return defaultLayout;
+}
+
+void PercussionPanelPadListModel::focusLastActivePad()
+{
+    for (int i = m_padModels.size() - 1; i >= 0; --i) {
+        if (m_padModels.at(i)) {
+            emit padFocusRequested(i);
+            return;
+        }
+    }
 }
 
 void PercussionPanelPadListModel::load()
@@ -211,7 +310,7 @@ PercussionPanelPadModel* PercussionPanelPadListModel::createPadModelForPitch(int
     }
 
     PercussionPanelPadModel* model = new PercussionPanelPadModel(this);
-    model->setInstrumentName(m_drumset->name(pitch));
+    model->setPadName(m_drumset->name(pitch));
 
     const QString shortcut = m_drumset->shortcut(pitch) ? QChar(m_drumset->shortcut(pitch)) : QString("-");
     model->setKeyboardShortcut(shortcut);
@@ -257,6 +356,43 @@ int PercussionPanelPadListModel::createModelIndexForPitch(int pitch) const
     }
 
     return modelIndex;
+}
+
+muse::RetVal<muse::Val> PercussionPanelPadListModel::openPadSwapDialog()
+{
+    const bool moveMidiNotesAndShortcuts = configuration()->percussionPanelMoveMidiNotesAndShortcuts();
+
+    muse::UriQuery query("musescore://notation/percussionpanelpadswap?sync=true&modal=true");
+    query.addParam("moveMidiNotesAndShortcuts", muse::Val(moveMidiNotesAndShortcuts));
+    muse::RetVal<muse::Val> rv = interactive()->open(query);
+
+    const QVariantMap vals = rv.val.toQVariant().toMap();
+    if (!rv.ret) {
+        return rv;
+    }
+
+    const bool rememberMyChoice = vals["rememberMyChoice"].toBool();
+    if (rememberMyChoice) {
+        configuration()->setPercussionPanelMoveMidiNotesAndShortcuts(moveMidiNotesAndShortcuts);
+    }
+    configuration()->setShowPercussionPanelPadSwapDialog(!rememberMyChoice);
+
+    return rv;
+}
+
+void PercussionPanelPadListModel::swapMidiNotesAndShortcuts(int fromIndex, int toIndex)
+{
+    PercussionPanelPadModel* fromModel = m_padModels.at(fromIndex);
+    PercussionPanelPadModel* toModel = m_padModels.at(toIndex);
+
+    const int tempPitch = fromModel->pitch();
+    const QString tempShortcut = fromModel->keyboardShortcut();
+
+    fromModel->setPitch(toModel->pitch());
+    fromModel->setKeyboardShortcut(toModel->keyboardShortcut());
+
+    toModel->setPitch(tempPitch);
+    toModel->setKeyboardShortcut(tempShortcut);
 }
 
 void PercussionPanelPadListModel::movePad(int fromIndex, int toIndex)

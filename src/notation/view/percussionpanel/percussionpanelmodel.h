@@ -30,6 +30,7 @@
 #include "context/iglobalcontext.h"
 #include "actions/iactionsdispatcher.h"
 #include "playback/iplaybackcontroller.h"
+#include "iinstrumentsrepository.h"
 
 #include "percussionpanelpadlistmodel.h"
 
@@ -52,10 +53,13 @@ class PercussionPanelModel : public QObject, public muse::Injectable, public mus
     muse::Inject<context::IGlobalContext> globalContext = { this };
     muse::Inject<muse::actions::IActionsDispatcher> dispatcher = { this };
     muse::Inject<playback::IPlaybackController> playbackController = { this };
+    muse::Inject<IInstrumentsRepository> instrumentsRepository = { this };
 
     Q_OBJECT
 
     Q_PROPERTY(bool enabled READ enabled NOTIFY enabledChanged)
+
+    Q_PROPERTY(QString soundTitle READ soundTitle NOTIFY soundTitleChanged)
 
     Q_PROPERTY(PanelMode::Mode currentPanelMode READ currentPanelMode WRITE setCurrentPanelMode NOTIFY currentPanelModeChanged)
     Q_PROPERTY(bool useNotationPreview READ useNotationPreview WRITE setUseNotationPreview NOTIFY useNotationPreviewChanged)
@@ -70,8 +74,11 @@ public:
     bool enabled() const;
     void setEnabled(bool enabled);
 
+    QString soundTitle() const;
+    void setSoundTitle(const QString& soundTitle);
+
     PanelMode::Mode currentPanelMode() const;
-    void setCurrentPanelMode(const PanelMode::Mode& panelMode, bool updateNoteInput = true);
+    void setCurrentPanelMode(const PanelMode::Mode& panelMode);
 
     bool useNotationPreview() const;
     void setUseNotationPreview(bool useNotationPreview);
@@ -83,12 +90,16 @@ public:
     QList<QVariantMap> layoutMenuItems() const;
     Q_INVOKABLE void handleMenuItem(const QString& itemId);
 
-    Q_INVOKABLE void finishEditing();
+    //! NOTE: There are a handful of circumstances where we should discard changes (e.g. undoing/redoing a layout change mid
+    //! edit, resetting the layout mid edit, or selecting a different drumset mid edit)
+    Q_INVOKABLE void finishEditing(bool discardChanges = false);
 
     Q_INVOKABLE void customizeKit();
 
 signals:
     void enabledChanged();
+
+    void soundTitleChanged();
 
     void currentPanelModeChanged(const PanelMode::Mode& panelMode);
     void useNotationPreviewChanged(bool useNotationPreview);
@@ -98,15 +109,26 @@ signals:
 private:
     void setUpConnections();
 
+    void updateSoundTitle(const InstrumentTrackId& trackId);
+
+    bool eventFilter(QObject* watched, QEvent* event) override;
+
     void writePitch(int pitch);
     void playPitch(int pitch);
 
+    void resetLayout();
+
+    mu::engraving::InstrumentTrackId currentTrackId() const;
+
+    const project::IProjectAudioSettingsPtr audioSettings() const;
     const mu::notation::INotationPtr notation() const;
     const mu::notation::INotationInteractionPtr interaction() const;
 
     mu::engraving::Score* score() const;
 
     bool m_enabled = false;
+
+    QString m_soundTitle;
 
     PanelMode::Mode m_currentPanelMode = PanelMode::Mode::WRITE;
     PanelMode::Mode m_panelModeToRestore = PanelMode::Mode::WRITE;

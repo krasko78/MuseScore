@@ -153,6 +153,10 @@
 #include "stubs/instrumentsscene/instrumentsscenestubmodule.h"
 #endif
 
+#ifdef MUE_BUILD_MUSESOUNDS_MODULE
+#include "musesounds/musesoundsmodule.h"
+#endif
+
 #ifdef MUE_BUILD_NOTATION_MODULE
 #include "notation/notationmodule.h"
 #else
@@ -230,15 +234,15 @@ std::shared_ptr<muse::IApplication> AppFactory::newGuiApp(const CmdOptions& opti
     app->addModule(new muse::mpe::MpeModule());
 
 #ifdef MUSE_MODULE_MUSESAMPLER
-    bool needAdd = true;
+    bool shouldAddMuseSamplerModule = true;
+#ifndef MUSE_MODULE_MUSESAMPLER_LOAD_IN_DEBUG
     if (runtime::isDebug()) {
-#ifndef MUSE_MODULE_MUSESAMPLER_ENABLE_DEBUG
-        needAdd = false;
-        LOGI() << "Muse Sampler is not a debuggable binary. Skipping adding.";
-#endif
+        shouldAddMuseSamplerModule = false;
+        LOGI() << "Not adding MuseSampler module in a debug build";
     }
+#endif
 
-    if (needAdd) {
+    if (shouldAddMuseSamplerModule) {
         app->addModule(new muse::musesampler::MuseSamplerModule());
     }
 #endif
@@ -299,6 +303,9 @@ std::shared_ptr<muse::IApplication> AppFactory::newGuiApp(const CmdOptions& opti
     app->addModule(new muse::languages::LanguagesModule());
     app->addModule(new muse::learn::LearnModule());
     app->addModule(new muse::mi::MultiInstancesModule());
+#ifdef MUE_BUILD_MUSESOUNDS_MODULE
+    app->addModule(new mu::musesounds::MuseSoundsModule());
+#endif
     app->addModule(new mu::notation::NotationModule());
     app->addModule(new mu::palette::PaletteModule());
     app->addModule(new mu::playback::PlaybackModule());

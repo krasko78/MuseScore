@@ -110,8 +110,12 @@ public:
 
     bool isAccessibleEnabled() const override;
 
+    bool doNotSaveEIDsForBackCompat() const override;
+    void setDoNotSaveEIDsForBackCompat(bool doNotSave) override;
+
     bool guitarProImportExperimental() const override;
-    bool useStretchedBends() const override;
+    bool experimentalGuitarBendImport() const override;
+    void setExperimentalGuitarBendImport(bool enabled) override;
     bool shouldAddParenthesisOnStandardStaff() const override;
     bool negativeFretsAllowed() const override;
     bool crossNoteHeadAlwaysBlack() const override;
@@ -133,6 +137,7 @@ private:
     muse::ValNt<DebuggingOptions> m_debuggingOptions;
 
     bool m_multiVoice = false;
+    bool m_experimentalGuitarBendImport = false;
 };
 }
 

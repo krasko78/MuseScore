@@ -53,7 +53,7 @@
         <file>qml/MuseScore/NotationScene/internal/EditStyle/accidentalImages/octaveOffset-OFF.png</file>
         <file>qml/MuseScore/NotationScene/internal/EditStyle/accidentalImages/octaveOffset-ON.png</file>
         <file>qml/MuseScore/NotationScene/internal/EditStyle/FretboardsPage.qml</file>
-        <file>qml/MuseScore/NotationScene/internal/EditStyle/BasicStyleSelectorWithSpinboxAndReset.qml</file>
+        <file>qml/MuseScore/NotationScene/internal/EditStyle/StyleSpinboxWithReset.qml</file>
         <file>qml/MuseScore/NotationScene/PercussionPanel.qml</file>
         <file>qml/MuseScore/NotationScene/internal/PercussionPanelToolBar.qml</file>
         <file>qml/MuseScore/NotationScene/internal/PercussionPanelPad.qml</file>
@@ -65,5 +65,6 @@
         <file>qml/MuseScore/NotationScene/internal/EditStyle/StyleControlRowWithReset.qml</file>
         <file>qml/MuseScore/NotationScene/internal/EditStyle/TextFieldWithReset.qml</file>
         <file>qml/MuseScore/NotationScene/internal/EditStyle/IconAndTextButtonSelector.qml</file>
+        <file>qml/MuseScore/NotationScene/PercussionPanelPadSwapDialog.qml</file>
     </qresource>
 </RCC>
