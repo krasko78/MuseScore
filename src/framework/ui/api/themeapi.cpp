@@ -107,6 +107,14 @@ void ThemeApi::init()
         update();
     });
 
+    appshellConfiguration()->scrollbarColorChanged().onReceive(this, [this](const mu::engraving::Color&) { // krasko
+        update();
+    });
+
+    appshellConfiguration()->scrollDecelerationOfListsAndPanelsChanged().onReceive(this, [this](int) { // krasko
+        notifyAboutThemeChanged();
+    });
+
     initThemeValues();
 
     initUiFonts();
@@ -135,9 +143,6 @@ void ThemeApi::initThemeValues()
     m_linkColor = themeValues[LINK_COLOR].toString();
     m_focusColor = themeValues[FOCUS_COLOR].toString();
     m_scrollbarColor = appshellConfiguration()->scrollbarColor().toQColor(); // krasko
-    appshellConfiguration()->scrollbarColorChanged().onReceive(this, [this](const mu::engraving::Color&) { // krasko
-        update();
-    });
 
     m_borderWidth = themeValues[BORDER_WIDTH].toReal();
     m_navCtrlBorderWidth = themeValues[NAVIGATION_CONTROL_BORDER_WIDTH].toReal();
@@ -1126,7 +1131,7 @@ void ProxyStyle::drawToolbarGrip(QPainter* painter, const QRect& rect, bool hori
 
 int ThemeApi::flickDeceleration() const // krasko
 {
-    return appshellConfiguration()->flickDeceleration();
+    return appshellConfiguration()->scrollDecelerationOfListsAndPanels();
 }
 
 qreal ThemeApi::calcFlickVelocity(const qreal contentHeight, const qreal viewHeight) const // krasko

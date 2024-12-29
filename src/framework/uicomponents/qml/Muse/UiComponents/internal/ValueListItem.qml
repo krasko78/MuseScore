@@ -70,6 +70,11 @@ ListItemBlank {
         function isNumberComponent() {
             return root.item[valueTypeRole] === "Int" || root.item[valueTypeRole] === "Double"
         }
+
+        function isSeparator() { // krasko
+            var title = root.item[keyRoleName]
+            return title.startsWith('---') /*hyphens*/ || title.startsWith('–––') /*dashes*/
+        }
     }
 
     onClicked: {
@@ -126,7 +131,8 @@ ListItemBlank {
 
             enabled: root.item[valueEnabledRoleName] !== undefined ? root.item[valueEnabledRoleName] : true
 
-            sourceComponent: !root.readOnly ? privateProperties.componentByType(root.item[valueTypeRole]) : readOnlyComponent
+            sourceComponent: !root.readOnly && !privateProperties.isSeparator() // krasko
+                                ? privateProperties.componentByType(root.item[valueTypeRole]) : readOnlyComponent
 
             onLoaded: {
                 loader.item.val = loader.val

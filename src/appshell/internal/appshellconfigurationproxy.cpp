@@ -25,6 +25,22 @@ using namespace mu::appshell;
 
 void AppShellConfigurationProxy::init()
 {
+    appshellConfiguration()->focusExportButtonOnExportDialogChanged().onReceive(this, [this](bool newValue) {
+        emit focusExportButtonOnExportDialogChanged(newValue);
+    });
+
+    appshellConfiguration()->expandShowMoreSectionsInPropertiesPanelChanged().onReceive(this, [this](bool newValue) {
+        emit expandShowMoreSectionsInPropertiesPanelChanged(newValue);
+    });
+
+    appshellConfiguration()->doNotHighlightDisabledItemsOnHoverChanged().onReceive(this, [this](bool newValue) {
+        emit doNotHighlightDisabledItemsOnHoverChanged(newValue);
+    });
+
+    appshellConfiguration()->showScrollbarOnScrollableDropDownListsChanged().onReceive(this, [this](bool newValue) {
+        emit showScrollbarOnScrollableDropDownListsChanged(newValue);
+    });
+
     appshellConfiguration()->verticalPanelsWidthChanged().onReceive(this, [this](int newValue) {
         emit verticalPanelsWidthChanged(newValue);
     });

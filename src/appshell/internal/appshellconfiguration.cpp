@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SPDX-License-Identifier: GPL-3.0-only
  * MuseScore-Studio-CLA-applies
  *
@@ -37,9 +37,11 @@ using namespace mu::notation;
 
 static const std::string module_name("appshell");
 
-// --- KRASKO'S SETTINGS START ---
+// krasko start: KRASKO'S SETTINGS
 
 static constexpr char krasko_module_name[] = "krasko";
+
+static constexpr char KEY_KraskosSettingsHeader[] = "krasko/kraskosSettingsHeaderNotUsed"; // not used, not editable, won't be saved to settings file
 
 static constexpr char KEY_AutoRestoreSessionOnStart[] = "krasko/autoRestoreSessionOnStart";
 
@@ -47,45 +49,43 @@ static constexpr char KEY_FocusExportButtonOnExportDialog[] = "krasko/focusExpor
 
 static constexpr char KEY_TabAndShiftTabNavigateBetweenControls[] = "krasko/tabAndShiftTabNavigateBetweenControls";
 
-static constexpr char KEY_EditElementKeyCyclesThroughGrips[] = "krasko/editElementKeyCyclesThroughGrips";
+static constexpr char KEY_ChangeActiveGripWithEditElementKey[] = "krasko/changeActiveGripWithEditElementKey";
 
-static constexpr char KEY_EscKeyKeepsSelectionWhenEditing[] = "krasko/escKeyKeepsSelectionWhenEditing";
+static constexpr char KEY_EscKeyPreservesSelectionWhenEditing[] = "krasko/escKeyPreservesSelectionWhenEditing";
 
-static constexpr char KEY_ShowSameColorCheckBoxOnSelectMoreDialog[] = "krasko/showSameColorCheckBoxOnSelectMoreDialog";
+static constexpr char KEY_ExpandShowMoreSectionsInPropertiesPanel[] = "krasko/expandShowMoreSectionsInPropertiesPanel";
 
-static constexpr char KEY_EnableAltModifierKeyForNudging[] = "krasko/enableAltModifierKeyForNudging";
+static constexpr char KEY_DoNotHighlightDisabledItemsOnHover[] = "krasko/doNotHighlightDisabledItemsOnHover";
 
-static constexpr char KEY_EnableHighPrecisionNudging[] = "krasko/enableHighPrecisionNudging";
-
-static constexpr char KEY_StepForSpinControlsOnAppearanceTab[] = "krasko/stepForSpinControlsOnAppearanceTab";
-
-static constexpr char KEY_TextStylesToUseFontHeight[] = "krasko/textStylesToUseFontHeight";
+static constexpr char KEY_ShowScrollbarOnScrollableDropDownLists[] = "krasko/showScrollbarOnScrollableDropDownLists";
 
 static constexpr char KEY_InvisibleElementsColor[] = "krasko/invisibleElementsColor";
 
-static constexpr char KEY_FixBeamedNotesFingeringTooCloseToStaff[] = "krasko/fixBeamedNotesFingeringTooCloseToStaff";
-
-static constexpr char KEY_FixExtraSpacingOnMultilineFingering[] = "krasko/fixExtraSpacingOnMultilineFingering";
+static constexpr char KEY_ActiveGripColor[] = "krasko/activeGripColor";
 
 static constexpr char KEY_ScrollbarColor[] = "krasko/scrollbarColor";
 
-static constexpr char KEY_ActiveGripColor[] = "krasko/activeGripColor";
+static constexpr char KEY_MainMenuFontFollowsPreferencesFont[] = "krasko/mainMenuFontFollowsPreferencesFont";
 
-static constexpr char KEY_FlickDeceleration[] = "krasko/flickDeceleration";
+static constexpr char KEY_MainMenuFontSizeMultiplier[] = "krasko/mainMenuFontSizeMultiplier";
+
+static constexpr char KEY_EnableHighPrecisionNudging[] = "krasko/enableHighPrecisionNudging";
+
+static constexpr char KEY_ShowSameColorCheckBoxOnSelectMoreDialog[] = "krasko/showSameColorCheckBoxOnSelectMoreDialog";
 
 static constexpr char KEY_VerticalPanelsWidth[] = "krasko/verticalPanelsWidth";
 
-static constexpr char KEY_ExpandShowMore[] = "krasko/expandShowMore";
+static constexpr char KEY_ScrollDecelerationOfListsAndPanels[] = "krasko/scrollDecelerationOfListsAndPanels";
 
-static constexpr char KEY_HoverDisabledItems[] = "krasko/hoverDisabledItems";
+static constexpr char KEY_StepForSpinControlsOnAppearanceTab[] = "krasko/stepForSpinControlsOnAppearanceTab";
 
-static constexpr char KEY_MenuFontFollowsPreferencesFont[] = "krasko/menuFontFollowsPreferencesFont";
+static constexpr char KEY_TextStylesToUseFullFontHeight[] = "krasko/textStylesToUseFullFontHeight";
 
-static constexpr char KEY_MenuFontSizeRatio[] = "krasko/menuFontSizeRatio";
+static constexpr char KEY_FixFingeringTooCloseToStaffOnBeamedNotes[] = "krasko/fixFingeringTooCloseToStaffOnBeamedNotes";
 
-static constexpr char KEY_ShowScrollbarOnDropDownLists[] = "krasko/showScrollbarOnDropDownLists";
+static constexpr char KEY_RemoveExtraSpacingOnMultilineFingering[] = "krasko/removeExtraSpacingOnMultilineFingering";
 
-// --- KRASKO'S SETTINGS END ---
+// krasko end: KRASKO'S SETTINGS
 
 
 static const Settings::Key HAS_COMPLETED_FIRST_LAUNCH_SETUP(module_name, "application/hasCompletedFirstLaunchSetup");
@@ -111,6 +111,7 @@ static const std::string SESSION_RESOURCE_NAME("SESSION");
 
 AppShellConfiguration::~AppShellConfiguration() // krasko
 {
+    // krasko todo: this is currently not called!
     delete m_settingsCreator;
 }
 
@@ -126,13 +127,14 @@ void AppShellConfiguration::init()
     fileSystem()->makePath(sessionDataPath());
 }
 
-// --- KRASKO'S SETTINGS START ---
+// krasko start: KRASKO'S SETTINGS
 
 void AppShellConfiguration::initKraskoSettings()
 {
     createKraskoSettings();
     updateRenamedKraskoSettings();
     deleteUnusedKraskoSettings();
+    notifyAboutChangedKraskoSettings();
 }
 
 void AppShellConfiguration::createKraskoSettings()
@@ -140,196 +142,236 @@ void AppShellConfiguration::createKraskoSettings()
     m_settingsCreator = new SettingsCreator(settings());
     SettingsCreator& sc = *m_settingsCreator;
 
+	// This first one is not editable since the title starts with --- => will be a separator
+    sc.createSetting(krasko_module_name, KEY_KraskosSettingsHeader)
+        .setDefaultValue(Val())
+        .setDescription(muse::trc("krasko", "––– KRASKO'S SETTINGS –––––––––––––––"))
+        .setHelpString("")
+        .withoutValueChangedNotifications();
+
     sc.createSetting(krasko_module_name, KEY_AutoRestoreSessionOnStart)
         .setDefaultValue(Val(false))
         .setDescription(muse::trc("krasko", "Auto-restore session on start"))
         .setHelpString(muse::trc("krasko",
-            "Determines whether the last session will be restored automatically without asking when MuseScore Studio starts. "
-            "This only has effect when \"Preferences\" -> \"General\" -> \"Program start\" is set to \"Continue last session\"."))
-        .noValueChangedNeeded();
+            "Determines whether the last session will be restored automatically without asking "
+            "when MuseScore Studio starts. Only has effect when 'Preferences' –> 'General' –> "
+            "'Program start' is set to 'Continue last session'."))
+        .withoutValueChangedNotifications();
 
     sc.createSetting(krasko_module_name, KEY_FocusExportButtonOnExportDialog)
         .setDefaultValue(Val(false))
         .setDescription(muse::trc("krasko", "Focus Export button on Export dialog"))
         .setHelpString(muse::trc("krasko",
-            "When enabled, the Export dialog will focus the Export button on open. This allows the export to be completed "
-            "quickly by pressing Enter or Space."))
-        .noValueChangedNeeded();
+            "When enabled, the Export dialog will focus the Export button on open. This allows "
+            "the export to be completed quickly by pressing Enter or the Spacebar."))
+        .valueChanged().onReceive(this, [this](const Val& val) {
+            m_focusExportButtonOnExportDialogChanged.send(val.toBool());
+        });
 
     sc.createSetting(krasko_module_name, KEY_TabAndShiftTabNavigateBetweenControls)
         .setDefaultValue(Val(false))
         .setDescription(muse::trc("krasko", "Tab and Shift+Tab navigate between controls"))
         .setHelpString(muse::trc("krasko",
-            "Determines whether pressing the shortcut keys for \"nav-next-panel\" and \"nav-prev-panel\" (Tab and Shift+Tab "
-            "by default) will navigate to the next/prev control (when setting is on) or next/prev panel (when it is off)."))
-        .noValueChangedNeeded();
+            "When enabled, the keys for 'nav-next-panel' and 'nav-prev-panel' (Tab and Shift+Tab "
+            "by default) will navigate between controls instead of panels."))
+        .withoutValueChangedNotifications();
 
-    sc.createSetting(krasko_module_name, KEY_EditElementKeyCyclesThroughGrips)
+    sc.createSetting(krasko_module_name, KEY_ChangeActiveGripWithEditElementKey)
         .setDefaultValue(Val(false))
-        .setDescription(muse::trc("krasko", "Edit element key cycles through grips"))
+        .setDescription(muse::trc("krasko", "Change active grip with 'Edit element' key"))
         .setHelpString(muse::trc("krasko",
-            "When on, pressing the \"Edit Element\" key (F2 by default) will cycle through an element's grips "
-            "(just like the Tab key) if the grips are already displayed. This lets you press the \"Edit Element\" key "
-            "once to diplay the grips (the element must be selected) and then continue pressing the same key "
-            "(instead of Tab) to activate the desired grip that you want to adjust."))
-        .noValueChangedNeeded();
+            "When enabled, pressing the 'Edit Element' key (F2 by default) will cycle through "
+			"an element's grips (just like the Tab key) if the grips are already displayed. "
+			"This lets you press the 'Edit Element' key once to display the grips (the element "
+			"must be selected first) and then continue pressing the same key (instead of Tab) "
+			"to activate a particular grip."))
+        .withoutValueChangedNotifications();
 
-    sc.createSetting(krasko_module_name, KEY_EscKeyKeepsSelectionWhenEditing)
+    sc.createSetting(krasko_module_name, KEY_EscKeyPreservesSelectionWhenEditing)
         .setDefaultValue(Val(false))
-        .setDescription(muse::trc("krasko", "Esc key keeps selection when editing"))
+        .setDescription(muse::trc("krasko", "Esc key preserves selection when editing"))
         .setHelpString(muse::trc("krasko",
-            "When on, pressing the Esc key while editing an element, e.g. a slur or hairpin, will end the editing "
-            "but not deselect the element. This enables you to press the \"Edit Element\" key and continue editing "
-            "until you are happy with the result. When off, the element will also be deselected."))
-        .noValueChangedNeeded();
+            "When enabled, pressing the Esc key while editing an element will end the editing "
+            "but not deselect the element. This allows you to press the 'Edit Element' key "
+            "and continue editing until you are happy with the result. Useful for example "
+            "for elements with grips. When disabled, the element will be deselected after "
+            "pressing Esc and won't be editable until re-selected."))
+        .withoutValueChangedNotifications();
 
-    sc.createSetting(krasko_module_name, KEY_ShowSameColorCheckBoxOnSelectMoreDialog)
+    sc.createSetting(krasko_module_name, KEY_ExpandShowMoreSectionsInPropertiesPanel)
         .setDefaultValue(Val(false))
-        .setDescription(muse::trc("krasko", "Show 'Same Color' checkbox on Select more dialog"))
+        .setDescription(muse::trc("krasko", "Expand 'Show more' sections in Properties panel"))
         .setHelpString(muse::trc("krasko",
-            "When true, will display a \"Same color\" checkbox on the Select More... dialogs (for note and non-note) so that "
-            "the selection can be limited to the elements having the same color as the selected element."))
-        .noValueChangedNeeded();
+            "When enabled, 'Show more' sections in the Properties panel will be initially expanded."))
+        .valueChanged().onReceive(this, [this](const Val& val) {
+            m_expandShowMoreSectionsInPropertiesPanelChanged.send(val.toBool());
+        });
 
-    sc.createSetting(krasko_module_name, KEY_EnableAltModifierKeyForNudging)
+    sc.createSetting(krasko_module_name, KEY_DoNotHighlightDisabledItemsOnHover)
         .setDefaultValue(Val(false))
-        .setDescription(muse::trc("krasko", "Enable the ALT key for nudging"))
+        .setDescription(muse::trc("krasko", "Do not highlight disabled items on hover"))
         .setHelpString(muse::trc("krasko",
-            "When true, the ALT key will be enabled to participate in shortcuts such as ALT+arrow keys "
-            "for nudging grips/handles/elements."))
-        .noValueChangedNeeded();
+            "Determines whether disabled menu and list items will be highlighted on mouse hover or not. "
+            "Not highlighting them emphasizes their disabled state."))
+        .valueChanged().onReceive(this, [this](const Val& val) {
+            m_doNotHighlightDisabledItemsOnHoverChanged.send(val.toBool());
+        });
+
+    sc.createSetting(krasko_module_name, KEY_ShowScrollbarOnScrollableDropDownLists)
+        .setDefaultValue(Val(false))
+        .setDescription(muse::trc("krasko", "Show scrollbar on scrollable drop-down lists"))
+        .setHelpString(muse::trc("krasko",
+            "When enabled, the scrollbar on scrollable drop-down lists will always be visible. "
+            "Otherwise, it will only appear when the mouse hovers over it."))
+        .valueChanged().onReceive(this, [this](const Val& val) {
+            m_showScrollbarOnScrollableDropDownListsChanged.send(val.toBool());
+        });
+
+    sc.createSetting(krasko_module_name, KEY_InvisibleElementsColor)
+        .setDefaultValue(Val(QColor("#808080")))
+        .setDescription(muse::trc("krasko", "Invisible elements color"))
+        .setHelpString(muse::trc("krasko", "The color to use for the invisible elements."))
+        .valueChanged().onReceive(this, [this](const Val& val) {
+            m_invisibleElementsColorChanged.send(mu::engraving::Color::fromQColor(val.toQColor()));
+        });
+
+    sc.createSetting(krasko_module_name, KEY_ActiveGripColor)
+        .setDefaultValue(Val(QColor("#A0A0A4")))
+        .setDescription(muse::trc("krasko", "Active grip color"))
+        .setHelpString(muse::trc("krasko",
+            "The color to use for the active grip of an element being edited that has grips."))
+        .valueChanged().onReceive(this, [this](const Val& val) {
+            m_activeGripColorChanged.send(mu::engraving::Color::fromQColor(val.toQColor()));
+        });
+
+    sc.createSetting(krasko_module_name, KEY_ScrollbarColor)
+        .setDefaultValue(Val(QColor("")))
+        .setDescription(muse::trc("krasko", "Scrollbar color"))
+        .setHelpString(muse::trc("krasko", "The color to use for all scrollbars."))
+        .valueChanged().onReceive(this, [this](const Val& val) {
+            m_scrollbarColorChanged.send(mu::engraving::Color::fromQColor(val.toQColor()));
+        });
+
+    sc.createSetting(krasko_module_name, KEY_MainMenuFontFollowsPreferencesFont)
+        .setDefaultValue(Val(false))
+        .setDescription(muse::trc("krasko", "Main menu font follows preferences font"))
+        .setHelpString(muse::trc("krasko",
+            "When enabled, the font face of the main menu will be the same as that "
+			"of all other UI elements (set under 'Preferences' –> 'Appearance')."))
+        .valueChanged().onReceive(this, [this](const Val& val) {
+            m_mainMenuFontFollowsPreferencesFontChanged.send(val.toBool());
+        });
+
+    sc.createSetting(krasko_module_name, KEY_MainMenuFontSizeMultiplier)
+        .setDefaultValue(Val(0.9))
+        .setDescription(muse::trc("krasko", "Main menu font size multiplier"))
+        .setHelpString(muse::trc("krasko",
+            "Specifies a multiplier, e.g. '1.0' or '0.9' that will be multiplied by the font size "
+			"set in the preferences ('Preferences' –> 'Appearance') to obtain the size of the main "
+            "menu. For instance, a multiplier of 1.0 will make the main menu font size the same as "
+            "that of the other UI elements. A multiplier of 0.9 will make the main menu font size "
+            "90% of it, etc. Valid values are from 0.5 to 2.0."))
+		.setMinValue(Val(0.5))
+		.setMaxValue(Val(2.0))
+        .valueChanged().onReceive(this, [this](const Val& val) {
+            m_mainMenuFontSizeMultiplierChanged.send(val.toDouble());
+        });
 
     sc.createSetting(krasko_module_name, KEY_EnableHighPrecisionNudging)
         .setDefaultValue(Val(false))
         .setDescription(muse::trc("krasko", "Enable high-precision nudging"))
         .setHelpString(muse::trc("krasko",
-            "When true, nudging things such as grips, beams, etc. with the arrow keys will nudge by a smaller amount "
-            "thus allowing for better control. If the ALT modifier is enabled, using ALT+arrow keys will nudge even less."))
-        .noValueChangedNeeded();
+            "When enabled, nudging things around with the arrow keys will nudge them by a smaller "
+            "amount allowing for better control and precision. Does not affect nudging with "
+            "Ctrl+arrow keys and Alt+arrow keys."))
+        .withoutValueChangedNotifications();
 
-    sc.createSetting(krasko_module_name, KEY_StepForSpinControlsOnAppearanceTab)
-        .setDefaultValue(Val(0.5))
-        .setDescription(muse::trc("krasko", "Step for spin controls on Appearance tab of Properties panel"))
-        .setHelpString(muse::trc("krasko",
-            "Specifies the step (amount) by which spin controls on the Appearance tab of the Properties panel such as the Offsets, "
-            "Leading space, Min distance, etc. will change their values."))
-        .noValueChangedNeeded();
-
-    sc.createSetting(krasko_module_name, KEY_TextStylesToUseFontHeight)
-        .setDefaultValue(Val(""))
-        .setDescription(muse::trc("krasko", "Text styles to use font height"))
-        .setHelpString(muse::trc("krasko",
-            "Comma-separated list of text styles. The height of any text (i.e. text object) with any of those text styles "
-            "will use the font's full height. This will fix vertical misalignment issues when different texts are displayed "
-            "on the same line/row and some of the texts contain characters with ascenders/descenders and the others do not. "
-            "Multiline texts are affected as well. The caveat is that this could slightly increase the spacing below the texts "
-            "such as on fingerings above the staff. When a text with style NOT specified in this setting is drawn, its height "
-            "will be the actual height of the characters of the text - the so called tight bounding rectange. "
-            "The allowed values are the TextStyleType enum values."))
-        .noValueChangedNeeded();
-
-    sc.createSetting(krasko_module_name, KEY_InvisibleElementsColor)
-        .setDefaultValue(Val(QColor("#808080")))
-        .setDescription(muse::trc("krasko", "Invisible elements color"))
-        .setHelpString(muse::trc("krasko",
-            "The color to use for the invisible elements."))
-        .valueChanged().onReceive(this, [this](const Val& val) {
-            m_invisibleElementsColorChanged.send(mu::engraving::Color::fromQColor(val.toQColor()));
-        });
-
-    sc.createSetting(krasko_module_name, KEY_FixBeamedNotesFingeringTooCloseToStaff)
-        .setDefaultValue(Val(false))
-        .setDescription(muse::trc("krasko", "Fix fingering-to-staff issue on beamed notes"))
-        .setHelpString(muse::trc("krasko",
-            "When true, will fix an issue where fingering on beamed notes does not respect the min distance to staff. The fingering "
-            "must be on the side of the beam(s) and the beams should be far enough into the staff (from the edge of the staff). "
-            "In this case the fingering is placed too close to the staff."))
-        .noValueChangedNeeded();
-
-    sc.createSetting(krasko_module_name, KEY_FixExtraSpacingOnMultilineFingering)
-        .setDefaultValue(Val(false))
-        .setDescription(muse::trc("krasko", "Fix extra line spacing on multi-line fingering"))
-        .setHelpString(muse::trc("krasko",
-            "When true, will fix an issue where multiline fingering has extra spacing above/below. The more lines, the larger "
-            "the spacing. The larger the font size, the larger the spacing too."))
-        .noValueChangedNeeded();
-
-    sc.createSetting(krasko_module_name, KEY_ScrollbarColor)
-        .setDefaultValue(Val(QColor("")))
-        .setDescription(muse::trc("krasko", "Scrollbar color"))
-        .setHelpString(muse::trc("krasko",
-            "The color to use for the scrollbars."))
-        .valueChanged().onReceive(this, [this](const Val& val) {
-            m_scrollbarColorChanged.send(mu::engraving::Color::fromQColor(val.toQColor()));
-        });
-
-    sc.createSetting(krasko_module_name, KEY_ActiveGripColor)
-        .setDefaultValue(Val(mu::engraving::Color("#A0A0A4").toQColor()))
-        .setDescription(muse::trc("krasko", "Active grip color"))
-        .setHelpString(muse::trc("krasko",
-            "The color to use for the active grip."))
-        .valueChanged().onReceive(this, [this](const Val& val) {
-            m_activeGripColorChanged.send(mu::engraving::Color::fromQColor(val.toQColor()));
-        });
-
-    sc.createSetting(krasko_module_name, KEY_FlickDeceleration)
-        .setDefaultValue(Val(12000))
-        .setDescription(muse::trc("krasko", "Scroll deceleration"))
-        .setHelpString(muse::trc("krasko",
-            "The deceleration to use when scrolling flickable controls (palettes, properties panel, etc.). The higher the value, "
-            "the sooner the scrolling will stop when the user stops scrolling. Lower values will make the scrolling last longer."))
-        .noValueChangedNeeded();
+	sc.createSetting(krasko_module_name, KEY_ShowSameColorCheckBoxOnSelectMoreDialog)
+		.setDefaultValue(Val(false))
+		.setDescription(muse::trc("krasko", "Show 'Same Color' checkbox on 'Select more' dialog"))
+		.setHelpString(muse::trc("krasko",
+			"When enabled, will display a 'Same color' checkbox on the 'Select' –> 'More...' dialog "
+			"so that the selection can be limited to the elements having the same color "
+			"as the selected element."))
+		.withoutValueChangedNotifications();
 
     sc.createSetting(krasko_module_name, KEY_VerticalPanelsWidth)
         .setDefaultValue(Val(300))
         .setDescription(muse::trc("krasko", "Width of the vertical panels"))
         .setHelpString(muse::trc("krasko",
-            "The width of the vertical panels such as the Palettes, Instruments, Properties, Selection filter."))
+            "The width of the vertical panels such as the Palettes, Instruments, Properties, "
+			"Selection filter, etc. in pixels. Valid values are between 200 and 500."))
+        .setMinValue(Val(200))
+        .setMaxValue(Val(500))
         .valueChanged().onReceive(this, [this](const Val& val) {
             m_verticalPanelsWidthChanged.send(val.toInt());
         });
 
-    sc.createSetting(krasko_module_name, KEY_ExpandShowMore)
-        .setDefaultValue(Val(false))
-        .setDescription(muse::trc("krasko", "Expand 'Show more' sections"))
+    sc.createSetting(krasko_module_name, KEY_ScrollDecelerationOfListsAndPanels)
+        .setDefaultValue(Val(1500))
+        .setDescription(muse::trc("krasko", "Scroll deceleration of lists and panels"))
         .setHelpString(muse::trc("krasko",
-            "When true, all \"Show more\" sections will be initially expanded. Later on, the user can collapse them."))
-        .noValueChangedNeeded();
-
-    sc.createSetting(krasko_module_name, KEY_HoverDisabledItems)
-        .setDefaultValue(Val(true))
-        .setDescription(muse::trc("krasko", "Hover disabled items"))
-        .setHelpString(muse::trc("krasko",
-            "When true, disabled menu and list items will be highlighted on hover. When false, they will not be highlighted "
-            "when the mouse passes over them to create a better perception of the disabledness of the items."))
-        .noValueChangedNeeded();
-
-    sc.createSetting(krasko_module_name, KEY_MenuFontFollowsPreferencesFont)
-        .setDefaultValue(Val(false))
-        .setDescription(muse::trc("krasko", "Menu font will follow Preferences font"))
-        .setHelpString(muse::trc("krasko",
-            "When true, the font of the main menu will be the same as the font of all other UI elements set in the preferences."))
+            "Determines how fast the scrolling of lists and panels stops. The higher the value, "
+            "the sooner the scrolling will stop when the user stops scrolling. Lower values "
+            "on the other hand will make the scrolling accelerate more and last longer "
+            "decreasing the scrolling precision. Valid values are between 1000 and 50000."))
+        .setMinValue(Val(1000))
+        .setMaxValue(Val(50000))
         .valueChanged().onReceive(this, [this](const Val& val) {
-            m_menuFontFollowsPreferencesFontChanged.send(val.toBool());
+            m_scrollDecelerationOfListsAndPanelsChanged.send(val.toInt());
         });
 
-    sc.createSetting(krasko_module_name, KEY_MenuFontSizeRatio)
-        .setDefaultValue(Val("1/1"))
-        .setDescription(muse::trc("krasko", "Menu font size ratio"))
+    sc.createSetting(krasko_module_name, KEY_StepForSpinControlsOnAppearanceTab)
+        .setDefaultValue(Val(0.5))
+        .setDescription(muse::trc("krasko", "Step for spin controls on Appearance tab of Properties panel"))
         .setHelpString(muse::trc("krasko",
-            "Specifies a ratio, e.g. \"9/10\" that will be multiplied by the font size set in the preferences "
-            "for the rest of the UI elements to obtain the size of the main menubar."))
+            "Specifies the step (amount) by which spin controls on the Appearance tab of"
+            "the Properties panel will change their values when the Up/Down arrow keys are pressed "
+            "or the Up/Down buttons are clicked. Valid values are between 0.01 and 10."))
+        .setMinValue(Val(0.01))
+        .setMaxValue(Val(10))
         .valueChanged().onReceive(this, [this](const Val& val) {
-            m_menuFontSizeRatioChanged.send(val.toString());
+            m_stepForSpinControlsOnAppearanceTabChanged.send(val.toDouble());
         });
 
-    sc.createSetting(krasko_module_name, KEY_ShowScrollbarOnDropDownLists)
-        .setDefaultValue(Val(false))
-        .setDescription(muse::trc("krasko", "Show scrollbar on scrollable drop-down lists"))
+    sc.createSetting(krasko_module_name, KEY_TextStylesToUseFullFontHeight)
+        .setDefaultValue(Val(""))
+        .setDescription(muse::trc("krasko", "Text styles to use full font height"))
         .setHelpString(muse::trc("krasko",
-            "When true, the scrollbar on scrollable drop-down lists will always be visible. "
-            "When false, it will only appear when the scrollbar is hovered."))
-        .noValueChangedNeeded();
+            "Comma-separated list of text styles from the TextStyleType enum. Any text with one of"
+            "these text styles will use the font's full height. This will fix vertical misalignment "
+            "issues when different texts are displayed on the same line and some of them contain "
+            "characters with ascenders / descenders but others do not. Multiline texts are affected "
+            "as well. The caveat is that this could slightly increase the spacing below the texts "
+            "such as on fingerings above the staff. When a text with a style NOT specified in "
+            "this setting is drawn, its height will be the actual height of the characters "
+            "it contains - without accounting for ascenders and descenders."))
+        .valueChanged().onReceive(this, [this](const Val& val) {
+            m_textStylesToUseFullFontHeightChanged.send(val.toString());
+        });
+
+    sc.createSetting(krasko_module_name, KEY_FixFingeringTooCloseToStaffOnBeamedNotes)
+        .setDefaultValue(Val(false))
+        .setDescription(muse::trc("krasko", "Fix a fingering-to-staff distance issue on beamed notes"))
+        .setHelpString(muse::trc("krasko",
+            "When enabled, will fix an issue where fingering on beamed notes does not respect "
+			"the min distance to staff. The fingering must be on the side of the beam(s) and "
+			"the beam(s) must be far enough into the staff. In this case the fingering "
+			"is placed too close to the staff."))
+        .valueChanged().onReceive(this, [this](const Val& val) {
+            m_fixFingeringTooCloseToStaffOnBeamedNotesChanged.send(val.toBool());
+        });
+
+    sc.createSetting(krasko_module_name, KEY_RemoveExtraSpacingOnMultilineFingering)
+        .setDefaultValue(Val(false))
+        .setDescription(muse::trc("krasko", "Remove extra spacing on multi-line fingering"))
+        .setHelpString(muse::trc("krasko",
+            "When enabled, will remove extra spacing above or below multiline fingering. "
+			"The more lines the fingering contains, the larger the spacing. The larger "
+			"the font size, the larger the spacing too."))
+        .valueChanged().onReceive(this, [this](const Val& val) {
+            m_removeExtraSpacingOnMultilineFingeringChanged.send(val.toBool());
+        });
 }
 
 void AppShellConfiguration::updateRenamedKraskoSettings()
@@ -378,6 +420,15 @@ void AppShellConfiguration::deleteUnusedKraskoSettings()
     }
 }
 
+void AppShellConfiguration::notifyAboutChangedKraskoSettings()
+{
+    // Once krasko's settings have been created, we need to manually send out
+    // few notifications to force dependent settings in other modules that were created
+    // BEFORE krasko's settings to update. An example is the default font in uiconfiguration.
+    m_mainMenuFontFollowsPreferencesFontChanged.send(mainMenuFontFollowsPreferencesFont());
+    m_mainMenuFontSizeMultiplierChanged.send(mainMenuFontSizeMultiplier());
+}
+
 const Settings::Key* AppShellConfiguration::findKraskoSettingKey(const std::string& keyName) const
 {
     if (m_settingsCreator != nullptr)
@@ -408,29 +459,29 @@ Val AppShellConfiguration::kraskoSettingValue(const std::string& keyName) const
     return Val();
 }
 
-bool AppShellConfiguration::isStrInCSVString(std::string s, std::string csvStr) const
+bool AppShellConfiguration::isValueInCsvList(const std::string& s, const std::string& csvList) const
 {
     std::size_t pos;
 
-    if (csvStr == s)
+    if (csvList == s)
         return true;
 
-    if (csvStr.find(s + ",") == 0)
+    if (csvList.find(s + ",") == 0)
         return true;
 
-    if (csvStr.find(s + ", ") == 0)
+    if (csvList.find(s + ", ") == 0)
         return true;
 
-    if (((pos = csvStr.find("," + s)) != std::string::npos) && (pos == (csvStr.length() - s.length() - 1)))
+    if (((pos = csvList.find("," + s)) != std::string::npos) && (pos == (csvList.length() - s.length() - 1)))
         return true;
 
-    if (((pos = csvStr.find(", " + s)) != std::string::npos) && (pos == (csvStr.length() - s.length() - 2)))
+    if (((pos = csvList.find(", " + s)) != std::string::npos) && (pos == (csvList.length() - s.length() - 2)))
         return true;
 
-    if (csvStr.find("," + s+ ",") != std::string::npos)
+    if (csvList.find("," + s+ ",") != std::string::npos)
         return true;
 
-    if (csvStr.find(", " + s + ",") != std::string::npos)
+    if (csvList.find(", " + s + ",") != std::string::npos)
         return true;
 
     return false;
@@ -446,45 +497,54 @@ bool AppShellConfiguration::focusExportButtonOnExportDialog() const
     return kraskoSettingValue(KEY_FocusExportButtonOnExportDialog).toBool();
 }
 
+muse::async::Channel<bool> AppShellConfiguration::focusExportButtonOnExportDialogChanged() const
+{
+    return m_focusExportButtonOnExportDialogChanged;
+}
+
 bool AppShellConfiguration::tabAndShiftTabNavigateBetweenControls() const
 {
     return kraskoSettingValue(KEY_TabAndShiftTabNavigateBetweenControls).toBool();
 }
 
-bool AppShellConfiguration::editElementKeyCyclesThroughGrips() const
+bool AppShellConfiguration::changeActiveGripWithEditElementKey() const
 {
-    return kraskoSettingValue(KEY_EditElementKeyCyclesThroughGrips).toBool();
+    return kraskoSettingValue(KEY_ChangeActiveGripWithEditElementKey).toBool();
 }
 
-bool AppShellConfiguration::escKeyKeepsSelectionWhenEditing() const
+bool AppShellConfiguration::escKeyPreservesSelectionWhenEditing() const
 {
-    return kraskoSettingValue(KEY_EscKeyKeepsSelectionWhenEditing).toBool();
+    return kraskoSettingValue(KEY_EscKeyPreservesSelectionWhenEditing).toBool();
 }
 
-bool AppShellConfiguration::showSameColorCheckBoxOnSelectMoreDialog() const
+bool AppShellConfiguration::expandShowMoreSectionsInPropertiesPanel() const
 {
-    return kraskoSettingValue(KEY_ShowSameColorCheckBoxOnSelectMoreDialog).toBool();
+	return kraskoSettingValue(KEY_ExpandShowMoreSectionsInPropertiesPanel).toBool();
 }
 
-bool AppShellConfiguration::enableAltModifierKeyForNudging() const
+muse::async::Channel<bool> AppShellConfiguration::expandShowMoreSectionsInPropertiesPanelChanged() const
 {
-    return kraskoSettingValue(KEY_EnableAltModifierKeyForNudging).toBool();
+    return m_expandShowMoreSectionsInPropertiesPanelChanged;
 }
 
-bool AppShellConfiguration::enableHighPrecisionNudging() const
+bool AppShellConfiguration::doNotHighlightDisabledItemsOnHover() const
 {
-    return kraskoSettingValue(KEY_EnableHighPrecisionNudging).toBool();
+	return kraskoSettingValue(KEY_DoNotHighlightDisabledItemsOnHover).toBool();
 }
 
-double AppShellConfiguration::stepForSpinControlsOnAppearanceTab() const
+muse::async::Channel<bool> AppShellConfiguration::doNotHighlightDisabledItemsOnHoverChanged() const
 {
-    return kraskoSettingValue(KEY_StepForSpinControlsOnAppearanceTab).toDouble();
+    return m_doNotHighlightDisabledItemsOnHoverChanged;
 }
 
-bool AppShellConfiguration::textStylesToUseFontHeight(const std::string csvTextStyles) const
+bool AppShellConfiguration::showScrollbarOnScrollableDropDownLists() const
 {
-    std::string value = kraskoSettingValue(KEY_TextStylesToUseFontHeight).toString();
-    return isStrInCSVString(csvTextStyles, value);
+    return kraskoSettingValue(KEY_ShowScrollbarOnScrollableDropDownLists).toBool();
+}
+
+muse::async::Channel<bool> AppShellConfiguration::showScrollbarOnScrollableDropDownListsChanged() const
+{
+    return m_showScrollbarOnScrollableDropDownListsChanged;
 }
 
 mu::engraving::Color AppShellConfiguration::invisibleElementsColor() const
@@ -497,14 +557,14 @@ muse::async::Channel<mu::engraving::Color> AppShellConfiguration::invisibleEleme
     return m_invisibleElementsColorChanged;
 }
 
-bool AppShellConfiguration::fixBeamedNotesFingeringTooCloseToStaff() const
+mu::engraving::Color AppShellConfiguration::activeGripColor() const
 {
-    return kraskoSettingValue(KEY_FixBeamedNotesFingeringTooCloseToStaff).toBool();
+    return mu::engraving::Color::fromQColor(kraskoSettingValue(KEY_ActiveGripColor).toQColor());
 }
 
-bool AppShellConfiguration::fixExtraSpacingOnMultilineFingering() const
+muse::async::Channel<mu::engraving::Color> AppShellConfiguration::activeGripColorChanged() const
 {
-    return kraskoSettingValue(KEY_FixExtraSpacingOnMultilineFingering).toBool();
+    return m_activeGripColorChanged;
 }
 
 mu::engraving::Color AppShellConfiguration::scrollbarColor() const
@@ -517,19 +577,34 @@ muse::async::Channel<mu::engraving::Color> AppShellConfiguration::scrollbarColor
     return m_scrollbarColorChanged;
 }
 
-mu::engraving::Color AppShellConfiguration::activeGripColor() const
+bool AppShellConfiguration::mainMenuFontFollowsPreferencesFont() const
 {
-    return mu::engraving::Color::fromQColor(kraskoSettingValue(KEY_ActiveGripColor).toQColor());
+    return kraskoSettingValue(KEY_MainMenuFontFollowsPreferencesFont).toBool();
 }
 
-muse::async::Channel<mu::engraving::Color> AppShellConfiguration::activeGripColorChanged() const
+muse::async::Channel<bool> AppShellConfiguration::mainMenuFontFollowsPreferencesFontChanged() const
 {
-    return m_activeGripColorChanged;
+    return m_mainMenuFontFollowsPreferencesFontChanged;
 }
 
-int AppShellConfiguration::flickDeceleration() const
+double AppShellConfiguration::mainMenuFontSizeMultiplier() const
 {
-    return kraskoSettingValue(KEY_FlickDeceleration).toInt();
+    return kraskoSettingValue(KEY_MainMenuFontSizeMultiplier).toDouble();
+}
+
+muse::async::Channel<double> AppShellConfiguration::mainMenuFontSizeMultiplierChanged() const
+{
+    return m_mainMenuFontSizeMultiplierChanged;
+}
+
+bool AppShellConfiguration::enableHighPrecisionNudging() const
+{
+    return kraskoSettingValue(KEY_EnableHighPrecisionNudging).toBool();
+}
+
+bool AppShellConfiguration::showSameColorCheckBoxOnSelectMoreDialog() const
+{
+    return kraskoSettingValue(KEY_ShowSameColorCheckBoxOnSelectMoreDialog).toBool();
 }
 
 int AppShellConfiguration::verticalPanelsWidth() const
@@ -542,42 +617,57 @@ muse::async::Channel<int> AppShellConfiguration::verticalPanelsWidthChanged() co
     return m_verticalPanelsWidthChanged;
 }
 
-bool AppShellConfiguration::expandShowMore() const
+int AppShellConfiguration::scrollDecelerationOfListsAndPanels() const
 {
-    return kraskoSettingValue(KEY_ExpandShowMore).toBool();
+    return kraskoSettingValue(KEY_ScrollDecelerationOfListsAndPanels).toInt();
 }
 
-bool AppShellConfiguration::hoverDisabledItems() const
+muse::async::Channel<int> AppShellConfiguration::scrollDecelerationOfListsAndPanelsChanged() const
 {
-    return kraskoSettingValue(KEY_HoverDisabledItems).toBool();
+    return m_scrollDecelerationOfListsAndPanelsChanged;
 }
 
-bool AppShellConfiguration::menuFontFollowsPreferencesFont() const
+double AppShellConfiguration::stepForSpinControlsOnAppearanceTab() const
 {
-    return kraskoSettingValue(KEY_MenuFontFollowsPreferencesFont).toBool();
+    return kraskoSettingValue(KEY_StepForSpinControlsOnAppearanceTab).toDouble();
 }
 
-muse::async::Channel<bool> AppShellConfiguration::menuFontFollowsPreferencesFontChanged() const
+muse::async::Channel<double> AppShellConfiguration::stepForSpinControlsOnAppearanceTabChanged() const
 {
-    return m_menuFontFollowsPreferencesFontChanged;
+    return m_stepForSpinControlsOnAppearanceTabChanged;
 }
 
-std::string AppShellConfiguration::menuFontSizeRatio() const
+std::string AppShellConfiguration::textStylesToUseFullFontHeight() const
 {
-    return kraskoSettingValue(KEY_MenuFontSizeRatio).toString();
+    return kraskoSettingValue(KEY_TextStylesToUseFullFontHeight).toString();
 }
 
-muse::async::Channel<std::string> AppShellConfiguration::menuFontSizeRatioChanged() const
+muse::async::Channel<std::string> AppShellConfiguration::textStylesToUseFullFontHeightChanged() const
 {
-    return m_menuFontSizeRatioChanged;
+    return m_textStylesToUseFullFontHeightChanged;
 }
 
-bool AppShellConfiguration::showScrollbarOnDropDownLists() const
+bool AppShellConfiguration::fixFingeringTooCloseToStaffOnBeamedNotes() const
 {
-    return kraskoSettingValue(KEY_ShowScrollbarOnDropDownLists).toBool();
+    return kraskoSettingValue(KEY_FixFingeringTooCloseToStaffOnBeamedNotes).toBool();
 }
 
-// --- KRASKO'S SETTINGS END ---
+muse::async::Channel<bool> AppShellConfiguration::fixFingeringTooCloseToStaffOnBeamedNotesChanged() const
+{
+    return m_fixFingeringTooCloseToStaffOnBeamedNotesChanged;
+}
+
+bool AppShellConfiguration::removeExtraSpacingOnMultilineFingering() const
+{
+    return kraskoSettingValue(KEY_RemoveExtraSpacingOnMultilineFingering).toBool();
+}
+
+muse::async::Channel<bool> AppShellConfiguration::removeExtraSpacingOnMultilineFingeringChanged() const
+{
+    return m_removeExtraSpacingOnMultilineFingeringChanged;
+}
+
+// krasko end: KRASKO'S SETTINGS
 
 
 bool AppShellConfiguration::hasCompletedFirstLaunchSetup() const

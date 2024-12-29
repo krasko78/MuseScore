@@ -534,10 +534,10 @@ async::Channel<Val> SettingsCreator::valueChanged() const
     return m_settings->valueChanged(*m_key);
 }
 
-const SettingsCreator& SettingsCreator::noValueChangedNeeded() const
+const SettingsCreator& SettingsCreator::withoutValueChangedNotifications() const
 {
     // No work needed here. This method is just an indication that the setting
-    // currently does not need to be listened for changes. If it does, call
+    // currently does not need to be listened to for changes. If it does, call
     // valueChanged() instead and subscribe for notifications using the channel returned.
     return *this;
 }

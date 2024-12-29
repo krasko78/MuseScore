@@ -62,7 +62,7 @@ void UiConfiguration::init()
     settings()->setDefaultValue(UI_CURRENT_THEME_CODE_KEY, Val(LIGHT_THEME_CODE));
     settings()->setDefaultValue(UI_FOLLOW_SYSTEM_THEME_KEY, Val(false));
     settings()->setDefaultValue(UI_FONT_FAMILY_KEY, Val(defaultFontFamily()));
-    settings()->setDefaultValue(UI_FONT_SIZE_KEY, Val(defaultFontSize()));
+    settings()->setDefaultValue(UI_FONT_SIZE_KEY, Val(12)); // krasko
     settings()->setDefaultValue(UI_ICONS_FONT_FAMILY_KEY, Val("MusescoreIcon"));
     settings()->setDefaultValue(UI_MUSICAL_FONT_FAMILY_KEY, Val("Leland"));
     settings()->setDefaultValue(UI_MUSICAL_FONT_SIZE_KEY, Val(24));
@@ -94,11 +94,11 @@ void UiConfiguration::init()
         m_iconsFontChanged.notify();
     });
 
-    appshellConfiguration()->menuFontFollowsPreferencesFontChanged().onReceive(this, [this](bool) { // krasko start
+    appshellConfiguration()->mainMenuFontFollowsPreferencesFontChanged().onReceive(this, [this](bool) { // krasko start
         m_defaultFontChanged.notify();
     });
 
-    appshellConfiguration()->menuFontSizeRatioChanged().onReceive(this, [this](const std::string&) {
+    appshellConfiguration()->mainMenuFontSizeMultiplierChanged().onReceive(this, [this](const double) {
         calculateDefaultFontSize();
         m_defaultFontChanged.notify();
     }); // krasko end
@@ -134,7 +134,6 @@ void UiConfiguration::deinit()
 
 void UiConfiguration::initThemes()
 {
-    calculateDefaultFontSize(); // krasko
     m_isFollowSystemTheme.val = settings()->value(UI_FOLLOW_SYSTEM_THEME_KEY).toBool();
 
     platformTheme()->platformThemeChanged().onNotify(this, [this]() {
@@ -543,8 +542,9 @@ muse::async::Notification UiConfiguration::musicalFontChanged() const
 
 std::string UiConfiguration::defaultFontFamily() const
 {
-    if (appshellConfiguration()->menuFontFollowsPreferencesFont()) // krasko
+    if (appshellConfiguration()->mainMenuFontFollowsPreferencesFont()) { // krasko
         return fontFamily();
+    }
 
 #ifdef Q_OS_WIN
     static const QString defaultWinFamily = "Segoe UI";
@@ -566,13 +566,15 @@ void UiConfiguration::calculateDefaultFontSize() // krasko start
 {
     m_defaultFontSize = fontSize();
 
-    QString ratio = QString::fromStdString(appshellConfiguration()->menuFontSizeRatio());
-
-    QStringList values = ratio.split('/');
-    if (values.count() > 1) {
-        m_defaultFontSize = std::round((values[0].toDouble() / values[1].toDouble()) * m_defaultFontSize);
-    } else {
-        m_defaultFontSize = values[0].toInt();
+    double multiplier = appshellConfiguration()->mainMenuFontSizeMultiplier();
+    if (multiplier > 0.0)
+    {
+        double scaledDefaultFontSize = m_defaultFontSize * multiplier;
+        if (scaledDefaultFontSize < 8.0)
+        {
+            scaledDefaultFontSize = 8.0;
+        }
+        m_defaultFontSize = scaledDefaultFontSize;
     }
 } // krasko end
 

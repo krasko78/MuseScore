@@ -35,48 +35,70 @@ class IAppShellConfiguration : MODULE_EXPORT_INTERFACE
 {
     INTERFACE_ID(IAppshellConfiguration)
 
-// --- KRASKO'S SETTINGS START --- // krasko start
-public:
-    // General/Miscellaneous
-    virtual bool autoRestoreSessionOnStart() const = 0;
-    virtual bool focusExportButtonOnExportDialog() const = 0;
+// krasko start: KRASKO'S SETTINGS
 
-    // Navigation
+public:
+    virtual bool autoRestoreSessionOnStart() const = 0;
+
+    virtual bool focusExportButtonOnExportDialog() const = 0;
+    virtual muse::async::Channel<bool> focusExportButtonOnExportDialogChanged() const = 0;
+
     virtual bool tabAndShiftTabNavigateBetweenControls() const = 0;
 
-    // Editing
-    virtual bool editElementKeyCyclesThroughGrips() const = 0;
-    virtual bool escKeyKeepsSelectionWhenEditing() const = 0;
-    virtual bool showSameColorCheckBoxOnSelectMoreDialog() const = 0;
-    virtual bool enableAltModifierKeyForNudging() const = 0;
-    virtual bool enableHighPrecisionNudging() const = 0;
-    virtual double stepForSpinControlsOnAppearanceTab() const = 0;
+    virtual bool changeActiveGripWithEditElementKey() const = 0;
 
-    // Engraving / Layout
-    virtual bool textStylesToUseFontHeight(const std::string csvTextStyles) const = 0;
+    virtual bool escKeyPreservesSelectionWhenEditing() const = 0;
+
+    virtual bool expandShowMoreSectionsInPropertiesPanel() const = 0;
+    virtual muse::async::Channel<bool> expandShowMoreSectionsInPropertiesPanelChanged() const = 0;
+
+    virtual bool doNotHighlightDisabledItemsOnHover() const = 0;
+    virtual muse::async::Channel<bool> doNotHighlightDisabledItemsOnHoverChanged() const = 0;
+
+    virtual bool showScrollbarOnScrollableDropDownLists() const = 0;
+    virtual muse::async::Channel<bool> showScrollbarOnScrollableDropDownListsChanged() const = 0;
+
     virtual mu::engraving::Color invisibleElementsColor() const = 0;
-    virtual bool fixBeamedNotesFingeringTooCloseToStaff() const = 0;
-    virtual bool fixExtraSpacingOnMultilineFingering() const = 0;
-
-    // UI
-    virtual mu::engraving::Color scrollbarColor() const = 0;
-    virtual mu::engraving::Color activeGripColor() const = 0;
-    virtual int flickDeceleration() const = 0;
-    virtual int verticalPanelsWidth() const = 0;
-    virtual bool expandShowMore() const = 0;
-    virtual bool hoverDisabledItems() const = 0;
-    virtual bool menuFontFollowsPreferencesFont() const = 0;
-    virtual std::string menuFontSizeRatio() const = 0;
-    virtual bool showScrollbarOnDropDownLists() const = 0;
-
-    // Notifications
     virtual muse::async::Channel<mu::engraving::Color> invisibleElementsColorChanged() const = 0;
-    virtual muse::async::Channel<mu::engraving::Color> scrollbarColorChanged() const = 0;
+
+    virtual mu::engraving::Color activeGripColor() const = 0;
     virtual muse::async::Channel<mu::engraving::Color> activeGripColorChanged() const = 0;
+
+    virtual mu::engraving::Color scrollbarColor() const = 0;
+    virtual muse::async::Channel<mu::engraving::Color> scrollbarColorChanged() const = 0;
+
+    virtual bool mainMenuFontFollowsPreferencesFont() const = 0;
+    virtual muse::async::Channel<bool> mainMenuFontFollowsPreferencesFontChanged() const = 0;
+
+    virtual double mainMenuFontSizeMultiplier() const = 0;
+    virtual muse::async::Channel<double> mainMenuFontSizeMultiplierChanged() const = 0;
+
+    virtual bool enableHighPrecisionNudging() const = 0;
+
+    virtual bool showSameColorCheckBoxOnSelectMoreDialog() const = 0;
+
+    virtual int verticalPanelsWidth() const = 0;
     virtual muse::async::Channel<int> verticalPanelsWidthChanged() const = 0;
-    virtual muse::async::Channel<bool> menuFontFollowsPreferencesFontChanged() const = 0;
-    virtual muse::async::Channel<std::string> menuFontSizeRatioChanged() const = 0;
-// --- KRASKO'S SETTINGS END --- // krasko end
+
+    virtual int scrollDecelerationOfListsAndPanels() const = 0;
+    virtual muse::async::Channel<int> scrollDecelerationOfListsAndPanelsChanged() const = 0;
+
+    virtual double stepForSpinControlsOnAppearanceTab() const = 0;
+    virtual muse::async::Channel<double> stepForSpinControlsOnAppearanceTabChanged() const = 0;
+
+    virtual std::string textStylesToUseFullFontHeight() const = 0;
+    virtual muse::async::Channel<std::string> textStylesToUseFullFontHeightChanged() const = 0;
+
+    virtual bool fixFingeringTooCloseToStaffOnBeamedNotes() const = 0;
+    virtual muse::async::Channel<bool> fixFingeringTooCloseToStaffOnBeamedNotesChanged() const = 0;
+
+    virtual bool removeExtraSpacingOnMultilineFingering() const = 0;
+    virtual muse::async::Channel<bool> removeExtraSpacingOnMultilineFingeringChanged() const = 0;
+
+public:
+    virtual bool isValueInCsvList(const std::string& s, const std::string& csvList) const = 0;
+
+// krasko end: KRASKO'S SETTINGS
 
 public:
     virtual ~IAppShellConfiguration() = default;

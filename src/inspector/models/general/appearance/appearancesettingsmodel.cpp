@@ -38,6 +38,10 @@ AppearanceSettingsModel::AppearanceSettingsModel(QObject* parent, IElementReposi
     createProperties();
 
     setTitle(muse::qtrc("inspector", "Appearance"));
+
+    appshellConfiguration()->stepForSpinControlsOnAppearanceTabChanged().onReceive(this, [this](double value) { // krasko
+        emit stepChanged(value);
+    });
 }
 
 void AppearanceSettingsModel::createProperties()

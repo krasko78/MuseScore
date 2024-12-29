@@ -2454,7 +2454,7 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                     double d = sk.minDistance(ss->skyline().north());
                     double yd = 0.0;
                     if (d > 0.0 && item->isStyled(Pid::MIN_DISTANCE)) {
-                        double extraSpacingBelow = !appshellConfiguration()->fixExtraSpacingOnMultilineFingering() // krasko
+                        double extraSpacingBelow = !appshellConfiguration()->removeExtraSpacingOnMultilineFingering() // krasko
                                                 ? item->ldata()->bbox().height() * .25
                                                 : item->lineHeight() * 0.15;
                         yd -= d + extraSpacingBelow;
@@ -2465,14 +2465,14 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                         top = stem->y() + stem->ldata()->bbox().top();
                     } else {
                         const Note* un = chord->upNote();
-                        if (!appshellConfiguration()->fixBeamedNotesFingeringTooCloseToStaff()) { // krasko start: Fingering on beamed notes should respect the min ditance to staff
+                        if (!appshellConfiguration()->fixFingeringTooCloseToStaffOnBeamedNotes()) { // krasko start
                             top = std::min(0.0, un->y() + un->ldata()->bbox().top());
                         }
                         else {
                             top = un->y() + un->ldata()->bbox().top();
                         }
                     }
-                    if (appshellConfiguration()->fixBeamedNotesFingeringTooCloseToStaff()) {
+                    if (appshellConfiguration()->fixFingeringTooCloseToStaffOnBeamedNotes()) {
                         top = std::min(0.0, top);
                     } // krasko end
                     top -= md;
@@ -2501,7 +2501,7 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                     double d = ss->skyline().south().minDistance(sk);
                     double yd = 0.0;
                     if (d > 0.0 && item->isStyled(Pid::MIN_DISTANCE)) {
-                        double extraSpacingAbove = !appshellConfiguration()->fixExtraSpacingOnMultilineFingering() // krasko
+                        double extraSpacingAbove = !appshellConfiguration()->removeExtraSpacingOnMultilineFingering() // krasko
                                                 ? item->ldata()->bbox().height() * .25
                                                 : item->lineHeight() * .15;
                         yd += d + extraSpacingAbove;
@@ -2512,14 +2512,14 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                         bottom = stem->y() + stem->ldata()->bbox().bottom();
                     } else {
                         const Note* dn = chord->downNote();
-                        if (!appshellConfiguration()->fixBeamedNotesFingeringTooCloseToStaff()) { // krasko start: Fingering on beamed notes should respect the min ditance to staff
+                        if (!appshellConfiguration()->fixFingeringTooCloseToStaffOnBeamedNotes()) { // krasko start
                             bottom = std::max(vStaff->staffHeight(item->tick()), dn->y() + dn->ldata()->bbox().bottom());
                         }
                         else {
                             bottom = dn->y() + dn->ldata()->bbox().bottom();
                         }
                     }
-                    if (appshellConfiguration()->fixBeamedNotesFingeringTooCloseToStaff()) {
+                    if (appshellConfiguration()->fixFingeringTooCloseToStaffOnBeamedNotes()) {
                         bottom = std::max(vStaff->staffHeight(item->tick()), bottom);
                     } // krasko end
                     bottom += md;

@@ -51,66 +51,97 @@ class AppShellConfiguration : public IAppShellConfiguration, public muse::Inject
     muse::Inject<playback::IPlaybackConfiguration> playbackConfiguration = { this };
     muse::Inject<muse::languages::ILanguagesConfiguration> languagesConfiguration = { this };
 
-// --- KRASKO'S SETTINGS START ---
-public:
-    // General/Miscellaneous
-    bool autoRestoreSessionOnStart() const override;
-    bool focusExportButtonOnExportDialog() const override;
+// krasko start: KRASKO'S SETTINGS
 
-    // Navigation
+public:
+    bool autoRestoreSessionOnStart() const override;
+
+    bool focusExportButtonOnExportDialog() const override;
+    muse::async::Channel<bool> focusExportButtonOnExportDialogChanged() const override;
+
     bool tabAndShiftTabNavigateBetweenControls() const override;
 
-    // Editing
-    bool editElementKeyCyclesThroughGrips() const override;
-    bool escKeyKeepsSelectionWhenEditing() const override;
-    bool showSameColorCheckBoxOnSelectMoreDialog() const override;
-    bool enableAltModifierKeyForNudging() const override;
-    bool enableHighPrecisionNudging() const override;
-    double stepForSpinControlsOnAppearanceTab() const override;
+    bool changeActiveGripWithEditElementKey() const override;
 
-    // Engraving / Layout
-    bool textStylesToUseFontHeight(const std::string csvTextStyles) const override;
+    bool escKeyPreservesSelectionWhenEditing() const override;
+
+    bool expandShowMoreSectionsInPropertiesPanel() const override;
+    muse::async::Channel<bool> expandShowMoreSectionsInPropertiesPanelChanged() const override;
+
+    bool doNotHighlightDisabledItemsOnHover() const override;
+    muse::async::Channel<bool> doNotHighlightDisabledItemsOnHoverChanged() const override;
+
+    bool showScrollbarOnScrollableDropDownLists() const override;
+    muse::async::Channel<bool> showScrollbarOnScrollableDropDownListsChanged() const override;
+
     mu::engraving::Color invisibleElementsColor() const override;
-    bool fixBeamedNotesFingeringTooCloseToStaff() const override;
-    bool fixExtraSpacingOnMultilineFingering() const override;
-
-    // UI
-    mu::engraving::Color scrollbarColor() const override;
-    mu::engraving::Color activeGripColor() const override;
-    int flickDeceleration() const override;
-    int verticalPanelsWidth() const override;
-    bool expandShowMore() const override;
-    bool hoverDisabledItems() const override;
-    bool menuFontFollowsPreferencesFont() const override;
-    std::string menuFontSizeRatio() const override;
-    bool showScrollbarOnDropDownLists() const override;
-
-    // Notifications
     muse::async::Channel<mu::engraving::Color> invisibleElementsColorChanged() const override;
-    muse::async::Channel<mu::engraving::Color> scrollbarColorChanged() const override;
+
+    mu::engraving::Color activeGripColor() const override;
     muse::async::Channel<mu::engraving::Color> activeGripColorChanged() const override;
+
+    mu::engraving::Color scrollbarColor() const override;
+    muse::async::Channel<mu::engraving::Color> scrollbarColorChanged() const override;
+
+    bool mainMenuFontFollowsPreferencesFont() const override;
+    muse::async::Channel<bool> mainMenuFontFollowsPreferencesFontChanged() const override;
+
+    double mainMenuFontSizeMultiplier() const override;
+    muse::async::Channel<double> mainMenuFontSizeMultiplierChanged() const override;
+
+    bool enableHighPrecisionNudging() const override;
+
+    bool showSameColorCheckBoxOnSelectMoreDialog() const override;
+
+    int verticalPanelsWidth() const override;
     muse::async::Channel<int> verticalPanelsWidthChanged() const override;
-    muse::async::Channel<bool> menuFontFollowsPreferencesFontChanged() const override;
-    muse::async::Channel<std::string> menuFontSizeRatioChanged() const override;
+
+    int scrollDecelerationOfListsAndPanels() const override;
+    muse::async::Channel<int> scrollDecelerationOfListsAndPanelsChanged() const override;
+
+    double stepForSpinControlsOnAppearanceTab() const override;
+    muse::async::Channel<double> stepForSpinControlsOnAppearanceTabChanged() const override;
+
+    std::string textStylesToUseFullFontHeight() const override;
+    muse::async::Channel<std::string> textStylesToUseFullFontHeightChanged() const override;
+
+    bool fixFingeringTooCloseToStaffOnBeamedNotes() const override;
+    muse::async::Channel<bool> fixFingeringTooCloseToStaffOnBeamedNotesChanged() const override;
+
+    bool removeExtraSpacingOnMultilineFingering() const override;
+    muse::async::Channel<bool> removeExtraSpacingOnMultilineFingeringChanged() const override;
+
+public:
+    bool isValueInCsvList(const std::string& s, const std::string& csvList) const override;
 
 private:
+    muse::async::Channel<bool> m_focusExportButtonOnExportDialogChanged;
+    muse::async::Channel<bool> m_expandShowMoreSectionsInPropertiesPanelChanged;
+    muse::async::Channel<bool> m_doNotHighlightDisabledItemsOnHoverChanged;
+    muse::async::Channel<bool> m_showScrollbarOnScrollableDropDownListsChanged;
     muse::async::Channel<mu::engraving::Color> m_invisibleElementsColorChanged;
-    muse::async::Channel<mu::engraving::Color> m_scrollbarColorChanged;
     muse::async::Channel<mu::engraving::Color> m_activeGripColorChanged;
+    muse::async::Channel<mu::engraving::Color> m_scrollbarColorChanged;
+    muse::async::Channel<bool> m_mainMenuFontFollowsPreferencesFontChanged;
+    muse::async::Channel<double> m_mainMenuFontSizeMultiplierChanged;
     muse::async::Channel<int> m_verticalPanelsWidthChanged;
-    muse::async::Channel<bool> m_menuFontFollowsPreferencesFontChanged;
-    muse::async::Channel<std::string> m_menuFontSizeRatioChanged;
+    muse::async::Channel<int> m_scrollDecelerationOfListsAndPanelsChanged;
+    muse::async::Channel<double> m_stepForSpinControlsOnAppearanceTabChanged;
+    muse::async::Channel<std::string> m_textStylesToUseFullFontHeightChanged;
+    muse::async::Channel<bool> m_fixFingeringTooCloseToStaffOnBeamedNotesChanged;
+    muse::async::Channel<bool> m_removeExtraSpacingOnMultilineFingeringChanged;
 
     void initKraskoSettings();
     void createKraskoSettings();
     void updateRenamedKraskoSettings();
     void deleteUnusedKraskoSettings();
+    void notifyAboutChangedKraskoSettings();
 
     const muse::Settings::Key* findKraskoSettingKey(const std::string& keyName) const;
     bool existsKraskoSetting(const std::string& keyName) const;
     muse::Val kraskoSettingValue(const std::string& keyName) const;
-    bool isStrInCSVString(std::string s, std::string csvStr) const;
-// --- KRASKO'S SETTINGS END ---
+
+// krasko end: KRASKO'S SETTINGS
 
 public:
     AppShellConfiguration(const muse::modularity::ContextPtr& iocCtx)

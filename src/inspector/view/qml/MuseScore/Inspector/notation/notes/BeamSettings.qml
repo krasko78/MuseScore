@@ -234,7 +234,7 @@ FocusableItem {
 
             ExpandableBlank {
                 id: showItem
-                isExpanded: false
+                isExpanded: appshellConfig.expandShowMoreSectionsInPropertiesPanel // krasko
 
                 title: isExpanded ? qsTrc("inspector", "Show less") : qsTrc("inspector", "Show more")
 

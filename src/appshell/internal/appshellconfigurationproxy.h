@@ -35,25 +35,33 @@ class AppShellConfigurationProxy : public QObject, muse::async::Asyncable
 
     Inject<mu::appshell::IAppShellConfiguration> appshellConfiguration;
 
-    Q_PROPERTY(bool focusExportButtonOnExportDialog READ focusExportButtonOnExportDialog CONSTANT)
+    Q_PROPERTY(bool focusExportButtonOnExportDialog READ focusExportButtonOnExportDialog NOTIFY focusExportButtonOnExportDialogChanged)
     bool focusExportButtonOnExportDialog() { return appshellConfiguration()->focusExportButtonOnExportDialog(); }
 
-    Q_PROPERTY(int verticalPanelsWidth READ verticalPanelsWidth NOTIFY verticalPanelsWidthChanged)
+	Q_PROPERTY(bool expandShowMoreSectionsInPropertiesPanel READ expandShowMoreSectionsInPropertiesPanel NOTIFY expandShowMoreSectionsInPropertiesPanelChanged)
+    bool expandShowMoreSectionsInPropertiesPanel() { return appshellConfiguration()->expandShowMoreSectionsInPropertiesPanel(); }
+
+	Q_PROPERTY(bool doNotHighlightDisabledItemsOnHover READ doNotHighlightDisabledItemsOnHover NOTIFY doNotHighlightDisabledItemsOnHoverChanged)
+	bool doNotHighlightDisabledItemsOnHover() { return appshellConfiguration()->doNotHighlightDisabledItemsOnHover(); }
+
+	Q_PROPERTY(bool showScrollbarOnScrollableDropDownLists READ showScrollbarOnScrollableDropDownLists NOTIFY showScrollbarOnScrollableDropDownListsChanged)
+	bool showScrollbarOnScrollableDropDownLists() { return appshellConfiguration()->showScrollbarOnScrollableDropDownLists(); }
+
+	Q_PROPERTY(int verticalPanelsWidth READ verticalPanelsWidth NOTIFY verticalPanelsWidthChanged)
     int verticalPanelsWidth() { return appshellConfiguration()->verticalPanelsWidth(); }
-
-    Q_PROPERTY(bool expandShowMore READ expandShowMore CONSTANT)
-    bool expandShowMore() { return appshellConfiguration()->expandShowMore(); }
-
-    Q_PROPERTY(bool hoverDisabledItems READ hoverDisabledItems CONSTANT)
-    bool hoverDisabledItems() { return appshellConfiguration()->hoverDisabledItems(); }
-
-    Q_PROPERTY(bool showScrollbarOnDropDownLists READ showScrollbarOnDropDownLists CONSTANT)
-    bool showScrollbarOnDropDownLists() { return appshellConfiguration()->showScrollbarOnDropDownLists(); }
 
 public:
     void init();
 
 signals:
+    void focusExportButtonOnExportDialogChanged(bool newValue);
+
+    void expandShowMoreSectionsInPropertiesPanelChanged(bool newValue);
+
+    void doNotHighlightDisabledItemsOnHoverChanged(bool newValue);
+
+    void showScrollbarOnScrollableDropDownListsChanged(bool newValue);
+
     void verticalPanelsWidthChanged(int newValue);
 };
 }

@@ -173,7 +173,7 @@ public:
 
     async::Channel<Val> valueChanged() const;
 
-    const SettingsCreator& noValueChangedNeeded() const;
+    const SettingsCreator& withoutValueChangedNotifications() const;
 
 private:
     Settings* m_settings;

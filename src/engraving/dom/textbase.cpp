@@ -1079,8 +1079,12 @@ void TextBlock::layout(const TextBase* t)
                 x += w;
             }
 
-            RectF textBRect = (appshellConfiguration()->textStylesToUseFontHeight(textStyleNames[(int)t->textStyleType()]) // krasko
-                ? fm.boundingRect(f.text) : fm.tightBoundingRect(f.text)).translated(f.pos);
+            bool useBoundingRect = appshellConfiguration()->isValueInCsvList( // krasko
+                textStyleNames[(int)t->textStyleType()],
+                appshellConfiguration()->textStylesToUseFullFontHeight());
+
+            RectF textBRect = (useBoundingRect ? fm.boundingRect(f.text) : fm.tightBoundingRect(f.text)) // krasko
+                                .translated(f.pos);
             bool useDynamicSymShape = fragmentFont.type() == Font::Type::MusicSymbol && t->isDynamic();
             if (useDynamicSymShape) {
                 const Dynamic* dyn = toDynamic(t);

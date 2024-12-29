@@ -43,7 +43,7 @@ class AppearanceSettingsModel : public AbstractInspectorModel
     Q_PROPERTY(PropertyItem * offset READ offset CONSTANT)
     Q_PROPERTY(bool isSnappedToGrid READ isSnappedToGrid WRITE setIsSnappedToGrid NOTIFY isSnappedToGridChanged)
     Q_PROPERTY(bool isVerticalOffsetAvailable READ isVerticalOffsetAvailable NOTIFY isVerticalOffsetAvailableChanged)
-    Q_PROPERTY(double step READ step CONSTANT) // krasko
+    Q_PROPERTY(double step READ step NOTIFY stepChanged) // krasko
 
 public:
     explicit AppearanceSettingsModel(QObject* parent, IElementRepositoryService* repository);
@@ -79,6 +79,7 @@ public slots:
 signals:
     void isSnappedToGridChanged(bool isSnappedToGrid);
     void isVerticalOffsetAvailableChanged(bool isVerticalOffsetAvailable);
+    void stepChanged(double step); // krasko
 
 private:
     void onNotationChanged(const mu::engraving::PropertyIdSet& changedPropertyIdSet,

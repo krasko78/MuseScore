@@ -102,20 +102,19 @@ static mu::engraving::KeyboardModifier keyboardModifier(Qt::KeyboardModifiers km
     return mu::engraving::KeyboardModifier(int(km));
 }
 
-static qreal nudgeDistance(const mu::engraving::EditData& editData, bool allowSmallerNudge) // krasko
+static qreal nudgeDistance(const mu::engraving::EditData& editData)
 {
-    allowSmallerNudge = false;
     qreal spatium = editData.element->spatium();
 
-    if (editData.element->isBeam()) {
+    /*if (editData.element->isBeam()) { // krasko start: do not treat beams differently
         if (editData.modifiers & Qt::ControlModifier) {
-            return spatium * (allowSmallerNudge ? 0.25 : 1.0); // krasko
+            return spatium;
         } else if (editData.modifiers & Qt::AltModifier) {
-            return spatium * 4 * (allowSmallerNudge ? 0.25 : 1.0); // krasko
+            return spatium * 4;
         }
 
-        return spatium * 0.25 * (allowSmallerNudge ? 0.25 : 1.0); // krasko
-    }
+        return spatium * 0.25;
+    }*/ // krasko end
 
     if (editData.modifiers & Qt::ControlModifier) {
         return spatium * mu::engraving::MScore::nudgeStep10;
@@ -126,12 +125,12 @@ static qreal nudgeDistance(const mu::engraving::EditData& editData, bool allowSm
     return spatium * mu::engraving::MScore::nudgeStep;
 }
 
-static qreal nudgeDistance(const mu::engraving::EditData& editData, qreal raster, bool allowSmallerNudge) // krasko
+static qreal nudgeDistance(const mu::engraving::EditData& editData, qreal raster)
 {
-    qreal distance = nudgeDistance(editData, allowSmallerNudge); // krasko
+    qreal distance = nudgeDistance(editData);
     if (raster > 0) {
         raster = editData.element->spatium() / raster;
-        if (distance < raster && !allowSmallerNudge) { // krasko
+        if (distance < raster) {
             distance = raster;
         }
     }
@@ -212,6 +211,27 @@ NotationInteraction::NotationInteraction(Notation* notation, INotationUndoStackP
 
     m_notation->viewModeChanged().onNotify(this, [this]() {
         onViewModeChanged();
+    });
+
+    auto layoutScore = [this]() // krasko: relayout entire score
+    { 
+        Score* s = score();
+        if (s) {
+            s->doLayout();
+            notifyAboutNotationChanged();
+        }
+    };
+
+    appshellConfiguration()->textStylesToUseFullFontHeightChanged().onReceive(this, [this, layoutScore](const std::string&) { // krasko
+        layoutScore();
+    });
+
+    appshellConfiguration()->fixFingeringTooCloseToStaffOnBeamedNotesChanged().onReceive(this, [this, layoutScore](bool) { // krasko
+        layoutScore();
+    });
+
+    appshellConfiguration()->removeExtraSpacingOnMultilineFingeringChanged().onReceive(this, [this, layoutScore](bool) { // krasko
+        layoutScore();
     });
 }
 
@@ -3338,7 +3358,7 @@ bool NotationInteraction::needStartEditGrip(QKeyEvent* event) const
 
 bool NotationInteraction::handleKeyPress(QKeyEvent* event)
 {
-    if (event->modifiers() & Qt::KeyboardModifier::AltModifier && !appshellConfiguration()->enableAltModifierKeyForNudging()) { // krasko
+    if (event->modifiers() & Qt::KeyboardModifier::AltModifier) {
         return false;
     }
 
@@ -3348,6 +3368,8 @@ bool NotationInteraction::handleKeyPress(QKeyEvent* event)
 
     qreal vRaster = mu::engraving::MScore::vRaster();
     qreal hRaster = mu::engraving::MScore::hRaster();
+
+    qreal raster = 0; // krasko
 
     switch (event->key()) {
     case Qt::Key_Tab:
@@ -3366,18 +3388,22 @@ bool NotationInteraction::handleKeyPress(QKeyEvent* event)
         m_editData.element->prevGrip(m_editData);
 
         return true;
-    case Qt::Key_Left:
-        m_editData.delta = QPointF(-nudgeDistance(m_editData, hRaster, appshellConfiguration()->enableHighPrecisionNudging()), 0); // krasko
+    case Qt::Key_Left: // krasko start
+        raster = appshellConfiguration()->enableHighPrecisionNudging() ? 0 : hRaster;
+        m_editData.delta = QPointF(-nudgeDistance(m_editData, raster), 0);
         break;
     case Qt::Key_Right:
-        m_editData.delta = QPointF(nudgeDistance(m_editData, hRaster, appshellConfiguration()->enableHighPrecisionNudging()), 0); // krasko
+        raster = appshellConfiguration()->enableHighPrecisionNudging() ? 0 : hRaster;
+        m_editData.delta = QPointF(nudgeDistance(m_editData, raster), 0);
         break;
     case Qt::Key_Up:
-        m_editData.delta = QPointF(0, -nudgeDistance(m_editData, vRaster, appshellConfiguration()->enableHighPrecisionNudging())); // krasko
+        raster = appshellConfiguration()->enableHighPrecisionNudging() ? 0 : vRaster;
+        m_editData.delta = QPointF(0, -nudgeDistance(m_editData, raster));
         break;
     case Qt::Key_Down:
-        m_editData.delta = QPointF(0, nudgeDistance(m_editData, vRaster, appshellConfiguration()->enableHighPrecisionNudging())); // krasko
-        break;
+        raster = appshellConfiguration()->enableHighPrecisionNudging() ? 0 : vRaster;
+        m_editData.delta = QPointF(0, nudgeDistance(m_editData, raster));
+        break; // krasko end
     default:
         return false;
     }
@@ -3651,7 +3677,7 @@ bool NotationInteraction::isEditAllowed(QKeyEvent* event)
         return true;
     }
 
-    if (event->modifiers() & Qt::KeyboardModifier::AltModifier && !appshellConfiguration()->enableAltModifierKeyForNudging()) { // krasko
+    if (event->modifiers() & Qt::KeyboardModifier::AltModifier) {
         return false;
     }
 

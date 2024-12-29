@@ -144,7 +144,7 @@ DropdownView {
             model: root.model
 
             Component.onCompleted: { // krasko
-                if (appshellConfig.showScrollbarOnDropDownLists) {
+                if (appshellConfig.showScrollbarOnScrollableDropDownLists) {
                     scrollBarPolicy = ScrollBar.AlwaysOn
                 }
             }
