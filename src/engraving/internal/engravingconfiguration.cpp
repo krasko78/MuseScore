@@ -137,10 +137,6 @@ void EngravingConfiguration::init()
         m_unlinkedColorChanged.send(Color::fromQColor(val.toQColor()));
     });
 
-    appShellConfiguration()->invisibleElementsColorChanged().onReceive(this, [this](const Color& val) { // krasko
-        m_invisibleColorChanged.send(val);
-    });
-
     appShellConfiguration()->activeGripColorChanged().onReceive(this, [this](const Color& val) { // krasko
         m_activeGripColorChanged.send(val);
     });

@@ -74,9 +74,6 @@ public:
     bool showScrollbarOnScrollableDropDownLists() const override;
     muse::async::Channel<bool> showScrollbarOnScrollableDropDownListsChanged() const override;
 
-    mu::engraving::Color invisibleElementsColor() const override;
-    muse::async::Channel<mu::engraving::Color> invisibleElementsColorChanged() const override;
-
     mu::engraving::Color activeGripColor() const override;
     muse::async::Channel<mu::engraving::Color> activeGripColorChanged() const override;
 
@@ -119,7 +116,6 @@ private:
     muse::async::Channel<bool> m_expandShowMoreSectionsInPropertiesPanelChanged;
     muse::async::Channel<bool> m_doNotHighlightDisabledItemsOnHoverChanged;
     muse::async::Channel<bool> m_showScrollbarOnScrollableDropDownListsChanged;
-    muse::async::Channel<mu::engraving::Color> m_invisibleElementsColorChanged;
     muse::async::Channel<mu::engraving::Color> m_activeGripColorChanged;
     muse::async::Channel<mu::engraving::Color> m_scrollbarColorChanged;
     muse::async::Channel<bool> m_mainMenuFontFollowsPreferencesFontChanged;

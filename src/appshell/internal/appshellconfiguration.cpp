@@ -59,8 +59,6 @@ static constexpr char KEY_DoNotHighlightDisabledItemsOnHover[] = "krasko/doNotHi
 
 static constexpr char KEY_ShowScrollbarOnScrollableDropDownLists[] = "krasko/showScrollbarOnScrollableDropDownLists";
 
-static constexpr char KEY_InvisibleElementsColor[] = "krasko/invisibleElementsColor";
-
 static constexpr char KEY_ActiveGripColor[] = "krasko/activeGripColor";
 
 static constexpr char KEY_ScrollbarColor[] = "krasko/scrollbarColor";
@@ -225,14 +223,6 @@ void AppShellConfiguration::createKraskoSettings()
             "Otherwise, it will only appear when the mouse hovers over it."))
         .valueChanged().onReceive(this, [this](const Val& val) {
             m_showScrollbarOnScrollableDropDownListsChanged.send(val.toBool());
-        });
-
-    sc.createSetting(krasko_module_name, KEY_InvisibleElementsColor)
-        .setDefaultValue(Val(QColor("#808080")))
-        .setDescription(muse::trc("krasko", "Invisible elements color"))
-        .setHelpString(muse::trc("krasko", "The color to use for the invisible elements."))
-        .valueChanged().onReceive(this, [this](const Val& val) {
-            m_invisibleElementsColorChanged.send(mu::engraving::Color::fromQColor(val.toQColor()));
         });
 
     sc.createSetting(krasko_module_name, KEY_ActiveGripColor)
@@ -545,16 +535,6 @@ bool AppShellConfiguration::showScrollbarOnScrollableDropDownLists() const
 muse::async::Channel<bool> AppShellConfiguration::showScrollbarOnScrollableDropDownListsChanged() const
 {
     return m_showScrollbarOnScrollableDropDownListsChanged;
-}
-
-mu::engraving::Color AppShellConfiguration::invisibleElementsColor() const
-{
-    return mu::engraving::Color::fromQColor(kraskoSettingValue(KEY_InvisibleElementsColor).toQColor());
-}
-
-muse::async::Channel<mu::engraving::Color> AppShellConfiguration::invisibleElementsColorChanged() const
-{
-    return m_invisibleElementsColorChanged;
 }
 
 mu::engraving::Color AppShellConfiguration::activeGripColor() const

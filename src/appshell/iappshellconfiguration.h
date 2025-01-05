@@ -58,9 +58,6 @@ public:
     virtual bool showScrollbarOnScrollableDropDownLists() const = 0;
     virtual muse::async::Channel<bool> showScrollbarOnScrollableDropDownListsChanged() const = 0;
 
-    virtual mu::engraving::Color invisibleElementsColor() const = 0;
-    virtual muse::async::Channel<mu::engraving::Color> invisibleElementsColorChanged() const = 0;
-
     virtual mu::engraving::Color activeGripColor() const = 0;
     virtual muse::async::Channel<mu::engraving::Color> activeGripColorChanged() const = 0;
 
