@@ -19216,7 +19216,7 @@ l&apos;anacrouse</translation>
     <message>
         <location filename="../../src/importexport/musicxml/internal/musicxml/musicxmlsupport.cpp" line="241"/>
         <source>expected token type and name ‘EndElement %1’, actual ‘%2 %3’</source>
-        <translation>Type et nom de jeton attendus ‘EndElement %1’, actuellement ‘%2 %3’</translation>
+        <translation>type et nom de jeton attendus ‘EndElement %1’, actuellement ‘%2 %3’</translation>
     </message>
     <message>
         <location filename="../../src/importexport/musicxml/internal/musicxml/musicxmlvalidation.cpp" line="197"/>
@@ -21913,7 +21913,7 @@ l&apos;anacrouse</translation>
     <message>
         <location filename="../../src/instrumentsscene/qml/MuseScore/InstrumentsScene/internal/InstrumentSettingsPopup.qml" line="128"/>
         <source>Reset all formatting</source>
-        <translation>Réinitialiser tout le mise en forme</translation>
+        <translation>Réinitialiser toute la mise en forme</translation>
     </message>
     <message>
         <location filename="../../src/instrumentsscene/qml/MuseScore/InstrumentsScene/internal/InstrumentsOnScoreView.qml" line="78"/>
