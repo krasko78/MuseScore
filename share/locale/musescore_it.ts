@@ -1720,7 +1720,7 @@
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="64"/>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="259"/>
         <source>Score</source>
-        <translation>Partitura </translation>
+        <translation>Partitura</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="69"/>
@@ -10487,9 +10487,9 @@ Questa azione non eliminerà nessuna delle tue partiture.</translation>
     </message>
     <message>
         <location filename="../../src/appshell/qml/AboutDialog.qml" line="140"/>
-        <source>Copyright © 1999-2024 MuseScore Limited.
+        <source>Copyright © 1999-2025 MuseScore Limited.
 Published under the &lt;a href=&quot;%1&quot;&gt;GNU General Public License version 3&lt;/a&gt;.</source>
-        <translation>Copyright © 1999-2024 MuseScore Limited.
+        <translation>Copyright © 1999-2025 MuseScore Limited.
 Pubblicato sotto la &lt;a href=&quot;%1&quot;&gt;GNU General Public License versione 3&lt;/a&gt;.</translation>
     </message>
     <message>
@@ -10618,7 +10618,7 @@ Pubblicato sotto la &lt;a href=&quot;%1&quot;&gt;GNU General Public License vers
     <message>
         <location filename="../../src/appshell/view/firstlaunchsetup/firstlaunchsetupmodel.cpp" line="107"/>
         <source>If you choose to cancel, then be sure to check out our free Muse Sounds playback library on musescore.org.</source>
-        <translation>Se decidi di annullare, assicurati di consultare la nostra libreria di riproduzione gratuita Muse Sounds su musescore.org.</translation>
+        <translation>Se scegli di annullare, assicurati di consultare la nostra libreria di riproduzione gratuita Muse Sounds su musescore.org.</translation>
     </message>
 </context>
 <context>

@@ -192,8 +192,9 @@ mu::engraving::Drumset PercussionPanelPadListModel::constructDefaultLayout(const
     QList<int /*pitch*/> noTemplateFound;
 
     for (int pitch = 0; pitch < mu::engraving::DRUM_INSTRUMENTS; ++pitch) {
-        if (!defaultLayout.isValid(pitch)) {
-            // We aren't currently using this pitch, doesn't matter if it's valid in the template..
+        if (defaultDrumset->isValid(pitch) && !defaultLayout.isValid(pitch)) {
+            // Pitch was deleted - restore it...
+            defaultLayout.drum(pitch) = defaultDrumset->drum(pitch);
             continue;
         }
         //! NOTE: Pitch + drum name isn't exactly the most robust identifier, but this will probably change with the new percussion ID system
@@ -225,6 +226,16 @@ mu::engraving::Drumset PercussionPanelPadListModel::constructDefaultLayout(const
     return defaultLayout;
 }
 
+void PercussionPanelPadListModel::focusFirstActivePad()
+{
+    for (int i = 0; i < m_padModels.size(); i++) {
+        if (m_padModels.at(i)) {
+            emit padFocusRequested(i);
+            return;
+        }
+    }
+}
+
 void PercussionPanelPadListModel::focusLastActivePad()
 {
     for (int i = m_padModels.size() - 1; i >= 0; --i) {
@@ -233,6 +244,35 @@ void PercussionPanelPadListModel::focusLastActivePad()
             return;
         }
     }
+}
+
+int PercussionPanelPadListModel::nextAvailableIndex(int pitch) const
+{
+    const int currentModelIndex = getModelIndexForPitch(pitch);
+    for (int candidateIndex = currentModelIndex + 1; candidateIndex != currentModelIndex; ++candidateIndex) {
+        if (candidateIndex == m_padModels.size()) {
+            // Wrap around
+            candidateIndex = 0;
+        }
+        if (!m_padModels.at(candidateIndex)) {
+            return candidateIndex;
+        }
+    }
+    return m_padModels.size();
+}
+
+int PercussionPanelPadListModel::nextAvailablePitch(int pitch) const
+{
+    for (int candidatePitch = pitch + 1; candidatePitch != pitch; ++candidatePitch) {
+        if (candidatePitch == mu::engraving::DRUM_INSTRUMENTS) {
+            // Wrap around
+            candidatePitch = 0;
+        }
+        if (!m_drumset->isValid(candidatePitch)) {
+            return candidatePitch;
+        }
+    }
+    return -1;
 }
 
 void PercussionPanelPadListModel::load()
@@ -312,13 +352,13 @@ PercussionPanelPadModel* PercussionPanelPadListModel::createPadModelForPitch(int
     PercussionPanelPadModel* model = new PercussionPanelPadModel(this);
     model->setPadName(m_drumset->name(pitch));
 
-    const QString shortcut = m_drumset->shortcut(pitch) ? QChar(m_drumset->shortcut(pitch)) : QString("-");
+    const QString shortcut = m_drumset->shortcut(pitch) ? QChar(m_drumset->shortcut(pitch)) : QChar('\0');
     model->setKeyboardShortcut(shortcut);
 
     model->setPitch(pitch);
 
-    model->padTriggered().onNotify(this, [this, pitch]() {
-        m_triggeredChannel.send(pitch);
+    model->padActionTriggered().onReceive(this, [this, pitch](PercussionPanelPadModel::PadAction action) {
+        m_padActionRequestChannel.send(action, pitch);
     });
 
     model->setNotationPreviewItem(PercussionUtilities::getDrumNoteForPreview(m_drumset, pitch));
@@ -393,6 +433,22 @@ void PercussionPanelPadListModel::swapMidiNotesAndShortcuts(int fromIndex, int t
 
     toModel->setPitch(tempPitch);
     toModel->setKeyboardShortcut(tempShortcut);
+}
+
+int PercussionPanelPadListModel::getModelIndexForPitch(int pitch) const
+{
+    IF_ASSERT_FAILED(m_drumset && m_drumset->isValid(pitch)) {
+        return -1;
+    }
+
+    for (int i = 0; i < m_padModels.size(); ++i) {
+        const PercussionPanelPadModel* model = m_padModels.at(i);
+        if (model && model->pitch() == pitch) {
+            return i;
+        }
+    }
+
+    return -1;
 }
 
 void PercussionPanelPadListModel::movePad(int fromIndex, int toIndex)

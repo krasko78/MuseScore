@@ -318,6 +318,8 @@ void TLayout::layoutItem(EngravingItem* item, LayoutContext& ctx)
         break;
     case ElementType::LYRICSLINE_SEGMENT: layoutLyricsLineSegment(item_cast<LyricsLineSegment*>(item), ctx);
         break;
+    case ElementType::PARTIAL_LYRICSLINE_SEGMENT: layoutLyricsLineSegment(item_cast<LyricsLineSegment*>(item), ctx);
+        break;
     case ElementType::MARKER:
         layoutMarker(item_cast<const Marker*>(item), static_cast<Marker::LayoutData*>(ldata));
         break;
@@ -2363,14 +2365,15 @@ void TLayout::layoutFiguredBass(const FiguredBass* item, FiguredBass::LayoutData
     // Items list will be empty in edit mode (see FiguredBass::startEdit).
     // TODO: consider disabling specific layout in case text style is changed (tid() != TextStyleName::FIGURED_BASS).
     if (item->items().size() > 0) {
+        Shape shape;
         layoutLines(item, ldata, ctx);
-        ldata->setBbox(0, 0, ldata->lineLength(0), 0);
         // layout each item and enlarge bbox to include items bboxes
         for (FiguredBassItem* fit : item->items()) {
             FiguredBassItem::LayoutData* fildata = fit->mutldata();
             layoutFiguredBassItem(fit, fildata, ctx);
-            ldata->addBbox(fildata->bbox().translated(fit->pos()));
+            shape.add(fildata->bbox().translated(fit->pos()));
         }
+        ldata->setShape(shape);
     }
 }
 
@@ -5781,15 +5784,15 @@ void TLayout::layoutTempoText(const TempoText* item, TempoText::LayoutData* ldat
         LD_CONDITION(s->ldata()->isSetPos());
     }
 
-    // tempo text on first chordrest of measure should align over time sig if present
+    // tempo text on first chordrest of measure should align over time sig if present, unless time sig is above staff
     Segment* s = item->segment();
     if (item->autoplace() && s->rtick().isZero()) {
         Segment* p = item->segment()->prev(SegmentType::TimeSig);
-        if (p) {
+        if (p && !p->allElementsInvisible()) {
             ldata->moveX(-(s->x() - p->x()));
             EngravingItem* e = p->element(item->staffIdx() * VOICES);
             if (e) {
-                ldata->moveX(e->x());
+                ldata->moveX(p->hasTimeSigAboveStaves() ? e->x() + e->width() + e->spatium() : e->x());
             }
         }
     }
@@ -6259,10 +6262,6 @@ void TLayout::layoutTimeSig(const TimeSig* item, TimeSig::LayoutData* ldata, con
     LAYOUT_CALL_ITEM(item);
     LD_INDEPENDENT;
 
-    if (ldata->isValid()) {
-        return;
-    }
-
     ldata->setPos(0.0, 0.0);
     double spatium = item->spatium();
 
@@ -6272,6 +6271,18 @@ void TLayout::layoutTimeSig(const TimeSig* item, TimeSig::LayoutData* ldata, con
     ldata->pz = PointF();
     ldata->pn = PointF();
     ldata->pointLargeRightParen = PointF();
+
+    if (!item->showOnThisStaff()) {
+        return;
+    }
+
+    const MStyle& style = item->style();
+    TimeSigPlacement timeSigPlacement = style.styleV(Sid::timeSigPlacement).value<TimeSigPlacement>();
+    if (timeSigPlacement == TimeSigPlacement::NORMAL) {
+        const_cast<TimeSig*>(item)->setSystemFlag(false);
+    } else {
+        const_cast<TimeSig*>(item)->setSystemFlag(true);
+    }
 
     double lineDist = 0.0;
     int numOfLines = 0;
@@ -6311,62 +6322,74 @@ void TLayout::layoutTimeSig(const TimeSig* item, TimeSig::LayoutData* ldata, con
 
     // C and Ccut are placed at the middle of the staff: use yoff directly
     IEngravingFontPtr font = ctx.engravingFont();
-    SizeF mag(item->magS() * item->scale());
+    ScaleF scale = item->scale();
+    SizeF mag(item->magS() * scale);
+    TimeSigStyle timeSigStyle = item->timeSigStyle();
 
+    double numDist = item->numDist() * scale.height();
+
+    Shape shape;
     if (sigType == TimeSigType::FOUR_FOUR) {
         ldata->pz = PointF(0.0, yoff);
-        RectF bbox = font->bbox(SymId::timeSigCommon, mag);
-        ldata->setBbox(bbox.translated(ldata->pz));
+        SymId sym = timeSigStyle == TimeSigStyle::LARGE ? SymId::timeSigCommonLarge
+                    : timeSigStyle == TimeSigStyle::NARROW ? SymId::timeSigCommonNarrow
+                    : SymId::timeSigCommon;
+        RectF bbox = font->bbox(sym, mag);
+        shape.add(bbox.translated(ldata->pz), item);
         ldata->ns.clear();
-        ldata->ns.push_back(SymId::timeSigCommon);
+        ldata->ns.push_back(sym);
         ldata->ds.clear();
     } else if (sigType == TimeSigType::ALLA_BREVE) {
         ldata->pz = PointF(0.0, yoff);
-        RectF bbox = font->bbox(SymId::timeSigCutCommon, mag);
-        ldata->setBbox(bbox.translated(ldata->pz));
+        SymId sym = timeSigStyle == TimeSigStyle::LARGE ? SymId::timeSigCutCommonLarge
+                    : timeSigStyle == TimeSigStyle::NARROW ? SymId::timeSigCutCommonNarrow
+                    : SymId::timeSigCutCommon;
+        RectF bbox = font->bbox(sym, mag);
+        shape.add(bbox.translated(ldata->pz), item);
         ldata->ns.clear();
-        ldata->ns.push_back(SymId::timeSigCutCommon);
+        ldata->ns.push_back(sym);
         ldata->ds.clear();
     } else if (sigType == TimeSigType::CUT_BACH) {
         ldata->pz = PointF(0.0, yoff);
-        RectF bbox = font->bbox(SymId::timeSigCut2, mag);
-        ldata->setBbox(bbox.translated(ldata->pz));
+        SymId sym = timeSigStyle == TimeSigStyle::LARGE ? SymId::timeSigCut2Large
+                    : timeSigStyle == TimeSigStyle::NARROW ? SymId::timeSigCut2Narrow
+                    : SymId::timeSigCut2;
+        RectF bbox = font->bbox(sym, mag);
+        shape.add(bbox.translated(ldata->pz), item);
         ldata->ns.clear();
-        ldata->ns.push_back(SymId::timeSigCut2);
+        ldata->ns.push_back(sym);
         ldata->ds.clear();
     } else if (sigType == TimeSigType::CUT_TRIPLE) {
         ldata->pz = PointF(0.0, yoff);
-        RectF bbox = font->bbox(SymId::timeSigCut3, mag);
-        ldata->setBbox(bbox.translated(ldata->pz));
+        SymId sym = timeSigStyle == TimeSigStyle::LARGE ? SymId::timeSigCut3Large
+                    : timeSigStyle == TimeSigStyle::NARROW ? SymId::timeSigCut3Narrow
+                    : SymId::timeSigCut3;
+        RectF bbox = font->bbox(sym, mag);
+        shape.add(bbox.translated(ldata->pz), item);
         ldata->ns.clear();
-        ldata->ns.push_back(SymId::timeSigCut3);
+        ldata->ns.push_back(sym);
         ldata->ds.clear();
     } else {
         if (item->numeratorString().isEmpty()) {
             ldata->ns = timeSigSymIdsFromString(item->numeratorString().isEmpty()
                                                 ? String::number(item->sig().numerator())
-                                                : item->numeratorString());
+                                                : item->numeratorString(),
+                                                timeSigStyle);
 
             ldata->ds = timeSigSymIdsFromString(item->denominatorString().isEmpty()
                                                 ? String::number(item->sig().denominator())
-                                                : item->denominatorString());
+                                                : item->denominatorString(),
+                                                timeSigStyle);
         } else {
-            ldata->ns = timeSigSymIdsFromString(item->numeratorString());
-            ldata->ds = timeSigSymIdsFromString(item->denominatorString());
+            ldata->ns = timeSigSymIdsFromString(item->numeratorString(), timeSigStyle);
+            ldata->ds = timeSigSymIdsFromString(item->denominatorString(), timeSigStyle);
         }
 
         RectF numRect = font->bbox(ldata->ns, mag);
         RectF denRect = font->bbox(ldata->ds, mag);
 
-        // position numerator and denominator; vertical displacement:
-        // number of lines is odd: 0.0 (strings are directly above and below the middle line)
-        // number of lines even:   0.05 (strings are moved up/down to leave 1/10sp between them)
-
-        double displ = (numOfLines & 1) ? 0.0 : (0.05 * spatium);
-
-        //align on the wider
-        double pzY = yoff - (denRect.width() < 0.01 ? 0.0 : (displ + numRect.height() * .5));
-        double pnY = yoff + displ + denRect.height() * .5;
+        double pzY = yoff - (denRect.width() < 0.01 ? 0.0 : 0.5 * (numRect.height() + numDist));
+        double pnY = yoff + 0.5 * (denRect.height() + numDist);
 
         if (numRect.width() >= denRect.width()) {
             // numerator: one space above centre line, unless denomin. is empty (if so, directly centre in the middle)
@@ -6386,15 +6409,28 @@ void TLayout::layoutTimeSig(const TimeSig* item, TimeSig::LayoutData* ldata, con
         ldata->pointLargeLeftParen = PointF(-spatium, centerY);
         ldata->pointLargeRightParen = PointF(widestPortion + spatium, centerY);
 
-        ldata->setBbox(numRect.translated(ldata->pz));       // translate bounding boxes to actual string positions
-        ldata->addBbox(denRect.translated(ldata->pn));
+        shape.add(numRect.translated(ldata->pz), item);       // translate bounding boxes to actual string positions
+        shape.add(denRect.translated(ldata->pn), item);
         if (item->largeParentheses()) {
-            ldata->addBbox(RectF(ldata->pointLargeLeftParen.x(), ldata->pointLargeLeftParen.y() - denRect.height(), spatium / 2,
-                                 numRect.height() + denRect.height()));
-            ldata->addBbox(RectF(ldata->pointLargeRightParen.x(), ldata->pointLargeRightParen.y() - denRect.height(),  spatium / 2,
-                                 numRect.height() + denRect.height()));
+            shape.add(RectF(ldata->pointLargeLeftParen.x(), ldata->pointLargeLeftParen.y() - denRect.height(), spatium / 2,
+                            numRect.height() + denRect.height()), item);
+            shape.add(RectF(ldata->pointLargeRightParen.x(), ldata->pointLargeRightParen.y() - denRect.height(),  spatium / 2,
+                            numRect.height() + denRect.height()), item);
         }
     }
+
+    ldata->setShape(shape);
+
+    ldata->setPosX(-shape.bbox().left());
+
+    if (item->isAboveStaves()) {
+        ldata->setPosY(-2 * spatium * (1 + scale.height()) - 0.5 * numDist);
+    } else if (item->isAcrossStaves()) {
+        double top = ldata->bbox().top();
+        ldata->setPosY(-top);
+    }
+
+    ldata->moveY(item->yPos());
 }
 
 void TLayout::layoutTimeTickAnchor(TimeTickAnchor* item, LayoutContext&)
@@ -6842,7 +6878,7 @@ SpannerSegment* TLayout::layoutSystemSLine(SLine* line, System* system, LayoutCo
 SpannerSegment* TLayout::layoutSystem(LyricsLine* line, System* system, LayoutContext& ctx)
 {
     LAYOUT_CALL_ITEM(line);
-    if (!line->lyrics()) {
+    if (!line->isPartialLyricsLine() && !line->lyrics()) {
         return nullptr;
     }
 
@@ -6870,7 +6906,7 @@ SpannerSegment* TLayout::layoutSystem(LyricsLine* line, System* system, LayoutCo
     lineSegm->setSpannerSegmentType(sst);
 
     TLayout::layoutLyricsLineSegment(lineSegm, ctx);
-    if (!line->lyrics()) {
+    if (!line->isPartialLyricsLine() && !line->lyrics()) {
         // this line could have been removed in the process of laying out surrounding lyrics
         return nullptr;
     }

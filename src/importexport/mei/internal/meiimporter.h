@@ -89,7 +89,7 @@ private:
     bool readLinesWithSmufl(pugi::xml_node parentNode, muse::StringList& lines);
     bool readStaffDefs(pugi::xml_node parentNode);
     bool readStaffGrps(pugi::xml_node parentNode, int& staffSpan, int column, size_t& idx);
-    bool readInstrDef(pugi::xml_node instrDefNode, Part* part);
+    bool readInstrDef(pugi::xml_node instrDefNode, engraving::Part* part);
     bool readSectionElements(pugi::xml_node parentNode);
     bool readEnding(pugi::xml_node endingNode);
     bool readMeasure(pugi::xml_node measureNode);
@@ -132,7 +132,7 @@ private:
     bool readF(pugi::xml_node fNode, engraving::FiguredBass* figuredBass);
     bool readFb(pugi::xml_node harmNode, engraving::Measure* measure);
     bool readFermata(pugi::xml_node fermataNode, engraving::Measure* measure);
-    bool readFing(pugi::xml_node fingNode, Measure* measure);
+    bool readFing(pugi::xml_node fingNode, engraving::Measure* measure);
     bool readHairpin(pugi::xml_node hairpinNode, engraving::Measure* measure);
     bool readHarm(pugi::xml_node harmNode, engraving::Measure* measure);
     bool readLv(pugi::xml_node lvNode, engraving::Measure* measure);
@@ -198,11 +198,17 @@ private:
     void extendLyrics();
     void setOrnamentAccid(engraving::Ornament* ornament, const Convert::OrnamStruct& ornamSt);
 
+    /** Read the xmlId and process it appropriately */
+    void readXmlId(engraving::EngravingItem* item, const std::string& meiUID);
+
     /** The Score pointer */
     engraving::Score* m_score = nullptr;
 
     /** The uid register */
     UIDRegister* m_uids;
+
+    /** A flag indicating the file has MuseScore EIDs as xml:ids */
+    bool m_hasMuseScoreIds;
 
     engraving::Fraction m_ticks;
     int m_lastMeasureN;

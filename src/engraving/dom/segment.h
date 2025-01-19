@@ -20,8 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef MU_ENGRAVING_SEGMENT_H
-#define MU_ENGRAVING_SEGMENT_H
+#pragma once
 
 #include "engravingitem.h"
 
@@ -191,7 +190,7 @@ public:
     Fraction ticks() const { return m_ticks; }
     void setTicks(const Fraction& v) { m_ticks = v; }
 
-    double widthInStaff(staff_idx_t staffIdx, SegmentType t = SegmentType::ChordRest) const;
+    double widthInStaff(staff_idx_t staffIdx, SegmentType nextSegType = SegmentType::ChordRest) const;
     Fraction ticksInStaff(staff_idx_t staffIdx) const;
 
     bool splitsTuplet() const;
@@ -276,6 +275,9 @@ public:
     bool isKeySigType() const { return m_segmentType == SegmentType::KeySig; }
     bool isAmbitusType() const { return m_segmentType == SegmentType::Ambitus; }
     bool isTimeSigType() const { return m_segmentType == SegmentType::TimeSig; }
+    bool hasTimeSigAboveStaves() const;
+    bool makeSpaceForTimeSigAboveStaves() const;
+    bool hasTimeSigAcrossStaves() const;
     bool isStartRepeatBarLineType() const { return m_segmentType == SegmentType::StartRepeatBarLine; }
     bool isBarLineType() const { return m_segmentType == SegmentType::BarLine; }
     bool isBreathType() const { return m_segmentType == SegmentType::Breath; }
@@ -339,6 +341,4 @@ private:
 
 #ifndef NO_QT_SUPPORT
 Q_DECLARE_METATYPE(mu::engraving::SegmentType)
-#endif
-
 #endif

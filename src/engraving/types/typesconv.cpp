@@ -176,6 +176,7 @@ static const std::vector<Item<ElementType> > ELEMENT_TYPES = {
     { ElementType::SLUR_SEGMENT,         "SlurSegment",          muse::TranslatableString("engraving", "Slur segment") },
     { ElementType::TIE_SEGMENT,          "TieSegment",           muse::TranslatableString("engraving", "Tie segment") },
     { ElementType::LAISSEZ_VIB_SEGMENT,  "LaissezVibSegment",    muse::TranslatableString("engraving", "Laissez vibrer segment") },
+    { ElementType::PARTIAL_TIE_SEGMENT,  "PartialTieSegment",    muse::TranslatableString("engraving", "Partial tie segment") },
     { ElementType::BAR_LINE,             "BarLine",              muse::TranslatableString("engraving", "Barline") },
     { ElementType::STAFF_LINES,          "StaffLines",           muse::TranslatableString("engraving", "Staff lines") },
     { ElementType::SYSTEM_DIVIDER,       "SystemDivider",        muse::TranslatableString("engraving", "System divider") },
@@ -196,6 +197,8 @@ static const std::vector<Item<ElementType> > ELEMENT_TYPES = {
     { ElementType::BREATH,               "Breath",               muse::TranslatableString("engraving", "Breath") },
     { ElementType::MEASURE_REPEAT,       "MeasureRepeat",        muse::TranslatableString("engraving", "Measure repeat") },
     { ElementType::TIE,                  "Tie",                  muse::TranslatableString("engraving", "Tie") },
+    { ElementType::LAISSEZ_VIB,          "LaissezVib",           muse::TranslatableString("engraving", "Laissez vibrer") },
+    { ElementType::PARTIAL_TIE,          "PartialTie",           muse::TranslatableString("engraving", "Partial tie") },
     { ElementType::ARTICULATION,         "Articulation",         muse::TranslatableString("engraving", "Articulation") },
     { ElementType::ORNAMENT,             "Ornament",             muse::TranslatableString("engraving", "Ornament") },
     { ElementType::FERMATA,              "Fermata",              muse::TranslatableString("engraving", "Fermata") },
@@ -245,9 +248,10 @@ static const std::vector<Item<ElementType> > ELEMENT_TYPES = {
     { ElementType::VOLTA_SEGMENT,        "VoltaSegment",         muse::TranslatableString("engraving", "Volta segment") },
     { ElementType::PEDAL_SEGMENT,        "PedalSegment",         muse::TranslatableString("engraving", "Pedal segment") },
     { ElementType::LYRICSLINE_SEGMENT,   "LyricsLineSegment",    muse::TranslatableString("engraving", "Extension line segment") },
+    { ElementType::PARTIAL_LYRICSLINE_SEGMENT,   "PartialLyricsLineSegment",    muse::TranslatableString("engraving",
+                                                                                                         "Partial extension line segment") },
     { ElementType::GLISSANDO_SEGMENT,    "GlissandoSegment",     muse::TranslatableString("engraving", "Glissando segment") },
     { ElementType::NOTELINE_SEGMENT,     "NoteLineSegment",      muse::TranslatableString("engraving", "Note-anchored line segment") },
-    { ElementType::LAISSEZ_VIB,          "LaissezVib",           muse::TranslatableString("engraving", "Laissez vibrer") },
     { ElementType::LAYOUT_BREAK,         "LayoutBreak",          muse::TranslatableString("engraving", "Layout break") },
     { ElementType::SYSTEM_LOCK_INDICATOR, "systemLockIndicator", muse::TranslatableString("engraving", "System lock") },
     { ElementType::SPACER,               "Spacer",               muse::TranslatableString("engraving", "Spacer") },
@@ -278,6 +282,7 @@ static const std::vector<Item<ElementType> > ELEMENT_TYPES = {
     { ElementType::TEXTLINE_BASE,        "TextLineBase",         muse::TranslatableString("engraving", "Text line base") },    // remove
     { ElementType::NOTELINE,             "NoteLine",             muse::TranslatableString("engraving", "Note-anchored line") },
     { ElementType::LYRICSLINE,           "LyricsLine",           muse::TranslatableString("engraving", "Extension line") },
+    { ElementType::PARTIAL_LYRICSLINE,   "PartialLyricsLine",    muse::TranslatableString("engraving", "Partial extension line") },
     { ElementType::GLISSANDO,            "Glissando",            muse::TranslatableString("engraving", "Glissando") },
     { ElementType::BRACKET,              "Bracket",              muse::TranslatableString("engraving", "Bracket") },
     { ElementType::SEGMENT,              "Segment",              muse::TranslatableString("engraving", "Segment") },
@@ -456,6 +461,52 @@ TieDotsPlacement TConv::fromXml(const AsciiStringView& str, TieDotsPlacement def
     return findTypeByXmlTag<TieDotsPlacement>(TIE_DOTS_PLACEMENT, str, def);
 }
 
+static const std::vector<Item<TimeSigPlacement> > TIMESIG_PLACEMENT = {
+    { TimeSigPlacement::NORMAL, "normal" },
+    { TimeSigPlacement::ABOVE_STAVES, "aboveStaves" },
+    { TimeSigPlacement::ACROSS_STAVES, "acrossStaves" }
+};
+static const std::vector<Item<TimeSigStyle> > TIMESIG_STYLE = {
+    { TimeSigStyle::NORMAL, "normal" },
+    { TimeSigStyle::NARROW, "narrow" },
+    { TimeSigStyle::LARGE, "large" }
+};
+static const std::vector<Item<TimeSigVSMargin> > TIMESIG_MARGIN = {
+    { TimeSigVSMargin::HANG_INTO_MARGIN, "hangIntoMargin" },
+    { TimeSigVSMargin::RIGHT_ALIGN_TO_BARLINE, "rightAlignToBarline" },
+    { TimeSigVSMargin::CREATE_SPACE, "createSpace" },
+};
+
+AsciiStringView TConv::toXml(TimeSigPlacement timeSigPos)
+{
+    return findXmlTagByType<TimeSigPlacement>(TIMESIG_PLACEMENT, timeSigPos);
+}
+
+TimeSigPlacement TConv::fromXml(const AsciiStringView& str, TimeSigPlacement def)
+{
+    return findTypeByXmlTag<TimeSigPlacement>(TIMESIG_PLACEMENT, str, def);
+}
+
+AsciiStringView TConv::toXml(TimeSigStyle timeSigStyle)
+{
+    return findXmlTagByType<TimeSigStyle>(TIMESIG_STYLE, timeSigStyle);
+}
+
+TimeSigStyle TConv::fromXml(const AsciiStringView& str, TimeSigStyle def)
+{
+    return findTypeByXmlTag<TimeSigStyle>(TIMESIG_STYLE, str, def);
+}
+
+AsciiStringView TConv::toXml(TimeSigVSMargin timeSigVSMargin)
+{
+    return findXmlTagByType<TimeSigVSMargin>(TIMESIG_MARGIN, timeSigVSMargin);
+}
+
+TimeSigVSMargin TConv::fromXml(const AsciiStringView& str, TimeSigVSMargin def)
+{
+    return findTypeByXmlTag<TimeSigVSMargin>(TIMESIG_MARGIN, str, def);
+}
+
 static const std::vector<Item<VoiceAssignment> > VOICE_ASSIGNMENT = {
     { VoiceAssignment::ALL_VOICE_IN_INSTRUMENT, "allInInstrument" },
     { VoiceAssignment::ALL_VOICE_IN_STAFF,      "allInStaff" },
@@ -486,6 +537,23 @@ AsciiStringView TConv::toXml(AutoOnOff autoOnOff)
 AutoOnOff TConv::fromXml(const AsciiStringView& str, AutoOnOff def)
 {
     return findTypeByXmlTag<AutoOnOff>(AUTO_ON_OFF, str, def);
+}
+
+static const std::vector<Item<PartialSpannerDirection> > PARTIAL_SPANNER_DIRECTION = {
+    { PartialSpannerDirection::NONE,     "none" },
+    { PartialSpannerDirection::OUTGOING, "outgoing" },
+    { PartialSpannerDirection::INCOMING, "incoming" },
+    { PartialSpannerDirection::BOTH,     "both" }
+};
+
+AsciiStringView TConv::toXml(PartialSpannerDirection v)
+{
+    return findXmlTagByType<PartialSpannerDirection>(PARTIAL_SPANNER_DIRECTION, v);
+}
+
+PartialSpannerDirection TConv::fromXml(const AsciiStringView& str, PartialSpannerDirection def)
+{
+    return findTypeByXmlTag<PartialSpannerDirection>(PARTIAL_SPANNER_DIRECTION, str, def);
 }
 
 String TConv::translatedUserName(SymId v)
@@ -2769,4 +2837,43 @@ const muse::TranslatableString& TConv::userName(Key v, bool isAtonal, bool isCus
 String TConv::translatedUserName(Key v, bool isAtonal, bool isCustom)
 {
     return userName(v, isAtonal, isCustom).translated();
+}
+
+const std::array<Item<ScoreStylePreset>, 6> SCORE_STYLE_PRESETS = { {
+    //: Score notation style: Default
+    { ScoreStylePreset::DEFAULT,  "Default",  muse::TranslatableString("engraving/scorestylepreset", "Default") },
+    //: Score notation style: Modified Stave Notation (MSN) with 16mm staff size. Intended for visually-impaired musicians.
+    { ScoreStylePreset::MSN_16MM, "16mm MSN", muse::TranslatableString("engraving/scorestylepreset", "16mm MSN") },
+    //: Score notation style: Modified Stave Notation (MSN) with 18mm staff size. Intended for visually-impaired musicians.
+    { ScoreStylePreset::MSN_18MM, "18mm MSN", muse::TranslatableString("engraving/scorestylepreset", "18mm MSN") },
+    //: Score notation style: Modified Stave Notation (MSN) with 20mm staff size. Intended for visually-impaired musicians.
+    { ScoreStylePreset::MSN_20MM, "20mm MSN", muse::TranslatableString("engraving/scorestylepreset", "20mm MSN") },
+    //: Score notation style: Modified Stave Notation (MSN) with 22mm staff size. Intended for visually-impaired musicians.
+    { ScoreStylePreset::MSN_22MM, "22mm MSN", muse::TranslatableString("engraving/scorestylepreset", "22mm MSN") },
+    //: Score notation style: Modified Stave Notation (MSN) with 25mm staff size. Intended for visually-impaired musicians.
+    { ScoreStylePreset::MSN_25MM, "25mm MSN", muse::TranslatableString("engraving/scorestylepreset", "25mm MSN") }
+} };
+
+AsciiStringView TConv::toXml(ScoreStylePreset preset)
+{
+    return findXmlTagByType<ScoreStylePreset>(SCORE_STYLE_PRESETS, preset);
+}
+
+ScoreStylePreset TConv::fromXml(const AsciiStringView& tag, ScoreStylePreset def)
+{
+    if (tag == "Default") {
+        return def;
+    }
+
+    return findTypeByXmlTag<ScoreStylePreset>(SCORE_STYLE_PRESETS, tag, def);
+}
+
+const muse::TranslatableString& TConv::userName(ScoreStylePreset v)
+{
+    return findUserNameByType<ScoreStylePreset>(SCORE_STYLE_PRESETS, v);
+}
+
+String TConv::translatedUserName(ScoreStylePreset v)
+{
+    return findUserNameByType<ScoreStylePreset>(SCORE_STYLE_PRESETS, v).translated();
 }

@@ -181,7 +181,6 @@ enum class Sid {
     keysigLeftMargin,
     ambitusMargin,
     timesigLeftMargin,
-    timesigScale,
 
     midClefKeyRightMargin,
     clefKeyRightMargin,
@@ -195,6 +194,29 @@ enum class Sid {
 
     clefBarlineDistance,
     timesigBarlineDistance,
+
+    timeSigPlacement,
+
+    timeSigCenterOnBarline,
+    timeSigVSMarginCentered,
+    timeSigVSMarginNonCentered,
+    timeSigCenterAcrossStaveGroup,
+
+    timeSigNormalStyle,
+    timeSigNormalScale,
+    timeSigNormalScaleLock,
+    timeSigNormalNumDist,
+    timeSigNormalY,
+    timeSigAboveStyle,
+    timeSigAboveScale,
+    timeSigAboveScaleLock,
+    timeSigAboveNumDist,
+    timeSigAboveY,
+    timeSigAcrossStyle,
+    timeSigAcrossScale,
+    timeSigAcrossScaleLock,
+    timeSigAcrossNumDist,
+    timeSigAcrossY,
 
     useStraightNoteFlags,
     stemWidth,
@@ -527,12 +549,14 @@ enum class Sid {
     tieMidWidth,
     tieDottedWidth,
     minTieLength,
+    minHangingTieLength,
     minStraightGlissandoLength,
     minWigglyGlissandoLength,
     slurMinDistance,
     tieMinDistance,
     laissezVibMinDistance,
-    headerToLineStartDistance, // determines start point of "dangling" lines (ties, gliss, lyrics...) at start of system
+    headerToLineStartDistance,   // determines start point of "dangling" lines (ties, gliss, lyrics...) when preceded by header clefs/timesigs/keysigs
+    lineEndToBarlineDistance,  // determines end point of "dangling" lines (ties, gliss, lyrics...) in relation to barlines
 
     tiePlacementSingleNote,
     tiePlacementChord,

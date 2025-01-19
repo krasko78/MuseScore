@@ -508,7 +508,7 @@ bool EngravingItem::isTopSystemObject() const
     if (!systemFlag()) {
         return false; // non system object
     }
-    if ((isSpanner() || isSpannerSegment()) && track() != 0) {
+    if ((isSpanner() || isSpannerSegment() || isTimeSig()) && track() != 0) {
         return false;
     }
     if (!m_links) {
@@ -1287,6 +1287,30 @@ void EngravingItem::manageExclusionFromParts(bool exclude)
     } else {
         score()->undoAddElement(this, /*addToLinkedStaves*/ true, /*ctrlModifier*/ false, this);
     }
+}
+
+bool EngravingItem::isBefore(const EngravingItem* item) const
+{
+    if (!item) {
+        return false;
+    }
+    if (tick() != item->tick()) {
+        return tick() < item->tick();
+    }
+
+    const Measure* thisMeasure = findMeasure();
+    const Measure* otherMeasure = item->findMeasure();
+    if (thisMeasure != otherMeasure) {
+        return thisMeasure->isBefore(otherMeasure);
+    }
+
+    const EngravingItem* thisSeg = findAncestor(ElementType::SEGMENT);
+    const EngravingItem* otherSeg = item->findAncestor(ElementType::SEGMENT);
+    if (!thisSeg || !otherSeg || !thisSeg->isSegment() || !otherSeg->isSegment()) {
+        return false;
+    }
+
+    return toSegment(thisSeg)->goesBefore(toSegment(otherSeg));
 }
 
 bool EngravingItem::appliesToAllVoicesInInstrument() const
@@ -2727,6 +2751,7 @@ Shape EngravingItem::LayoutData::shape(LD_ACCESS mode) const
         case ElementType::SLUR_SEGMENT:
         case ElementType::TIE_SEGMENT:
         case ElementType::LAISSEZ_VIB_SEGMENT:
+        case ElementType::PARTIAL_TIE_SEGMENT:
             return sh;
         case ElementType::CHORD:
         case ElementType::REST:

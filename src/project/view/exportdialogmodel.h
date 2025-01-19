@@ -88,6 +88,7 @@ class ExportDialogModel : public QAbstractListModel, public muse::async::Asyncab
     Q_PROPERTY(MusicXmlLayoutType musicXmlLayoutType READ musicXmlLayoutType WRITE setMusicXmlLayoutType NOTIFY musicXmlLayoutTypeChanged)
 
     Q_PROPERTY(int meiExportLayout READ meiExportLayout WRITE setMeiExportLayout NOTIFY meiExportLayoutChanged)
+    Q_PROPERTY(int meiUseMuseScoreIds READ meiUseMuseScoreIds WRITE setMeiUseMuseScoreIds NOTIFY meiUseMuseScoreIdsChanged)
 
     Q_PROPERTY(bool shouldDestinationFolderBeOpenedOnExport READ shouldDestinationFolderBeOpenedOnExport
                WRITE setShouldDestinationFolderBeOpenedOnExport NOTIFY shouldDestinationFolderBeOpenedOnExportChanged)
@@ -151,6 +152,9 @@ public:
     bool meiExportLayout() const;
     void setMeiExportLayout(bool exportLayout);
 
+    bool meiUseMuseScoreIds() const;
+    void setMeiUseMuseScoreIds(bool useMuseScoreIds);
+
     enum class MusicXmlLayoutType {
         AllLayout,
         AllBreaks,
@@ -193,6 +197,7 @@ signals:
     void musicXmlLayoutTypeChanged(MusicXmlLayoutType layoutType);
 
     void meiExportLayoutChanged(bool exportLayout);
+    void meiUseMuseScoreIdsChanged(bool useMuseScoreIds);
 
     void shouldDestinationFolderBeOpenedOnExportChanged(bool shouldDestinationFolderBeOpenedOnExport);
 

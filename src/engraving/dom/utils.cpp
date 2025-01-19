@@ -30,6 +30,8 @@
 #include "chord.h"
 #include "chordrest.h"
 #include "clef.h"
+#include "dom/masterscore.h"
+#include "dom/repeatlist.h"
 #include "keysig.h"
 #include "measure.h"
 #include "note.h"
@@ -769,23 +771,57 @@ int diatonicUpDown(Key k, int pitch, int steps)
     return pitch;
 }
 
+Volta* findVolta(const Segment* seg, const Score* score)
+{
+    const Measure* measure = seg->measure();
+    const Fraction tick = measure->tick() + Fraction::eps();
+    auto spanners = score->spannerMap().findOverlapping(tick.ticks(), tick.ticks());
+    for (auto& spanner : spanners) {
+        if (!spanner.value->isVolta()) {
+            continue;
+        }
+        return toVolta(spanner.value);
+    }
+    return nullptr;
+}
+
 //---------------------------------------------------------
 //   searchTieNote
 //    search Note to tie to "note"
 //---------------------------------------------------------
 
-Note* searchTieNote(Note* note)
+Note* searchTieNote(const Note* note, const Segment* nextSegment)
 {
     if (!note) {
         return nullptr;
     }
 
-    Note* note2  = 0;
+    Note* note2  = nullptr;
     Chord* chord = note->chord();
     Segment* seg = chord->segment();
     Part* part   = chord->part();
+    Score* score = chord->score();
     track_idx_t strack = part->staves().front()->idx() * VOICES;
     track_idx_t etrack = strack + part->staves().size() * VOICES;
+
+    if (!nextSegment) {
+        const Fraction nextTick = chord->tick() + chord->actualTicks();
+        nextSegment = seg->next1(SegmentType::ChordRest);
+        while (nextSegment && nextSegment->tick() < nextTick) {
+            nextSegment = nextSegment->next1(SegmentType::ChordRest);
+        }
+    }
+
+    if (!nextSegment) {
+        return nullptr;
+    }
+
+    Volta* startVolta = findVolta(seg, score);
+    Volta* endVolta = findVolta(nextSegment, score);
+
+    if (startVolta && endVolta && startVolta != endVolta) {
+        return nullptr;
+    }
 
     if (chord->isGraceBefore()) {
         chord = toChord(chord->explicitParent());
@@ -797,7 +833,6 @@ Note* searchTieNote(Note* note)
             if (c->graceIndex() == index + 1) {
                 note2 = c->findNote(note->pitch());
                 if (note2) {
-//printf("found grace-grace tie\n");
                     return note2;
                 }
             }
@@ -828,53 +863,39 @@ Note* searchTieNote(Note* note)
     // at this point, chord is a regular chord, not a grace chord
     // and we are looking for a note in the *next* chord (grace or regular)
 
-    // calculate end of current note duration
-    // but err on the safe side in case there is roundoff in tick count
-    Fraction endTick = chord->tick() + chord->actualTicks() - Fraction(1, 4 * 480);
-
     int idx1 = note->unisonIndex();
-    while ((seg = seg->next1(SegmentType::ChordRest))) {
-        // skip ahead to end of current note duration as calculated above
-        // but just in case, stop if we find element in current track
-        if (seg->tick() < endTick && !seg->element(chord->track())) {
+    for (track_idx_t track = strack; track < etrack; ++track) {
+        EngravingItem* e = nextSegment->element(track);
+        if (!e || !e->isChord()) {
             continue;
         }
-        for (track_idx_t track = strack; track < etrack; ++track) {
-            EngravingItem* e = seg->element(track);
-            if (e == 0 || !e->isChord()) {
-                continue;
-            }
-            Chord* c = toChord(e);
-            const staff_idx_t staffIdx = c->staffIdx() + c->staffMove();
-            if (staffIdx != chord->staffIdx() + chord->staffMove()) {
-                // this check is needed as we are iterating over all staves to capture cross-staff chords
-                continue;
-            }
-            // if there are grace notes before, try to tie to first one
-            std::vector<Chord*> gnb = c->graceNotesBefore();
-            if (!gnb.empty()) {
-                Chord* gc = gnb[0];
-                Note* gn2 = gc->findNote(note->pitch());
-                if (gn2) {
-                    return gn2;
-                }
-            }
-            int idx2 = 0;
-            for (Note* n : c->notes()) {
-                if (n->pitch() == note->pitch()) {
-                    if (idx1 == idx2) {
-                        if (note2 == 0 || c->track() == chord->track()) {
-                            note2 = n;
-                            break;
-                        }
-                    } else {
-                        ++idx2;
-                    }
-                }
+        Chord* c = toChord(e);
+        const staff_idx_t staffIdx = c->staffIdx() + c->staffMove();
+        if (staffIdx != chord->staffIdx() + chord->staffMove()) {
+            // this check is needed as we are iterating over all staves to capture cross-staff chords
+            continue;
+        }
+        // if there are grace notes before, try to tie to first one
+        std::vector<Chord*> gnb = c->graceNotesBefore();
+        if (!gnb.empty()) {
+            Chord* gc = gnb[0];
+            Note* gn2 = gc->findNote(note->pitch());
+            if (gn2) {
+                return gn2;
             }
         }
-        if (note2) {
-            break;
+        int idx2 = 0;
+        for (Note* n : c->notes()) {
+            if (n->pitch() == note->pitch()) {
+                if (idx1 == idx2) {
+                    if (!note2 || c->track() == chord->track()) {
+                        note2 = n;
+                        break;
+                    }
+                } else {
+                    ++idx2;
+                }
+            }
         }
     }
     return note2;
@@ -1142,7 +1163,7 @@ Segment* skipTuplet(Tuplet* tuplet)
 //    replace ascii with bravura symbols
 //---------------------------------------------------------
 
-SymIdList timeSigSymIdsFromString(const String& string)
+SymIdList timeSigSymIdsFromString(const String& string, TimeSigStyle timeSigStyle)
 {
     static const std::map<Char, SymId> dict = {
         { 43,    SymId::timeSigPlusSmall },             // '+'
@@ -1175,9 +1196,53 @@ SymIdList timeSigSymIdsFromString(const String& string)
         { 59674, SymId::mensuralProlation11 },
     };
 
+    static const std::map<Char, SymId> dictLarge = {
+        { 43,    SymId::timeSigPlusSmallLarge },             // '+'
+        { 48,    SymId::timeSig0Large },                     // '0'
+        { 49,    SymId::timeSig1Large },                     // '1'
+        { 50,    SymId::timeSig2Large },                     // '2'
+        { 51,    SymId::timeSig3Large },                     // '3'
+        { 52,    SymId::timeSig4Large },                     // '4'
+        { 53,    SymId::timeSig5Large },                     // '5'
+        { 54,    SymId::timeSig6Large },                     // '6'
+        { 55,    SymId::timeSig7Large },                     // '7'
+        { 56,    SymId::timeSig8Large },                     // '8'
+        { 57,    SymId::timeSig9Large },                     // '9'
+        { 67,    SymId::timeSigCommonLarge },                // 'C'
+        { 40,    SymId::timeSigParensLeftSmallLarge },       // '('
+        { 41,    SymId::timeSigParensRightSmallLarge },      // ')'
+        { 162,   SymId::timeSigCutCommonLarge },             // '¢'
+        { 189,   SymId::timeSigFractionHalfLarge },
+        { 189,   SymId::timeSigFractionQuarterLarge },
+    };
+
+    static const std::map<Char, SymId> dictNarrow = {
+        { 43,    SymId::timeSigPlusSmallNarrow },             // '+'
+        { 48,    SymId::timeSig0Narrow },                     // '0'
+        { 49,    SymId::timeSig1Narrow },                     // '1'
+        { 50,    SymId::timeSig2Narrow },                     // '2'
+        { 51,    SymId::timeSig3Narrow },                     // '3'
+        { 52,    SymId::timeSig4Narrow },                     // '4'
+        { 53,    SymId::timeSig5Narrow },                     // '5'
+        { 54,    SymId::timeSig6Narrow },                     // '6'
+        { 55,    SymId::timeSig7Narrow },                     // '7'
+        { 56,    SymId::timeSig8Narrow },                     // '8'
+        { 57,    SymId::timeSig9Narrow },                     // '9'
+        { 67,    SymId::timeSigCommonNarrow },                // 'C'
+        { 40,    SymId::timeSigParensLeftSmallNarrow },       // '('
+        { 41,    SymId::timeSigParensRightSmallNarrow },      // ')'
+        { 162,   SymId::timeSigCutCommonNarrow },             // '¢'
+        { 189,   SymId::timeSigFractionHalfNarrow },
+        { 188,   SymId::timeSigFractionQuarterNarrow },
+    };
+
     SymIdList list;
     for (size_t i = 0; i < string.size(); ++i) {
-        SymId sym = muse::value(dict, string.at(i), SymId::noSym);
+        SymId sym = muse::value(
+            timeSigStyle == TimeSigStyle::NARROW ? dictNarrow
+            : timeSigStyle == TimeSigStyle::LARGE ? dictLarge
+            : dict,
+            string.at(i), SymId::noSym);
         if (sym != SymId::noSym) {
             list.push_back(sym);
         }
@@ -1394,5 +1459,91 @@ InstrumentTrackId makeInstrumentTrackId(const EngravingItem* item)
     };
 
     return trackId;
+}
+
+std::vector<Measure*> findFollowingRepeatMeasures(const Measure* measure)
+{
+    const MasterScore* master = measure->masterScore();
+    const Score* score = measure->score();
+
+    const MeasureBase* masterMeasureBase = master->measure(measure->index());
+    const Measure* masterMeasure = masterMeasureBase && masterMeasureBase->isMeasure() ? toMeasure(masterMeasureBase) : nullptr;
+
+    const RepeatList& repeatList = master->repeatList(true, false);
+
+    std::vector<Measure*> measures;
+
+    for (auto it = repeatList.begin(); it != repeatList.end(); it++) {
+        const RepeatSegment* rs = *it;
+        const auto nextSegIt = std::next(it);
+        if (!rs->endsWithMeasure(masterMeasure) || nextSegIt == repeatList.end()) {
+            continue;
+        }
+
+        // Get next segment
+        const RepeatSegment* nextSeg = *nextSegIt;
+        const Measure* firstMasterMeasure = nextSeg->firstMeasure();
+        MeasureBase* firstMeasureBase = firstMasterMeasure ? score->measure(firstMasterMeasure->index()) : nullptr;
+        Measure* firstMeasure = firstMeasureBase && firstMeasureBase->isMeasure() ? toMeasure(firstMeasureBase) : nullptr;
+        if (!firstMeasure) {
+            continue;
+        }
+
+        measures.push_back(firstMeasure);
+    }
+
+    return measures;
+}
+
+std::vector<Measure*> findPreviousRepeatMeasures(const Measure* measure)
+{
+    const MasterScore* master = measure->masterScore();
+    const Score* score = measure->score();
+
+    const MeasureBase* masterMeasureBase = master->measure(measure->index());
+    const Measure* masterMeasure = masterMeasureBase && masterMeasureBase->isMeasure() ? toMeasure(masterMeasureBase) : nullptr;
+
+    const RepeatList& repeatList = master->repeatList(true, false);
+
+    std::vector<Measure*> measures;
+
+    for (auto it = repeatList.begin(); it != repeatList.end(); it++) {
+        const RepeatSegment* rs = *it;
+        const auto prevSegIt = std::prev(it);
+        if (!rs->startsWithMeasure(masterMeasure) || prevSegIt == repeatList.end()) {
+            continue;
+        }
+
+        // Get next segment
+        const RepeatSegment* prevSeg = *prevSegIt;
+        const Measure* lastMasterMeasure = prevSeg->lastMeasure();
+        MeasureBase* lastMeasureBase = lastMasterMeasure ? score->measure(lastMasterMeasure->index()) : nullptr;
+        Measure* lastMeasure = lastMeasureBase && lastMeasureBase->isMeasure() ? toMeasure(lastMeasureBase) : nullptr;
+        if (!lastMeasure) {
+            continue;
+        }
+
+        measures.push_back(lastMeasure);
+    }
+
+    return measures;
+}
+
+bool repeatHasPartialLyricLine(const Measure* endRepeatMeasure)
+{
+    const std::vector<Measure*> measures = findFollowingRepeatMeasures(endRepeatMeasure);
+    const Score* score = endRepeatMeasure->score();
+
+    for (const Measure* measure : measures) {
+        const SpannerMap::IntervalList& spanners = score->spannerMap().findOverlapping(measure->tick().ticks(), measure->endTick().ticks());
+
+        for (auto& spanner : spanners) {
+            if (spanner.value->isPartialLyricsLine() && spanner.start == measure->tick().ticks()) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 }

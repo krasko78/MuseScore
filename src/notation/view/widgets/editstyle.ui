@@ -91,7 +91,7 @@
       </item>
       <item>
        <property name="text">
-        <string>Clefs, key &amp; time signatures</string>
+        <string>Clefs, time &amp; key signatures</string>
        </property>
       </item>
       <item>
@@ -289,7 +289,7 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>591</width>
+                <width>409</width>
                 <height>523</height>
                </rect>
               </property>
@@ -3839,143 +3839,9 @@
       <widget class="QWidget" name="PageClefsKeyTimeSigs">
        <layout class="QVBoxLayout" name="verticalLayout_27">
         <item>
-         <widget class="QGroupBox" name="groupBox_clefSettings">
-          <property name="title">
-           <string>Clefs</string>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_59">
-           <item>
-            <widget class="QLabel" name="label_173">
-             <property name="text">
-              <string>Visibility</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="radioShowAllClefs">
-             <property name="text">
-              <string>Show all clefs on every system</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="radioHideClefs">
-             <property name="text">
-              <string>Hide all clefs after the first system where they appear</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="hideTabClefs">
-             <property name="text">
-              <string>Hide TAB clefs after the first system where they appear</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="genCourtesyClef">
-             <property name="text">
-              <string>Show courtesy clefs</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="groupBox_TABClef">
-             <property name="accessibleName">
-              <string>Default TAB clef</string>
-             </property>
-             <property name="title">
-              <string>Default TAB clef</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_29">
-              <item>
-               <widget class="QRadioButton" name="clefTab1">
-                <property name="text">
-                 <string>Standard TAB clef</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="clefTab2">
-                <property name="text">
-                 <string>Serif TAB clef</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-          </layout>
+         <widget class="QWidget" name="clefTimeKeySigPage" native="true">
+          <layout class="QVBoxLayout" name="verticalLayout_29"/>
          </widget>
-        </item>
-        <item>
-         <widget class="QGroupBox" name="groupBox_keySigSettings">
-          <property name="title">
-           <string>Key signatures</string>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_60">
-           <item>
-            <widget class="QLabel" name="label_194">
-             <property name="text">
-              <string>Visibility</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="radioShowAllKeys">
-             <property name="text">
-              <string>Show on every system</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="radioHideKeys">
-             <property name="text">
-              <string>Hide after the first system where they appear</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="genCourtesyKeysig">
-             <property name="text">
-              <string>Show courtesy key signatures</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="QGroupBox" name="groupBox_timeSigSettings">
-          <property name="title">
-           <string>Time signatures</string>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_61">
-           <item>
-            <widget class="QCheckBox" name="genCourtesyTimesig">
-             <property name="text">
-              <string>Show courtesy time signatures</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <spacer name="verticalSpacer_15">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeType">
-           <enum>QSizePolicy::Expanding</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-         </spacer>
         </item>
        </layout>
       </widget>
@@ -7598,7 +7464,7 @@
              <x>0</x>
              <y>0</y>
              <width>416</width>
-             <height>315</height>
+             <height>342</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_70">
@@ -8094,6 +7960,77 @@
                  </item>
                  <item>
                   <spacer name="horizontalSpacer_43">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_17">
+                 <item>
+                  <widget class="QLabel" name="minHangingTieLengthLabel">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>Minimum hanging tie length:</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>minHangingTieLength</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="minHangingTieLength">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="keyboardTracking">
+                    <bool>false</bool>
+                   </property>
+                   <property name="suffix">
+                    <string>sp</string>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.100000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="resetMinHangingTieLength">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="toolTip">
+                    <string>Reset to default</string>
+                   </property>
+                   <property name="accessibleName">
+                    <string>Reset 'Minimum hanging tie length' value</string>
+                   </property>
+                   <property name="text">
+                    <string notr="true"/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_73">
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
@@ -13748,8 +13685,8 @@ first note of the system</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>701</width>
-             <height>744</height>
+             <width>98</width>
+             <height>28</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -15208,16 +15145,6 @@ first note of the system</string>
   <tabstop>dividerRightSym</tabstop>
   <tabstop>dividerRightX</tabstop>
   <tabstop>dividerRightY</tabstop>
-  <tabstop>radioShowAllClefs</tabstop>
-  <tabstop>radioHideClefs</tabstop>
-  <tabstop>hideTabClefs</tabstop>
-  <tabstop>genCourtesyClef</tabstop>
-  <tabstop>clefTab1</tabstop>
-  <tabstop>clefTab2</tabstop>
-  <tabstop>radioShowAllKeys</tabstop>
-  <tabstop>radioHideKeys</tabstop>
-  <tabstop>genCourtesyKeysig</tabstop>
-  <tabstop>genCourtesyTimesig</tabstop>
   <tabstop>scrollAreaAccidentals</tabstop>
   <tabstop>accidentalsBracketsBadding</tabstop>
   <tabstop>resetAccidentalsBracketPadding</tabstop>
@@ -15396,6 +15323,8 @@ first note of the system</string>
   <tabstop>resetTieMinDistance</tabstop>
   <tabstop>minTieLength</tabstop>
   <tabstop>resetMinTieLength</tabstop>
+  <tabstop>minHangingTieLength</tabstop>
+  <tabstop>resetMinHangingTieLength</tabstop>
   <tabstop>minLaissezVibLength</tabstop>
   <tabstop>resetMinLaissezVibLength</tabstop>
   <tabstop>laissezVibUseSmufl</tabstop>

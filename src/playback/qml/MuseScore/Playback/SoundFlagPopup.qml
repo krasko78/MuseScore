@@ -32,9 +32,11 @@ import "internal/SoundFlag"
 StyledPopupView {
     id: root
 
-    property NavigationSection notationViewNavigationSection: null
-    property int navigationOrderStart: 0
-    property int navigationOrderEnd: museSoundsParams.navigationPanelOrderEnd
+    property alias notationViewNavigationSection: navPanel.section
+    property alias navigationOrderStart: navPanel.order
+    readonly property alias navigationOrderEnd: museSoundsParams.navigationPanelOrderEnd
+
+    property QtObject model: soundFlagModel
 
     contentWidth: content.width
     contentHeight: content.childrenRect.height
@@ -88,6 +90,12 @@ StyledPopupView {
                 section: root.notationViewNavigationSection
                 order: root.navigationOrderStart
                 accessible.name: qsTrc("playback", "Sound flag settings")
+
+                onNavigationEvent: function(event) {
+                    if (event.type === NavigationEvent.Escape) {
+                        root.close()
+                    }
+                }
             }
 
             StyledIconLabel {
@@ -153,6 +161,10 @@ StyledPopupView {
 
             navigationPanelSection: root.notationViewNavigationSection
             navigationPanelOrderStart: navPanel.order + 1
+
+            onCloseRequested: {
+                root.close()
+            }
         }
     }
 }

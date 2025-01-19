@@ -74,6 +74,7 @@
 #include "engraving/dom/fret.h"
 #include "engraving/dom/glissando.h"
 #include "engraving/dom/gradualtempochange.h"
+#include "engraving/dom/guitarbend.h"
 #include "engraving/dom/hairpin.h"
 #include "engraving/dom/harmonicmark.h"
 #include "engraving/dom/harmony.h"
@@ -101,6 +102,7 @@
 #include "engraving/dom/pedal.h"
 #include "engraving/dom/pickscrape.h"
 #include "engraving/dom/pitchspelling.h"
+#include "engraving/dom/playtechannotation.h"
 #include "engraving/dom/rasgueado.h"
 #include "engraving/dom/rehearsalmark.h"
 #include "engraving/dom/rest.h"
@@ -385,6 +387,7 @@ public:
     void hairpin(Hairpin const* const hp, staff_idx_t staff, const Fraction& tick);
     void ottava(Ottava const* const ot, staff_idx_t staff, const Fraction& tick);
     void pedal(Pedal const* const pd, staff_idx_t staff, const Fraction& tick);
+    void playText(PlayTechAnnotation const* const annot, staff_idx_t staff);
     void textLine(TextLineBase const* const tl, staff_idx_t staff, const Fraction& tick);
     void dynamic(Dynamic const* const dyn, staff_idx_t staff);
     void symbol(Symbol const* const sym, staff_idx_t staff);
@@ -404,7 +407,6 @@ public:
     static String fermataPosition(const Fermata* const fermata);
 
 private:
-
     int findBracket(const TextLineBase* tl) const;
     int findDashes(const TextLineBase* tl) const;
     int findHairpin(const Hairpin* tl) const;
@@ -425,7 +427,7 @@ private:
     void keysigTimesig(const Measure* m, const Part* p);
     void chordAttributes(Chord* chord, Notations& notations, Technical& technical, TrillHash& trillStart, TrillHash& trillStop);
     void wavyLineStartStop(const ChordRest* cr, Notations& notations, Ornaments& ornaments, TrillHash& trillStart, TrillHash& trillStop);
-    void print(const Measure* const m, const int partNr, const int firstStaffOfPart, const int nrStavesInPart,
+    void print(const Measure* const m, const int partNr, const int firstStaffOfPart, const size_t nrStavesInPart,
                const MeasurePrintContext& mpc);
     void measureLayout(const double distance);
     void findAndExportClef(const Measure* const m, const int staves, const track_idx_t strack, const track_idx_t etrack);
@@ -467,6 +469,7 @@ private:
     TrillHash m_trillStart;
     TrillHash m_trillStop;
     MusicXmlInstrumentMap m_instrMap;
+    PlayingTechniqueType m_currPlayTechnique;
 };
 
 //---------------------------------------------------------
@@ -3331,7 +3334,7 @@ static String symIdToTechn(const SymId sid)
         return u"smear";
         break;
     case SymId::brassMuteOpen:
-        // return "open-string";
+        // return u"open-string";
         return u"open";
         break;
     case SymId::brassMuteHalfClosed:
@@ -3343,8 +3346,50 @@ static String symIdToTechn(const SymId sid)
     case SymId::brassHarmonMuteStemOpen:
         return u"harmon-mute";
         break;
+    case SymId::windClosedHole:
+    case SymId::windHalfClosedHole1:
+    case SymId::windHalfClosedHole2:
+    case SymId::windHalfClosedHole3:
+    case SymId::windOpenHole:
+        return u"hole";
     case SymId::guitarGolpe:
         return u"golpe";
+        break;
+    case SymId::handbellsBelltree:
+        return u"belltree";
+        break;
+    case SymId::handbellsDamp3:
+        return u"damp";
+        break;
+    case SymId::handbellsEcho1:
+        return u"echo";
+        break;
+    case SymId::handbellsGyro:
+        return u"gyro";
+        break;
+    case SymId::handbellsHandMartellato:
+        return u"hand martellato";
+        break;
+    case SymId::handbellsMalletLft:
+        return u"mallet lift";
+        break;
+    case SymId::handbellsMalletBellOnTable:
+        return u"mallet table";
+        break;
+    case SymId::handbellsMartellato:
+        return u"martellato";
+        break;
+    case SymId::handbellsMartellatoLift:
+        return u"martellato lift";
+        break;
+    case SymId::handbellsMutedMartellato:
+        return u"muted martellato";
+        break;
+    case SymId::handbellsPluckLift:
+        return u"pluck lift";
+        break;
+    case SymId::handbellsSwing:
+        return u"swing";
         break;
     default:
         ;           // nothing
@@ -3587,6 +3632,14 @@ void ExportMusicXml::chordAttributes(Chord* chord, Notations& notations, Technic
                 m_xml.startElementRaw(mxmlTechn);
                 m_xml.tag("natural");
                 m_xml.endElement();
+            } else if (String::fromAscii(SymNames::nameForSymId(sid).ascii()).startsWith(u"handbells")) {
+                String handbell = u"handbell";
+                handbell += color2xml(a);
+                handbell += ExportMusicXml::positioningAttributes(a);
+                if (!placement.empty()) {
+                    handbell += String(u" placement=\"%1\"").arg(placement);
+                }
+                m_xml.tagRaw(handbell, symIdToTechn(sid));
             } else if (mxmlTechn.startsWith(u"harmon")) {
                 m_xml.startElementRaw(mxmlTechn);
                 XmlWriter::Attributes location = {};
@@ -3604,6 +3657,24 @@ void ExportMusicXml::chordAttributes(Chord* chord, Notations& notations, Technic
                     break;
                 }
                 m_xml.tag("harmon-closed", location, harmonClosedValue);
+                m_xml.endElement();
+            } else if (mxmlTechn.startsWith(u"hole")) {
+                m_xml.startElementRaw(mxmlTechn);
+                XmlWriter::Attributes location = {};
+                String holeClosedValue;
+                switch (sid) {
+                case SymId::windClosedHole:
+                    holeClosedValue = u"yes";
+                    break;
+                case SymId::windOpenHole:
+                    holeClosedValue = u"no";
+                    break;
+                default:
+                    holeClosedValue = u"half";
+                    location = { { "location", (sid == SymId::windHalfClosedHole1) ? "right" : "bottom" } };
+                    break;
+                }
+                m_xml.tag("hole-closed", location, holeClosedValue);
                 m_xml.endElement();
             } else {
                 m_xml.tagRaw(mxmlTechn);
@@ -3928,6 +3999,58 @@ static void writeNotehead(XmlWriter& xml, const Note* const note)
         AsciiStringView noteheadName = SymNames::nameForSymId(note->noteHead());
         noteheadTagname += String(u" smufl=\"%1\"").arg(String::fromAscii(noteheadName.ascii()));
         xml.tagRaw(noteheadTagname, "other");
+    }
+
+    if (note->headScheme() == NoteHeadScheme::HEAD_PITCHNAME
+        || note->headScheme() == NoteHeadScheme::HEAD_PITCHNAME_GERMAN
+        || note->headScheme() == NoteHeadScheme::HEAD_SOLFEGE
+        || note->headScheme() == NoteHeadScheme::HEAD_SOLFEGE_FIXED) {
+        static const std::regex nameparts("^note([A-Z][a-z]*)(Sharp|Flat)?");
+        AsciiStringView noteheadName = SymNames::nameForSymId(note->noteHead());
+        StringList matches = String::fromAscii(noteheadName.ascii()).search(nameparts, { 1, 2 }, SplitBehavior::SkipEmptyParts);
+        xml.startElement("notehead-text");
+        xml.tag("display-text", matches.at(0));
+        if (matches.size() > 1) {
+            xml.tag("accidental-text", matches.at(1).toLower());
+        }
+        xml.endElement();
+    }
+}
+
+//---------------------------------------------------------
+//   writeGuitarBend
+//---------------------------------------------------------
+
+static void writeGuitarBend(XmlWriter& xml, Notations& notations, Technical& technical, const Note* const note)
+{
+    if (note->bendBack()) {
+        const GuitarBend* bend = note->bendBack();
+        if (bend->type() == GuitarBendType::PRE_BEND || bend->type() == GuitarBendType::GRACE_NOTE_BEND) {
+            XmlWriter::Attributes bendAttrs;
+            notations.tag(xml, note);
+            technical.tag(xml);
+            bendAttrs.push_back({ "first-beat", bend->startTimeFactor() * 100 });
+            bendAttrs.push_back({ "last-beat", bend->endTimeFactor() * 100 });
+            addColorAttr(bend, bendAttrs);
+            xml.startElement("bend", bendAttrs);
+            xml.tag("bend-alter", String::number(-0.5 * bend->bendAmountInQuarterTones(), 2));
+            xml.tag("pre-bend");
+            xml.endElement();
+        }
+    }
+    if (note->bendFor()) {
+        const GuitarBend* bend = note->bendFor();
+        if (bend->type() == GuitarBendType::BEND || bend->type() == GuitarBendType::SLIGHT_BEND) {
+            notations.tag(xml, note);
+            technical.tag(xml);
+            XmlWriter::Attributes bendAttrs;
+            bendAttrs.push_back({ "first-beat", bend->startTimeFactor() * 100 });
+            bendAttrs.push_back({ "last-beat", bend->endTimeFactor() * 100 });
+            addColorAttr(bend, bendAttrs);
+            xml.startElement("bend", bendAttrs);
+            xml.tag("bend-alter", String::number(0.5 * bend->bendAmountInQuarterTones(), 2));
+            xml.endElement();
+        }
     }
 }
 
@@ -4287,10 +4410,10 @@ void ExportMusicXml::chord(Chord* chord, staff_idx_t staff, const std::vector<Ly
         }
 
         if (!isCueNote(note)) {
-            if (note->tieBack()) {
+            if (note->tieBackNonPartial()) {
                 m_xml.tag("tie", { { "type", "stop" } });
             }
-            if (note->tieFor() && !note->tieFor()->isLaissezVib()) {
+            if (note->tieForNonPartial()) {
                 m_xml.tag("tie", { { "type", "start" } });
             }
         }
@@ -4396,6 +4519,8 @@ void ExportMusicXml::chord(Chord* chord, staff_idx_t staff, const std::vector<Ly
                 m_xml.tag("fret", note->fret());
             }
         }
+
+        writeGuitarBend(m_xml, notations, technical, note);
 
         technical.etag(m_xml);
         if (chord->arpeggio()) {
@@ -5021,6 +5146,46 @@ void ExportMusicXml::tempoText(TempoText const* const text, staff_idx_t staff)
 }
 
 //---------------------------------------------------------
+//   playText
+//---------------------------------------------------------
+
+void ExportMusicXml::playText(PlayTechAnnotation const* const annot, staff_idx_t staff)
+{
+    const int offset = calculateTimeDeltaInDivisions(annot->tick(), tick(), m_div);
+
+    if (annot->plainText() == "") {
+        // sometimes empty Texts are present, exporting would result
+        // in invalid MusicXML (as an empty direction-type would be created)
+        return;
+    }
+
+    directionTag(m_xml, m_attr, annot);
+    wordsMetronome(m_xml, m_score->style(), annot, offset);
+
+    const PlayingTechniqueType type = annot->techniqueType();
+    if (type == PlayingTechniqueType::Pizzicato) {
+        m_xml.tag("sound", { { "pizzicato", "yes" } });
+    } else if ((type != PlayingTechniqueType::Pizzicato) && (m_currPlayTechnique == PlayingTechniqueType::Pizzicato)) {
+        m_xml.tag("sound", { { "pizzicato", "no" } });
+    } else if ((type != PlayingTechniqueType::Undefined) && (type != PlayingTechniqueType::Natural)) {
+        m_xml.startElement("sound");
+        m_xml.startElement("play");
+        if (type == PlayingTechniqueType::Mute) {
+            m_xml.tag("mute", "on");
+        } else if (type == PlayingTechniqueType::Open) {
+            m_xml.tag("mute", "off");
+        } else {
+            m_xml.tag("other-play", { { "type", TConv::toXml(type) } }, TConv::userName(type).translated());
+        }
+        m_xml.endElement();
+        m_xml.endElement();
+    }
+    m_currPlayTechnique = type;
+
+    directionETag(m_xml, staff);
+}
+
+//---------------------------------------------------------
 //   words
 //---------------------------------------------------------
 
@@ -5181,26 +5346,23 @@ void ExportMusicXml::rehearsal(RehearsalMark const* const rmk, staff_idx_t staff
 
 void ExportMusicXml::harpPedals(HarpPedalDiagram const* const hpd, staff_idx_t staff)
 {
-    if (hpd->textStyleType() != TextStyleType::HARP_PEDAL_DIAGRAM) {
-        return;
-    }
-
     directionTag(m_xml, m_attr, hpd);
     m_xml.startElement("direction-type");
     XmlWriter::Attributes harpPedalAttrs;
-    if (!hpd->isStyled(Pid::PLACEMENT)) {
-        harpPedalAttrs.push_back({ "placement", (hpd->placement() == PlacementV::BELOW) ? "below" : "above" });
-    }
     addColorAttr(hpd, harpPedalAttrs);
-    m_xml.startElement("harp-pedals", harpPedalAttrs);
-    const std::vector <String> pedalSteps = { u"D", u"C", u"B", u"E", u"F", u"G", u"A" };
-    for (size_t idx = 0; idx < pedalSteps.size(); idx++) {
-        m_xml.startElement("pedal-tuning");
-        m_xml.tag("pedal-step", pedalSteps.at(idx));
-        m_xml.tag("pedal-alter", static_cast<int>(hpd->getPedalState().at(idx)) - 1);
+    if (hpd->isDiagram()) {
+        m_xml.startElement("harp-pedals", harpPedalAttrs);
+        const std::vector <String> pedalSteps = { u"D", u"C", u"B", u"E", u"F", u"G", u"A" };
+        for (size_t idx = 0; idx < pedalSteps.size(); idx++) {
+            m_xml.startElement("pedal-tuning");
+            m_xml.tag("pedal-step", pedalSteps.at(idx));
+            m_xml.tag("pedal-alter", static_cast<int>(hpd->getPedalState().at(idx)) - 1);
+            m_xml.endElement();
+        }
         m_xml.endElement();
+    } else {
+        m_xml.tag("words", harpPedalAttrs, hpd->plainText());
     }
-    m_xml.endElement();
     m_xml.endElement();
     const int offset = calculateTimeDeltaInDivisions(hpd->tick(), tick(), m_div);
     if (offset) {
@@ -6411,8 +6573,9 @@ static bool commonAnnotations(ExportMusicXml* exp, const EngravingItem* e, staff
         exp->symbol(toSymbol(e), sstaff);
     } else if (e->isTempoText()) {
         exp->tempoText(toTempoText(e), sstaff);
-    } else if (e->isPlayTechAnnotation() || e->isCapo() || e->isStringTunings() || e->isStaffText()
-               || e->isTripletFeel() || e->isText()
+    } else if (e->isPlayTechAnnotation()) {
+        exp->playText(toPlayTechAnnotation(e), sstaff);
+    } else if (e->isCapo() || e->isStringTunings() || e->isStaffText() || e->isTripletFeel() || e->isText()
                || e->isExpression() || (e->isInstrumentChange() && e->visible()) || e->isSticking()) {
         exp->words(toTextBase(e), sstaff);
     } else if (e->isDynamic()) {
@@ -7168,7 +7331,7 @@ static bool hasPageBreak(const System* const system)
  */
 
 void ExportMusicXml::print(const Measure* const m, const int partNr, const int firstStaffOfPart,
-                           const int nrStavesInPart, const MeasurePrintContext& mpc)
+                           const size_t nrStavesInPart, const MeasurePrintContext& mpc)
 {
     const MeasureBase* const prevSysMB = lastMeasureBase(mpc.prevSystem);
 
@@ -7250,15 +7413,21 @@ void ExportMusicXml::print(const Measure* const m, const int partNr, const int f
             }
 
             // Staff layout elements.
-            for (int staffIdx = (firstStaffOfPart == 0) ? 1 : 0; staffIdx < nrStavesInPart; staffIdx++) {
+            for (staff_idx_t staffIdx = (firstStaffOfPart == 0) ? 1 : 0; staffIdx < nrStavesInPart; staffIdx++) {
                 // calculate distance between this and previous staff using the bounding boxes
-                const int staffNr = firstStaffOfPart + staffIdx;
-                const RectF& prevBbox = system->staff(staffNr - 1)->bbox();
+                const staff_idx_t staffNr = firstStaffOfPart + staffIdx;
+                const staff_idx_t prevStaffNr = system->prevVisibleStaff(staffNr);
+                if (prevStaffNr == muse::nidx) {
+                    continue;
+                }
+                const RectF& prevBbox = system->staff(prevStaffNr)->bbox();
                 const double staffDist = system->staff(staffNr)->bbox().y() - prevBbox.y() - prevBbox.height();
 
-                m_xml.startElement("staff-layout", { { "number", staffIdx + 1 } });
-                m_xml.tag("staff-distance", String::number(getTenthsFromDots(staffDist), 2));
-                m_xml.endElement();
+                if (staffDist > 0) {
+                    m_xml.startElement("staff-layout", { { "number", staffIdx + 1 } });
+                    m_xml.tag("staff-distance", String::number(getTenthsFromDots(staffDist), 2));
+                    m_xml.endElement();
+                }
             }
 
             // Measure layout elements.
@@ -8239,7 +8408,7 @@ void ExportMusicXml::writeMeasure(const Measure* const m,
 
     m_xml.startElementRaw(measureTag);
 
-    print(m, partIndex, staffCount, static_cast<int>(staves), mpc);
+    print(m, partIndex, staffCount, staves, mpc);
 
     m_attr.start();
 
@@ -8582,13 +8751,13 @@ static void writeMusicXml(const FretDiagram* item, XmlWriter& xml)
     }
 
     for (int i = 0; i < item->strings(); ++i) {
-        int mxmlString = item->strings() - i;
+        const int mxmlString = item->strings() - i;
 
         std::vector<int> bStarts;
         std::vector<int> bEnds;
         for (auto const& j : item->barres()) {
             FretItem::Barre b = j.second;
-            int fret = j.first;
+            const int fret = j.first;
             if (!b.exists()) {
                 continue;
             }
@@ -8609,7 +8778,7 @@ static void writeMusicXml(const FretDiagram* item, XmlWriter& xml)
         // Markers may exists alongside with dots
         // Write dots
         for (auto const& d : item->dot(i)) {
-            if (!d.exists()) {
+            if (!d.exists() || d.dtype == FretDotType::CROSS) {
                 continue;
             }
             xml.startElement("frame-note");

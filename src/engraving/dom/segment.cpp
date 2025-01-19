@@ -1171,17 +1171,17 @@ bool Segment::setProperty(Pid propertyId, const PropertyValue& v)
 //   widthInStaff
 //---------------------------------------------------------
 
-double Segment::widthInStaff(staff_idx_t staffIdx, SegmentType t) const
+double Segment::widthInStaff(staff_idx_t staffIdx, SegmentType nextSegType) const
 {
     const double segX = x();
     double nextSegX = segX;
 
-    Segment* nextSeg = nextInStaff(staffIdx, t);
+    Segment* nextSeg = nextInStaff(staffIdx, nextSegType);
     if (nextSeg) {
         nextSegX = nextSeg->x();
     } else {
         Segment* lastSeg = measure()->lastEnabled();
-        if (lastSeg->segmentType() & t) {
+        if (lastSeg->segmentType() & nextSegType) {
             nextSegX = lastSeg->x() + lastSeg->width();
         } else {
             nextSegX = lastSeg->x();
@@ -1438,10 +1438,12 @@ EngravingItem* Segment::elementAt(track_idx_t track) const
 
 void Segment::scanElements(void* data, void (* func)(void*, EngravingItem*), bool all)
 {
+    bool scanAllTimeSigs = (isType(SegmentType::TimeSig | SegmentType::TimeSigAnnounce)
+                            && style().styleV(Sid::timeSigPlacement).value<TimeSigPlacement>() != TimeSigPlacement::NORMAL);
     for (size_t track = 0; track < score()->nstaves() * VOICES; ++track) {
         size_t staffIdx = track / VOICES;
         bool thisMeasureVisible = measure()->visible(staffIdx) && score()->staff(staffIdx)->show();
-        if (!all && !thisMeasureVisible) {
+        if (!all && !scanAllTimeSigs && !thisMeasureVisible) {
             Measure* nextMeasure = measure()->nextMeasure();
             bool nextMeasureVisible = nextMeasure
                                       && nextMeasure->system() == measure()->system()
@@ -2219,6 +2221,7 @@ EngravingItem* Segment::prevElement(staff_idx_t activeStaff)
         EngravingItem* el = e;
         Segment* seg = this;
         if (e->type() == ElementType::TIE_SEGMENT || e->type() == ElementType::LAISSEZ_VIB_SEGMENT
+            || e->type() == ElementType::PARTIAL_TIE_SEGMENT
             || e->type() == ElementType::GLISSANDO_SEGMENT || e->type() == ElementType::NOTELINE_SEGMENT) {
             SpannerSegment* s = toSpannerSegment(e);
             Spanner* sp = s->spanner();
@@ -2602,25 +2605,19 @@ double Segment::minRight() const
     for (const Shape& sh : shapes()) {
         distance = std::max(distance, sh.right());
     }
-    if (isClefType()) {
-        distance += style().styleMM(Sid::clefBarlineDistance);
-    }
-    if (trailer()) {
-        distance += style().styleMM(Sid::systemTrailerRightMargin);
-    }
     return distance;
 }
 
 double Segment::minLeft() const
 {
-    double distance = 0.0;
+    double distance = -DBL_MAX;
     for (const Shape& sh : shapes()) {
         double l = sh.left();
         if (l > distance) {
             distance = l;
         }
     }
-    return distance;
+    return distance != -DBL_MAX ? distance : 0.0;
 }
 
 void Segment::setSpacing(double val)
@@ -2631,6 +2628,26 @@ void Segment::setSpacing(double val)
 double Segment::spacing() const
 {
     return m_spacing;
+}
+
+bool Segment::hasTimeSigAboveStaves() const
+{
+    return isType(SegmentType::TimeSig | SegmentType::TimeSigAnnounce)
+           && style().styleV(Sid::timeSigPlacement).value<TimeSigPlacement>() == TimeSigPlacement::ABOVE_STAVES;
+}
+
+bool Segment::makeSpaceForTimeSigAboveStaves() const
+{
+    bool makeSpace = style().styleB(Sid::timeSigCenterOnBarline)
+                     ? style().styleV(Sid::timeSigVSMarginCentered).value<TimeSigVSMargin>() == TimeSigVSMargin::CREATE_SPACE
+                     : style().styleV(Sid::timeSigVSMarginNonCentered).value<TimeSigVSMargin>() == TimeSigVSMargin::CREATE_SPACE;
+    return hasTimeSigAboveStaves() && makeSpace;
+}
+
+bool Segment::hasTimeSigAcrossStaves() const
+{
+    return isType(SegmentType::TimeSig | SegmentType::TimeSigAnnounce)
+           && style().styleV(Sid::timeSigPlacement).value<TimeSigPlacement>() == TimeSigPlacement::ACROSS_STAVES;
 }
 
 bool Segment::canWriteSpannerStartEnd(track_idx_t track, const Spanner* spanner) const

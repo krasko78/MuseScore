@@ -19,8 +19,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef MU_INSPECTOR_ABSTRACTINSPECTORMODEL_H
-#define MU_INSPECTOR_ABSTRACTINSPECTORMODEL_H
+#pragma once
 
 #include <functional>
 #include <set>
@@ -68,6 +67,7 @@ public:
         SECTION_TEXT,
         SECTION_SCORE_DISPLAY,
         SECTION_SCORE_APPEARANCE,
+        SECTION_SCORE_ACCESSIBILITY,
         SECTION_PARTS,
     };
     Q_ENUM(InspectorSectionType)
@@ -107,6 +107,7 @@ public:
         TYPE_SLUR,
         TYPE_TIE,
         TYPE_LAISSEZ_VIB,
+        TYPE_PARTIAL_TIE,
         TYPE_CRESCENDO,
         TYPE_DIMINUENDO,
         TYPE_STAFF_TYPE_CHANGES,
@@ -255,5 +256,3 @@ using InspectorSectionType = AbstractInspectorModel::InspectorSectionType;
 using InspectorModelTypeSet = std::set<InspectorModelType>;
 using InspectorSectionTypeSet = std::set<InspectorSectionType>;
 }
-
-#endif // MU_INSPECTOR_ABSTRACTINSPECTORMODEL_H

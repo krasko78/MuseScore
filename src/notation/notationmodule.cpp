@@ -74,6 +74,8 @@
 #include "view/internal/harppedalpopupmodel.h"
 #include "view/internal/caposettingsmodel.h"
 #include "view/internal/stringtuningssettingsmodel.h"
+#include "view/internal/dynamicpopupmodel.h"
+#include "view/internal/partialtiepopupmodel.h"
 
 #include "view/percussionpanel/percussionpanelmodel.h"
 
@@ -87,6 +89,7 @@
 #include "view/styledialog/fretboardspagemodel.h"
 #include "view/styledialog/glissandosectionmodel.h"
 #include "view/styledialog/notelinesectionmodel.h"
+#include "view/styledialog/clefkeytimesigpagemodel.h"
 
 #include "diagnostics/idiagnosticspathsregister.h"
 
@@ -182,11 +185,15 @@ void NotationModule::registerUiTypes()
     qmlRegisterType<EditGridSizeDialogModel>("MuseScore.NotationScene", 1, 0, "EditGridSizeDialogModel");
     qmlRegisterType<PianoKeyboardView>("MuseScore.NotationScene", 1, 0, "PianoKeyboardView");
     qmlRegisterType<PianoKeyboardPanelContextMenuModel>("MuseScore.NotationScene", 1, 0, "PianoKeyboardPanelContextMenuModel");
+
     qmlRegisterUncreatableType<AbstractElementPopupModel>("MuseScore.NotationScene", 1, 0, "Notation",
                                                           "Not creatable as it is an enum type");
     qmlRegisterType<HarpPedalPopupModel>("MuseScore.NotationScene", 1, 0, "HarpPedalPopupModel");
     qmlRegisterType<CapoSettingsModel>("MuseScore.NotationScene", 1, 0, "CapoSettingsModel");
     qmlRegisterType<StringTuningsSettingsModel>("MuseScore.NotationScene", 1, 0, "StringTuningsSettingsModel");
+    qmlRegisterType<DynamicPopupModel>("MuseScore.NotationScene", 1, 0, "DynamicPopupModel");
+    qmlRegisterType<PartialTiePopupModel>("MuseScore.NotationScene", 1, 0, "PartialTiePopupModel");
+
     qmlRegisterType<PaintedEngravingItem>("MuseScore.NotationScene", 1, 0, "PaintedEngravingItem");
 
     qmlRegisterType<PercussionPanelModel>("MuseScore.NotationScene", 1, 0, "PercussionPanelModel");
@@ -202,6 +209,7 @@ void NotationModule::registerUiTypes()
     qmlRegisterType<FretboardsPageModel>("MuseScore.NotationScene", 1, 0, "FretboardsPageModel");
     qmlRegisterType<GlissandoSectionModel>("MuseScore.NotationScene", 1, 0, "GlissandoSectionModel");
     qmlRegisterType<NoteLineSectionModel>("MuseScore.NotationScene", 1, 0, "NoteLineSectionModel");
+    qmlRegisterType<ClefKeyTimeSigPageModel>("MuseScore.NotationScene", 1, 0, "ClefKeyTimeSigPageModel");
 
     qmlRegisterUncreatableType<NoteInputBarCustomiseItem>("MuseScore.NotationScene", 1, 0, "NoteInputBarCustomiseItem", "Cannot create");
 

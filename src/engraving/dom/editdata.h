@@ -192,7 +192,9 @@ enum KeyboardKey {
     Key_BraceRight = 0x7d,
     Key_AsciiTilde = 0x7e,
 
+    Key_nobreakspace = 0x0a0,
     Key_periodcentered = 0x0b7,
+    Key_ydiaeresis = 0x0ff,
 };
 
 enum MouseButton {
@@ -270,8 +272,8 @@ public:
     void addData(std::shared_ptr<ElementEditData>);
     bool control(bool textEditing = false) const;
     bool shift() const { return modifiers & ShiftModifier; }
-    bool isStartEndGrip() { return curGrip == Grip::START || curGrip == Grip::END; }
-    bool hasCurrentGrip() { return curGrip != Grip::NO_GRIP; }
+    bool isStartEndGrip() const { return curGrip == Grip::START || curGrip == Grip::END; }
+    bool hasCurrentGrip() const { return curGrip != Grip::NO_GRIP; }
 
 private:
     std::list<std::shared_ptr<ElementEditData> > m_data;

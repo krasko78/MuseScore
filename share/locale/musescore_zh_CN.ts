@@ -10487,9 +10487,9 @@ This action will not delete any of your scores.</source>
     </message>
     <message>
         <location filename="../../src/appshell/qml/AboutDialog.qml" line="140"/>
-        <source>Copyright © 1999-2024 MuseScore Limited.
+        <source>Copyright © 1999-2025 MuseScore Limited.
 Published under the &lt;a href=&quot;%1&quot;&gt;GNU General Public License version 3&lt;/a&gt;.</source>
-        <translation>版权所有 © 1999-2024 MuseScore有限公司。
+        <translation>版权所有 © 1999-2025 MuseScore有限公司。
 依照 &lt;a href=&quot;%1&quot;&gt;GNU通用公共许可协议第三版&lt;/a&gt;发布。</translation>
     </message>
     <message>
@@ -18888,7 +18888,7 @@ Fret %1 on strings %2</source>
         <location filename="../../src/project/qml/MuseScore/Project/internal/ScoresPage/RecentScoresView.qml" line="143"/>
         <source>Size</source>
         <comment>file size</comment>
-        <translation>字号</translation>
+        <translation>文件大小</translation>
     </message>
     <message>
         <location filename="../../src/framework/cloud/qml/Muse/Cloud/internal/CloudScoresListView.qml" line="213"/>

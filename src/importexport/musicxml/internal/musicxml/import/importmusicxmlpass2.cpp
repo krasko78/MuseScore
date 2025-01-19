@@ -1261,23 +1261,51 @@ static void addMordentToChord(const Notation& notation, ChordRest* cr)
     if (articSym != SymId::noSym) {
         const Color color = Color::fromString(notation.attribute(u"color"));
         const String place = notation.attribute(u"placement");
-        Articulation* na = Factory::createArticulation(cr);
-        na->setSymId(articSym);
+        Ornament* mordent = Factory::createOrnament(cr);
+        mordent->setSymId(articSym);
         if (place == u"above") {
-            na->setAnchor(ArticulationAnchor::TOP);
+            mordent->setAnchor(ArticulationAnchor::TOP);
         } else if (place == u"below") {
-            na->setAnchor(ArticulationAnchor::BOTTOM);
+            mordent->setAnchor(ArticulationAnchor::BOTTOM);
         } else {
-            na->setAnchor(ArticulationAnchor::AUTO);
+            mordent->setAnchor(ArticulationAnchor::AUTO);
         }
         if (color.isValid()) {
-            na->setColor(color);
+            mordent->setColor(color);
         }
-        cr->add(na);
+        cr->add(mordent);
     } else {
         LOGD("unknown ornament: name '%s' long '%s' approach '%s' departure '%s'",
              muPrintable(name), muPrintable(attrLong), muPrintable(attrAppr), muPrintable(attrDep));        // TODO
     }
+}
+
+//---------------------------------------------------------
+//   addTurnToChord
+//---------------------------------------------------------
+
+/**
+ Add Turn to Chord.
+ */
+
+static void addTurnToChord(const Notation& notation, ChordRest* cr)
+{
+    const SymId turnSym = notation.symId();
+    const Color color = Color::fromString(notation.attribute(u"color"));
+    const String place = notation.attribute(u"placement");
+    Ornament* turn = Factory::createOrnament(cr);
+    turn->setSymId(turnSym);
+    if (place == u"above") {
+        turn->setAnchor(ArticulationAnchor::TOP);
+    } else if (place == u"below") {
+        turn->setAnchor(ArticulationAnchor::BOTTOM);
+    } else {
+        turn->setAnchor(ArticulationAnchor::AUTO);
+    }
+    if (color.isValid()) {
+        turn->setColor(color);
+    }
+    cr->add(turn);
 }
 
 //---------------------------------------------------------
@@ -1297,12 +1325,12 @@ static void addOtherOrnamentToChord(const Notation& notation, ChordRest* cr)
 
     if (sym != SymId::noSym) {
         const Color color = Color::fromString(notation.attribute(u"color"));
-        Articulation* na = Factory::createArticulation(cr);
-        na->setSymId(sym);
+        Ornament* ornam = Factory::createOrnament(cr);
+        ornam->setSymId(sym);
         if (color.isValid()) {
-            na->setColor(color);
+            ornam->setColor(color);
         }
-        cr->add(na);
+        cr->add(ornam);
     } else {
         LOGD("unknown ornament: name '%s': '%s'.", muPrintable(name), muPrintable(symname));
     }
@@ -1356,12 +1384,25 @@ static bool convertArticulationToSymId(const String& mxmlName, SymId& id)
         { u"stopped",                SymId::brassMuteClosed },
         { u"snap-pizzicato",         SymId::pluckedSnapPizzicatoAbove },
         { u"heel",                   SymId::keyboardPedalHeel1 },
-        { u"toe",                    SymId::keyboardPedalToe1 },
+        { u"toe",                    SymId::keyboardPedalToe2 },
         { u"fingernails",            SymId::pluckedWithFingernails },
         { u"brass-bend",             SymId::brassBend },
         { u"flip",                   SymId::brassFlip },
         { u"smear",                  SymId::brassSmear },
-        { u"open",                   SymId::brassMuteOpen }
+        { u"open",                   SymId::brassMuteOpen },
+
+        { u"belltree", SymId::handbellsBelltree },
+        { u"damp", SymId::handbellsDamp3 },
+        { u"echo", SymId::handbellsEcho1 },
+        { u"gyro", SymId::handbellsGyro },
+        { u"hand martellato", SymId::handbellsHandMartellato },
+        { u"mallet lift", SymId::handbellsMalletLft },
+        { u"mallet table", SymId::handbellsMalletBellOnTable },
+        { u"martellato", SymId::handbellsMartellato },
+        { u"martellato lift", SymId::handbellsMartellatoLift },
+        { u"muted martellato", SymId::handbellsMutedMartellato },
+        { u"pluck lift", SymId::handbellsPluckLift },
+        { u"swing", SymId::handbellsSwing }
     };
 
     auto it = map.find(mxmlName);
@@ -3423,7 +3464,13 @@ void MusicXmlParserDirection::direction(const String& partId,
             }
         } else {
             if (!m_wordsText.empty() || !m_metroText.empty()) {
-                const PlayingTechniqueType technique = getPlayingTechnique();
+                PlayingTechniqueType technique = PlayingTechniqueType::Undefined;
+                if (!m_play.empty()) {
+                    technique = TConv::fromXml(m_play.toAscii().constChar(), PlayingTechniqueType::Undefined);
+                    m_play.clear();
+                } else {
+                    technique = getPlayingTechnique();
+                }
                 isExpressionText = m_wordsText.contains(u"<i>") && m_metroText.empty() && placement() == u"below";
                 if (isExpressionText) {
                     t = Factory::createExpression(m_score->dummy()->segment());
@@ -3542,7 +3589,7 @@ void MusicXmlParserDirection::direction(const String& partId,
             }
         }
 
-        if (!m_dynaVelocity.isEmpty()) {
+        if (!m_dynaVelocity.empty()) {
             int dynaValue = round(m_dynaVelocity.toDouble() * 0.9);
             if (dynaValue > 127) {
                 dynaValue = 127;
@@ -3907,7 +3954,43 @@ void MusicXmlParserDirection::sound()
     m_tpoSound = m_e.doubleAttribute("tempo");
     m_dynaVelocity = m_e.attribute("dynamics");
 
-    m_e.skipCurrentElement();
+    const String pizz = m_e.attribute("pizzicato");
+    if (pizz == u"yes") {
+        m_play = u"pizzicato";
+    } else if (pizz == u"no") {
+        m_play = u"natural";
+    }
+
+    while (m_e.readNextStartElement()) {
+        if (m_e.name() == "play") {
+            play();
+        } else {
+            skipLogCurrElem();
+        }
+    }
+}
+
+//---------------------------------------------------------
+//   play
+//---------------------------------------------------------
+
+/**
+ Parse the /score-partwise/part/measure/direction/sound/play node.
+ */
+
+void MusicXmlParserDirection::play()
+{
+    while (m_e.readNextStartElement()) {
+        if (m_e.name() == "mute") {
+            const String muted = m_e.readText();
+            m_play = (muted == u"off") ? u"open" : u"mute";
+        } else if (m_e.name() == "other-play") {
+            m_play = m_e.attribute("type");
+            m_e.skipCurrentElement();
+        } else {
+            skipLogCurrElem();
+        }
+    }
 }
 
 //---------------------------------------------------------
@@ -6622,6 +6705,23 @@ Note* MusicXmlParserPass2::note(const String& partId,
             } else {
                 headGroup = convertNotehead(noteheadValue);
             }
+        } else if (m_e.name() == "notehead-text") {
+            String noteheadText;
+            while (m_e.readNextStartElement()) {
+                if (m_e.name() == "display-text") {
+                    noteheadText = m_e.readText();
+                } else if (m_e.name() == "accidental-text") {
+                    m_e.skipCurrentElement();
+                } else {
+                    skipLogCurrElem();
+                }
+            }
+            if (noteheadText.size() == 1) {
+                headScheme = (noteheadText == u"H")
+                             ? NoteHeadScheme::HEAD_PITCHNAME_GERMAN : NoteHeadScheme::HEAD_PITCHNAME;
+            } else {
+                headScheme = NoteHeadScheme::HEAD_SOLFEGE_FIXED;
+            }
         } else if (m_e.name() == "rest") {
             rest = true;
             measureRest = m_e.asciiAttribute("measure") == "yes";
@@ -7376,7 +7476,7 @@ void MusicXmlParserPass2::harmony(const String& partId, Measure* measure, const 
     FretDiagram* fd = nullptr;
     Harmony* ha = Factory::createHarmony(m_score->dummy()->segment());
     Fraction offset;
-    if (!placement.isEmpty()) {
+    if (!placement.empty()) {
         ha->setPlacement(placement == "below" ? PlacementV::BELOW : PlacementV::ABOVE);
         ha->setPropertyFlags(Pid::PLACEMENT, PropertyFlags::UNSTYLED);
         ha->resetProperty(Pid::OFFSET);
@@ -8053,6 +8153,16 @@ void MusicXmlParserNotations::articulations()
             artic.setSubType(String::fromAscii(m_e.name().ascii()));
             m_notations.push_back(artic);
             m_e.skipCurrentElement();  // skip but don't log
+        } else if (m_e.name() == "other-articulation") {
+            const String smufl = m_e.attribute("smufl");
+
+            if (!smufl.empty()) {
+                SymId sid = SymNames::symIdByName(smufl, SymId::noSym);
+                Notation artic = Notation::notationWithAttributes(String::fromAscii(m_e.name().ascii()),
+                                                                  m_e.attributes(), u"articulations", sid);
+                m_notations.push_back(artic);
+            }
+            m_e.skipCurrentElement();  // skip but don't log
         } else {
             skipLogCurrElem();
         }
@@ -8075,7 +8185,7 @@ void MusicXmlParserNotations::ornaments()
         SymId id { SymId::noSym };
         if (convertArticulationToSymId(String::fromAscii(m_e.name().ascii()), id)) {
             Notation notation = Notation::notationWithAttributes(String::fromAscii(m_e.name().ascii()),
-                                                                 m_e.attributes(), u"articulations", id);
+                                                                 m_e.attributes(), u"ornaments", id);
             m_notations.push_back(notation);
             m_e.skipCurrentElement();  // skip but don't log
         } else if (m_e.name() == "trill-mark") {
@@ -8149,8 +8259,15 @@ void MusicXmlParserNotations::technical()
             m_notations.push_back(notation);
         } else if (m_e.name() == "harmonic") {
             harmonic();
+        } else if (m_e.name() == "handbell") {
+            const std::vector<XmlStreamReader::Attribute> attributes = m_e.attributes();
+            convertArticulationToSymId(m_e.readText(), id);
+            m_notations.push_back(Notation::notationWithAttributes(String::fromAscii(m_e.name().ascii()),
+                                                                   attributes, u"technical", id));
         } else if (m_e.name() == "harmon-mute") {
             harmonMute();
+        } else if (m_e.name() == "hole") {
+            hole();
         } else if (m_e.name() == "other-technical") {
             otherTechnical();
         } else {
@@ -8161,7 +8278,18 @@ void MusicXmlParserNotations::technical()
 
 void MusicXmlParserNotations::otherTechnical()
 {
-    String text = m_e.readText();
+    const String smufl = m_e.attribute("smufl");
+
+    if (!smufl.empty()) {
+        SymId id = SymNames::symIdByName(smufl, SymId::noSym);
+        Notation notation = Notation::notationWithAttributes(String::fromAscii(m_e.name().ascii()),
+                                                             m_e.attributes(), u"technical", id);
+        m_notations.push_back(notation);
+        m_e.skipCurrentElement();
+        return;
+    }
+
+    const String text = m_e.readText();
 
     if (text == u"z") {
         // Buzz roll
@@ -8236,6 +8364,43 @@ void MusicXmlParserNotations::harmonMute()
         }
     }
     m_notations.push_back(Notation::notationWithAttributes(u"harmon-closed", attributes, u"technical", mute));
+}
+
+//---------------------------------------------------------
+//   hole
+//---------------------------------------------------------
+
+/**
+ Parse the /score-partwise/part/measure/note/notations/technical/hole node.
+ */
+
+void MusicXmlParserNotations::hole()
+{
+    engraving::SymId hole = SymId::noSym;
+    const std::vector<XmlStreamReader::Attribute> attributes = m_e.attributes();
+    while (m_e.readNextStartElement()) {
+        if (m_e.name() == "hole-closed") {
+            const String location = m_e.attribute("location");
+            const String value = m_e.readText();
+            if (value == "yes") {
+                hole = SymId::windClosedHole;
+            } else if (value == "no") {
+                hole = SymId::windOpenHole;
+            } else if (value == "half") {
+                if (location == "bottom") {
+                    hole = SymId::windHalfClosedHole2;
+                } else if (location == "right") {
+                    hole = SymId::windHalfClosedHole1;
+                } else {
+                    m_logger->logError(String(u"unsupported hole-closed location '%1'").arg(location), &m_e);
+                    hole = SymId::windHalfClosedHole3;
+                }
+            }
+        } else {
+            m_e.skipCurrentElement();
+        }
+    }
+    m_notations.push_back(Notation::notationWithAttributes(u"hole-closed", attributes, u"technical", hole));
 }
 
 //---------------------------------------------------------
@@ -8816,6 +8981,8 @@ void MusicXmlParserNotations::addNotation(const Notation& notation, ChordRest* c
             // Terminate tempo line
             const InferredTempoLineStack& lines = m_pass2.getInferredTempoLine();
             terminateInferredLine(std::vector<TextLineBase*>(lines.begin(), lines.end()), cr->tick(), cr->track());
+        } else if (notation.parent() == u"ornaments") {
+            addTurnToChord(notation, cr);
         } else {
             addArticulationToChord(notation, cr);
         }
