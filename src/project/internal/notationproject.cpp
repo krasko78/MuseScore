@@ -534,16 +534,16 @@ Ret NotationProject::writeToDevice(QIODevice* device)
 
     if (ret) {
         if (msczWriter.hasError()) {
-            LOGE() << "MSCZ writer has error";
-            return make_ret(Ret::Code::UnknownError);
+            LOGE() << "MscWriter has error";
+            return muse::make_ret(msczWriter.error(), msczWriter.errorString());
         }
 
         buf.open(IODevice::OpenMode::ReadOnly);
         ByteArray ba = buf.readAll();
 
         if ((size_t)device->write(ba.toQByteArrayNoCopy()) != ba.size()) {
-            LOGE() << "Error writing to device";
-            return make_ret(Ret::Code::UnknownError);
+            LOGE() << "Error writing to device: " << device->errorString();
+            return make_ret(Ret::Code::UnknownError, device->errorString());
         }
     }
 
@@ -572,12 +572,28 @@ Ret NotationProject::doSave(const muse::io::path_t& path, engraving::MscIoMode i
     muse::io::path_t targetMainFileName = engraving::mainFileName(path);
     QString savePath = targetContainerPath + "_saving";
 
+    LOGI() << "saving project to " << savePath << " (ioMode=" << static_cast<int>(ioMode)
+           << ", generateBackup=" << generateBackup << ", createThumbnail=" << createThumbnail
+           << ", isAutosave=" << isAutosave << ")...";
+
     // Step 1: check writable
     {
-        if ((fileSystem()->exists(savePath) && !fileSystem()->isWritable(savePath))
-            || (fileSystem()->exists(targetContainerPath) && !fileSystem()->isWritable(targetContainerPath))) {
-            LOGE() << "failed save, not writable path: " << targetContainerPath;
-            return make_ret(io::Err::FSWriteError);
+        if (fileSystem()->exists(savePath)) {
+            Ret ret = fileSystem()->isWritable(savePath);
+            if (!ret) {
+                const std::string& errMsg = "File '" + savePath.toStdString() + "' is not writable (" + ret.text() + ")";
+                LOGE() << errMsg;
+                return muse::make_ret(static_cast<int>(io::Err::FSOpenError), errMsg);
+            }
+        }
+
+        if (fileSystem()->exists(targetContainerPath)) {
+            Ret ret = fileSystem()->isWritable(targetContainerPath);
+            if (!ret) {
+                const std::string& errMsg = "File '" + targetContainerPath.toStdString() + "' is not writable (" + ret.text() + ")";
+                LOGE() << errMsg;
+                return muse::make_ret(static_cast<int>(io::Err::FSOpenError), errMsg);
+            }
         }
 
         if (ioMode == engraving::MscIoMode::Dir) {
@@ -615,13 +631,13 @@ Ret NotationProject::doSave(const muse::io::path_t& path, engraving::MscIoMode i
         }
 
         if (!ret) {
-            LOGE() << "failed write project to buffer: " << ret.toString();
+            LOGE() << "failed to write project to " << savePath << ": " << ret.toString();
             return ret;
         }
 
         if (msczWriter.hasError()) {
             LOGE() << "MscWriter has error after writing project";
-            return make_ret(Ret::Code::UnknownError);
+            return muse::make_ret(msczWriter.error(), msczWriter.errorString());
         }
     }
 
@@ -662,6 +678,7 @@ Ret NotationProject::doSave(const muse::io::path_t& path, engraving::MscIoMode i
 
             ret = fileSystem()->copy(savePath, targetContainerPath, true);
             if (!ret) {
+                LOGE() << "failed to copy " << savePath << " to " << targetContainerPath;
                 return ret;
             }
 
@@ -768,7 +785,7 @@ Ret NotationProject::writeProject(MscWriter& msczWriter, bool onlySelection, boo
         msczWriter.writeAudioSettingsJsonFile(soloMuteData, path);
     }
 
-    return make_ret(Ret::Code::Ok);
+    return muse::make_ret(msczWriter.error(), msczWriter.errorString());
 }
 
 Ret NotationProject::saveSelectionOnScore(const muse::io::path_t& path)
@@ -802,10 +819,17 @@ Ret NotationProject::saveSelectionOnScore(const muse::io::path_t& path)
     Ret ret = writeProject(msczWriter, true);
 
     if (ret) {
+        if (msczWriter.hasError()) {
+            LOGE() << "MscWriter has error after writing project";
+            return muse::make_ret(msczWriter.error(), msczWriter.errorString());
+        }
+
+        LOGI() << "successfully saved file: " << path;
+
         QFile::setPermissions(path.toQString(),
                               QFile::ReadOwner | QFile::WriteOwner | QFile::ReadUser | QFile::ReadGroup | QFile::ReadOther);
     }
-    LOGI() << "success save file: " << path;
+
     return ret;
 }
 

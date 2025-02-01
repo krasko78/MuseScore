@@ -26,12 +26,13 @@
 #include <string>
 
 #include "io/iodevice.h"
+#include "types/errorcallback.h"
 
 namespace muse {
 class ZipContainer
 {
 public:
-    explicit ZipContainer(io::IODevice* device);
+    explicit ZipContainer(io::IODevice* device, ErrorCallback onErrorCallback = nullptr);
     ~ZipContainer();
 
     enum Status {
@@ -76,13 +77,17 @@ public:
     void setCompressionPolicy(CompressionPolicy policy);
     CompressionPolicy compressionPolicy() const;
 
-    void addFile(const std::string& fileName, const ByteArray& data);
-    void addDirectory(const std::string& dirName);
+    bool addFile(const std::string& fileName, const ByteArray& data);
+    bool addDirectory(const std::string& dirName);
+
+    void onError(int error, const std::string& errorString);
 
 private:
 
     struct Impl;
     Impl* p = nullptr;
+
+    ErrorCallback m_onError;
 };
 }
 

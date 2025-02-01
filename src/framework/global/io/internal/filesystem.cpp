@@ -204,7 +204,7 @@ Ret FileSystem::writeFile(const io::path_t& filePath, const ByteArray& data) con
 
     QFile file(filePath.toQString());
     if (!file.open(QIODevice::WriteOnly)) {
-        ret = make_ret(Err::FSWriteError);
+        ret = make_ret(Err::FSOpenError);
         ret.setText(file.errorString().toStdString());
         return ret;
     }
@@ -424,7 +424,7 @@ Ret FileSystem::isWritable(const io::path_t& filePath) const
         QFile file(filePath.toQString());
 
         if (!file.open(QFile::WriteOnly)) {
-            ret = make_ret(Err::FSWriteError);
+            ret = make_ret(Err::FSOpenError);
             ret.setText(file.errorString().toStdString());
         }
 

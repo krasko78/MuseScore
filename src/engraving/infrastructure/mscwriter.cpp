@@ -56,7 +56,6 @@ void MscWriter::setParams(const Params& params)
     }
 
     if (m_writer) {
-        m_hadError = m_writer->hasError();
         delete m_writer;
         m_writer = nullptr;
     }
@@ -82,7 +81,6 @@ void MscWriter::close()
             m_writer->close();
         }
 
-        m_hadError = m_writer->hasError();
         delete m_writer;
         m_writer = nullptr;
     }
@@ -95,21 +93,46 @@ bool MscWriter::isOpened() const
 
 bool MscWriter::hasError() const
 {
-    return m_writer ? m_writer->hasError() : m_hadError;
+    return error() != static_cast<int>(Ret::Code::Ok);
 }
 
-MscWriter::IWriter* MscWriter::writer() const
+int MscWriter::error() const
+{
+    return m_error;
+}
+
+std::string MscWriter::errorString() const
+{
+    return m_errorString;
+}
+
+void MscWriter::onError(int error, const std::string& errorString)
+{
+    // Always keep the first error as it is the most important one to report.
+    // Rely on the logging to inform about any subsequent errors.
+    if (m_error == static_cast<int>(Ret::Code::Ok))
+    {
+        m_error = error;
+        m_errorString = errorString;
+    }
+}
+
+MscWriter::IWriter* MscWriter::writer()
 {
     if (!m_writer) {
+        auto errorHandler = [this](int error, const std::string& errorString) {
+            onError(error, errorString);
+        };
+
         switch (m_params.mode) {
         case MscIoMode::Zip:
-            m_writer = new ZipFileWriter();
+            m_writer = new ZipFileWriter(errorHandler);
             break;
         case MscIoMode::Dir:
-            m_writer = new DirWriter();
+            m_writer = new DirWriter(errorHandler);
             break;
         case MscIoMode::XmlFile:
-            m_writer = new XmlFileWriter();
+            m_writer = new XmlFileWriter(errorHandler);
             break;
         case MscIoMode::Unknown:
             UNREACHABLE;
@@ -254,6 +277,41 @@ void MscWriter::Meta::addFile(const String& file)
 // Writers
 // =======================================================================
 
+// =======================================================================
+// Writer
+// =======================================================================
+
+MscWriter::Writer::Writer(ErrorCallback onErrorCallback)
+    : m_onError(onErrorCallback)
+{
+}
+
+void MscWriter::Writer::onError(int error, const std::string& errorString)
+{
+    if (m_onError) {
+        m_onError(error, errorString);
+    }
+}
+
+void MscWriter::Writer::onInternalError(const std::string& errorString)
+{
+    onError(static_cast<int>(Ret::Code::InternalError), errorString);
+}
+
+void MscWriter::Writer::onUnknownError(const std::string& errorString)
+{
+    onError(static_cast<int>(Ret::Code::UnknownError), errorString);
+}
+
+// =======================================================================
+// ZipFileWriter
+// =======================================================================
+
+MscWriter::ZipFileWriter::ZipFileWriter(ErrorCallback onErrorCallback)
+    : Writer(onErrorCallback)
+{
+}
+
 MscWriter::ZipFileWriter::~ZipFileWriter()
 {
     delete m_zip;
@@ -277,9 +335,12 @@ Ret MscWriter::ZipFileWriter::open(io::IODevice* device, const path_t& filePath)
         }
     }
 
-    m_zip = new ZipWriter(m_device);
+    auto errorHandler = [this](int error, const std::string& errorString) {
+        onError(error, errorString);
+    };
+    m_zip = new ZipWriter(m_device, errorHandler);
 
-    return true;
+    return make_ok();
 }
 
 void MscWriter::ZipFileWriter::close()
@@ -298,38 +359,47 @@ bool MscWriter::ZipFileWriter::isOpened() const
     return m_device ? m_device->isOpen() : false;
 }
 
-bool MscWriter::ZipFileWriter::hasError() const
-{
-    return (m_device ? m_device->hasError() : false) || (m_zip ? m_zip->hasError() : false);
-}
-
 bool MscWriter::ZipFileWriter::addFileData(const String& fileName, const ByteArray& data)
 {
     IF_ASSERT_FAILED(m_zip) {
+        LOGE() << "m_zip is null";
+        onInternalError();
         return false;
     }
 
-    m_zip->addFile(fileName.toStdString(), data);
-    if (m_zip->hasError()) {
-        LOGE() << "failed write files to zip";
+    if (!m_zip->addFile(fileName.toStdString(), data)) {
+        const std::string& errString = "failed to write file " + fileName.toStdString() + " to zip";
+        LOGE() << errString;
+        onUnknownError(errString);
         return false;
     }
 
     return true;
 }
 
+// =======================================================================
+// DirWriter
+// =======================================================================
+
+MscWriter::DirWriter::DirWriter(ErrorCallback onErrorCallback)
+    : Writer(onErrorCallback)
+{
+}
+
 Ret MscWriter::DirWriter::open(io::IODevice* device, const muse::io::path_t& filePath)
 {
     if (device) {
         NOT_SUPPORTED;
-        m_hasError = true;
-        return false;
+        LOGE() << "DirWriter does not accept devices.";
+        onInternalError();
+        return make_ret(Ret::Code::InternalError);
     }
 
     if (filePath.empty()) {
-        LOGE() << "file path is empty";
-        m_hasError = true;
-        return false;
+        const std::string& errorString = "file path is empty";
+        LOGE() << errorString;
+        onUnknownError(errorString);
+        return make_ret(Ret::Code::UnknownError, errorString);
     }
 
     m_rootPath = containerPath(filePath);
@@ -337,19 +407,19 @@ Ret MscWriter::DirWriter::open(io::IODevice* device, const muse::io::path_t& fil
     Dir dir(m_rootPath);
     Ret ret = dir.removeRecursively();
     if (!ret) {
-        LOGE() << "failed clear dir: " << dir.absolutePath();
-        m_hasError = true;
+        LOGE() << "failed clear dir: " << dir.absolutePath() << " - " << ret.toString();
+        onError(ret.code(), ret.text());
         return ret;
     }
 
     ret = dir.mkpath(dir.absolutePath());
     if (!ret) {
-        LOGE() << "failed make path: " << dir.absolutePath();
-        m_hasError = true;
+        LOGE() << "failed make path: " << dir.absolutePath() << " - " << ret.toString();
+        onError(ret.code(), ret.text());
         return ret;
     }
 
-    return true;
+    return make_ok();
 }
 
 void MscWriter::DirWriter::close()
@@ -362,38 +432,51 @@ bool MscWriter::DirWriter::isOpened() const
     return FileInfo::exists(m_rootPath);
 }
 
-bool MscWriter::DirWriter::hasError() const
-{
-    return m_hasError;
-}
-
 bool MscWriter::DirWriter::addFileData(const String& fileName, const ByteArray& data)
 {
     muse::io::path_t filePath = m_rootPath + "/" + fileName;
 
     Dir fileDir(FileInfo(filePath).absolutePath());
     if (!fileDir.exists()) {
-        if (!fileDir.mkpath(fileDir.absolutePath())) {
-            LOGE() << "failed make path: " << fileDir.absolutePath();
-            m_hasError = true;
+        Ret ret = fileDir.mkpath(fileDir.absolutePath());
+        if (!ret) {
+            LOGE() << "failed make path: " << fileDir.absolutePath() << " - " << ret.toString();
+            onError(ret.code(), ret.text());
             return false;
         }
     }
 
     File file(filePath);
     if (!file.open(IODevice::WriteOnly)) {
-        LOGE() << "failed open file: " << filePath;
-        m_hasError = true;
+        LOGE() << "failed to open file for writing: " << filePath << " - " << file.errorString();
+        if (file.error() != static_cast<int>(Ret::Code::Ok)) {
+            onError(file.error(), file.errorString());
+        } else {
+            onUnknownError();
+        }
         return false;
     }
 
     if (file.write(data) != data.size()) {
-        LOGE() << "failed write file: " << filePath;
-        m_hasError = true;
+        LOGE() << "failed write file: " << filePath << " - " << file.errorString();
+        if (file.error() != static_cast<int>(Ret::Code::Ok)) {
+            onError(file.error(), file.errorString());
+        } else {
+            onUnknownError();
+        }
         return false;
     }
 
     return true;
+}
+
+// =======================================================================
+// XmlFileWriter
+// =======================================================================
+
+MscWriter::XmlFileWriter::XmlFileWriter(ErrorCallback onErrorCallback)
+    : Writer(onErrorCallback)
+{
 }
 
 MscWriter::XmlFileWriter::~XmlFileWriter()
@@ -414,8 +497,15 @@ Ret MscWriter::XmlFileWriter::open(io::IODevice* device, const path_t& filePath)
 
     if (!m_device->isOpen()) {
         if (!m_device->open(IODevice::WriteOnly)) {
-            LOGE() << "failed open file: " << filePath;
-            return make_ret(m_device->error(), m_device->errorString());
+            LOGE() << "failed to open file for writing: " << filePath << " - " << m_device->errorString();
+            if (m_device->error() != static_cast<int>(Ret::Code::Ok)) {
+                onError(m_device->error(), m_device->errorString());
+                return make_ret(m_device->error(), m_device->errorString());
+            }
+            else {
+                onUnknownError();
+                return make_ret(Ret::Code::UnknownError);
+            }
         }
     }
 
@@ -425,7 +515,7 @@ Ret MscWriter::XmlFileWriter::open(io::IODevice* device, const path_t& filePath)
     *m_stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     *m_stream << "<files>\n";
 
-    return true;
+    return make_ok();
 }
 
 void MscWriter::XmlFileWriter::close()
@@ -442,14 +532,11 @@ bool MscWriter::XmlFileWriter::isOpened() const
     return m_device ? m_device->isOpen() : false;
 }
 
-bool MscWriter::XmlFileWriter::hasError() const
-{
-    return m_device ? m_device->hasError() : false;
-}
-
 bool MscWriter::XmlFileWriter::addFileData(const String& fileName, const ByteArray& data)
 {
     if (!m_stream) {
+        LOGE() << "m_stream is null";
+        onInternalError();
         return false;
     }
 

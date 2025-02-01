@@ -27,6 +27,7 @@
 #include <QByteArray>
 #endif
 
+#include "global/types/ret.h"
 #include "log.h"
 
 using namespace muse;
@@ -198,6 +199,8 @@ const uint8_t* IODevice::readData()
 size_t IODevice::write(const uint8_t* data, size_t len)
 {
     IF_ASSERT_FAILED(isOpenModeWriteable()) {
+        LOGE() << "device not open for writing";
+        setError(static_cast<int>(Ret::Code::InternalError), "");
         return 0;
     }
 
@@ -206,6 +209,7 @@ size_t IODevice::write(const uint8_t* data, size_t len)
         bool ok = resizeData(m_pos + len);
         if (!ok) {
             LOGE() << "failed resize data";
+            setError(static_cast<int>(Ret::Code::InternalError), "");
             return 0;
         }
     }

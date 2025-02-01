@@ -34,7 +34,8 @@ struct ZipWriter::Impl
     bool isClosed = false;
 };
 
-ZipWriter::ZipWriter(const io::path_t& filePath)
+ZipWriter::ZipWriter(const io::path_t& filePath, ErrorCallback onErrorCallback)
+    : m_onError(onErrorCallback)
 {
     m_selfDevice = true;
     m_device = new io::File(filePath);
@@ -42,15 +43,25 @@ ZipWriter::ZipWriter(const io::path_t& filePath)
         LOGE() << "failed open file: " << filePath;
     }
 
+    auto errorHandler = [this](int error, const std::string& errorString) {
+        onError(error, errorString);
+    };
+
     m_impl = new Impl();
-    m_impl->zip = new ZipContainer(m_device);
+    m_impl->zip = new ZipContainer(m_device, errorHandler);
 }
 
-ZipWriter::ZipWriter(io::IODevice* device)
+ZipWriter::ZipWriter(io::IODevice* device, ErrorCallback onErrorCallback)
+    : m_onError(onErrorCallback)
 {
     m_device = device;
+
+    auto errorHandler = [this](int error, const std::string& errorString) {
+        onError(error, errorString);
+    };
+
     m_impl = new Impl();
-    m_impl->zip = new ZipContainer(m_device);
+    m_impl->zip = new ZipContainer(m_device, errorHandler);
 }
 
 ZipWriter::~ZipWriter()
@@ -86,11 +97,20 @@ void ZipWriter::close()
 
 bool ZipWriter::hasError() const
 {
-    return m_impl->zip->status() != ZipContainer::NoError;
+    return m_hasError;
 }
 
-void ZipWriter::addFile(const std::string& fileName, const ByteArray& data)
+void ZipWriter::onError(int error, const std::string& errorString)
 {
-    m_impl->zip->addFile(fileName, data);
+    m_hasError = true;
+    if (m_onError) {
+        m_onError(error, errorString);
+    }
+}
+
+bool ZipWriter::addFile(const std::string& fileName, const ByteArray& data)
+{
+    bool ok = m_impl->zip->addFile(fileName, data);
     flush();
+    return ok;
 }

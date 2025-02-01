@@ -39,12 +39,13 @@ using namespace muse::io;
 using namespace mu::engraving;
 using namespace mu::engraving::rw;
 
-bool MscSaver::writeMscz(MasterScore* score, MscWriter& mscWriter, bool onlySelection, bool doCreateThumbnail)
+Ret MscSaver::writeMscz(MasterScore* score, MscWriter& mscWriter, bool onlySelection, bool doCreateThumbnail)
 {
     TRACEFUNC;
 
     IF_ASSERT_FAILED(mscWriter.isOpened()) {
-        return false;
+        LOGE() << "mscWriter is not open";
+        return make_ret(Ret::Code::InternalError);
     }
 
     // Write style of MasterScore
@@ -154,7 +155,7 @@ bool MscSaver::writeMscz(MasterScore* score, MscWriter& mscWriter, bool onlySele
         }
     }
 
-    return true;
+    return make_ok();
 }
 
 bool MscSaver::exportPart(Score* partScore, MscWriter& mscWriter)

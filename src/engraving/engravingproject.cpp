@@ -148,7 +148,7 @@ Ret EngravingProject::loadMscz(const MscReader& msc, SettingsCompat& settingsCom
     return loader.loadMscz(m_masterScore, msc, settingsCompat, ignoreVersionError);
 }
 
-bool EngravingProject::writeMscz(MscWriter& writer, bool onlySelection, bool createThumbnail)
+Ret EngravingProject::writeMscz(MscWriter& writer, bool onlySelection, bool createThumbnail)
 {
     TRACEFUNC;
 

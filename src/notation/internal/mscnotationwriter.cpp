@@ -85,13 +85,18 @@ Ret MscNotationWriter::write(INotationPtr notation, io::IODevice& device, const 
         return Ret(Ret::Code::UnknownError);
     }
 
-    notation->elements()->msScore()->masterScore()->project().lock()->writeMscz(msczWriter, false, true);
+    Ret ret = notation->elements()->msScore()->masterScore()->project().lock()->writeMscz(msczWriter, false, true);
 
     msczWriter.close();
 
+    if (!ret) {
+        LOGE() << "error writing notation: " << ret.toString();
+        return ret;
+    }
+
     if (msczWriter.hasError()) {
         LOGE() << "MscWriter has error";
-        return Ret(Ret::Code::UnknownError);
+        return muse::make_ret(msczWriter.error(), msczWriter.errorString());
     }
 
     return Ret(Ret::Code::Ok);

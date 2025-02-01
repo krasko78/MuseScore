@@ -26,6 +26,7 @@
 #include <zlib.h>
 
 #include "global/io/dir.h"
+#include "global/io/ioretcodes.h"
 
 #include "log.h"
 
@@ -384,15 +385,21 @@ struct ZipContainer::Impl {
         Directory, File, Symlink
     };
 
-    void addEntry(EntryType type, const std::string& fileName, const ByteArray& contents);
+    bool addEntry(EntryType type, const std::string& fileName, const ByteArray& contents);
     bool writeToDevice(const uint8_t* data, size_t len);
     bool writeToDevice(const ByteArray& data);
 
-    Impl(IODevice* d)
-        : device(d) {}
+    Impl(IODevice* d, ErrorCallback onErrorCallback)
+        : device(d), m_onError(onErrorCallback) {}
 
     void scanFiles();
     ZipContainer::FileInfo fillFileInfo(size_t index) const;
+
+private:
+    void onWriteError();
+    void onError(int error, const std::string& errorString);
+
+    ErrorCallback m_onError;
 };
 
 void ZipContainer::Impl::scanFiles()
@@ -559,11 +566,13 @@ ZipContainer::FileInfo ZipContainer::Impl::fillFileInfo(size_t index) const
     return fileInfo;
 }
 
-void ZipContainer::Impl::addEntry(EntryType type, const std::string& fileName, const ByteArray& contents)
+bool ZipContainer::Impl::addEntry(EntryType type, const std::string& fileName, const ByteArray& contents)
 {
     if (!(device->isOpen() || device->open(IODevice::WriteOnly))) {
+        LOGE() << "failed to open device for writing: [" << device->error() << "] " << device->errorString();
         status = ZipContainer::FileOpenError;
-        return;
+        onError(static_cast<int>(Err::FSOpenError), device->errorString());
+        return false;
     }
     device->seek(start_of_directory);
 
@@ -610,6 +619,7 @@ void ZipContainer::Impl::addEntry(EntryType type, const std::string& fileName, c
                 break;
             case Z_MEM_ERROR:
                 LOGW("Zip: Z_MEM_ERROR: Not enough memory to compress file, skipping");
+                onError(static_cast<int>(Ret::Code::InternalError), "Z_MEM_ERROR");
                 data.resize(0);
                 break;
             case Z_BUF_ERROR:
@@ -681,28 +691,76 @@ void ZipContainer::Impl::addEntry(EntryType type, const std::string& fileName, c
     if (!ok) {
         status = ZipContainer::FileWriteError;
     }
+
+    return ok;
 }
 
 bool ZipContainer::Impl::writeToDevice(const uint8_t* data, size_t len)
 {
-    return device->write(data, len) == len;
+    if (device->write(data, len) == len) {
+        return true;
+    }
+
+    onWriteError();
+    return false;
 }
 
 bool ZipContainer::Impl::writeToDevice(const ByteArray& data)
 {
-    return device->write(data) == data.size();
+    if (device->write(data) == data.size()) {
+        return true;
+    }
+
+    onWriteError();
+    return false;
 }
 
-ZipContainer::ZipContainer(IODevice* device)
-    : p(new Impl(device))
+void ZipContainer::Impl::onWriteError()
+{
+    status = ZipContainer::FileWriteError;
+    LOGE() << "error writing to device: [" << device->error() << "] " << device->errorString();
+
+    if (device->error() != static_cast<int>(Ret::Code::Ok)) {
+        onError(device->error(), device->errorString());
+    } else {
+        onError(static_cast<int>(io::Err::FSWriteError), "");
+    }
+}
+
+void ZipContainer::Impl::onError(int error, const std::string& errorString)
+{
+    if (m_onError) {
+        m_onError(error, errorString);
+    }
+}
+
+// =======================================================================
+// ZipContainer
+// =======================================================================
+
+ZipContainer::ZipContainer(IODevice* device, ErrorCallback onErrorCallback)
+    : m_onError(onErrorCallback)
 {
     assert(device);
+
+    auto errorHandler = [this](int error, const std::string& errorString) {
+        onError(error, errorString);
+    };
+
+    p = new Impl(device, errorHandler);
 }
 
 ZipContainer::~ZipContainer()
 {
     close();
     delete p;
+}
+
+void ZipContainer::onError(int error, const std::string& errorString)
+{
+    if (m_onError) {
+        m_onError(error, errorString);
+    }
 }
 
 std::vector<ZipContainer::FileInfo> ZipContainer::fileInfoList() const
@@ -834,19 +892,19 @@ ZipContainer::CompressionPolicy ZipContainer::compressionPolicy() const
     return p->compressionPolicy;
 }
 
-void ZipContainer::addFile(const std::string& fileName, const ByteArray& data)
+bool ZipContainer::addFile(const std::string& fileName, const ByteArray& data)
 {
-    p->addEntry(Impl::File, Dir::fromNativeSeparators(fileName).toStdString(), data);
+    return p->addEntry(Impl::File, Dir::fromNativeSeparators(fileName).toStdString(), data);
 }
 
-void ZipContainer::addDirectory(const std::string& dirName)
+bool ZipContainer::addDirectory(const std::string& dirName)
 {
     std::string name(Dir::fromNativeSeparators(dirName).toStdString());
     // separator is mandatory
     if (name.back() != '/') {
         name.push_back('/');
     }
-    p->addEntry(Impl::Directory, name, ByteArray());
+    return p->addEntry(Impl::Directory, name, ByteArray());
 }
 
 void ZipContainer::close()

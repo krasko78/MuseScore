@@ -37,7 +37,7 @@ public:
     MscSaver(const muse::modularity::ContextPtr& iocCtx)
         : muse::Injectable(iocCtx) {}
 
-    bool writeMscz(MasterScore* score, MscWriter& mscWriter, bool onlySelection, bool doCreateThumbnail);
+    muse::Ret writeMscz(MasterScore* score, MscWriter& mscWriter, bool onlySelection, bool doCreateThumbnail);
 
     bool exportPart(Score* partScore, MscWriter& mscWriter);
 };

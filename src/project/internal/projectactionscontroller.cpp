@@ -944,7 +944,7 @@ bool ProjectActionsController::saveProjectLocally(const muse::io::path_t& filePa
     }
 
     if (!ret) {
-        LOGE() << ret.toString();
+        LOGE() << "failed to save project (save mode " << static_cast<int>(saveMode) << "): " << ret.toString();
         if (ret.code() != (int)Err::CorruptionUponSavingError) {
             warnScoreCouldnotBeSaved(ret);
         } else {
@@ -1600,7 +1600,11 @@ void ProjectActionsController::warnScoreCouldnotBeSaved(const Ret& ret)
 {
     std::string message = ret.text();
     if (message.empty()) {
-        message = muse::trc("project/save", "An unknown error occurred while saving this file.");
+        if (ret.code() == static_cast<int>(Ret::Code::InternalError)) {
+            message = muse::trc("project/save", "An internal error occurred while saving this file.");
+        } else {
+            message = muse::trc("project/save", "An unknown error occurred while saving this file.");
+        }
     }
 
     warnScoreCouldnotBeSaved(message);

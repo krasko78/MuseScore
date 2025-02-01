@@ -24,29 +24,33 @@
 
 #include "io/path.h"
 #include "io/iodevice.h"
+#include "types/errorcallback.h"
 
 namespace muse {
 class ZipWriter
 {
 public:
 
-    explicit ZipWriter(const io::path_t& filePath);
-    explicit ZipWriter(io::IODevice* device);
+    explicit ZipWriter(const io::path_t& filePath, ErrorCallback onErrorCallback = nullptr);
+    explicit ZipWriter(io::IODevice* device, ErrorCallback onErrorCallback = nullptr);
     ~ZipWriter();
 
     void close();
     bool hasError() const;
 
-    void addFile(const std::string& fileName, const ByteArray& data);
+    bool addFile(const std::string& fileName, const ByteArray& data);
 
 private:
 
+    void onError(int error, const std::string& errorString);
     void flush();
 
     struct Impl;
     Impl* m_impl = nullptr;
     io::IODevice* m_device = nullptr;
     bool m_selfDevice = false;
+    bool m_hasError = false;
+    ErrorCallback m_onError;
 };
 }
 

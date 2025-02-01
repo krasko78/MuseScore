@@ -22,6 +22,7 @@
 #ifndef MU_ENGRAVING_MSCWRITER_H
 #define MU_ENGRAVING_MSCWRITER_H
 
+#include "types/errorcallback.h"
 #include "types/string.h"
 #include "types/ret.h"
 #include "io/path.h"
@@ -57,6 +58,8 @@ public:
     void close();
     bool isOpened() const;
     bool hasError() const;
+    int error() const;
+    std::string errorString() const;
 
     void writeStyleFile(const muse::ByteArray& data);
     void writeScoreFile(const muse::ByteArray& data);
@@ -77,17 +80,27 @@ private:
         virtual muse::Ret open(muse::io::IODevice* device, const muse::io::path_t& filePath) = 0;
         virtual void close() = 0;
         virtual bool isOpened() const = 0;
-        virtual bool hasError() const = 0;
         virtual bool addFileData(const muse::String& fileName, const muse::ByteArray& data) = 0;
     };
 
-    struct ZipFileWriter : public IWriter
+    struct Writer : public IWriter
     {
+        Writer(muse::ErrorCallback onErrorCallback);
+        void onError(int error, const std::string& errorString);
+        void onInternalError(const std::string& errorString = "");
+        void onUnknownError(const std::string& errorString = "");
+
+    private:
+        muse::ErrorCallback m_onError;
+    };
+
+    struct ZipFileWriter : public Writer
+    {
+        ZipFileWriter(muse::ErrorCallback onErrorCallback);
         ~ZipFileWriter() override;
         muse::Ret open(muse::io::IODevice* device, const muse::io::path_t& filePath) override;
         void close() override;
         bool isOpened() const override;
-        bool hasError() const override;
         bool addFileData(const muse::String& fileName, const muse::ByteArray& data) override;
 
     private:
@@ -96,26 +109,27 @@ private:
         muse::ZipWriter* m_zip = nullptr;
     };
 
-    struct DirWriter : public IWriter
+    struct DirWriter : public Writer
     {
+        DirWriter(muse::ErrorCallback onErrorCallback);
         muse::Ret open(muse::io::IODevice* device, const muse::io::path_t& filePath) override;
         void close() override;
         bool isOpened() const override;
-        bool hasError() const override;
         bool addFileData(const muse::String& fileName, const muse::ByteArray& data) override;
+
     private:
         muse::io::path_t m_rootPath;
-        bool m_hasError = false;
     };
 
-    struct XmlFileWriter : public IWriter
+    struct XmlFileWriter : public Writer
     {
+        XmlFileWriter(muse::ErrorCallback onErrorCallback);
         ~XmlFileWriter() override;
         muse::Ret open(muse::io::IODevice* device, const muse::io::path_t& filePath) override;
         void close() override;
         bool isOpened() const override;
-        bool hasError() const override;
         bool addFileData(const muse::String& fileName, const muse::ByteArray& data) override;
+
     private:
         muse::io::IODevice* m_device = nullptr;
         bool m_selfDeviceOwner = false;
@@ -130,7 +144,9 @@ private:
         void addFile(const muse::String& file);
     };
 
-    IWriter* writer() const;
+    IWriter* writer();
+
+    void onError(int error, const std::string& errorString);
 
     bool addFileData(const muse::String& fileName, const muse::ByteArray& data);
 
@@ -142,7 +158,8 @@ private:
     Params m_params;
     mutable IWriter* m_writer = nullptr;
     Meta m_meta;
-    bool m_hadError = false;
+    int m_error = static_cast<int>(muse::Ret::Code::Ok);
+    std::string m_errorString;
 };
 }
 

@@ -70,7 +70,7 @@ public:
     muse::Ret setupMasterScore(bool forceMode);
 
     muse::Ret loadMscz(const MscReader& msc, SettingsCompat& settingsCompat, bool ignoreVersionError);
-    bool writeMscz(MscWriter& writer, bool onlySelection, bool createThumbnail);
+    muse::Ret writeMscz(MscWriter& writer, bool onlySelection, bool createThumbnail);
 
     bool isCorruptedUponLoading() const;
     muse::Ret checkCorrupted() const;

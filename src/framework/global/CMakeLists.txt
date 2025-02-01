@@ -92,6 +92,7 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/types/ret.cpp
     ${CMAKE_CURRENT_LIST_DIR}/types/ret.h
     ${CMAKE_CURRENT_LIST_DIR}/types/retval.h
+    ${CMAKE_CURRENT_LIST_DIR}/types/errorcallback.h
     ${CMAKE_CURRENT_LIST_DIR}/types/uri.cpp
     ${CMAKE_CURRENT_LIST_DIR}/types/uri.h
     ${CMAKE_CURRENT_LIST_DIR}/types/sharedhashmap.h
