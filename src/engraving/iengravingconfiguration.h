@@ -95,6 +95,8 @@ public:
     virtual Color frameColor() const = 0;
     virtual muse::async::Channel<Color> frameColorChanged() const = 0;
 
+    virtual Color scoreGreyColor() const = 0;
+
     virtual Color highlightSelectionColor(voice_idx_t voiceIndex = 0) const = 0;
 
     struct DebuggingOptions {
@@ -104,6 +106,7 @@ public:
         bool colorSegmentShapes = false;
         bool showSkylines = false;
         bool showSystemBoundingRects = false;
+        bool showElementMasks = false;
         bool showCorruptedMeasures = true;
 
         bool anyEnabled() const
@@ -114,6 +117,7 @@ public:
                    || colorSegmentShapes
                    || showSkylines
                    || showSystemBoundingRects
+                   || showElementMasks
 #ifndef NDEBUG
                    || showCorruptedMeasures
 #endif

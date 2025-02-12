@@ -184,6 +184,8 @@ private:
     bool startTextEditingAllowed() const;
     void updateTextCursorPosition();
 
+    bool tryPercussionShortcut(QKeyEvent* event);
+
     EngravingItem* resolveStartPlayableElement() const;
 
     IControlledView* m_view = nullptr;
@@ -194,8 +196,17 @@ private:
     bool m_isCanvasDragged = false;
     bool m_tripleClickPending = false;
 
-    QPointF m_physicalBeginPoint;
-    muse::PointF m_logicalBeginPoint;
+    struct MouseDownInfo {
+        enum DragAction {
+            DragOutgoingElement,
+            DragOutgoingRange,
+            Other,
+            Nothing
+        } dragAction = Other;
+
+        QPointF physicalBeginPoint;
+        muse::PointF logicalBeginPoint;
+    } m_mouseDownInfo;
 
     mu::engraving::EngravingItem* m_prevHitElement = nullptr;
     mu::engraving::EngravingItem* m_prevSelectedElement = nullptr;

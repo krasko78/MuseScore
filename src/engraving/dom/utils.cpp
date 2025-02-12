@@ -30,8 +30,9 @@
 #include "chord.h"
 #include "chordrest.h"
 #include "clef.h"
-#include "dom/masterscore.h"
-#include "dom/repeatlist.h"
+#include "marker.h"
+#include "masterscore.h"
+#include "repeatlist.h"
 #include "keysig.h"
 #include "measure.h"
 #include "note.h"
@@ -44,7 +45,9 @@
 #include "sig.h"
 #include "staff.h"
 #include "system.h"
+#include "spanner.h"
 #include "tuplet.h"
+#include "drumset.h"
 
 #include "log.h"
 
@@ -773,6 +776,10 @@ int diatonicUpDown(Key k, int pitch, int steps)
 
 Volta* findVolta(const Segment* seg, const Score* score)
 {
+    if (!seg) {
+        return nullptr;
+    }
+
     const Measure* measure = seg->measure();
     const Fraction tick = measure->tick() + Fraction::eps();
     auto spanners = score->spannerMap().findOverlapping(tick.ticks(), tick.ticks());
@@ -790,7 +797,7 @@ Volta* findVolta(const Segment* seg, const Score* score)
 //    search Note to tie to "note"
 //---------------------------------------------------------
 
-Note* searchTieNote(const Note* note, const Segment* nextSegment)
+Note* searchTieNote(const Note* note, const Segment* nextSegment, const bool disableOverRepeats)
 {
     if (!note) {
         return nullptr;
@@ -800,7 +807,6 @@ Note* searchTieNote(const Note* note, const Segment* nextSegment)
     Chord* chord = note->chord();
     Segment* seg = chord->segment();
     Part* part   = chord->part();
-    Score* score = chord->score();
     track_idx_t strack = part->staves().front()->idx() * VOICES;
     track_idx_t etrack = strack + part->staves().size() * VOICES;
 
@@ -816,10 +822,7 @@ Note* searchTieNote(const Note* note, const Segment* nextSegment)
         return nullptr;
     }
 
-    Volta* startVolta = findVolta(seg, score);
-    Volta* endVolta = findVolta(nextSegment, score);
-
-    if (startVolta && endVolta && startVolta != endVolta) {
+    if (disableOverRepeats && !segmentsAreAdjacentInRepeatStructure(seg, nextSegment)) {
         return nullptr;
     }
 
@@ -1131,6 +1134,27 @@ int chromaticPitchSteps(const Note* noteL, const Note* noteR, const int nominalD
     return halfsteps;
 }
 
+int noteValToLine(const NoteVal& nval, const Staff* staff, const Fraction& tick)
+{
+    if (staff->isDrumStaff(tick)) {
+        const Drumset* drumset = staff->part()->instrument(tick)->drumset();
+        if (drumset) {
+            return drumset->line(nval.pitch);
+        }
+    }
+
+    const bool concertPitch = staff->concertPitch();
+    const int pitchOffset = concertPitch ? 0 : staff->part()->instrument(tick)->transpose().chromatic;
+    const int epitch = nval.pitch - pitchOffset;
+
+    int tpc = nval.tpc(concertPitch);
+    if (tpc == static_cast<int>(mu::engraving::Tpc::TPC_INVALID)) {
+        tpc = pitch2tpc(epitch, staff->key(tick), mu::engraving::Prefer::NEAREST);
+    }
+
+    return relStep(epitch, tpc, staff->clef(tick));
+}
+
 int compareNotesPos(const Note* n1, const Note* n2)
 {
     if (n1->line() != n2->line() && !(n1->staffType()->isTabStaff())) {
@@ -1401,6 +1425,69 @@ void collectChordsOverlappingRests(Segment* segment, staff_idx_t staffIdx, std::
     }
 }
 
+std::vector<EngravingItem*> collectSystemObjects(const Score* score, const std::vector<Staff*>& staves)
+{
+    TRACEFUNC;
+
+    std::vector<EngravingItem*> result;
+
+    const TimeSigPlacement timeSigPlacement = score->style().styleV(Sid::timeSigPlacement).value<TimeSigPlacement>();
+    const bool isOnStaffTimeSig = timeSigPlacement != TimeSigPlacement::NORMAL;
+
+    for (const Measure* measure = score->firstMeasure(); measure; measure = measure->nextMeasure()) {
+        for (const Segment& seg : measure->segments()) {
+            if (seg.isChordRestType()) {
+                for (EngravingItem* annotation : seg.annotations()) {
+                    if (!annotation || !annotation->systemFlag()) {
+                        continue;
+                    }
+
+                    if (!staves.empty()) {
+                        if (muse::contains(staves, annotation->staff())) {
+                            result.push_back(annotation);
+                        }
+                    } else if (annotation->isTopSystemObject()) {
+                        result.push_back(annotation);
+                    }
+                }
+            }
+
+            if (isOnStaffTimeSig && seg.isType(SegmentType::TimeSigType)) {
+                for (EngravingItem* item : seg.elist()) {
+                    if (!item || !item->isTimeSig()) {
+                        continue;
+                    }
+
+                    if (!staves.empty()) {
+                        if (muse::contains(staves, item->staff())) {
+                            result.push_back(item);
+                        }
+                    } else if (item->staffIdx() == 0) {
+                        result.push_back(item);
+                    }
+                }
+            }
+        }
+    }
+
+    for (const auto& pair : score->spanner()) {
+        Spanner* spanner = pair.second;
+        if (!spanner->systemFlag()) {
+            continue;
+        }
+
+        if (!staves.empty()) {
+            if (muse::contains(staves, spanner->staff())) {
+                result.push_back(spanner);
+            }
+        } else if (spanner->isTopSystemObject()) {
+            result.push_back(spanner);
+        }
+    }
+
+    return result;
+}
+
 String formatUniqueExcerptName(const String& baseName, const StringList& allExcerptLowerNames)
 {
     String result = baseName;
@@ -1545,5 +1632,33 @@ bool repeatHasPartialLyricLine(const Measure* endRepeatMeasure)
     }
 
     return false;
+}
+
+bool segmentsAreAdjacentInRepeatStructure(const Segment* firstSeg, const Segment* secondSeg)
+{
+    if (!firstSeg || !secondSeg) {
+        return false;
+    }
+    // Disallow inputting ties between unrelated voltas
+    // This visually adjacent segment is never the next to be played
+    Score* score = firstSeg->score();
+    Volta* startVolta = findVolta(firstSeg, score);
+    Volta* endVolta = findVolta(secondSeg, score);
+
+    if (startVolta && endVolta && startVolta != endVolta) {
+        return false;
+    }
+
+    // Disallow inputting ties across codas
+    // This visually adjacent segment is never the next to be played
+    if (secondSeg->measure() != firstSeg->measure()) {
+        for (const EngravingItem* el : secondSeg->measure()->el()) {
+            if (el->isMarker() && toMarker(el)->isCoda()) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 }

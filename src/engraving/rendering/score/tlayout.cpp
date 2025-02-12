@@ -105,6 +105,7 @@
 
 #include "dom/page.h"
 #include "dom/palmmute.h"
+#include "dom/parenthesis.h"
 #include "dom/part.h"
 #include "dom/pedal.h"
 #include "dom/pickscrape.h"
@@ -360,6 +361,8 @@ void TLayout::layoutItem(EngravingItem* item, LayoutContext& ctx)
     case ElementType::PALM_MUTE:        layoutPalmMute(item_cast<PalmMute*>(item), ctx);
         break;
     case ElementType::PALM_MUTE_SEGMENT: layoutPalmMuteSegment(item_cast<PalmMuteSegment*>(item), ctx);
+        break;
+    case ElementType::PARENTHESIS:      layoutParenthesis(item_cast<Parenthesis*>(item), ctx);
         break;
     case ElementType::PEDAL:            layoutPedal(item_cast<Pedal*>(item), ctx);
         break;
@@ -1771,7 +1774,10 @@ void TLayout::layoutClef(const Clef* item, Clef::LayoutData* ldata, const Layout
         lines      = st->lines();             // init values from staff type
         lineDist   = st->lineDistance().val();
         stepOffset = st->stepOffset();
-        staffOffsetY = item->isHeader() ? 0.0 : st->yoffset().val() - (stPrev ? stPrev->yoffset().val() : 0);
+
+        const double stOffset = st->yoffset().val();
+        const double stPrevOffset = stPrev && clefSeg->rtick() != Fraction(0, 1) ? stPrev->yoffset().val() : 0.0;
+        staffOffsetY = item->isHeader() ? 0.0 : stOffset - stPrevOffset;
     }
 
     double _spatium = item->spatium();
@@ -3160,7 +3166,8 @@ void TLayout::manageHairpinSnapping(HairpinSegment* item, LayoutContext& ctx)
 
     bool doSnapBefore = possibleSnapBeforeElement && item->hairpin()->snapToItemBefore();
     if (doSnapBefore && possibleSnapBeforeElement->isHairpinSegment()) {
-        doSnapBefore = doSnapBefore && toHairpinSegment(possibleSnapBeforeElement)->hairpin()->snapToItemAfter();
+        doSnapBefore = doSnapBefore && toHairpinSegment(possibleSnapBeforeElement)->hairpin()->snapToItemAfter()
+                       && possibleSnapBeforeElement->ldata()->itemSnappedBefore() != item;
     }
 
     if (doSnapBefore) {
@@ -3169,7 +3176,8 @@ void TLayout::manageHairpinSnapping(HairpinSegment* item, LayoutContext& ctx)
 
     bool doSnapAfter = possibleSnapAfterElement && item->hairpin()->snapToItemAfter();
     if (doSnapAfter && possibleSnapAfterElement->isHairpinSegment()) {
-        doSnapAfter = doSnapAfter && toHairpinSegment(possibleSnapAfterElement)->hairpin()->snapToItemBefore();
+        doSnapAfter = doSnapAfter && toHairpinSegment(possibleSnapAfterElement)->hairpin()->snapToItemBefore()
+                      && possibleSnapAfterElement->ldata()->itemSnappedAfter() != item;
     }
 
     if (doSnapAfter) {
@@ -3556,7 +3564,10 @@ void TLayout::layoutKeySig(const KeySig* item, KeySig::LayoutData* ldata, const 
         Clef* c = nullptr;
         if (item->segment()) {
             for (Segment* seg = item->segment()->prev1(); !c && seg && seg->tick() == item->tick(); seg = seg->prev1()) {
-                if (seg->enabled() && (seg->isClefType() || seg->isHeaderClefType())) {
+                const bool isClefSeg
+                    = (seg->isClefType() || seg->isHeaderClefType()
+                       || (seg->isClefRepeatAnnounceType() && item->segment()->isKeySigRepeatAnnounceType()));
+                if (seg->enabled() && isClefSeg) {
                     c = toClef(seg->element(item->track()));
                 }
             }
@@ -3802,9 +3813,6 @@ void TLayout::layoutLayoutBreak(const LayoutBreak* item, LayoutBreak::LayoutData
     FontMetrics metrics(item->font());
     RectF bbox = metrics.boundingRect(item->iconCode());
     ldata->setShape(Shape(bbox, item));
-
-    // Ensure it goes behind notation
-    const_cast<LayoutBreak*>(item)->setZ(-10);
 }
 
 void TLayout::layoutSystemLockIndicator(const SystemLockIndicator* item, SystemLockIndicator::LayoutData* ldata)
@@ -4176,6 +4184,11 @@ void TLayout::layoutMMRest(const MMRest* item, MMRest::LayoutData* ldata, const 
     ldata->setNumberSym(ldata->number);
     ldata->yNumberPos = ctx.conf().styleMM(Sid::mmRestNumberPos);
 
+    const Staff* staff = item->staff();
+    if (staff->lines(item->tick()) == 1) {
+        ldata->yNumberPos = std::min(ldata->yNumberPos, -item->spatium());
+    }
+
     if (item->isOldStyle()) {
         SymIdList restSyms;
         double symsWidth = 0.0;
@@ -4210,7 +4223,11 @@ void TLayout::layoutMMRest(const MMRest* item, MMRest::LayoutData* ldata, const 
 
     // Only need to set y position here; x position is handled in MeasureLayout::layoutMeasureElements()
     const StaffType* staffType = item->staffType();
-    ldata->setPos(0, (staffType->middleLine() / 2.0) * staffType->lineDistance().val() * item->spatium());
+    double midline = staffType->middleLine() / 2.0;
+    if (item->isOldStyle()) {
+        midline = std::max(1.0, midline);
+    }
+    ldata->setPos(0, midline * staffType->lineDistance().val() * item->spatium());
 
     ChordLayout::fillShape(item, ldata, ctx.conf());
 }
@@ -4511,6 +4528,89 @@ void TLayout::layoutPalmMuteSegment(PalmMuteSegment* item, LayoutContext& ctx)
     ldata->setShape(sh);
 
     Autoplace::autoplaceSpannerSegment(item, ldata, ctx.conf().spatium());
+}
+
+void TLayout::layoutParenthesis(Parenthesis* item, LayoutContext& ctx)
+{
+    UNUSED(ctx);
+
+    Parenthesis::LayoutData* ldata = item->mutldata();
+    ldata->setPos(PointF());
+    ldata->clearShape();
+    ldata->path.reset();
+
+    const Staff* staff = item->staff();
+    const Segment* seg = item->segment();
+    const bool isClefSeg = seg->isType(SegmentType::ClefType);
+    const Fraction tick = item->tick();
+    const Fraction tickPrev = tick - Fraction::eps();
+    const double spatium = item->spatium();
+    const double mag = item->mag();
+    const bool leftBracket = item->direction() == DirectionH::LEFT;
+
+    const StaffType* st = staff->staffType(tick);
+    const StaffType* stPrev = !tickPrev.negative() ? item->staff()->staffType(tickPrev) : nullptr;
+
+    double startY = ldata->startY;
+    double height = ldata->height;
+
+    if (isClefSeg && seg->rtick() == seg->measure()->ticks()) {
+        double offset = st->yoffset().val() - (stPrev ? stPrev->yoffset().val() : 0);
+        startY += offset * spatium;
+    }
+
+    const double heightInSpatium = height / spatium;
+    const double shoulderYOffset = 0.2 * height;
+    const double thickness = height / 60 * mag; // 0.1sp for a height of 6sp
+    ldata->thickness.set_value(thickness);
+    const double shoulderX = 0.2 * height * mag;
+
+    PointF start = PointF(0.0, startY);
+    const PointF end = PointF(0.0, start.y() + height);
+    const PointF endNormalised = end - start;
+
+    const int direction = leftBracket ? -1 : 1;
+    const double shoulderForX = direction * shoulderX + thickness * direction;
+    const double shoulderBackX = direction * shoulderX + thickness * direction * -1;
+
+    const PointF bezier1for = PointF(shoulderForX, shoulderYOffset);
+    const PointF bezier2for = PointF(shoulderForX, endNormalised.y() - shoulderYOffset);
+    const PointF bezier1back = PointF(shoulderBackX, endNormalised.y() - shoulderYOffset);
+    const PointF bezier2back = PointF(shoulderBackX, shoulderYOffset);
+
+    PainterPath path = PainterPath();
+    path.moveTo(PointF());
+    path.cubicTo(bezier1for, bezier2for, endNormalised);
+    path.cubicTo(bezier1back, bezier2back, PointF());
+
+    ldata->path = path;
+
+    // Fill shape
+    Shape shape(Shape::Type::Composite);
+
+    PointF startPoint = PointF();
+    double midThickness = 2 * thickness;
+    int nbShapes = round(5.0 * heightInSpatium);
+    nbShapes = std::clamp(nbShapes, 20, 50);
+    PointF bezier1mid = bezier1for - PointF(thickness * direction, 0.0);
+    PointF bezier2mid = bezier2for - PointF(thickness * direction, 0.0);
+    const CubicBezier b(startPoint, bezier1mid, bezier2mid, endNormalised);
+    for (int i = 1; i <= nbShapes; i++) {
+        double percent = pow(sin(0.5 * M_PI * (double(i) / double(nbShapes))), 2);
+        const PointF point = b.pointAtPercent(percent);
+        RectF re = RectF(startPoint, point).normalized();
+        double approxThicknessAtPercent = (1 - 2 * std::abs(0.5 - percent)) * midThickness;
+        if (re.width() < approxThicknessAtPercent) {
+            double adjust = (approxThicknessAtPercent - re.width()) * .5;
+            re.adjust(-adjust, 0.0, adjust, 0.0);
+        }
+        shape.add(re, item);
+        startPoint = point;
+    }
+
+    item->mutldata()->setShape(shape);
+
+    item->setPos(start);
 }
 
 void TLayout::layoutPedal(Pedal* item, LayoutContext& ctx)
@@ -5899,6 +5999,37 @@ void TLayout::layoutBaseTextBase1(const TextBase* item, TextBase::LayoutData* ld
     if (item->hasFrame()) {
         item->layoutFrame(ldata);
     }
+
+    if (!item->isDynamic() && !(item->explicitParent() && item->parent()->isBox())) {
+        computeTextHighResShape(item, ldata);
+    }
+}
+
+void TLayout::computeTextHighResShape(const TextBase* item, TextBase::LayoutData* ldata)
+{
+    Shape& shape = ldata->highResShape.mut_value();
+    shape.clear();
+    shape.elements().reserve(item->xmlText().size());
+
+    for (const TextBlock& block : ldata->blocks) {
+        double y = block.y();
+        for (const TextFragment& fragment : block.fragments()) {
+            FontMetrics fontMetrics = FontMetrics(fragment.font(item));
+            double x = fragment.pos.x();
+            size_t textSize = fragment.text.size();
+            for (size_t i = 0; i < textSize; ++i) {
+                Char character = fragment.text.at(i);
+                RectF characterBoundingRect = fontMetrics.tightBoundingRect(fragment.text.at(i));
+                characterBoundingRect.translate(x, y);
+                shape.add(characterBoundingRect);
+                if (i + 1 < textSize) {
+                    x += fontMetrics.horizontalAdvance(character);
+                }
+            }
+        }
+    }
+
+    ldata->highResShape = shape;
 }
 
 void TLayout::layoutBaseTextBase1(TextBase* item, const LayoutContext&)
@@ -6271,10 +6402,6 @@ void TLayout::layoutTimeSig(const TimeSig* item, TimeSig::LayoutData* ldata, con
     ldata->pz = PointF();
     ldata->pn = PointF();
     ldata->pointLargeRightParen = PointF();
-
-    if (!item->showOnThisStaff()) {
-        return;
-    }
 
     const MStyle& style = item->style();
     TimeSigPlacement timeSigPlacement = style.styleV(Sid::timeSigPlacement).value<TimeSigPlacement>();

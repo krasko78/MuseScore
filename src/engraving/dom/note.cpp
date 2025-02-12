@@ -568,14 +568,14 @@ Note::~Note()
     m_rightParenthesis = nullptr;
 }
 
-std::vector<const Note*> Note::compoundNotes() const
+std::vector<Note*> Note::compoundNotes() const
 {
-    std::vector<const Note*> elements;
-    if (const Note* note = firstTiedNote()) {
+    std::vector<Note*> elements;
+    if (Note* note = firstTiedNote()) {
         elements.push_back(note);
     }
 
-    if (const Note* note = lastTiedNote()) {
+    if (Note* note = lastTiedNote()) {
         elements.push_back(note);
     }
 
@@ -1642,7 +1642,7 @@ class NoteEditData : public ElementEditData
 {
     OBJECT_ALLOCATOR(engraving, NoteEditData)
 public:
-    enum EditMode {
+    enum EditMode : unsigned char {
         EditMode_ChangePitch = 0,
         EditMode_AddSpacing,
         EditMode_Undefined,
@@ -1924,6 +1924,9 @@ EngravingItem* Note::drop(EditData& data)
             GuitarBendType type = (toActionIcon(e)->actionType() == ActionIconType::PRE_BEND)
                                   ? GuitarBendType::PRE_BEND : GuitarBendType::GRACE_NOTE_BEND;
             GuitarBend* guitarBend = score()->addGuitarBend(type, this);
+            if (!guitarBend) {
+                break;
+            }
             Note* note = guitarBend->startNote();
             IF_ASSERT_FAILED(note) {
                 LOGE() << "not valid start note of the bend";
@@ -2509,13 +2512,13 @@ PartialTie* Note::outgoingPartialTie() const
 void Note::setTieFor(Tie* t)
 {
     m_tieFor = t;
-    m_jumpPoints.setStartTie(m_tieFor);
 }
 
 void Note::setTieBack(Tie* t)
 {
     if (m_tieBack && t && m_tieBack->jumpPoint()) {
         t->setJumpPoint(m_tieBack->jumpPoint());
+        m_tieBack->setJumpPoint(nullptr);
     }
     m_tieBack = t;
 }
@@ -3705,7 +3708,7 @@ EngravingItem* Note::prevSegmentElement()
 //   lastTiedNote
 //---------------------------------------------------------
 
-const Note* Note::lastTiedNote(bool ignorePlayback) const
+Note* Note::lastTiedNote(bool ignorePlayback) const
 {
     std::vector<const Note*> notes;
     const Note* note = this;
@@ -3720,7 +3723,7 @@ const Note* Note::lastTiedNote(bool ignorePlayback) const
         note = note->tieFor()->endNote();
         notes.push_back(note);
     }
-    return note;
+    return const_cast<Note*>(note);
 }
 
 //---------------------------------------------------------

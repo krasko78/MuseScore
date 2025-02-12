@@ -139,6 +139,7 @@ class OttavaSegment;
 
 class PalmMute;
 class PalmMuteSegment;
+class Parenthesis;
 class Pedal;
 class PedalSegment;
 class PickScrapeSegment;
@@ -299,6 +300,7 @@ public:
 
     static void layoutPalmMute(PalmMute* item, LayoutContext& ctx);
     static void layoutPalmMuteSegment(PalmMuteSegment* item, LayoutContext& ctx);
+    static void layoutParenthesis(Parenthesis* item, LayoutContext& ctx);
     static void layoutPedal(Pedal* item, LayoutContext& ctx);
     static void layoutPedalSegment(PedalSegment* item, LayoutContext& ctx);
     static void layoutPickScrapeSegment(PickScrapeSegment* item, LayoutContext& ctx);
@@ -340,6 +342,7 @@ public:
     static void layoutBaseTextBase(TextBase* item, LayoutContext& ctx);  // base class
     static void layoutBaseTextBase1(TextBase* item, const LayoutContext& ctx);  // base class
     static void layoutBaseTextBase1(const TextBase* item, TextBase::LayoutData* data);
+    static void computeTextHighResShape(const TextBase* item, TextBase::LayoutData* ldata);
 
     static void layoutText(const Text* item, Text::LayoutData* ldata);
 

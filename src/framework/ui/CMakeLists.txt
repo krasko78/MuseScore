@@ -164,6 +164,10 @@ endif()
 
 set(MODULE_LINK ${MODULE_LINK} appshell) # krasko
 
+set(MODULE_LINK ${MODULE_LINK}
+    muse::tours
+)
+
 setup_module()
 
 if (MUSE_MODULE_UI_TESTS)

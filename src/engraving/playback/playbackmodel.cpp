@@ -821,7 +821,9 @@ PlaybackModel::TickBoundaries PlaybackModel::tickBoundaries(const ScoreChangesRa
         return result;
     }
 
-    for (const EngravingItem* item : changesRange.changedItems) {
+    for (const auto& pair : changesRange.changedItems) {
+        const EngravingItem* item = pair.first;
+
         if (item->isNote()) {
             const Note* note = toNote(item);
             const Chord* chord = note->chord();
@@ -951,9 +953,9 @@ PlaybackContextPtr PlaybackModel::playbackCtx(const InstrumentTrackId& trackId)
 void PlaybackModel::applyTiedNotesTickBoundaries(const Note* note, TickBoundaries& tickBoundaries)
 {
     const Tie* tie;
-    if (tie = note->tieFor()) {
+    if ((tie = note->tieFor())) {
         applyTieTickBoundaries(tie, tickBoundaries);
-    } else if (tie = note->tieBack()) {
+    } else if ((tie = note->tieBack())) {
         applyTieTickBoundaries(tie, tickBoundaries);
     }
 }

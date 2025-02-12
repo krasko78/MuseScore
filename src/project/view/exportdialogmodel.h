@@ -78,6 +78,7 @@ class ExportDialogModel : public QAbstractListModel, public muse::async::Asyncab
 
     Q_PROPERTY(
         bool svgTransparentBackground READ svgTransparentBackground WRITE setSvgTransparentBackground NOTIFY svgTransparentBackgroundChanged)
+    Q_PROPERTY(bool svgIllustratorCompat READ svgIllustratorCompat WRITE setSvgIllustratorCompat NOTIFY svgIllustratorCompatChanged FINAL)
 
     Q_PROPERTY(int sampleRate READ sampleRate WRITE setSampleRate NOTIFY sampleRateChanged)
     Q_PROPERTY(int bitRate READ bitRate WRITE setBitRate NOTIFY bitRateChanged)
@@ -135,6 +136,9 @@ public:
     bool svgTransparentBackground() const;
     void setSvgTransparentBackground(const bool& transparent);
 
+    bool svgIllustratorCompat() const;
+    void setSvgIllustratorCompat(bool compat);
+
     Q_INVOKABLE QList<int> availableSampleRates() const;
     int sampleRate() const;
     void setSampleRate(int sampleRate);
@@ -185,6 +189,7 @@ signals:
     void pngTransparentBackgroundChanged(bool transparent);
 
     void svgTransparentBackgroundChanged(bool transparent);
+    void svgIllustratorCompatChanged(bool compat);
 
     void availableSampleRatesChanged();
     void sampleRateChanged(int sampleRate);

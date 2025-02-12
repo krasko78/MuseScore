@@ -98,9 +98,9 @@ QString NotationPageModel::palettesPanelName() const
     return PALETTES_PANEL_NAME;
 }
 
-QString NotationPageModel::instrumentsPanelName() const
+QString NotationPageModel::layoutPanelName() const
 {
-    return INSTRUMENTS_PANEL_NAME;
+    return LAYOUT_PANEL_NAME;
 }
 
 QString NotationPageModel::inspectorPanelName() const
@@ -217,9 +217,9 @@ void NotationPageModel::updateDrumsetPanelVisibility()
     }
 
     const INotationNoteInputPtr noteInput = notation->interaction()->noteInput();
-    bool isNeedOpen = noteInput->isNoteInputMode() && noteInput->state().drumset != nullptr;
+    const bool shouldOpen = noteInput->isNoteInputMode() && noteInput->state().drumset() != nullptr;
 
-    setDrumsetPanelOpen(isNeedOpen);
+    setDrumsetPanelOpen(shouldOpen);
 }
 
 void NotationPageModel::updatePercussionPanelVisibility()

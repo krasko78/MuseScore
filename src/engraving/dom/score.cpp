@@ -2018,15 +2018,6 @@ int Score::utime2utick(double utime) const
 }
 
 //---------------------------------------------------------
-//   inputPos
-//---------------------------------------------------------
-
-Fraction Score::inputPos() const
-{
-    return m_is.tick();
-}
-
-//---------------------------------------------------------
 //   scanElementsInRange
 //---------------------------------------------------------
 
@@ -2894,47 +2885,20 @@ void Score::cmdRemoveStaff(staff_idx_t staffIdx)
     undoRemoveStaff(s);
 }
 
-//---------------------------------------------------------
-//   sortSystemStaves
-//---------------------------------------------------------
-
 void Score::sortSystemObjects(std::vector<staff_idx_t>& dst)
 {
     std::vector<staff_idx_t> moveTo;
-    for (Staff* staff : m_systemObjectStaves) {
-        moveTo.push_back(staff->idx());
-    }
-    // rebuild system object staves
-    for (size_t i = 0; i < m_staves.size(); i++) {
-        staff_idx_t newLocation = muse::indexOf(dst, i);
-        if (newLocation == muse::nidx) { //!dst.contains(_staves[i]->idx())) {
-            // this staff was removed
-            for (size_t j = 0; j < m_systemObjectStaves.size(); j++) {
-                if (m_staves[i]->idx() == moveTo[j]) {
-                    // the removed staff was a system object staff
-                    if (i == m_staves.size() - 1 || muse::contains(moveTo, m_staves[i + 1]->idx())) {
-                        // this staff is at the end of the score, or is right before a new system object staff
-                        moveTo[j] = muse::nidx;
-                    } else {
-                        moveTo[j] = i + 1;
-                    }
-                }
-            }
-        } else if (newLocation != m_staves[i]->idx() && muse::contains(m_systemObjectStaves, m_staves[i])) {
-            // system object staff was moved somewhere, put the system objects at the top of its new group
-            staff_idx_t topOfGroup = newLocation;
-            String family = m_staves[dst[newLocation]]->part()->familyId();
-            while (topOfGroup > 0) {
-                if (m_staves[dst[topOfGroup - 1]]->part()->familyId() != family) {
-                    // the staff above is of a different instrument family, current topOfGroup is destination
-                    break;
-                } else {
-                    topOfGroup--;
-                }
-            }
-            moveTo[muse::indexOf(m_systemObjectStaves, m_staves[i])] = dst[topOfGroup];
+    for (const Staff* staff : m_systemObjectStaves) {
+        staff_idx_t oldStaffIdx = staff->idx();
+        staff_idx_t newStaffIfx = oldStaffIdx < dst.size() ? dst[oldStaffIdx] : muse::nidx;
+
+        if (muse::contains(moveTo, newStaffIfx)) {
+            newStaffIfx = muse::nidx;
         }
+
+        moveTo.push_back(newStaffIfx);
     }
+
     for (staff_idx_t i = 0; i < m_systemObjectStaves.size(); i++) {
         if (moveTo[i] == m_systemObjectStaves[i]->idx()) {
             // this sysobj staff doesn't move
@@ -2945,6 +2909,7 @@ void Score::sortSystemObjects(std::vector<staff_idx_t>& dst)
                 if (!mb->isMeasure()) {
                     continue;
                 }
+
                 Measure* m = toMeasure(mb);
                 for (EngravingItem* e : m->el()) {
                     if ((e->isJump() || e->isMarker()) && e->isLinked() && e->track() == staff2track(m_systemObjectStaves[i]->idx())) {
@@ -2958,6 +2923,7 @@ void Score::sortSystemObjects(std::vector<staff_idx_t>& dst)
                         }
                     }
                 }
+
                 for (Segment* s = m->first(); s; s = s->next()) {
                     if (s->isChordRest() || !s->annotations().empty()) {
                         const auto annotations = s->annotations(); // make a copy since we alter the list
@@ -2981,6 +2947,7 @@ void Score::sortSystemObjects(std::vector<staff_idx_t>& dst)
                     }
                 }
             }
+
             // update systemObjectStaves with the correct staff
             if (moveTo[i] == muse::nidx) {
                 m_systemObjectStaves.erase(m_systemObjectStaves.begin() + i);
@@ -3101,11 +3068,7 @@ void Score::cmdConcertPitchChanged(bool flag)
     }
 }
 
-//---------------------------------------------------------
-//   padToggle
-//---------------------------------------------------------
-
-void Score::padToggle(Pad p, const EditData& ed)
+void Score::padToggle(Pad p, bool toggleForSelectionOnly)
 {
     if (!noteEntryMode()) {
         for (ChordRest* cr : getSelectedChordRests()) {
@@ -3115,7 +3078,10 @@ void Score::padToggle(Pad p, const EditData& ed)
         }
     }
 
-    int oldDots = m_is.duration().dots();
+    const TDuration oldDuration = m_is.duration();
+    const bool oldRest = m_is.rest();
+    const AccidentalType oldAccidentalType = m_is.accidentalType();
+
     switch (p) {
     case Pad::NOTE00:
         m_is.setDuration(DurationType::V_LONG);
@@ -3161,7 +3127,6 @@ void Score::padToggle(Pad p, const EditData& ed)
             m_is.setRest(!m_is.rest());
             m_is.setAccidentalType(AccidentalType::NONE);
         } else if (selection().isNone()) {
-            ed.view()->startNoteEntryMode();
             m_is.setDuration(DurationType::V_QUARTER);
             m_is.setRest(true);
         } else {
@@ -3217,65 +3182,40 @@ void Score::padToggle(Pad p, const EditData& ed)
         // if in "note enter" mode, reset
         // rest flag
         //
-        if (noteEntryMode()) {
-            if (usingNoteEntryMethod(NoteEntryMethod::RHYTHM)) {
-                switch (oldDots) {
+        if (noteEntryMode() && !toggleForSelectionOnly) {
+            if (usingNoteEntryMethod(NoteEntryMethod::BY_DURATION) || usingNoteEntryMethod(NoteEntryMethod::RHYTHM)) {
+                switch (oldDuration.dots()) {
                 case 1:
-                    padToggle(Pad::DOT, ed);
+                    padToggle(Pad::DOT);
                     break;
                 case 2:
-                    padToggle(Pad::DOT2, ed);
+                    padToggle(Pad::DOT2);
                     break;
                 case 3:
-                    padToggle(Pad::DOT3, ed);
+                    padToggle(Pad::DOT3);
                     break;
                 case 4:
-                    padToggle(Pad::DOT4, ed);
+                    padToggle(Pad::DOT4);
                     break;
                 }
 
-                NoteVal nval;
-                DirectionV stemDirection = DirectionV::AUTO;
                 if (m_is.rest()) {
                     // Enter a rest
-                    nval = NoteVal();
-                } else {
-                    EngravingItem* e = selection().element();
-                    if (e && e->isNote()) {
-                        // use same pitch etc. as previous note
-                        Note* n = toNote(e);
-                        nval = n->noteVal();
-                        stemDirection = n->chord()->stemDirection();
-                    } else {
-                        // enter a reasonable default note
-                        Staff* s = staff(m_is.track() / VOICES);
-                        Fraction tick = m_is.tick();
-                        if (s->isTabStaff(tick)) {
-                            // tab - use fret 0 on current string
-                            nval.fret = 0;
-                            nval.string = m_is.string();
-                            const StringData* stringData = s->part()->stringData(tick, s->idx());
-                            nval.pitch = stringData->getPitch(nval.string, nval.fret, s);
-                        } else if (s->isDrumStaff(tick)) {
-                            // drum - use selected drum palette note
-                            int n = m_is.drumNote();
-                            if (n == -1) {
-                                // no selection on palette - find next valid pitch
-                                const Drumset* ds = m_is.drumset();
-                                n = ds->nextPitch(n);
-                            }
-                            nval = NoteVal(n);
-                        } else {
-                            // standard staff - use middle line
-                            ClefType clef = s->clef(tick);
-                            Key key = s->key(tick);
-                            int line = ((s->lines(tick) - 1) / 2) * 2;
-                            nval = NoteVal(line2pitch(line, clef, key));
-                        }
+                    setNoteRest(m_is.segment(), m_is.track(), NoteVal(), m_is.duration().fraction());
+                    m_is.moveToNextInputPos();
+                } else if (!m_is.notes().empty()) {
+                    const ChordRest* cr = m_is.cr();
+                    AddToChord addType = AddToChord::None;
+                    if (cr && cr->isChord() && cr->durationType() == m_is.duration()) {
+                        addType = AddToChord::AtCurrentPosition;
+                    }
+
+                    for (const NoteVal& nval : m_is.notes()) {
+                        NoteVal copy(nval);
+                        addPitch(copy, addType);
+                        addType = AddToChord::AtCurrentPosition;
                     }
                 }
-                setNoteRest(m_is.segment(), m_is.track(), nval, m_is.duration().fraction(), stemDirection, false, m_is.articulationIds());
-                m_is.moveToNextInputPos();
             } else {
                 m_is.setRest(false);
             }
@@ -3283,7 +3223,9 @@ void Score::padToggle(Pad p, const EditData& ed)
     }
 
     if (noteEntryMode()) {
-        return;
+        if (!toggleForSelectionOnly || selection().isNone()) {
+            return;
+        }
     }
 
     std::vector<ChordRest*> crs;
@@ -3312,12 +3254,10 @@ void Score::padToggle(Pad p, const EditData& ed)
         if (cr) {
             crs.push_back(cr);
         } else {
-            ed.view()->startNoteEntryMode();
             deselect(e);
         }
     } else if (selection().isNone() && p != Pad::REST) {
         TDuration td = m_is.duration();
-        ed.view()->startNoteEntryMode();
         m_is.setDuration(td);
         m_is.setAccidentalType(AccidentalType::NONE);
     } else {
@@ -3376,6 +3316,13 @@ void Score::padToggle(Pad p, const EditData& ed)
         }
         select(selectList, SelectType::ADD, 0);
         selection().updateSelectedElements();
+    }
+
+    if (toggleForSelectionOnly) {
+        m_is.setDuration(oldDuration);
+        m_is.setRest(oldRest);
+        m_is.setAccidentalType(oldAccidentalType);
+        m_is.moveToNextInputPos();
     }
 }
 
@@ -4659,6 +4606,10 @@ ChordRest* Score::findChordRestEndingBeforeTickInTrack(const Fraction& tick, tra
 
 ChordRest* Score::cmdNextPrevSystem(ChordRest* cr, bool next)
 {
+    IF_ASSERT_FAILED(cr) {
+        return nullptr;
+    }
+
     auto newCR = cr;
     auto currentMeasure = cr->measure();
     auto currentSystem = currentMeasure->system() ? currentMeasure->system() : currentMeasure->coveringMMRestOrThis()->system();
@@ -4666,6 +4617,10 @@ ChordRest* Score::cmdNextPrevSystem(ChordRest* cr, bool next)
         return cr;
     }
     auto destinationMeasure = currentSystem->firstMeasure();
+    if (!destinationMeasure) {
+        return cr;
+    }
+
     auto firstSegment = destinationMeasure->first(SegmentType::ChordRest);
 
     // Case: Go to next system
@@ -4675,6 +4630,9 @@ ChordRest* Score::cmdNextPrevSystem(ChordRest* cr, bool next)
             currentSystem = destinationMeasure->system()
                             ? destinationMeasure->system()
                             : destinationMeasure->coveringMMRestOrThis()->system();
+            if (!currentSystem) {
+                return cr;
+            }
             if ((destinationMeasure = currentSystem->firstMeasure())) {
                 if ((newCR = destinationMeasure->first()->nextChordRest(trackZeroVoice(cr->track()), false))) {
                     cr = newCR;
@@ -4703,10 +4661,8 @@ ChordRest* Score::cmdNextPrevSystem(ChordRest* cr, bool next)
         // and not in first measure of entire score
         if ((destinationMeasure != firstMeasure() && destinationMeasure != firstMeasureMM())
             && (currentSegment == firstSegment || (currentMeasure->mmRest() && currentMeasure->mmRest()->isFirstInSystem()))) {
-            if (!(destinationMeasure = destinationMeasure->prevMeasure())) {
-                if (!(destinationMeasure = destinationMeasure->prevMeasureMM())) {
-                    return cr;
-                }
+            if (!(destinationMeasure = destinationMeasure->prevMeasureMM())) {
+                return cr;
             }
             if (!(currentSystem = destinationMeasure->system()
                                   ? destinationMeasure->system()
@@ -5667,6 +5623,11 @@ void Score::clearSystemObjectStaves()
 void Score::addSystemObjectStaff(Staff* staff)
 {
     m_systemObjectStaves.push_back(staff);
+}
+
+void Score::removeSystemObjectStaff(Staff* staff)
+{
+    muse::remove(m_systemObjectStaves, staff);
 }
 
 bool Score::isSystemObjectStaff(Staff* staff) const
