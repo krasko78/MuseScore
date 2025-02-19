@@ -65,7 +65,7 @@ StyledPopupView {
 
                 font: ui.theme.bodyBoldFont
                 horizontalAlignment: Text.AlignLeft
-                wrapMode: Text.Wrap
+                wrapMode: Text.WordWrap
                 maximumLineCount: 12 // krasko
             }
 

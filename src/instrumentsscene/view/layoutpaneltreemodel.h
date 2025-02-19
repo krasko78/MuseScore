@@ -60,6 +60,7 @@ class LayoutPanelTreeModel : public QAbstractItemModel, public muse::async::Asyn
     Q_PROPERTY(bool isMovingDownAvailable READ isMovingDownAvailable NOTIFY isMovingDownAvailableChanged)
     Q_PROPERTY(bool isRemovingAvailable READ isRemovingAvailable NOTIFY isRemovingAvailableChanged)
     Q_PROPERTY(bool isAddingAvailable READ isAddingAvailable NOTIFY isAddingAvailableChanged)
+    Q_PROPERTY(bool isAddingSystemMarkingsAvailable READ isAddingSystemMarkingsAvailable NOTIFY isAddingSystemMarkingsAvailableChanged)
     Q_PROPERTY(bool isEmpty READ isEmpty NOTIFY isEmptyChanged)
     Q_PROPERTY(QString addInstrumentsKeyboardShortcut READ addInstrumentsKeyboardShortcut NOTIFY addInstrumentsKeyboardShortcutChanged)
     Q_PROPERTY(int selectedItemsType READ selectedItemsType NOTIFY selectedItemsTypeChanged)
@@ -79,6 +80,7 @@ public:
     bool isMovingDownAvailable() const;
     bool isRemovingAvailable() const;
     bool isAddingAvailable() const;
+    bool isAddingSystemMarkingsAvailable() const;
     bool isEmpty() const;
     QString addInstrumentsKeyboardShortcut() const;
     int selectedItemsType() const;
@@ -92,7 +94,8 @@ public:
     Q_INVOKABLE void moveSelectedRowsUp();
     Q_INVOKABLE void moveSelectedRowsDown();
     Q_INVOKABLE void removeSelectedRows();
-    Q_INVOKABLE void toggleVisibilityOfSelectedRows(bool visible);
+    Q_INVOKABLE void changeVisibilityOfSelectedRows(bool visible);
+    Q_INVOKABLE void changeVisibility(const QModelIndex& index, bool visible);
 
     Q_INVOKABLE void startActiveDrag();
     Q_INVOKABLE void endActiveDrag();
@@ -106,6 +109,7 @@ signals:
     void isMovingUpAvailableChanged(bool isMovingUpAvailable);
     void isMovingDownAvailableChanged(bool isMovingDownAvailable);
     void isAddingAvailableChanged(bool isAddingAvailable);
+    void isAddingSystemMarkingsAvailableChanged(bool isAddingSystemMarkingsAvailable);
     void isRemovingAvailableChanged(bool isRemovingAvailable);
     void isEmptyChanged();
     void addInstrumentsKeyboardShortcutChanged();
@@ -180,6 +184,8 @@ private:
     QHash<NotationKey, QList<muse::ID> > m_sortedPartIdList;
 
     bool m_layoutPanelVisible = true;
+
+    bool m_shouldUpdateSystemObjectLayers = false;
 
     bool m_dragInProgress = false;
     AbstractLayoutPanelTreeItem* m_dragSourceParentItem = nullptr;

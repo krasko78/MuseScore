@@ -33,7 +33,6 @@
 
 #include "uicomponents/view/itemmultiselectionmodel.h"
 
-#include "async/async.h"
 #include "defer.h"
 #include "log.h"
 
@@ -152,6 +151,8 @@ bool LayoutPanelTreeModel::removeRows(int row, int count, const QModelIndex& par
 
     emit isEmptyChanged();
 
+    updateSystemObjectLayers();
+
     return true;
 }
 
@@ -223,10 +224,10 @@ void LayoutPanelTreeModel::setupPartsConnections()
     });
 
     m_notation->parts()->systemObjectStavesChanged().onNotify(this, [this]() {
-        // Wait until parts are fully loaded / updated
-        async::Async::call(this, [this]() {
+        m_shouldUpdateSystemObjectLayers = true;
+        if (!m_isLoadingBlocked) {
             updateSystemObjectLayers();
-        });
+        }
     });
 }
 
@@ -343,9 +344,13 @@ void LayoutPanelTreeModel::load()
     SystemObjectGroupsByStaff systemObjects = collectSystemObjectGroups(systemObjectStaves);
 
     for (const Part* part : masterParts) {
-        for (Staff* staff : part->staves()) {
-            if (muse::contains(systemObjectStaves, staff)) {
-                m_rootItem->appendChild(buildSystemObjectsLayerItem(staff, systemObjects[staff]));
+        if (m_notation->isMaster()) {
+            // Only show system object staves in master score
+            // TODO: extend system object staves logic to parts
+            for (Staff* staff : part->staves()) {
+                if (muse::contains(systemObjectStaves, staff)) {
+                    m_rootItem->appendChild(buildSystemObjectsLayerItem(staff, systemObjects[staff]));
+                }
             }
         }
 
@@ -359,6 +364,7 @@ void LayoutPanelTreeModel::load()
 
     emit isEmptyChanged();
     emit isAddingAvailableChanged(true);
+    emit isAddingSystemMarkingsAvailableChanged(isAddingSystemMarkingsAvailable());
 }
 
 void LayoutPanelTreeModel::sortParts(notation::PartList& parts)
@@ -521,6 +527,7 @@ bool LayoutPanelTreeModel::moveRows(const QModelIndex& sourceParent, int sourceR
     endMoveRows();
 
     updateRearrangementAvailability();
+    updateSystemObjectLayers();
 
     return true;
 }
@@ -543,15 +550,25 @@ void LayoutPanelTreeModel::endActiveDrag()
     m_dragInProgress = false;
 
     setLoadingBlocked(false);
+
+    updateSystemObjectLayers();
 }
 
-void LayoutPanelTreeModel::toggleVisibilityOfSelectedRows(bool visible)
+void LayoutPanelTreeModel::changeVisibilityOfSelectedRows(bool visible)
 {
     for (const QModelIndex& index : m_selectionModel->selectedIndexes()) {
-        AbstractLayoutPanelTreeItem* item = modelIndexToItem(index);
-
-        item->setIsVisible(visible);
+        changeVisibility(index, visible);
     }
+}
+
+void LayoutPanelTreeModel::changeVisibility(const QModelIndex& index, bool visible)
+{
+    setLoadingBlocked(true);
+
+    AbstractLayoutPanelTreeItem* item = modelIndexToItem(index);
+    item->setIsVisible(visible);
+
+    setLoadingBlocked(false);
 }
 
 QItemSelectionModel* LayoutPanelTreeModel::selectionModel() const
@@ -671,6 +688,11 @@ bool LayoutPanelTreeModel::isRemovingAvailable() const
 bool LayoutPanelTreeModel::isAddingAvailable() const
 {
     return m_notation != nullptr;
+}
+
+bool LayoutPanelTreeModel::isAddingSystemMarkingsAvailable() const
+{
+    return isAddingAvailable() && m_notation->isMaster();
 }
 
 bool LayoutPanelTreeModel::isEmpty() const
@@ -863,12 +885,12 @@ bool LayoutPanelTreeModel::warnAboutRemovingInstrumentsIfNecessary(int count)
         //: Please omit `%n` in the translation in this case; it's only there so that you
         //: have the possibility to provide translations with the correct numerus form,
         //: i.e. to show "instrument" or "instruments" as appropriate.
-        muse::trc("layout", "Are you sure you want to delete the selected %n instrument(s)?", nullptr, count),
+        muse::trc("layoutpanel", "Are you sure you want to delete the selected %n instrument(s)?", nullptr, count),
 
         //: Please omit `%n` in the translation in this case; it's only there so that you
         //: have the possibility to provide translations with the correct numerus form,
         //: i.e. to show "instrument" or "instruments" as appropriate.
-        muse::trc("layout", "This will remove the %n instrument(s) from the full score and all part scores.", nullptr, count),
+        muse::trc("layoutpanel", "This will remove the %n instrument(s) from the full score and all part scores.", nullptr, count),
 
         { IInteractive::Button::No, IInteractive::Button::Yes })
            .standardButton() == IInteractive::Button::Yes;
@@ -928,9 +950,11 @@ void LayoutPanelTreeModel::updateSystemObjectLayers()
 {
     TRACEFUNC;
 
-    if (!m_masterNotation || !m_rootItem) {
+    if (!m_masterNotation || !m_rootItem || !m_shouldUpdateSystemObjectLayers) {
         return;
     }
+
+    m_shouldUpdateSystemObjectLayers = false;
 
     // Create copy, because we're going to modify them
     std::vector<Staff*> newSystemObjectStaves = m_masterNotation->notation()->parts()->systemObjectStaves();

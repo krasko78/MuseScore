@@ -31,9 +31,11 @@ class NotationInteractionMock : public INotationInteraction
 public:
     MOCK_METHOD(INotationNoteInputPtr, noteInput, (), (const, override));
 
+    MOCK_METHOD(mu::engraving::ShadowNote*, shadowNote, (), (const, override));
     MOCK_METHOD(bool, showShadowNote, (const muse::PointF&), (override));
     MOCK_METHOD(void, hideShadowNote, (), (override));
     MOCK_METHOD(muse::RectF, shadowNoteRect, (), (const, override));
+    MOCK_METHOD(muse::async::Notification, shadowNoteChanged, (), (const, override));
 
     MOCK_METHOD(void, toggleVisible, (), (override));
 
@@ -147,6 +149,7 @@ public:
     MOCK_METHOD(void, swapSelection, (), (override));
     MOCK_METHOD(void, deleteSelection, (), (override));
     MOCK_METHOD(void, flipSelection, (), (override));
+    MOCK_METHOD(void, flipSelectionHorizontally, (), (override));
     MOCK_METHOD(void, addTieToSelection, (), (override));
     MOCK_METHOD(void, addLaissezVibToSelection, (), (override));
     MOCK_METHOD(void, addTiedNoteToChord, (), (override));
@@ -167,6 +170,9 @@ public:
 
     MOCK_METHOD(void, increaseDecreaseDuration, (int, bool), (override));
 
+    MOCK_METHOD(void, autoFlipHairpinsType, (engraving::Dynamic * selDyn), (override));
+
+    MOCK_METHOD(void, toggleDynamicPopup, (), (override));
     MOCK_METHOD(bool, toggleLayoutBreakAvailable, (), (const, override));
     MOCK_METHOD(void, toggleLayoutBreak, (LayoutBreakType), (override));
     MOCK_METHOD(void, moveMeasureToPrevSystem, (), (override));

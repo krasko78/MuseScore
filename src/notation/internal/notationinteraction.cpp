@@ -44,6 +44,7 @@
 #include "draw/types/pen.h"
 #include "engraving/internal/qmimedataadapter.h"
 
+#include "engraving/dom/accidental.h"
 #include "engraving/dom/actionicon.h"
 #include "engraving/dom/anchors.h"
 #include "engraving/dom/articulation.h"
@@ -160,6 +161,32 @@ static PointF bindCursorPosToText(const PointF& cursorPos, const EngravingItem* 
         : cursorPos.y() >= bbox.bottom() ? bbox.bottom() - 1 : cursorPos.y());
 
     return boundPos;
+}
+
+static AccidentalType accidentalType(const InputState& is, const NoteVal& nval, int line)
+{
+    if (is.rest()) {
+        return AccidentalType::NONE;
+    }
+
+    if (is.accidentalType() != AccidentalType::NONE) {
+        return is.accidentalType();
+    }
+
+    bool error = false;
+    const AccidentalVal accVal = mu::engraving::noteValToAccidentalVal(nval, is.staff(), is.tick());
+    const AccidentalVal existingAccVal = is.segment()->measure()->findAccidental(is.segment(), is.staffIdx(), line, error);
+
+    if (!error && accVal != existingAccVal) {
+        AccidentalType type = Accidental::value2subtype(accVal);
+        if (type == AccidentalType::NONE) {
+            type = AccidentalType::NATURAL;
+        }
+
+        return type;
+    }
+
+    return AccidentalType::NONE;
 }
 
 inline QString extractSyllable(const QString& text)
@@ -378,28 +405,37 @@ INotationNoteInputPtr NotationInteraction::noteInput() const
     return m_noteInput;
 }
 
+mu::engraving::ShadowNote* NotationInteraction::shadowNote() const
+{
+    return score()->shadowNote();
+}
+
 bool NotationInteraction::showShadowNote(const PointF& pos)
 {
     const mu::engraving::InputState& inputState = score()->inputState();
     mu::engraving::ShadowNote& shadowNote = *score()->shadowNote();
 
-    mu::engraving::Position position;
-    if (!score()->getPosition(&position, pos, inputState.voice())) {
+    ShadowNoteParams params;
+    if (!score()->getPosition(&params.position, pos, inputState.voice())) {
         shadowNote.setVisible(false);
+        m_shadowNoteChanged.notify();
         return false;
     }
 
-    ShadowNoteParams params;
     params.duration = inputState.duration();
     params.accidentalType = inputState.accidentalType();
     params.articulationIds = inputState.articulationIds();
 
-    showShadowNoteAtPosition(shadowNote, params, position);
-    return true;
+    const bool show = showShadowNote(shadowNote, params);
+    m_shadowNoteChanged.notify();
+
+    return show;
 }
 
-void NotationInteraction::showShadowNoteAtPosition(ShadowNote& shadowNote, const ShadowNoteParams& params, Position& position)
+bool NotationInteraction::showShadowNote(ShadowNote& shadowNote, ShadowNoteParams& params)
 {
+    Position& position = params.position;
+
     const mu::engraving::InputState& inputState = score()->inputState();
     const Staff* staff = score()->staff(position.staffIdx);
     const mu::engraving::Instrument* instr = staff->part()->instrument();
@@ -425,20 +461,34 @@ void NotationInteraction::showShadowNoteAtPosition(ShadowNote& shadowNote, const
 
     mu::engraving::NoteHeadGroup noteheadGroup = mu::engraving::NoteHeadGroup::HEAD_NORMAL;
     mu::engraving::NoteHeadType noteHead = params.duration.headType();
+
     int line = position.line;
+    voice_idx_t voice = 0;
+    int drumNotePitch = -1;
 
     if (instr->useDrumset()) {
-        const mu::engraving::Drumset* ds  = instr->drumset();
-        int pitch = inputState.drumNote();
-        if (pitch >= 0 && ds->isValid(pitch)) {
-            line = ds->line(pitch);
-            noteheadGroup = ds->noteHead(pitch);
-        }
-    }
+        const Drumset* ds = instr->drumset();
 
-    voice_idx_t voice = 0;
-    if (inputState.drumNote() != -1 && inputState.drumset() && inputState.drumset()->isValid(inputState.drumNote())) {
-        voice = inputState.drumset()->voice(inputState.drumNote());
+        const int noteInputPitch = inputState.drumNote();
+
+        if (noteInputPitch > 0 && ds->isValid(noteInputPitch) && ds->line(noteInputPitch) == line) {
+            noteheadGroup = ds->noteHead(noteInputPitch);
+            voice = ds->voice(noteInputPitch);
+            drumNotePitch = noteInputPitch;
+        } else {
+            for (int pitch = 0; pitch < mu::engraving::DRUM_INSTRUMENTS; ++pitch) {
+                if (ds->isValid(pitch) && ds->line(pitch) == line) {
+                    noteheadGroup = ds->noteHead(pitch);
+                    voice = ds->voice(pitch);
+                    drumNotePitch = pitch;
+                    break;
+                }
+            }
+            if (drumNotePitch < 0) {
+                shadowNote.setVisible(false);
+                return false;
+            }
+        }
     } else {
         voice = inputState.voice();
     }
@@ -469,7 +519,7 @@ void NotationInteraction::showShadowNoteAtPosition(ShadowNote& shadowNote, const
         delete rest;
     } else {
         if (mu::engraving::NoteHeadGroup::HEAD_CUSTOM == noteheadGroup) {
-            symNotehead = instr->drumset()->noteHeads(inputState.drumNote(), noteHead);
+            symNotehead = instr->drumset()->noteHeads(drumNotePitch, noteHead);
         } else {
             symNotehead = Note::noteHead(0, noteheadGroup, noteHead);
         }
@@ -481,6 +531,8 @@ void NotationInteraction::showShadowNoteAtPosition(ShadowNote& shadowNote, const
     score()->renderer()->layoutItem(&shadowNote);
 
     shadowNote.setPos(position.pos);
+
+    return true;
 }
 
 void NotationInteraction::hideShadowNote()
@@ -507,6 +559,11 @@ RectF NotationInteraction::shadowNoteRect() const
     rect.adjust(-penWidth, -penWidth, penWidth, penWidth);
 
     return rect;
+}
+
+muse::async::Notification NotationInteraction::shadowNoteChanged() const
+{
+    return m_shadowNoteChanged;
 }
 
 void NotationInteraction::toggleVisible()
@@ -2607,18 +2664,23 @@ void NotationInteraction::doAddSlur(EngravingItem* firstItem, EngravingItem* sec
     if (firstItem && secondItem && (firstItem->isBarLine() != secondItem->isBarLine())) {
         const bool outgoing = firstItem->isChordRest();
         const BarLine* bl = outgoing ? toBarLine(secondItem) : toBarLine(firstItem);
+        const ChordRest* cr = outgoing ? toChordRest(firstItem) : toChordRest(secondItem);
 
         // Check the barline is the start of a repeat section
         const Segment* adjacentCrSeg
             = outgoing ? bl->segment()->prev1(SegmentType::ChordRest) : bl->segment()->next1(SegmentType::ChordRest);
-        ChordRest* adjacentCr = nullptr;
-        for (track_idx_t track = 0; track < score()->ntracks(); track++) {
-            EngravingItem* adjacentItem = adjacentCrSeg->element(track);
-            if (!adjacentItem || !adjacentItem->isChordRest()) {
-                continue;
+        EngravingItem* adjacentItem = adjacentCrSeg->element(cr->track());
+        ChordRest* adjacentCr = adjacentItem ? toChordRest(adjacentItem) : nullptr;
+
+        if (!adjacentCr) {
+            for (track_idx_t track = cr->vStaffIdx() * VOICES; track < (cr->vStaffIdx() + 1) * VOICES; track++) {
+                adjacentItem = adjacentCrSeg->element(track);
+                if (!adjacentItem || !adjacentItem->isChordRest()) {
+                    continue;
+                }
+                adjacentCr = toChordRest(adjacentItem);
+                break;
             }
-            adjacentCr = toChordRest(adjacentItem);
-            break;
         }
 
         if (!adjacentCr || (outgoing && !adjacentCr->hasFollowingJumpItem()) || (!outgoing && !adjacentCr->hasPrecedingJumpItem())) {
@@ -3002,20 +3064,21 @@ double NotationInteraction::currentScaling(Painter* painter) const
     return painter->worldTransform().m11() / guiScaling;
 }
 
-std::vector<Position> NotationInteraction::inputPositions() const
+std::vector<NotationInteraction::ShadowNoteParams> NotationInteraction::previewNotes() const
 {
-    std::vector<Position> result;
+    std::vector<ShadowNoteParams> result;
 
     const InputState& is = score()->inputState();
     if (!is.isValid()) {
         return result;
     }
 
+    Segment* segment = is.segment();
     const staff_idx_t staffIdx = is.staffIdx();
     const Staff* staff = score()->staff(staffIdx);
-    const System* system = is.segment()->system();
+    const System* system = segment->system();
     const SysStaff* sysStaff = system ? system->staff(staffIdx) : nullptr;
-    const Measure* measure = is.segment()->measure();
+    const Measure* measure = segment->measure();
 
     if (!staff || !sysStaff || !measure) {
         return result;
@@ -3028,20 +3091,31 @@ std::vector<Position> NotationInteraction::inputPositions() const
                             * staff->staffMag(tick)
                             * score()->style().spatium();
 
-    Position pos;
-    pos.segment = is.segment();
-    pos.staffIdx = staffIdx;
-
-    for (const NoteVal& nval : is.notes()) {
-        pos.line = mu::engraving::noteValToLine(nval, staff, tick);
-        const double y = sysStaff->y() + pos.line * lineDist;
-        pos.pos = PointF(is.segment()->x(), y) + measurePos;
-
-        result.push_back(pos);
+    NoteValList nvals;
+    if (is.rest()) {
+        nvals.push_back(NoteVal());
+    } else {
+        nvals = is.notes();
     }
 
-    std::sort(result.begin(), result.end(), [](const Position& p1, const Position& p2) {
-        return p1.line < p2.line;
+    ShadowNoteParams params;
+    params.duration = is.rest() ? is.duration() : TDuration();
+    params.position.segment = segment;
+    params.position.staffIdx = staffIdx;
+
+    for (const NoteVal& nval : nvals) {
+        const int line = mu::engraving::noteValToLine(nval, staff, tick);
+        const double y = sysStaff->y() + line * lineDist;
+
+        params.accidentalType = accidentalType(is, nval, line);
+        params.position.line = line;
+        params.position.pos = PointF(segment->x(), y) + measurePos;
+
+        result.push_back(params);
+    }
+
+    std::sort(result.begin(), result.end(), [](const ShadowNoteParams& p1, const ShadowNoteParams& p2) {
+        return p1.position.line < p2.position.line;
     });
 
     return result;
@@ -3054,31 +3128,28 @@ bool NotationInteraction::shouldDrawInputPreview() const
 
 void NotationInteraction::drawInputPreview(Painter* painter)
 {
-    std::vector<Position> positions = inputPositions();
-    if (positions.empty()) {
+    std::vector<ShadowNoteParams> paramsList = previewNotes();
+    if (paramsList.empty()) {
         return;
     }
 
-    std::vector<ShadowNote*> notes;
-    notes.reserve(positions.size());
+    std::vector<ShadowNote*> previewList;
+    previewList.reserve(paramsList.size());
 
     const InputState& is = score()->inputState();
 
-    ShadowNoteParams params;
-    params.duration = is.rest() ? is.duration() : TDuration();
-
-    for (Position& pos : positions) {
-        ShadowNote* note = new ShadowNote(score());
-        showShadowNoteAtPosition(*note, params, pos);
-        notes.push_back(note);
+    for (ShadowNoteParams& params : paramsList) {
+        ShadowNote* preview = new ShadowNote(score());
+        showShadowNote(*preview, params);
+        previewList.push_back(preview);
     }
 
-    const bool isUp = !is.rest() && notes.front()->computeUp();
+    const bool isUp = !is.rest() && previewList.front()->computeUp();
     bool isLeft = isUp;
     int prevLine = INT_MAX;
 
     auto correctNotePositionIfNeed = [&](ShadowNote* note) {
-        if (positions.size() == 1) {
+        if (paramsList.size() == 1) {
             return;
         }
 
@@ -3103,18 +3174,18 @@ void NotationInteraction::drawInputPreview(Painter* painter)
     };
 
     if (isUp) {
-        for (auto it = notes.rbegin(); it != notes.rend(); ++it) {
+        for (auto it = previewList.rbegin(); it != previewList.rend(); ++it) {
             correctNotePositionIfNeed(*it);
             score()->renderer()->drawItem(*it, painter);
         }
     } else {
-        for (auto it = notes.begin(); it != notes.end(); ++it) {
+        for (auto it = previewList.begin(); it != previewList.end(); ++it) {
             correctNotePositionIfNeed(*it);
             score()->renderer()->drawItem(*it, painter);
         }
     }
 
-    DeleteAll(notes);
+    DeleteAll(previewList);
 }
 
 void NotationInteraction::drawAnchorLines(Painter* painter)
@@ -4866,6 +4937,17 @@ void NotationInteraction::flipSelection()
     apply();
 }
 
+void NotationInteraction::flipSelectionHorizontally()
+{
+    if (selection()->isNone()) {
+        return;
+    }
+
+    startEdit(TranslatableString("undoableAction", "Flip horizontally"));
+    score()->cmdFlipHorizontally();
+    apply();
+}
+
 void NotationInteraction::addTieToSelection()
 {
     // Calls `startEdit` internally
@@ -5199,6 +5281,107 @@ void NotationInteraction::increaseDecreaseDuration(int steps, bool stepByDots)
     apply();
 }
 
+void NotationInteraction::autoFlipHairpinsType(Dynamic* selDyn)
+{
+    if (!selDyn) {
+        return;
+    }
+
+    if (selDyn->dynamicType() == DynamicType::OTHER || selDyn->dynamicType() >= DynamicType::FP) {
+        return;
+    }
+
+    selDyn->findAdjacentHairpins();
+
+    startEdit(TranslatableString("undoableAction", "Change hairpin type"));
+
+    if (Hairpin* leftHp = selDyn->leftHairpin()) {
+        const Dynamic* startDyn = leftHp->dynamicSnappedBefore();
+        if (startDyn
+            && !(startDyn->dynamicType() == DynamicType::OTHER || startDyn->dynamicType() >= DynamicType::FP)
+            && !leftHp->isLineType()) {
+            if (int(startDyn->dynamicType()) > int(selDyn->dynamicType())) {
+                leftHp->undoChangeProperty(Pid::HAIRPIN_TYPE, int(HairpinType::DECRESC_HAIRPIN));
+            } else {
+                leftHp->undoChangeProperty(Pid::HAIRPIN_TYPE, int(HairpinType::CRESC_HAIRPIN));
+            }
+        }
+    }
+
+    if (Hairpin* rightHp = selDyn->rightHairpin()) {
+        const Dynamic* endDyn = rightHp->dynamicSnappedAfter();
+        if (endDyn
+            && !(endDyn->dynamicType() == DynamicType::OTHER || endDyn->dynamicType() >= DynamicType::FP)
+            && !rightHp->isLineType()) {
+            if (int(endDyn->dynamicType()) > int(selDyn->dynamicType())) {
+                rightHp->undoChangeProperty(Pid::HAIRPIN_TYPE, int(HairpinType::CRESC_HAIRPIN));
+            } else {
+                rightHp->undoChangeProperty(Pid::HAIRPIN_TYPE, int(HairpinType::DECRESC_HAIRPIN));
+            }
+        }
+    }
+
+    apply();
+}
+
+void NotationInteraction::toggleDynamicPopup()
+{
+    EngravingItem* el = selection()->element();
+    if (!el) {
+        return;
+    }
+
+    if (el->isHairpinSegment()) {
+        HairpinSegment* hairpinSeg = toHairpinSegment(el);
+        Hairpin* hairpin = hairpinSeg->hairpin();
+
+        auto addDynamic = [this](Fraction tick, track_idx_t track, VoiceAssignment voiceAssignment) {
+            startEdit(TranslatableString("undoableAction", "Add dynamic"));
+            Measure* measure = score()->tick2measure(tick);
+            Segment* segment = measure->undoGetChordRestOrTimeTickSegment(tick);
+            Dynamic* dynamic = Factory::createDynamic(segment);
+            dynamic->setParent(segment);
+            dynamic->setTrack(track);
+            dynamic->setVoiceAssignment(voiceAssignment);
+            score()->undoAddElement(dynamic);
+            apply();
+            startEditText(dynamic);
+        };
+
+        switch (m_editData.curGrip) {
+        case Grip::START:
+            if (EngravingItem* startDynOrExp = hairpinSeg->findElementToSnapBefore()) {
+                // If there is already a dynamic, select it instead of opening an empty popup
+                select({ startDynOrExp });
+                if (startDynOrExp->isDynamic()) {
+                    startEditElement(startDynOrExp, false);
+                    autoFlipHairpinsType(toDynamic(startDynOrExp));
+                }
+            } else {
+                addDynamic(hairpin->tick(), hairpin->track(), hairpin->voiceAssignment());
+            }
+            break;
+        case Grip::END:
+            if (EngravingItem* endDynOrExp = hairpinSeg->findElementToSnapAfter()) {
+                // If there is already a dynamic, select it instead of opening an empty popup
+                select({ endDynOrExp });
+                if (endDynOrExp->isDynamic()) {
+                    startEditElement(endDynOrExp, false);
+                    autoFlipHairpinsType(toDynamic(endDynOrExp));
+                }
+            } else {
+                addDynamic(hairpin->tick2(), hairpin->track2(), hairpin->voiceAssignment());
+            }
+            break;
+        default:
+            break;
+        }
+        return;
+    }
+
+    addTextToItem(TextStyleType::DYNAMICS, el);
+}
+
 bool NotationInteraction::toggleLayoutBreakAvailable() const
 {
     return !selection()->isNone() && !isTextEditingStarted();
@@ -5364,7 +5547,7 @@ void NotationInteraction::addAnchoredLineToSelectedNotes()
         return;
     }
 
-    startEdit(TranslatableString("undoableAction", "Add note anchored line"));
+    startEdit(TranslatableString("undoableAction", "Add note-anchored line"));
     score()->addNoteLine();
     apply();
 }

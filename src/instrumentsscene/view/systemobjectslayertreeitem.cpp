@@ -35,7 +35,7 @@ using namespace mu::engraving;
 static QString formatLayerTitle(const SystemObjectGroups& groups)
 {
     if (groups.empty()) {
-        return muse::qtrc("layout", "System objects");
+        return muse::qtrc("layoutpanel", "System markings");
     }
 
     QString title;
@@ -62,7 +62,7 @@ static QString formatLayerTitle(const SystemObjectGroups& groups)
     }
 
     if (title.isEmpty()) {
-        title = muse::qtrc("layout", "System objects hidden");
+        title = muse::qtrc("layoutpanel", "System markings hidden");
     }
 
     return title;
@@ -76,7 +76,7 @@ static bool isLayerVisible(const SystemObjectGroups& groups)
         }
     }
 
-    return true;
+    return false;
 }
 
 SystemObjectsLayerTreeItem::SystemObjectsLayerTreeItem(IMasterNotationPtr masterNotation, INotationPtr notation, QObject* parent)
@@ -164,7 +164,7 @@ void SystemObjectsLayerTreeItem::onUndoStackChanged(const mu::engraving::ScoreCh
             isSystemObj = toTimeSig(item)->timeSigPlacement() != TimeSigPlacement::NORMAL;
         }
 
-        if (!isSystemObj || item->staffIdx() != m_staffIdx) {
+        if (!isSystemObj || item->staffIdx() != m_staffIdx || item->isLayoutBreak()) {
             continue;
         }
 
@@ -189,8 +189,8 @@ void SystemObjectsLayerTreeItem::onVisibleChanged(bool isVisible)
     }
 
     const muse::TranslatableString actionName = isVisible
-                                                ? TranslatableString("undoableAction", "Make system object(s) visible")
-                                                : TranslatableString("undoableAction", "Make system object(s) invisible");
+                                                ? TranslatableString("undoableAction", "Make system marking(s) visible")
+                                                : TranslatableString("undoableAction", "Make system marking(s) invisible");
 
     notation()->undoStack()->prepareChanges(actionName);
 

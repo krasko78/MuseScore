@@ -23,6 +23,7 @@
 #pragma once
 
 #include "../types/types.h"
+#include "types.h"
 
 #include "interval.h"
 
@@ -86,6 +87,7 @@ extern int pitch2step(int pitch);
 extern int step2pitch(int step);
 int chromaticPitchSteps(const Note* noteL, const Note* noteR, const int nominalDiatonicSteps);
 extern int noteValToLine(const NoteVal& nval, const Staff* staff, const Fraction& tick);
+extern AccidentalVal noteValToAccidentalVal(const NoteVal& nval, const Staff* staff, const Fraction& tick);
 extern int compareNotesPos(const Note* n1, const Note* n2);
 
 extern Segment* skipTuplet(Tuplet* tuplet);
@@ -115,4 +117,6 @@ extern std::vector<Measure*> findFollowingRepeatMeasures(const Measure* measure)
 extern std::vector<Measure*> findPreviousRepeatMeasures(const Measure* measure);
 extern bool repeatHasPartialLyricLine(const Measure* endRepeatMeasure);
 extern bool segmentsAreAdjacentInRepeatStructure(const Segment* firstSeg, const Segment* secondSeg);
+
+extern bool chordContainsNoteVal(const Chord* chord, const NoteVal& nval);
 } // namespace mu::engraving

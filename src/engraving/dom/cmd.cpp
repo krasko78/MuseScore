@@ -49,6 +49,7 @@
 #include "harmony.h"
 #include "key.h"
 #include "laissezvib.h"
+#include "layoutbreak.h"
 #include "linkedobjects.h"
 #include "lyrics.h"
 #include "masterscore.h"
@@ -1068,7 +1069,7 @@ Segment* Score::setNoteRest(Segment* segment, track_idx_t track, NoteVal nval, F
     assert(segment->segmentType() == SegmentType::ChordRest);
     InputState& is = externalInputState ? (*externalInputState) : m_is;
 
-    bool isRest   = nval.pitch == -1;
+    bool isRest   = nval.isRest();
     Fraction tick = segment->tick();
     EngravingItem* nr   = nullptr;
     Tie* tie      = nullptr;
@@ -1444,8 +1445,8 @@ bool Score::makeGap1(const Fraction& baseTick, staff_idx_t staffIdx, const Fract
             continue;
         }
         Fraction tick = baseTick + Fraction::fromTicks(voiceOffset[track - strack]);
-        Measure* m   = tick2measure(tick);
-        if ((track % VOICES) && !m->hasVoices(staffIdx)) {
+        Measure* tm   = tick2measure(tick);
+        if ((track % VOICES) && !tm->hasVoices(staffIdx)) {
             continue;
         }
 
@@ -2155,8 +2156,8 @@ void Score::toggleAccidental(AccidentalType at)
         m_is.setAccidentalType(at);
         m_is.setRest(false);
 
-        if (usingNoteEntryMethod(NoteEntryMethod::BY_DURATION)) {
-            applyAccidentalToInputNotes();
+        if (!m_is.notes().empty()) {
+            applyAccidentalToInputNotes(at);
         }
     } else {
         if (selection().isNone()) {
@@ -2169,23 +2170,24 @@ void Score::toggleAccidental(AccidentalType at)
     }
 }
 
-void Score::applyAccidentalToInputNotes()
+void Score::applyAccidentalToInputNotes(AccidentalType accidentalType)
 {
-    const AccidentalVal acc = Accidental::subtype2value(m_is.accidentalType());
-    const bool concertPitch = style().styleB(Sid::concertPitch);
-    NoteValList notes = m_is.notes();
+    NoteValList notes;
 
-    for (NoteVal& nval : notes) {
-        const int oldPitch = nval.pitch;
-        const int step = mu::engraving::pitch2step(oldPitch);
-        const int newTpc = mu::engraving::step2tpc(step, acc);
+    Position pos;
+    pos.segment = m_is.segment();
+    pos.staffIdx = m_is.staffIdx();
 
-        nval.pitch += static_cast<int>(acc);
+    for (const NoteVal& oldVal : m_is.notes()) {
+        pos.line = noteValToLine(oldVal, m_is.staff(), m_is.tick());
 
-        if (concertPitch) {
-            nval.tpc1 = newTpc;
+        bool error = false;
+        const NoteVal newVal = noteValForPosition(pos, accidentalType, error);
+
+        if (error) {
+            notes.push_back(oldVal);
         } else {
-            nval.tpc2 = newTpc;
+            notes.push_back(newVal);
         }
     }
 
@@ -2770,7 +2772,7 @@ void Score::cmdResetMeasuresLayout()
         }
 
         for (EngravingItem* item : mb->el()) {
-            if (item->isLayoutBreak()) {
+            if (item->isLayoutBreak() && !toLayoutBreak(item)->isSectionBreak()) {
                 itemsToRemove.push_back(item);
             }
         }

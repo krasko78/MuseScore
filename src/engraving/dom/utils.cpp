@@ -27,6 +27,7 @@
 
 #include "containers.h"
 
+#include "accidental.h"
 #include "chord.h"
 #include "chordrest.h"
 #include "clef.h"
@@ -1134,6 +1135,23 @@ int chromaticPitchSteps(const Note* noteL, const Note* noteR, const int nominalD
     return halfsteps;
 }
 
+static void noteValToEffectivePitchAndTpc(const NoteVal& nval, const Staff* staff, const Fraction& tick, int& epitch, int& tpc)
+{
+    const bool concertPitch = staff->concertPitch();
+
+    if (concertPitch) {
+        epitch = nval.pitch;
+    } else {
+        const int pitchOffset = staff->part()->instrument(tick)->transpose().chromatic;
+        epitch = nval.pitch - pitchOffset;
+    }
+
+    tpc = nval.tpc(concertPitch);
+    if (tpc == static_cast<int>(mu::engraving::Tpc::TPC_INVALID)) {
+        tpc = pitch2tpc(epitch, staff->key(tick), mu::engraving::Prefer::NEAREST);
+    }
+}
+
 int noteValToLine(const NoteVal& nval, const Staff* staff, const Fraction& tick)
 {
     if (staff->isDrumStaff(tick)) {
@@ -1143,16 +1161,32 @@ int noteValToLine(const NoteVal& nval, const Staff* staff, const Fraction& tick)
         }
     }
 
-    const bool concertPitch = staff->concertPitch();
-    const int pitchOffset = concertPitch ? 0 : staff->part()->instrument(tick)->transpose().chromatic;
-    const int epitch = nval.pitch - pitchOffset;
-
-    int tpc = nval.tpc(concertPitch);
-    if (tpc == static_cast<int>(mu::engraving::Tpc::TPC_INVALID)) {
-        tpc = pitch2tpc(epitch, staff->key(tick), mu::engraving::Prefer::NEAREST);
+    if (nval.isRest()) {
+        return staff->middleLine(tick);
     }
 
+    int epitch = nval.pitch;
+    int tpc = static_cast<int>(mu::engraving::Tpc::TPC_INVALID);
+    noteValToEffectivePitchAndTpc(nval, staff, tick, epitch, tpc);
+
     return relStep(epitch, tpc, staff->clef(tick));
+}
+
+AccidentalVal noteValToAccidentalVal(const NoteVal& nval, const Staff* staff, const Fraction& tick)
+{
+    if (nval.isRest()) {
+        return AccidentalVal::NATURAL;
+    }
+
+    if (staff->isDrumStaff(tick)) {
+        return AccidentalVal::NATURAL;
+    }
+
+    int epitch = nval.pitch;
+    int tpc = static_cast<int>(mu::engraving::Tpc::TPC_INVALID);
+    noteValToEffectivePitchAndTpc(nval, staff, tick, epitch, tpc);
+
+    return tpc2alter(tpc);
 }
 
 int compareNotesPos(const Note* n1, const Note* n2)
@@ -1435,6 +1469,19 @@ std::vector<EngravingItem*> collectSystemObjects(const Score* score, const std::
     const bool isOnStaffTimeSig = timeSigPlacement != TimeSigPlacement::NORMAL;
 
     for (const Measure* measure = score->firstMeasure(); measure; measure = measure->nextMeasure()) {
+        for (EngravingItem* measureElement : measure->el()) {
+            if (!measureElement || !measureElement->systemFlag() || measureElement->isLayoutBreak()) {
+                continue;
+            }
+            if (!staves.empty()) {
+                if (muse::contains(staves, measureElement->staff())) {
+                    result.push_back(measureElement);
+                }
+            } else if (measureElement->isTopSystemObject()) {
+                result.push_back(measureElement);
+            }
+        }
+
         for (const Segment& seg : measure->segments()) {
             if (seg.isChordRestType()) {
                 for (EngravingItem* annotation : seg.annotations()) {
@@ -1660,5 +1707,20 @@ bool segmentsAreAdjacentInRepeatStructure(const Segment* firstSeg, const Segment
     }
 
     return true;
+}
+
+bool chordContainsNoteVal(const Chord* chord, const NoteVal& nval)
+{
+    if (!chord) {
+        return false;
+    }
+
+    for (const Note* note : chord->notes()) {
+        if (note->noteVal() == nval) {
+            return true;
+        }
+    }
+
+    return false;
 }
 }

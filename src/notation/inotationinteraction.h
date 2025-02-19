@@ -42,9 +42,11 @@ public:
     virtual INotationNoteInputPtr noteInput() const = 0;
 
     // Shadow note
+    virtual mu::engraving::ShadowNote* shadowNote() const = 0;
     virtual bool showShadowNote(const muse::PointF& pos) = 0;
     virtual void hideShadowNote() = 0;
     virtual muse::RectF shadowNoteRect() const = 0;
+    virtual muse::async::Notification shadowNoteChanged() const = 0;
 
     // Visibility
     virtual void toggleVisible() = 0;
@@ -184,6 +186,7 @@ public:
     virtual void swapSelection() = 0;
     virtual void deleteSelection() = 0;
     virtual void flipSelection() = 0;
+    virtual void flipSelectionHorizontally() = 0;
     virtual void addTieToSelection() = 0;
     virtual void addTiedNoteToChord() = 0;
     virtual void addLaissezVibToSelection() = 0;
@@ -204,6 +207,9 @@ public:
 
     virtual void increaseDecreaseDuration(int steps, bool stepByDots) = 0;
 
+    virtual void autoFlipHairpinsType(engraving::Dynamic* selDyn) = 0;
+
+    virtual void toggleDynamicPopup() = 0;
     virtual bool toggleLayoutBreakAvailable() const = 0;
     virtual void toggleLayoutBreak(LayoutBreakType breakType) = 0;
     virtual void moveMeasureToPrevSystem() = 0;

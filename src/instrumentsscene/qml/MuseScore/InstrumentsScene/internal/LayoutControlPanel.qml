@@ -34,6 +34,7 @@ RowLayout {
     property bool isMovingDownAvailable: false
     property bool isRemovingAvailable: false
     property bool isAddingAvailable: value
+    property bool isAddingSystemMarkingsAvailable: value
 
     property int selectedItemsType: LayoutPanelItemType.UNDEFINED
 
@@ -68,6 +69,7 @@ RowLayout {
         navigation.order: 1
 
         enabled: root.isAddingAvailable
+        addSystemMarkingsAvailable: root.isAddingSystemMarkingsAvailable
 
         onAddInstrumentRequested: {
             root.addInstrumentRequested()
@@ -87,9 +89,9 @@ RowLayout {
 
         toolTipTitle: {
             switch(root.selectedItemsType) {
-            case LayoutPanelItemType.PART: return qsTrc("layout", "Move selected instruments up")
-            case LayoutPanelItemType.STAFF: return qsTrc("layout", "Move selected staves up")
-            case LayoutPanelItemType.SYSTEM_OBJECTS_LAYER: return qsTrc("layout", "Move selected system objects up")
+            case LayoutPanelItemType.PART: return qsTrc("layoutpanel", "Move selected instruments up")
+            case LayoutPanelItemType.STAFF: return qsTrc("layoutpanel", "Move selected staves up")
+            case LayoutPanelItemType.SYSTEM_OBJECTS_LAYER: return qsTrc("layoutpanel", "Move selected system markings up")
             default: return ""
             }
         }
@@ -112,9 +114,9 @@ RowLayout {
 
         toolTipTitle: {
             switch(root.selectedItemsType) {
-            case LayoutPanelItemType.PART: return qsTrc("layout", "Move selected instruments down")
-            case LayoutPanelItemType.STAFF: return qsTrc("layout", "Move selected staves down")
-            case LayoutPanelItemType.SYSTEM_OBJECTS_LAYER: return qsTrc("layout", "Move selected system objects down")
+            case LayoutPanelItemType.PART: return qsTrc("layoutpanel", "Move selected instruments down")
+            case LayoutPanelItemType.STAFF: return qsTrc("layoutpanel", "Move selected staves down")
+            case LayoutPanelItemType.SYSTEM_OBJECTS_LAYER: return qsTrc("layoutpanel", "Move selected system markings down")
             default: return ""
             }
         }
@@ -137,9 +139,9 @@ RowLayout {
 
         toolTipTitle: {
             switch(root.selectedItemsType) {
-            case LayoutPanelItemType.PART: return qsTrc("layout", "Remove selected instruments")
-            case LayoutPanelItemType.STAFF: return qsTrc("layout", "Remove selected staves")
-            case LayoutPanelItemType.SYSTEM_OBJECTS_LAYER: return qsTrc("layout", "Remove selected system objects")
+            case LayoutPanelItemType.PART: return qsTrc("layoutpanel", "Remove selected instruments")
+            case LayoutPanelItemType.STAFF: return qsTrc("layoutpanel", "Remove selected staves")
+            case LayoutPanelItemType.SYSTEM_OBJECTS_LAYER: return qsTrc("layoutpanel", "Remove selected system markings")
             default: return ""
             }
         }

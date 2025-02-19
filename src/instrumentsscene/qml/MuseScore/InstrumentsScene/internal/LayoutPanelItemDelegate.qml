@@ -54,7 +54,8 @@ FocusableControl {
     signal popupOpened(var popupX, var popupY, var popupHeight)
     signal popupClosed()
 
-    signal visibilityChanged(bool visible)
+    signal changeVisibilityOfSelectedRowsRequested(bool visible)
+    signal changeVisibilityRequested(var index, bool visible)
 
     signal dragStarted()
     signal dropped()
@@ -231,9 +232,9 @@ FocusableControl {
                 }
 
                 if (root.isSelected) {
-                    root.visibilityChanged(!isVisible)
+                    root.changeVisibilityOfSelectedRowsRequested(!isVisible)
                 } else {
-                    model.itemRole.isVisible = !isVisible
+                    root.changeVisibilityRequested(styleData.index, !isVisible)
                 }
             }
         }
@@ -309,7 +310,7 @@ FocusableControl {
             navigation.panel: root.navigation.panel
             navigation.row: root.navigation.row
             navigation.column: 3
-            navigation.accessible.name: qsTrc("layout", "Settings")
+            navigation.accessible.name: qsTrc("layoutpanel", "Settings")
 
             icon: IconCode.SETTINGS_COG
 

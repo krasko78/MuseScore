@@ -65,7 +65,7 @@ NotationNoteInput::NotationNoteInput(const IGetScore* getScore, INotationInterac
             updateInputState();
         } else if (shouldSetupInputNote()) {
             const NoteInputState& is = state();
-            const staff_idx_t prevStaffIdx = mu::engraving::staff2track(is.prevTrack());
+            const staff_idx_t prevStaffIdx = mu::engraving::track2staff(is.prevTrack());
 
             if (prevStaffIdx != is.staffIdx()) {
                 setupInputNote();
@@ -419,6 +419,10 @@ void NotationNoteInput::setNoteInputMethod(NoteInputMethod method)
     }
 
     is.setNoteEntryMethod(method);
+    if (shouldSetupInputNote()) {
+        setupInputNote();
+    }
+
     notifyAboutStateChanged();
 }
 
@@ -453,6 +457,13 @@ void NotationNoteInput::padNote(const Pad& pad)
     startEdit(TranslatableString("undoableAction", "Pad note"));
     score()->padToggle(pad);
     apply();
+
+    if (pad >= Pad::NOTE00 && pad <= Pad::NOTE1024) {
+        const NoteInputState& is = score()->inputState();
+        if (!is.rest() && is.usingNoteEntryMethod(NoteInputMethod::BY_DURATION)) {
+            score()->toggleAccidental(AccidentalType::NONE);
+        }
+    }
 
     notifyAboutStateChanged();
 
@@ -541,7 +552,7 @@ void NotationNoteInput::setInputNotes(const NoteValList& notes)
         if (const Drumset* drumset = is.drumset()) {
             const int pitch = notes.front().pitch;
             is.setDrumNote(pitch);
-            is.setTrack(is.track() + drumset->voice(pitch));
+            is.setVoice(drumset->voice(pitch));
         }
     }
 
@@ -565,11 +576,10 @@ void NotationNoteInput::moveInputNotes(bool up, PitchMode mode)
 
     for (const NoteVal& val : is.notes()) {
         NoteVal newVal;
-        newVal.pitch = val.pitch;
 
         if (staff->isDrumStaff(tick)) {
             if (const Drumset* drumset = is.drumset()) {
-                newVal.pitch = up ? drumset->nextPitch(newVal.pitch) : drumset->prevPitch(newVal.pitch);
+                newVal.pitch = up ? drumset->nextPitch(val.pitch) : drumset->prevPitch(val.pitch);
 
                 if (drumset->isValid(newVal.pitch)) {
                     newVal.headGroup = drumset->noteHead(newVal.pitch);
@@ -581,7 +591,7 @@ void NotationNoteInput::moveInputNotes(bool up, PitchMode mode)
 
         switch (mode) {
         case PitchMode::CHROMATIC:
-            newVal.pitch += up ? 1 : -1;
+            newVal.pitch = val.pitch + up ? 1 : -1;
             break;
         case PitchMode::DIATONIC: {
             const int oldLine = mu::engraving::noteValToLine(val, is.staff(), is.tick());
@@ -589,6 +599,7 @@ void NotationNoteInput::moveInputNotes(bool up, PitchMode mode)
             newVal = noteValForLine(newLine);
         } break;
         case PitchMode::OCTAVE:
+            newVal = val;
             newVal.pitch += up ? mu::engraving::PITCH_DELTA_OCTAVE : -mu::engraving::PITCH_DELTA_OCTAVE;
             break;
         }
