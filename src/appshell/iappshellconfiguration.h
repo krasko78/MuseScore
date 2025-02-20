@@ -27,6 +27,7 @@
 
 #include "io/path.h"
 #include "appshelltypes.h"
+#include "async/channel.h" // krasko
 #include "async/notification.h"
 #include "engraving/types/types.h" // krasko
 
