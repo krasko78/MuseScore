@@ -441,7 +441,7 @@ staff_idx_t EngravingItem::effectiveStaffIdx() const
     }
 
     const System* system = toSystem(findAncestor(ElementType::SYSTEM));
-    if (!system) {
+    if (!system || system->vbox()) {
         return vStaffIdx();
     }
 
@@ -667,6 +667,8 @@ PointF EngravingItem::pagePos() const
         } else if (explicitParent()->isSystem()) {
             system = toSystem(explicitParent());
         } else if (explicitParent()->isFretDiagram()) {
+            return p + parentItem()->pagePos();
+        } else if (explicitParent()->isFBox()) {
             return p + parentItem()->pagePos();
         } else {
             ASSERT_X(String(u"this %1 parent %2\n").arg(String::fromAscii(typeName()), String::fromAscii(explicitParent()->typeName())));
@@ -1593,10 +1595,6 @@ bool EngravingItem::isPrintable() const
     case ElementType::SPACER:
     case ElementType::SHADOW_NOTE:
     case ElementType::LASSO:
-    case ElementType::ELEMENT_LIST:
-    case ElementType::STAFF_LIST:
-    case ElementType::MEASURE_LIST:
-    case ElementType::SELECTION:
         return false;
     default:
         return true;
@@ -1608,8 +1606,9 @@ bool EngravingItem::isPlayable() const
     switch (type()) {
     case ElementType::NOTE:
     case ElementType::CHORD:
-    case ElementType::HARMONY:
         return true;
+    case ElementType::HARMONY:
+        return explicitParent() && explicitParent()->isSegment();
     default:
         return false;
     }

@@ -36,6 +36,7 @@
 
 #include "engraving/dom/engravingitem.h"
 #include "engraving/dom/elementgroup.h"
+#include "engraving/types/symid.h"
 #include "scorecallbacks.h"
 
 #include "appshell/iappshellconfiguration.h" // krasko
@@ -333,7 +334,7 @@ private:
     struct ShadowNoteParams {
         mu::engraving::TDuration duration;
         mu::engraving::AccidentalType accidentalType = mu::engraving::AccidentalType::NONE;
-        std::set<SymId> articulationIds;
+        std::set<mu::engraving::SymId> articulationIds;
         mu::engraving::Position position;
     };
 
@@ -417,6 +418,7 @@ private:
     void resetDropData();
 
     bool selectInstrument(mu::engraving::InstrumentChange* instrumentChange);
+    void cleanupDrumsetChanges(mu::engraving::InstrumentChange* instrumentChange) const;
 
     void applyDropPaletteElement(mu::engraving::Score* score, mu::engraving::EngravingItem* target, mu::engraving::EngravingItem* e,
                                  Qt::KeyboardModifiers modifiers, muse::PointF pt = muse::PointF(), bool pasteMode = false);

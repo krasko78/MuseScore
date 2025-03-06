@@ -813,8 +813,9 @@ void Selection::updateSelectedElements()
             if ((sp->tick() >= stick && sp->tick() < etick) || (sp->tick2() >= stick && sp->tick2() <= etick)) {
                 EngravingItem* startCR = sp->startCR();
                 EngravingItem* endCR = sp->endCR();
-                const bool canSelectStart = (sp->startElement()->isTimeTickAnchor() || canSelect(startCR));
-                const bool canSelectEnd = (sp->endElement()->isTimeTickAnchor() || canSelect(endCR));
+                const bool canSelectStart
+                    = (sp->startElement()->isTimeTickAnchor() || sp->startElement()->isSegment() || canSelect(startCR));
+                const bool canSelectEnd = (sp->endElement()->isTimeTickAnchor() || sp->endElement()->isSegment() || canSelect(endCR));
                 if (canSelectStart && canSelectEnd) {
                     for (auto seg : sp->spannerSegments()) {
                         appendFiltered(seg);               // spanner with start or end in range selection
@@ -1544,7 +1545,7 @@ void Selection::extendRangeSelection(ChordRest* cr)
 
 void Selection::extendRangeSelection(Segment* seg, Segment* segAfter, staff_idx_t staffIdx, const Fraction& tick, const Fraction& etick)
 {
-    bool activeIsFirst = false;
+    bool activeSegmentIsStart = false;
     staff_idx_t activeStaff = m_activeTrack / VOICES;
 
     if (staffIdx < m_staffStart) {
@@ -1561,18 +1562,18 @@ void Selection::extendRangeSelection(Segment* seg, Segment* segAfter, staff_idx_
 
     if (tick < tickStart()) {
         m_startSegment = seg;
-        activeIsFirst = true;
-    } else if (etick >= tickEnd()) {
+        activeSegmentIsStart = true;
+    } else if (etick > tickEnd()) {
         m_endSegment = segAfter;
     } else {
         if (m_activeSegment == m_startSegment) {
             m_startSegment = seg;
-            activeIsFirst = true;
+            activeSegmentIsStart = true;
         } else {
             m_endSegment = segAfter;
         }
     }
-    activeIsFirst ? m_activeSegment = m_startSegment : m_activeSegment = m_endSegment;
+    m_activeSegment = activeSegmentIsStart ? m_startSegment : m_endSegment;
     m_score->setSelectionChanged(true);
     assert(!(m_endSegment && !m_startSegment));
 }

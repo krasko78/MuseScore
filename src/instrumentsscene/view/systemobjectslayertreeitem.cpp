@@ -68,17 +68,6 @@ static QString formatLayerTitle(const SystemObjectGroups& groups)
     return title;
 }
 
-static bool isLayerVisible(const SystemObjectGroups& groups)
-{
-    for (const SystemObjectsGroup& group : groups) {
-        if (isSystemObjectsGroupVisible(group)) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 SystemObjectsLayerTreeItem::SystemObjectsLayerTreeItem(IMasterNotationPtr masterNotation, INotationPtr notation, QObject* parent)
     : AbstractLayoutPanelTreeItem(LayoutPanelItemType::SYSTEM_OBJECTS_LAYER, masterNotation, notation, parent)
 {
@@ -88,23 +77,12 @@ SystemObjectsLayerTreeItem::SystemObjectsLayerTreeItem(IMasterNotationPtr master
 
 void SystemObjectsLayerTreeItem::init(const Staff* staff, const SystemObjectGroups& systemObjects)
 {
-    m_systemObjectGroups = systemObjects;
-
     setStaff(staff);
+    setSystemObjects(systemObjects);
 
     bool isTopLayer = staff->score()->staff(0) == staff;
     setIsRemovable(!isTopLayer);
     setIsSelectable(!isTopLayer);
-
-    updateState();
-
-    notation()->undoStack()->changesChannel().onReceive(this, [this](const ChangesRange& changes) {
-        onUndoStackChanged(changes);
-    });
-
-    connect(this, &AbstractLayoutPanelTreeItem::isVisibleChanged, this, [this](bool isVisible) {
-        onVisibleChanged(isVisible);
-    });
 }
 
 const Staff* SystemObjectsLayerTreeItem::staff() const
@@ -127,6 +105,12 @@ void SystemObjectsLayerTreeItem::setStaff(const Staff* staff)
     }
 }
 
+void SystemObjectsLayerTreeItem::setSystemObjects(const SystemObjectGroups& systemObjects)
+{
+    m_systemObjectGroups = systemObjects;
+    updateState();
+}
+
 QString SystemObjectsLayerTreeItem::staffId() const
 {
     const Staff* s = staff();
@@ -135,10 +119,10 @@ QString SystemObjectsLayerTreeItem::staffId() const
 
 bool SystemObjectsLayerTreeItem::canAcceptDrop(const QVariant&) const
 {
-    return false;
+    return m_staffIdx != 0; // all except the first
 }
 
-void SystemObjectsLayerTreeItem::onUndoStackChanged(const mu::engraving::ScoreChangesRange& changes)
+void SystemObjectsLayerTreeItem::onScoreChanged(const mu::engraving::ScoreChangesRange& changes)
 {
     if (muse::contains(changes.changedPropertyIdSet, Pid::TRACK)) {
         updateStaff();
@@ -180,28 +164,6 @@ void SystemObjectsLayerTreeItem::onUndoStackChanged(const mu::engraving::ScoreCh
     if (shouldUpdateState) {
         updateState();
     }
-}
-
-void SystemObjectsLayerTreeItem::onVisibleChanged(bool isVisible)
-{
-    if (m_ignoreVisibilityChanges || m_systemObjectGroups.empty()) {
-        return;
-    }
-
-    const muse::TranslatableString actionName = isVisible
-                                                ? TranslatableString("undoableAction", "Make system marking(s) visible")
-                                                : TranslatableString("undoableAction", "Make system marking(s) invisible");
-
-    notation()->undoStack()->prepareChanges(actionName);
-
-    for (const SystemObjectsGroup& group : m_systemObjectGroups) {
-        for (engraving::EngravingItem* item : group.items) {
-            item->undoSetVisible(isVisible);
-        }
-    }
-
-    notation()->undoStack()->commitChanges();
-    notation()->notationChanged().notify();
 }
 
 bool SystemObjectsLayerTreeItem::addSystemObject(engraving::EngravingItem* obj)
@@ -255,8 +217,4 @@ void SystemObjectsLayerTreeItem::updateState()
 {
     setTitle(formatLayerTitle(m_systemObjectGroups));
     setSettingsEnabled(!m_systemObjectGroups.empty());
-
-    m_ignoreVisibilityChanges = true;
-    setIsVisible(isLayerVisible(m_systemObjectGroups));
-    m_ignoreVisibilityChanges = false;
 }

@@ -70,7 +70,7 @@ const std::unordered_map<ActionCode, bool EngravingDebuggingOptions::*> Notation
     { "show-skylines", &EngravingDebuggingOptions::showSkylines },
     { "show-system-bounding-rects", &EngravingDebuggingOptions::showSystemBoundingRects },
     { "show-element-masks", &EngravingDebuggingOptions::showElementMasks },
-    { "show-corrupted-measures", &EngravingDebuggingOptions::showCorruptedMeasures }
+    { "mark-corrupted-measures", &EngravingDebuggingOptions::markCorruptedMeasures }
 };
 
 void NotationActionController::init()
@@ -294,6 +294,7 @@ void NotationActionController::init()
     registerAction("insert-hbox", [this]() { addBoxes(BoxType::Horizontal, 1, AddBoxesTarget::BeforeSelection); });
     registerAction("insert-vbox", [this]() { addBoxes(BoxType::Vertical, 1, AddBoxesTarget::BeforeSelection); });
     registerAction("insert-textframe", [this]() { addBoxes(BoxType::Text, 1, AddBoxesTarget::BeforeSelection); });
+    registerAction("insert-fretframe", [this]() { addBoxes(BoxType::Fret, 1, AddBoxesTarget::BeforeSelection); });
     registerAction("append-hbox", [this]() { addBoxes(BoxType::Horizontal, 1, AddBoxesTarget::AtEndOfScore); });
     registerAction("append-vbox", [this]() { addBoxes(BoxType::Vertical, 1, AddBoxesTarget::AtEndOfScore); });
     registerAction("append-textframe", [this]() { addBoxes(BoxType::Text, 1, AddBoxesTarget::AtEndOfScore); });
@@ -547,6 +548,7 @@ void NotationActionController::init()
             engravingConfiguration()->setDebuggingOptions(options);
         });
     }
+    dispatcher()->reg(this, "check-for-score-corruptions", [this] { checkForScoreCorruptions(); });
 }
 
 bool NotationActionController::canReceiveAction(const ActionCode& code) const
@@ -1637,7 +1639,7 @@ void NotationActionController::startEditSelectedElement(const ActionData& args)
         return;
     }
 
-    if (elementHasPopup(element)) {
+    if (elementHasPopup(element) && !interaction->textEditingAllowed(element)) {
         dispatcher()->dispatch("notation-popup-menu", ActionData::make_arg1<EngravingItem*>(element));
         return;
     }
@@ -2292,6 +2294,29 @@ bool NotationActionController::isToggleVisibleAllowed() const
         return !(interaction->isTextEditingStarted());
     }
     return false;
+}
+
+void NotationActionController::checkForScoreCorruptions()
+{
+    project::INotationProjectPtr project = globalContext()->currentProject();
+    if (!project) {
+        return;
+    }
+
+    String fileName = io::filename(project->path()).toString();
+
+    Ret ret = project->masterNotation()->masterScore()->sanityCheck();
+    if (ret) {
+        std::string title = muse::mtrc("project", "File “%1” seems not corrupted").arg(fileName).toStdString();
+        std::string body = muse::trc("project", "This file does not seem to contain errors.");
+        interactive()->info(title, body);
+    } else {
+        std::string title = muse::mtrc("project", "File “%1” is corrupted").arg(fileName).toStdString();
+        std::string body = muse::trc("project", "This file contains errors that could cause MuseScore Studio to malfunction. "
+                                                "Please fix those at the earliest, to prevent crashes and further corruptions.");
+
+        interactive()->warning(title, body, ret.text());
+    }
 }
 
 void NotationActionController::registerAction(const ActionCode& code,

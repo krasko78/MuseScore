@@ -121,6 +121,7 @@ private slots:
     void updateMovingDownAvailability(bool isSelectionMovable, const QModelIndex& lastSelectedRowIndex = QModelIndex());
     void updateRemovingAvailability();
     void updateSelectedItemsType();
+    void updateIsAddingSystemMarkingsAvailable();
 
 private:
     bool removeRows(int row, int count, const QModelIndex& parent) override;
@@ -140,8 +141,10 @@ private:
 
     void setupPartsConnections();
     void setupStavesConnections(const muse::ID& stavesPartId);
-    void listenNotationSelectionChanged();
+    void setupNotationConnections();
+
     void updateSelectedRows();
+    void onScoreChanged(const mu::engraving::ScoreChangesRange& changes);
 
     void clear();
     void deleteItems();
@@ -152,6 +155,7 @@ private:
 
     void setItemsSelected(const QModelIndexList& indexes, bool selected);
 
+    bool needWarnOnRemoveRows(int row, int count);
     bool warnAboutRemovingInstrumentsIfNecessary(int count);
 
     AbstractLayoutPanelTreeItem* buildMasterPartItem(const notation::Part* masterPart);
@@ -171,6 +175,7 @@ private:
     bool m_isRemovingAvailable = false;
     bool m_isLoadingBlocked = false;
     bool m_notationChangedWhileLoadingWasBlocked = false;
+    bool m_isAddingSystemMarkingsAvailable = false;
 
     LayoutPanelItemType::ItemType m_selectedItemsType = LayoutPanelItemType::ItemType::UNDEFINED;
 
@@ -183,8 +188,9 @@ private:
     using NotationKey = QString;
     QHash<NotationKey, QList<muse::ID> > m_sortedPartIdList;
 
-    bool m_layoutPanelVisible = true;
+    mu::engraving::ScoreChangesRange m_scoreChangesCache;
 
+    bool m_layoutPanelVisible = true;
     bool m_shouldUpdateSystemObjectLayers = false;
 
     bool m_dragInProgress = false;

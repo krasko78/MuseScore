@@ -566,9 +566,7 @@ PalettePtr PaletteCreator::newLayoutPalette(bool defaultPalette)
     sp->appendActionIcon(ActionIconType::VFRAME, "insert-vbox");
     sp->appendActionIcon(ActionIconType::HFRAME, "insert-hbox");
     sp->appendActionIcon(ActionIconType::TFRAME, "insert-textframe");
-    if (configuration()->enableExperimental()) {
-        sp->appendActionIcon(ActionIconType::FFRAME, "insert-fretframe");
-    }
+    sp->appendActionIcon(ActionIconType::FFRAME, "insert-fretframe");
     sp->appendActionIcon(ActionIconType::STAFF_TYPE_CHANGE, "insert-staff-type-change");
     sp->appendActionIcon(ActionIconType::MEASURE, "insert-measure");
 
@@ -986,7 +984,7 @@ PalettePtr PaletteCreator::newBreathPalette(bool defaultPalette)
     // Breaths
 
     for (auto i : defaultPalette ? defaultFermatas : masterFermatas) {
-        auto f = Factory::makeFermata(gpaletteScore->dummy());
+        auto f = Factory::makeFermata(gpaletteScore->dummy()->segment());
         f->setSymIdAndTimeStretch(i);
         sp->appendElement(f, f->subtypeUserName());
     }

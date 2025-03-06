@@ -1483,7 +1483,7 @@ std::vector<EngravingItem*> collectSystemObjects(const Score* score, const std::
         }
 
         for (const Segment& seg : measure->segments()) {
-            if (seg.isChordRestType()) {
+            if (seg.isType(Segment::CHORD_REST_OR_TIME_TICK_TYPE)) {
                 for (EngravingItem* annotation : seg.annotations()) {
                     if (!annotation || !annotation->systemFlag()) {
                         continue;
@@ -1707,20 +1707,5 @@ bool segmentsAreAdjacentInRepeatStructure(const Segment* firstSeg, const Segment
     }
 
     return true;
-}
-
-bool chordContainsNoteVal(const Chord* chord, const NoteVal& nval)
-{
-    if (!chord) {
-        return false;
-    }
-
-    for (const Note* note : chord->notes()) {
-        if (note->noteVal() == nval) {
-            return true;
-        }
-    }
-
-    return false;
 }
 }

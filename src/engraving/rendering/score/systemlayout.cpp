@@ -450,16 +450,19 @@ void SystemLayout::layoutSystemLockIndicators(System* system, LayoutContext& ctx
     const std::vector<SystemLockIndicator*> lockIndicators = system->lockIndicators();
     // In PAGE view, at most ONE lock indicator can exist per system.
     assert(lockIndicators.size() <= 1);
-    system->deleteLockIndicators();
 
     const SystemLock* lock = system->systemLock();
     if (!lock) {
+        system->deleteLockIndicators();
         return;
     }
 
-    SystemLockIndicator* lockIndicator = new SystemLockIndicator(system, lock);
-    lockIndicator->setParent(system);
-    system->addLockIndicator(lockIndicator);
+    SystemLockIndicator* lockIndicator = lockIndicators.empty() ? nullptr : lockIndicators.front();
+    if (!lockIndicator) {
+        lockIndicator = new SystemLockIndicator(system, lock);
+        lockIndicator->setParent(system);
+        system->addLockIndicator(lockIndicator);
+    }
 
     TLayout::layoutSystemLockIndicator(lockIndicator, lockIndicator->mutldata());
 }
@@ -651,11 +654,13 @@ void SystemLayout::updateBigTimeSigIfNeeded(System* system, LayoutContext& ctx)
             }
 
             Segment* prevBarlineSeg = nullptr;
+            Segment* prevRepeatAnnounceTimeSigSeg = nullptr;
             if (centerOnBarline) {
                 for (Segment* prevSeg = seg.prev1(); prevSeg && prevSeg->tick() == seg.tick(); prevSeg = prevSeg->prev1()) {
                     if (prevSeg->isEndBarLineType()) {
                         prevBarlineSeg = prevSeg;
-                        break;
+                    } else if (prevSeg->isTimeSigRepeatAnnounceType()) {
+                        prevRepeatAnnounceTimeSigSeg = prevSeg;
                     }
                 }
             }
@@ -673,7 +678,9 @@ void SystemLayout::updateBigTimeSigIfNeeded(System* system, LayoutContext& ctx)
                     }
                     continue;
                 }
-                if (prevBarlineSeg && prevBarlineSeg->system() == system) {
+
+                if (prevBarlineSeg && prevBarlineSeg->system() == system && !prevRepeatAnnounceTimeSigSeg) {
+                    // Center timeSig on its segment
                     RectF bbox = timeSig->ldata()->bbox();
                     double newXPos = -0.5 * (bbox.right() + bbox.left());
                     double xPosDiff = timeSig->pos().x() - newXPos;
@@ -681,6 +688,33 @@ void SystemLayout::updateBigTimeSigIfNeeded(System* system, LayoutContext& ctx)
 
                     for (EngravingItem* el : parens) {
                         el->mutldata()->moveX(-xPosDiff);
+                    }
+                } else if (!seg.isTimeSigRepeatAnnounceType()) {
+                    // Left-align to parenthesis if present
+                    double xLeftParens = DBL_MAX;
+                    for (EngravingItem* paren : parens) {
+                        if (toParenthesis(paren)->direction() == DirectionH::LEFT) {
+                            xLeftParens = paren->x() + paren->ldata()->bbox().left();
+                        }
+                    }
+                    if (xLeftParens != DBL_MAX) {
+                        timeSig->mutldata()->moveX(-xLeftParens);
+                        for (EngravingItem* paren : parens) {
+                            paren->mutldata()->moveX(-xLeftParens);
+                        }
+                    }
+                } else {
+                    // TimeSigRepeatAnnounce: right-align to segment
+                    double xRight = -DBL_MAX;
+                    xRight = std::max(xRight, timeSig->shape().right() + timeSig->x());
+                    for (EngravingItem* paren : parens) {
+                        xRight = std::max(xRight, paren->ldata()->bbox().right() + paren->x());
+                    }
+                    if (xRight != -DBL_MAX) {
+                        timeSig->mutldata()->moveX(-xRight);
+                        for (EngravingItem* paren : parens) {
+                            paren->mutldata()->moveX(-xRight);
+                        }
                     }
                 }
             }
@@ -1417,10 +1451,14 @@ void SystemLayout::layoutSystemElements(System* system, LayoutContext& ctx)
             }
 
             if (s->isType(SegmentType::TimeSigType)) {
-                TimeSig* ts = toTimeSig(s->element(e->track()));
-                TimeSigPlacement timeSigPlacement = ts->style().styleV(Sid::timeSigPlacement).value<TimeSigPlacement>();
+                EngravingItem* el = s->element(e->track());
+                TimeSig* timeSig = el ? toTimeSig(el) : nullptr;
+                if (!timeSig) {
+                    continue;
+                }
+                TimeSigPlacement timeSigPlacement = timeSig->style().styleV(Sid::timeSigPlacement).value<TimeSigPlacement>();
                 if (timeSigPlacement == TimeSigPlacement::ACROSS_STAVES) {
-                    if (!ts->showOnThisStaff()) {
+                    if (!timeSig->showOnThisStaff()) {
                         e->mutldata()->reset();
                     }
                     continue;
@@ -2499,6 +2537,8 @@ void SystemLayout::setMeasureHeight(System* system, double height, const LayoutC
             TLayout::layoutHBox2(toHBox(m), ctx);
         } else if (m->isTBox()) {
             TLayout::layoutTBox(toTBox(m), toTBox(m)->mutldata(), ctx);
+        } else if (m->isFBox()) {
+            TLayout::layoutFBox(toFBox(m), toFBox(m)->mutldata(), ctx);
         } else {
             LOGD("unhandled measure type %s", m->typeName());
         }
@@ -2779,7 +2819,11 @@ void SystemLayout::updateSkylineForElement(EngravingItem* element, const System*
     Skyline& skyline = system->staff(element->staffIdx())->skyline();
     SkylineLine& skylineLine = element->placeAbove() ? skyline.north() : skyline.south();
     for (ShapeElement& shapeEl : skylineLine.elements()) {
-        if (shapeEl.item() == element) {
+        const EngravingItem* itemInSkyline = shapeEl.item();
+        if (itemInSkyline && itemInSkyline->isText() && itemInSkyline->explicitParent() && itemInSkyline->parent()->isSLineSegment()) {
+            itemInSkyline = itemInSkyline->parentItem();
+        }
+        if (itemInSkyline == element) {
             shapeEl.translate(0.0, yMove);
         }
     }
