@@ -25,7 +25,9 @@ set(MODULE_TEST_SRC
     ${CMAKE_CURRENT_LIST_DIR}/templatesrepositorytest.cpp
 )
 
-set(MODULE_TEST_LINK project)
+set(MODULE_TEST_LINK project
+    muse_workspace # krasko
+)
 
 include(SetupGTest)
 

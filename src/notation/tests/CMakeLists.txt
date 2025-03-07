@@ -40,6 +40,7 @@ set(MODULE_TEST_SRC
 set(MODULE_TEST_LINK
     engraving
     notation
+    muse_workspace # krasko
 )
 
 set(MODULE_TEST_DATA_ROOT ${CMAKE_CURRENT_LIST_DIR})
