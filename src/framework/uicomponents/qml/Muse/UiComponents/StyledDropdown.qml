@@ -107,7 +107,6 @@ Item {
         id: mainItem
 
         anchors.fill: parent
-        label.anchors.rightMargin: 4 + dropIconItem.width + dropIconItem.anchors.rightMargin // krasko
 
         property bool selected: false
         property bool insideDropdownList: false
