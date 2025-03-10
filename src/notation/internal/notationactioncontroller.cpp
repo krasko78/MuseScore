@@ -2406,9 +2406,9 @@ void NotationActionController::registerAction(const ActionCode& code,
 {
     registerAction(code, [this, handler, playMode]()
     {
-        auto interaction = currentNotationInteraction().get();
-        if (interaction) {
-            (interaction->*handler)();
+        INotationPtr notation = currentNotation();
+        if (notation) {
+            (notation->interaction().get()->*handler)();
             if (playMode != PlayMode::NoPlay) {
                 playSelectedElement(playMode == PlayMode::PlayChord);
             }
@@ -2436,9 +2436,9 @@ void NotationActionController::registerAction(const ActionCode& code, void (INot
 {
     registerAction(code, [this, handler, param1, playMode]()
     {
-        auto interaction = currentNotationInteraction().get();
-        if (interaction) {
-            (interaction->*handler)(param1);
+        INotationPtr notation = currentNotation();
+        if (notation) {
+            (notation->interaction().get()->*handler)(param1);
             if (playMode != PlayMode::NoPlay) {
                 playSelectedElement(playMode == PlayMode::PlayChord);
             }
@@ -2460,9 +2460,9 @@ void NotationActionController::registerAction(const ActionCode& code, void (INot
 {
     registerAction(code, [this, handler, param1, param2, playMode]()
     {
-        auto interaction = currentNotationInteraction().get();
-        if (interaction) {
-            (interaction->*handler)(param1, param2);
+        INotationPtr notation = currentNotation();
+        if (notation) {
+            (notation->interaction().get()->*handler)(param1, param2);
             if (playMode != PlayMode::NoPlay) {
                 playSelectedElement(playMode == PlayMode::PlayChord);
             }
