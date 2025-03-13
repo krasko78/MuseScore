@@ -78,7 +78,7 @@ Loader {
         }
 
         onClosed: function(force) {
-            prv.unloadMenu(force)
+            Qt.callLater(prv.unloadMenu, force)
         }
 
         onOpened: {
