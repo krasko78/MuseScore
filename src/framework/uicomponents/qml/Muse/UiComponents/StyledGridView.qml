@@ -23,31 +23,11 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 
 GridView {
-    id: root // krasko
     clip: true
     boundsBehavior: Flickable.StopAtBounds
-    flickDeceleration: ui.theme.flickDeceleration // krasko
+    maximumFlickVelocity: ui.theme.flickableMaxVelocity
+    flickDeceleration: ui.theme.flickableDeceleration
 
     ScrollBar.vertical: StyledScrollBar {}
     ScrollBar.horizontal: StyledScrollBar {}
-
-    onContentHeightChanged: { // krasko
-        updateMaxFlickVelocity()
-    }
-
-    onContentWidthChanged: { // krasko
-        updateMaxFlickVelocity()
-    }
-
-    onHeightChanged: { // krasko
-        updateMaxFlickVelocity()
-    }
-
-    onWidthChanged: { // krasko
-        updateMaxFlickVelocity()
-    }
-
-    function updateMaxFlickVelocity() { // krasko
-        root.maximumFlickVelocity = ui.theme.calcFlickVelocity(root.contentHeight, root.height)
-    }
 }

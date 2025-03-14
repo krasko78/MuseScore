@@ -88,8 +88,8 @@ class ThemeApi : public api::ApiObject, public async::Asyncable
 
     Q_PROPERTY(qreal defaultButtonSize READ defaultButtonSize NOTIFY themeChanged)
 
-    Q_PROPERTY(int flickableMaxVelocity READ flickableMaxVelocity CONSTANT) // krasko: not used
-    Q_PROPERTY(int flickDeceleration READ flickDeceleration NOTIFY themeChanged) // krasko
+    Q_PROPERTY(int flickableMaxVelocity READ flickableMaxVelocity CONSTANT)
+    Q_PROPERTY(int flickableDeceleration READ flickableDeceleration NOTIFY themeChanged) // krasko
 
     Q_PROPERTY(int tooltipDelay READ tooltipDelay CONSTANT)
 
@@ -152,11 +152,9 @@ public:
     qreal itemOpacityDisabled() const;
 
     int flickableMaxVelocity() const;
-    int flickDeceleration() const; // krasko
+    int flickableDeceleration() const;
 
     int tooltipDelay() const;
-
-    Q_INVOKABLE qreal calcFlickVelocity(const qreal contentHeight, const qreal viewHeight) const; // krasko
 
 signals:
     void themeChanged();

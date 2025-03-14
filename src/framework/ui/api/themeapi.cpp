@@ -368,6 +368,11 @@ int ThemeApi::flickableMaxVelocity() const // krasko: not used
     return configuration()->flickableMaxVelocity();
 }
 
+int ThemeApi::flickableDeceleration() const
+{
+    return appshellConfiguration()->scrollDecelerationOfListsAndPanels(); ///return configuration()->flickableDeceleration();
+}
+
 int ThemeApi::tooltipDelay() const
 {
     return configuration()->tooltipDelay();
@@ -1126,30 +1131,4 @@ void ProxyStyle::drawToolbarGrip(QPainter* painter, const QRect& rect, bool hori
     painter->rotate(rotation);
     painter->drawText(r, Qt::AlignCenter, iconCodeToChar(IconCode::Code::TOOLBAR_GRIP));
     painter->rotate(-rotation);
-}
-
-int ThemeApi::flickDeceleration() const // krasko
-{
-    return appshellConfiguration()->scrollDecelerationOfListsAndPanels();
-}
-
-qreal ThemeApi::calcFlickVelocity(const qreal contentHeight, const qreal viewHeight) const // krasko
-{
-    // 1. If content size is not greater then view size, then no scrolling is needed.
-    //    Just return the baseFlickVelocity.
-    if (contentHeight <= viewHeight) {
-        return m_baseFlickVelocity;
-    }
-
-    // 2. The smaller the view, the lower the speed.
-    //    The speed cannot drop below minFlickVelocity and go above baseFlickVelocity.
-    qreal result = m_minFlickVelocity + viewHeight * m_viewSizeFactor;
-    result = std::min(result, m_baseFlickVelocity);
-
-    // 3. The bigger the content size, the higher the speed but take the view size into account.
-    //    The speed cannot exceed maxFlickVelocity.
-    result += (contentHeight / m_sizeForBaseVelocity) * (viewHeight / m_sizeForBaseVelocity) * m_contentSizeFactor;
-    result = std::min(result, m_maxFlickVelocity);
-
-    return result;
 }
