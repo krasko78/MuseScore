@@ -109,6 +109,9 @@ private:
 
     muse::uicomponents::MenuItem* makeMenuItem(const muse::actions::ActionCode& actionCode);
 
+    void updateConcertPitchItem();
+    void updateCurrentWorkspaceItem();
+
     void dispatch(const muse::actions::ActionCode& code, const muse::actions::ActionData& args = muse::actions::ActionData());
 
     void onCurrentNotationChanged();

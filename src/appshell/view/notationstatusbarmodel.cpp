@@ -88,36 +88,36 @@ QString NotationStatusBarModel::accessibilityInfo() const
 
 QVariant NotationStatusBarModel::concertPitchItem()
 {
-    if (!m_concertPitchItem) {
-        m_concertPitchItem = makeMenuItem(TOGGLE_CONCERT_PITCH_CODE);
-    }
+    return QVariant::fromValue(m_concertPitchItem);
+}
 
+void NotationStatusBarModel::updateConcertPitchItem()
+{
     UiActionState state;
     state.enabled = notation() ? true : false;
     state.checked = notation() ? notation()->style()->styleValue(StyleId::concertPitch).toBool() : false;
     m_concertPitchItem->setState(state);
 
-    return QVariant::fromValue(m_concertPitchItem);
+    emit concertPitchActionChanged();
 }
 
 QVariant NotationStatusBarModel::currentWorkspaceItem()
 {
-    if (!m_currentWorkspaceItem) {
-        m_currentWorkspaceItem = makeMenuItem(SELECT_WORKSPACE_CODE);
-    }
+    return QVariant::fromValue(m_currentWorkspaceItem);
+}
 
-    UiAction action;
-    action.title = muse::TranslatableString::untranslatable("%1 %2")
-                   .arg(muse::TranslatableString("workspace", "Workspace:"),
-                        String::fromStdString(workspaceConfiguration()->currentWorkspaceName()));
-
-    m_currentWorkspaceItem->setAction(action);
+void NotationStatusBarModel::updateCurrentWorkspaceItem()
+{
+    m_currentWorkspaceItem->setTitle(
+        muse::TranslatableString::untranslatable("%1 %2")
+        .arg(muse::TranslatableString("workspace", "Workspace:"),
+            String::fromStdString(workspaceConfiguration()->currentWorkspaceName())));
 
 #ifdef MUSE_MODULE_WORKSPACE
     m_currentWorkspaceItem->setSubitems(m_workspacesMenuModel->items());
 #endif
 
-    return QVariant::fromValue(m_currentWorkspaceItem);
+    emit currentWorkspaceActionChanged();
 }
 
 MenuItem* NotationStatusBarModel::makeMenuItem(const ActionCode& actionCode)
@@ -223,6 +223,9 @@ void NotationStatusBarModel::load()
 {
     TRACEFUNC;
 
+    m_concertPitchItem = makeMenuItem(TOGGLE_CONCERT_PITCH_CODE);
+    m_currentWorkspaceItem = makeMenuItem(SELECT_WORKSPACE_CODE);
+
     onCurrentNotationChanged();
     context()->currentNotationChanged().onNotify(this, [this]() {
         onCurrentNotationChanged();
@@ -231,15 +234,17 @@ void NotationStatusBarModel::load()
 #ifdef MUSE_MODULE_WORKSPACE
     m_workspacesMenuModel->load();
     connect(m_workspacesMenuModel.get(), &WorkspacesMenuModel::itemsChanged, this, [this](){
-        emit currentWorkspaceActionChanged();
+        updateCurrentWorkspaceItem();
     });
 #endif
+
+    updateCurrentWorkspaceItem();
 }
 
 void NotationStatusBarModel::onCurrentNotationChanged()
 {
     emit zoomEnabledChanged();
-    emit concertPitchActionChanged();
+    updateConcertPitchItem();
 
     initAvailableViewModeList();
     initAvailableZoomList();
@@ -250,7 +255,7 @@ void NotationStatusBarModel::onCurrentNotationChanged()
 
     notation()->undoStack()->changesChannel().onReceive(this, [this](const mu::engraving::ScoreChangesRange& range) {
         if (muse::contains(range.changedStyleIdSet, mu::engraving::Sid::concertPitch)) {
-            emit concertPitchActionChanged();
+            updateConcertPitchItem();
         }
     });
 

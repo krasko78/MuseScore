@@ -109,7 +109,7 @@ Item {
             Layout.alignment: Qt.AlignVCenter
             Layout.preferredHeight: 28
 
-            text: model.currentWorkspaceItem.title
+            text: model.currentWorkspaceItem?.title ?? ""
             icon: IconCode.WORKSPACE
             orientation: Qt.Horizontal
 
@@ -141,10 +141,10 @@ Item {
             Layout.alignment: Qt.AlignVCenter
             Layout.preferredHeight: 28
 
-            text: model.concertPitchItem.title
-            icon: model.concertPitchItem.icon
-            checked: model.concertPitchItem.checked
-            enabled: model.concertPitchItem.enabled
+            text: model.concertPitchItem?.title ?? ""
+            icon: model.concertPitchItem?.icon ?? null
+            checked: model.concertPitchItem?.checked ?? false
+            enabled: model.concertPitchItem?.enabled ?? false
             visible: statusBarRow.remainingSpace > width
 
             navigation.panel: navPanel
@@ -220,11 +220,11 @@ Item {
             menuModel: {
                 var result = []
 
-                if (!concertPitchControl.visible) {
+                if (!concertPitchControl.visible && model.concertPitchItem) {
                     result.push(model.concertPitchItem)
                 }
 
-                if (!workspaceControl.visible) {
+                if (!workspaceControl.visible && model.currentWorkspaceItem) {
                     result.push(model.currentWorkspaceItem)
                 }
 
@@ -237,7 +237,7 @@ Item {
                     model.handleAction(model.concertPitchItem.code)
                     break
                 case model.currentWorkspaceItem.id:
-                    model.handleAction(model.concertPitchItem.code)
+                    model.handleAction(model.currentWorkspaceItem.code)
                     break
                 }
             }
