@@ -988,7 +988,7 @@ void MeasureLayout::layoutMeasure(MeasureBase* currentMB, LayoutContext& ctx)
             }
         } else if (segment.isChordRestType()) {
             for (EngravingItem* e : segment.annotations()) {
-                if (e->isSymbol()) {
+                if (e->isSymbol() || e->isHarmony() || e->isFretDiagram()) {
                     TLayout::layoutItem(e, ctx);
                 }
             }
@@ -1732,6 +1732,7 @@ void MeasureLayout::setCourtesyTimeSig(Measure* m, const Fraction& refSigTick, c
             courtesyTimeSig->setTrack(track);
             courtesyTimeSig->setGenerated(true);
             courtesyTimeSig->setParent(courtesySigSeg);
+            courtesyTimeSig->setIsCourtesy(true);
             courtesySigSeg->add(courtesyTimeSig);
         }
 
@@ -1856,6 +1857,7 @@ void MeasureLayout::setCourtesyKeySig(Measure* m, const Fraction& refSigTick, co
             courtesyKeySig->setTrack(track);
             courtesyKeySig->setGenerated(true);
             courtesyKeySig->setParent(courtesySigSeg);
+            courtesyKeySig->setIsCourtesy(true);
             courtesySigSeg->add(courtesyKeySig);
         }
         courtesyKeySig->setKeySigEvent(refKey);
@@ -1970,6 +1972,7 @@ void MeasureLayout::setCourtesyClef(Measure* m, const Fraction& refClefTick, con
             courtesyClef->setSmall(true);
             courtesyClef->setParent(courtesyClefSeg);
             courtesyClef->setClefType(actualClef->clefType());
+            courtesyClef->setIsCourtesy(true);
             courtesyClefSeg->add(courtesyClef);
         }
 
@@ -2003,6 +2006,7 @@ void MeasureLayout::placeParentheses(Segment* segment, track_idx_t trackIdx, Lay
 {
     const EngravingItem* segItem = segment->elementAt(trackIdx);
     const std::vector<EngravingItem*> parens = segment->findAnnotations(ElementType::PARENTHESIS, trackIdx, trackIdx);
+    bool itemAddToSkyline = segItem->addToSkyline();
     assert(parens.size() <= 2);
     if (parens.empty() || !segItem) {
         return;
@@ -2018,12 +2022,12 @@ void MeasureLayout::placeParentheses(Segment* segment, track_idx_t trackIdx, Lay
         Parenthesis* paren = toParenthesis(parens.front());
         const bool leftBracket = paren->direction() == DirectionH::LEFT;
         TLayout::layoutParenthesis(paren, ctx);
-        if (!leftBracket) {
+        if (!leftBracket && itemAddToSkyline) {
             // Space against existing segment shape
             const double minDist = HorizontalSpacing::minHorizontalDistance(dummySegShape, paren->shape().translated(
                                                                                 paren->pos()), paren->spatium());
             paren->mutldata()->moveX(minDist);
-        } else {
+        } else if (itemAddToSkyline) {
             // Space following segment shape against this
             const double minDist = HorizontalSpacing::minHorizontalDistance(paren->shape().translated(
                                                                                 paren->pos()), dummySegShape, paren->spatium());
@@ -2049,6 +2053,10 @@ void MeasureLayout::placeParentheses(Segment* segment, track_idx_t trackIdx, Lay
 
     TLayout::layoutParenthesis(toParenthesis(leftParen), ctx);
     TLayout::layoutParenthesis(toParenthesis(rightParen), ctx);
+
+    if (!itemAddToSkyline) {
+        return;
+    }
 
     const double itemLeftX = segItem->pos().x();
     const double itemRightX = itemLeftX + segItem->width();
@@ -2916,10 +2924,10 @@ void MeasureLayout::layoutTimeTickAnchors(Measure* m, LayoutContext& ctx)
         }
 
         Segment* refCRSeg = m->findSegmentR(SegmentType::ChordRest, segment.rtick());
-        if (!refCRSeg) {
-            refCRSeg = segment.prev();
+        if (!(refCRSeg && refCRSeg->isActive())) {
+            refCRSeg = segment.prevActive();
             while (refCRSeg && !refCRSeg->isChordRestType()) {
-                refCRSeg = refCRSeg->prev();
+                refCRSeg = refCRSeg->prevActive();
             }
         }
 
@@ -2932,7 +2940,7 @@ void MeasureLayout::layoutTimeTickAnchors(Measure* m, LayoutContext& ctx)
         Fraction relativeTick = segment.rtick() - refCRSeg->rtick();
 
         Segment* nextSeg = m->findSegmentR(SegmentType::ChordRest, refCRSeg->rtick() + refCRSeg->ticks());
-        if (!nextSeg) {
+        if (!(nextSeg && nextSeg->isActive())) {
             nextSeg = m->findSegmentR(SegmentType::BarLineType, refCRSeg->rtick() + refCRSeg->ticks());
         }
         double width = nextSeg ? nextSeg->x() - refCRSeg->x() : refCRSeg->width();

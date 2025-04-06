@@ -1095,18 +1095,26 @@ void Segment::setXPosInSystemCoords(double x)
     mutldata()->setPosX(x - measure()->x());
 }
 
-bool Segment::isInsideTuplet() const
+bool Segment::isTupletSubdivision() const
 {
-    if (!isChordRestType()) {
+    int denom = tick().reduced().denominator();
+    bool denomIsPowOfTwo = (denom & (denom - 1)) == 0;
+    // A non-power-of-two denominator is possible only with tuplets
+    return !denomIsPowOfTwo;
+}
+
+bool Segment::isInsideTupletOnStaff(staff_idx_t staffIdx) const
+{
+    const Segment* refCRSeg = isChordRestType() && hasElements(staffIdx) ? this : prev1WithElemsOnStaff(staffIdx, SegmentType::ChordRest);
+    if (refCRSeg->measure() != measure()) {
         return false;
     }
 
-    for (EngravingItem* item : m_elist) {
-        if (!item) {
-            continue;
-        }
-        ChordRest* chordRest = toChordRest(item);
-        if (chordRest->tuplet() && chordRest->tick() != chordRest->topTuplet()->tick()) {
+    track_idx_t startTrack = staff2track(staffIdx);
+    track_idx_t endTrack = startTrack + VOICES;
+    for (track_idx_t track = startTrack; track < endTrack; ++track) {
+        ChordRest* chordRest = toChordRest(refCRSeg->elementAt(track));
+        if (chordRest && chordRest->tuplet() && tick() != chordRest->topTuplet()->tick()) {
             return true;
         }
     }
@@ -2578,13 +2586,16 @@ void Segment::createShape(staff_idx_t staffIdx)
             continue;
         }
 
-        if (e->isHarmony()) {
-            // use same spacing calculation as for chordrest
-            renderer()->layoutItem(toHarmony(e));
-
-            double x1 = e->ldata()->bbox().x() + e->pos().x();
-            double x2 = e->ldata()->bbox().x() + e->ldata()->bbox().width() + e->pos().x();
-            s.addHorizontalSpacing(e, x1, x2);
+        if (e->isHarmony() || e->isFretDiagram()) {
+            // TODO: eliminate once and for all this addHorizontalSpace hack [M.S.]
+            RectF bbox = e->ldata()->bbox().translated(e->pos());
+            s.addHorizontalSpacing(e, bbox.left(), bbox.right());
+            if (e->isFretDiagram()) {
+                if (Harmony* harmony = toFretDiagram(e)->harmony()) {
+                    RectF harmBbox = harmony->ldata()->bbox().translated(harmony->pos() + e->pos());
+                    s.addHorizontalSpacing(harmony, harmBbox.left(), harmBbox.right());
+                }
+            }
         } else if (!e->isRehearsalMark()
                    && !e->isFretDiagram()
                    && !e->isHarmony()

@@ -123,7 +123,7 @@ SpannerSegment* SlurTieLayout::layoutSystem(Slur* item, System* system, LayoutCo
         if (sc) {
             Tie* tie = (item->up() ? sc->upNote() : sc->downNote())->tieFor();
             PointF endPoint = PointF();
-            if (tie && (tie->isInside() || tie->isPartialTie() || tie->up() != item->up())) {
+            if (tie && (tie->isInside() || tie->up() != item->up())) {
                 // there is a tie that starts on this chordrest
                 tie = nullptr;
             }
@@ -1743,6 +1743,7 @@ LaissezVibSegment* SlurTieLayout::createLaissezVibSegment(LaissezVib* item)
     item->fixupSegments(1);
     LaissezVibSegment* segment = item->segmentAt(0);
     segment->setSpannerSegmentType(SpannerSegmentType::SINGLE);
+    segment->setTrack(item->track());
     segment->setSystem(item->startNote()->chord()->segment()->measure()->system());
     segment->resetAdjustmentOffset();
 
@@ -1802,6 +1803,7 @@ PartialTieSegment* SlurTieLayout::createPartialTieSegment(PartialTie* item)
     PartialTieSegment* segment = item->segmentAt(0);
     segment->setSpannerSegmentType(SpannerSegmentType::SINGLE);
     segment->setSystem(chord->segment()->measure()->system());
+    segment->setTrack(item->track());
     segment->resetAdjustmentOffset();
     segment->mutldata()->allJumpPointsInactive = item->allJumpPointsInactive();
 
@@ -1859,8 +1861,15 @@ void SlurTieLayout::setPartialTieEndPos(PartialTie* item, SlurTiePos& sPos)
         return;
     }
 
+    auto shouldSkipSegment = [](const Segment* adjSeg, staff_idx_t staff) {
+        bool inactiveOrInvisible = !adjSeg->isActive() || !adjSeg->enabled() || adjSeg->allElementsInvisible()
+                                   || !adjSeg->hasElements(staff);
+        bool isAboveStaff = adjSeg->isBreathType() || adjSeg->hasTimeSigAboveStaves();
+        return inactiveOrInvisible || isAboveStaff;
+    };
+
     const Segment* adjSeg = outgoing ? seg->next1() : seg->prev1();
-    while (adjSeg && (!adjSeg->isActive() || !adjSeg->enabled() || adjSeg->allElementsInvisible())) {
+    while (adjSeg && shouldSkipSegment(adjSeg, item->vStaffIdx())) {
         adjSeg = outgoing ? adjSeg->next1() : adjSeg->prev1();
     }
 

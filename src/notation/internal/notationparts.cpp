@@ -282,6 +282,12 @@ void NotationParts::setPartVisible(const ID& partId, bool visible)
 
     part->undoChangeProperty(mu::engraving::Pid::VISIBLE, visible);
 
+    if (visible) {
+        score()->removeSystemLocksContainingMMRests();
+    } else if (score()->visibleStavesCount() == 0) {
+        score()->undoRemoveAllLocks();
+    }
+
     apply();
 
     notifyAboutPartChanged(part);
@@ -512,6 +518,12 @@ void NotationParts::setStaffVisible(const ID& staffId, bool visible)
     config.visible = visible;
     doSetStaffConfig(staff, config);
 
+    if (visible) {
+        score()->removeSystemLocksContainingMMRests();
+    } else if (score()->visibleStavesCount() == 0) {
+        score()->undoRemoveAllLocks();
+    }
+
     apply();
 
     notifyAboutStaffChanged(staff);
@@ -619,6 +631,8 @@ void NotationParts::insertPart(Part* part, size_t index)
     }
 
     startEdit(TranslatableString("undoableAction", "Add instrument"));
+
+    score()->removeSystemLocksContainingMMRests();
 
     doInsertPart(part, index);
 
@@ -824,14 +838,8 @@ void NotationParts::moveSystemObjects(const ID& sourceStaffId, const ID& destina
             item->triggerLayout();
             continue;
         }
-
         if (item->staff() == srcStaff) {
-            const track_idx_t trackIdx = staff2track(dstStaffIdx, item->voice());
-
-            item->undoChangeProperty(Pid::TRACK, trackIdx);
-            if (item->isSpanner()) {
-                item->undoChangeProperty(Pid::SPANNER_TRACK2, trackIdx);
-            }
+            item->undoChangeProperty(Pid::TRACK, staff2track(dstStaffIdx, item->voice()));
         } else {
             item->undoUnlink();
             score()->undoRemoveElement(item, false /*removeLinked*/);
