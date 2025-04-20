@@ -266,7 +266,7 @@ PalettePtr PaletteCreator::newDynamicsPalette(bool defaultPalette)
     const qreal w = gpaletteScore->style().spatium() * 8;
 
     for (HairpinType hairpinType : hairpins) {
-        auto hairpin = Factory::makeHairpin(gpaletteScore->dummy()->segment());
+        auto hairpin = Factory::makeHairpin(gpaletteScore->dummy());
         hairpin->setHairpinType(hairpinType);
         hairpin->setLen(w);
         qreal mag = (hairpinType == HairpinType::CRESC_LINE || hairpinType == HairpinType::DECRESC_LINE) ? 1 : 0.9;
@@ -1153,13 +1153,13 @@ PalettePtr PaletteCreator::newLinesPalette(bool defaultPalette)
     };
 
     for (HairpinType hairpinType : hairpins) {
-        auto hairpin = Factory::makeHairpin(gpaletteScore->dummy()->segment());
+        auto hairpin = Factory::makeHairpin(gpaletteScore->dummy());
         hairpin->setHairpinType(hairpinType);
         hairpin->setLen(w);
         sp->appendElement(hairpin, hairpin->subtypeUserName());
     }
 
-    auto gabel = Factory::makeHairpin(gpaletteScore->dummy()->segment());
+    auto gabel = Factory::makeHairpin(gpaletteScore->dummy());
     gabel->setHairpinType(HairpinType::CRESC_HAIRPIN);
     gabel->setBeginText(u"<sym>dynamicMezzo</sym><sym>dynamicForte</sym>");
     gabel->setPropertyFlags(Pid::BEGIN_TEXT, PropertyFlags::UNSTYLED);
@@ -1494,7 +1494,7 @@ PalettePtr PaletteCreator::newTempoPalette(bool defaultPalette)
     sp->appendElement(tempoPrimoTxt, tempoPrimoStr, 1.3);
 
     auto stxt = makeElement<SystemText>(gpaletteScore);
-    stxt->setTextStyleType(TextStyleType::TEMPO);
+    stxt->initTextStyleType(TextStyleType::TEMPO);
     stxt->setXmlText(String::fromAscii(QT_TRANSLATE_NOOP("palette", "Swing")));
     stxt->setSwing(true);
     PaletteCellPtr cell = sp->appendElement(stxt, QT_TRANSLATE_NOOP("palette", "Swing"), 1.3);
@@ -1502,7 +1502,7 @@ PalettePtr PaletteCreator::newTempoPalette(bool defaultPalette)
     cell->setElementTranslated(true);
 
     stxt = makeElement<SystemText>(gpaletteScore);
-    stxt->setTextStyleType(TextStyleType::TEMPO);
+    stxt->initTextStyleType(TextStyleType::TEMPO);
     /*: System text to switch from swing rhythm back to straight rhythm */
     stxt->setXmlText(QT_TRANSLATE_NOOP("palette", "Straight"));
     // need to be true to enable the "Off" option

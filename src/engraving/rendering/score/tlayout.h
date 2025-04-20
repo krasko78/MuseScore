@@ -282,6 +282,7 @@ public:
     static void layoutMeasureNumber(const MeasureNumber* item, MeasureNumber::LayoutData* ldata, const LayoutContext& ctx);
     static void layoutMeasureNumberBase(const MeasureNumberBase* item, MeasureNumberBase::LayoutData* ldata, const LayoutContext& ctx); // base class
     static void layoutMeasureRepeat(const MeasureRepeat* item, MeasureRepeat::LayoutData* ldata, const LayoutContext& ctx);
+    static void layoutMeasureRepeatExtender(const MeasureRepeat* item, MeasureRepeat::LayoutData* ldata, const LayoutContext& ctx);
     static void layoutMMRest(const MMRest* item, MMRest::LayoutData* ldata, const LayoutContext& ctx);
     static void layoutMMRestRange(const MMRestRange* item, MMRestRange::LayoutData* ldata, const LayoutContext& ctx);
 
@@ -370,7 +371,7 @@ public:
 
     static void layoutWhammyBarSegment(WhammyBarSegment* item, LayoutContext& ctx);
 
-    static RectF layoutRect(const BarLine* item, LayoutContext& ctx);
+    static void updateBarlineShape(const BarLine* item, BarLine::LayoutData* ldata, const LayoutContext& ctx);
 
     // layoutSystem;
     static SpannerSegment* layoutSystem(Spanner* item, System* system, LayoutContext& ctx); // factory
@@ -390,7 +391,6 @@ private:
                                                       std::function<SpannerSegment* (System* parent)> createSegment);
 
     static Shape textLineBaseSegmentShape(const TextLineBaseSegment* item);
-    static void layoutDynamicToEndOfPrevious(const Dynamic* item, Dynamic::LayoutData* ldata, const LayoutConfiguration& conf);
 
     static void manageHairpinSnapping(HairpinSegment* item, LayoutContext& ctx);
 

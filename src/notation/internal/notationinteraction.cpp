@@ -855,6 +855,12 @@ void NotationInteraction::moveSegmentSelection(MoveDirection d)
     showItem(e);
 }
 
+EngravingItem* NotationInteraction::contextItem() const
+{
+    EngravingItem* item = selection()->element();
+    return item ? item : hitElementContext().element;
+}
+
 void NotationInteraction::selectTopOrBottomOfChord(MoveDirection d)
 {
     IF_ASSERT_FAILED(MoveDirection::Up == d || MoveDirection::Down == d) {
@@ -1302,12 +1308,14 @@ bool NotationInteraction::isOutgoingDragElementAllowed(const EngravingItem* elem
     case ElementType::HBOX:
     case ElementType::TBOX:
     case ElementType::FBOX:
-    // TODO: Bends can't be copy-dragged until corresponding SingleLayout::layout and SingleDraw::draw methods have been implemented
+    // TODO: Bends & NoteLines can't be copy-dragged until corresponding SingleLayout::layout and SingleDraw::draw methods have been implemented
     case ElementType::GUITAR_BEND:
     case ElementType::GUITAR_BEND_SEGMENT:
     case ElementType::GUITAR_BEND_HOLD:
     case ElementType::GUITAR_BEND_HOLD_SEGMENT:
     case ElementType::GUITAR_BEND_TEXT:
+    case ElementType::NOTELINE:
+    case ElementType::NOTELINE_SEGMENT:
         return false;
     default: return true;
     }
@@ -2725,7 +2733,7 @@ void NotationInteraction::doAddSlur(EngravingItem* firstItem, EngravingItem* sec
     ChordRest* secondChordRest = nullptr;
 
     Measure* meas = firstItem ? firstItem->findMeasure() : nullptr;
-    bool header = meas && meas->header() && firstItem->tick() == meas->tick();
+    bool header = meas && meas->header() && firstItem->tick() == meas->tick() && !firstItem->isChordRest();
 
     if (firstItem && secondItem
         && ((firstItem->isBarLine() != secondItem->isBarLine()) || (header && secondItem->isChordRest()))) {
@@ -2736,7 +2744,7 @@ void NotationInteraction::doAddSlur(EngravingItem* firstItem, EngravingItem* sec
         const bool hasAdjacentJump = (outgoing && cr->hasFollowingJumpItem()) || (!outgoing && cr->hasPrecedingJumpItem());
         const bool isNextToBarline = (outgoing ? cr->tick() + cr->actualTicks() : cr->tick()) == otherElement->tick();
 
-        if (!cr || !isNextToBarline || !hasAdjacentJump) {
+        if (!cr || (!header && (!isNextToBarline || !hasAdjacentJump))) {
             return;
         }
 
@@ -7781,24 +7789,4 @@ muse::async::Channel<NotationInteraction::ShowItemRequest> NotationInteraction::
 void NotationInteraction::setGetViewRectFunc(const std::function<RectF()>& func)
 {
     static_cast<NotationNoteInput*>(m_noteInput.get())->setGetViewRectFunc(func);
-}
-
-namespace mu::notation {
-EngravingItem* contextItem(INotationInteractionPtr interaction)
-{
-    EngravingItem* item = nullptr;
-    const INotationSelectionPtr sel = interaction->selection();
-
-    if (sel->isRange()) {
-        const INotationSelectionRangePtr range = sel->range();
-        item = range->rangeStartSegment()->firstElementForNavigation(range->startStaffIndex());
-    } else {
-        item = sel->element();
-    }
-
-    if (item == nullptr) {
-        return interaction->hitElementContext().element;
-    }
-    return item;
-}
 }
