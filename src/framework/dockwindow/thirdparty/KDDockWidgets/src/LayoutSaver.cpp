@@ -857,11 +857,11 @@ void LayoutSaver::MainWindow::scaleSizes()
     }
 
     // This follows the same logic as in deserializeWindowGeometry()
-    QRect geometry = !isNormalWindowState(windowState) ? normalGeometry : geometry;
-    QRect realGeometry = geometry;
+    QRect savedGeometry = !isNormalWindowState(windowState) ? normalGeometry : geometry;
+    QRect realGeometry = savedGeometry;
     ::FloatingWindow::ensureRectIsOnScreen(realGeometry);
 
-    scalingInfo = ScalingInfo(uniqueName, geometry, realGeometry, screenIndex);
+    scalingInfo = ScalingInfo(uniqueName, savedGeometry, realGeometry, screenIndex);
 }
 
 QVariantMap LayoutSaver::MainWindow::toVariantMap() const
