@@ -3063,7 +3063,7 @@ void Score::cmdConcertPitchChanged(bool flag)
                 }
                 Harmony* h  = toHarmony(e);
                 int rootTpc = transposeTpc(h->rootTpc(), interval, true);
-                int baseTpc = transposeTpc(h->baseTpc(), interval, true);
+                int baseTpc = transposeTpc(h->bassTpc(), interval, true);
                 for (EngravingObject* se : h->linkList()) {
                     // don't transpose all links
                     // just ones resulting from mmrests
@@ -4464,24 +4464,6 @@ void Score::cmdSelectSection()
 void Score::undo(UndoCommand* cmd, EditData* ed) const
 {
     undoStack()->pushAndPerform(cmd, ed);
-}
-
-//---------------------------------------------------------
-//   linkId
-//---------------------------------------------------------
-
-int Score::linkId()
-{
-    return (masterScore()->m_linkId)++;
-}
-
-// val is a used link id
-void Score::linkId(int val)
-{
-    Score* s = masterScore();
-    if (val >= s->m_linkId) {
-        s->m_linkId = val + 1;       // update unused link id
-    }
 }
 
 //---------------------------------------------------------

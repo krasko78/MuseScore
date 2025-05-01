@@ -461,7 +461,7 @@ void Excerpt::createExcerpt(Excerpt* excerpt)
                     }
                     Harmony* h  = toHarmony(e);
                     int rootTpc = mu::engraving::transposeTpc(h->rootTpc(), interval, true);
-                    int baseTpc = mu::engraving::transposeTpc(h->baseTpc(), interval, true);
+                    int baseTpc = mu::engraving::transposeTpc(h->bassTpc(), interval, true);
                     // mmrests are on by default in part
                     // if this harmony is attached to an mmrest,
                     // be sure to transpose harmony in underlying measure as well
@@ -931,6 +931,11 @@ static MeasureBase* cloneMeasure(MeasureBase* mb, Score* score, const Score* osc
 
                 //If track is not mapped skip the following
                 if (muse::value(trackList, srcTrack, muse::nidx) == muse::nidx) {
+                    continue;
+                }
+
+                // TimeSig and KeySig announce should never be cloned
+                if (oseg->isTimeSigAnnounceType() || oseg->isKeySigAnnounceType()) {
                     continue;
                 }
 

@@ -1758,9 +1758,9 @@ TransposeHarmony::TransposeHarmony(Harmony* h, int rtpc, int btpc)
 void TransposeHarmony::flip(EditData*)
 {
     harmony->realizedHarmony().setDirty(true);   //harmony should be re-realized after transposition
-    int baseTpc1 = harmony->baseTpc();
+    int baseTpc1 = harmony->bassTpc();
     int rootTpc1 = harmony->rootTpc();
-    harmony->setBaseTpc(baseTpc);
+    harmony->setBassTpc(baseTpc);
     harmony->setRootTpc(rootTpc);
     harmony->setXmlText(harmony->harmonyName());
     harmony->render();
@@ -3044,11 +3044,7 @@ Link::Link(EngravingObject* e1, EngravingObject* e2)
     assert(e1->links() == nullptr);
     le = e2->links();
     if (!le) {
-        if (e1->isStaff()) {
-            le = new LinkedObjects(e1->score(), -1);
-        } else {
-            le = new LinkedObjects(e1->score());
-        }
+        le = new LinkedObjects();
         le->push_back(e2);
     }
     e = e1;

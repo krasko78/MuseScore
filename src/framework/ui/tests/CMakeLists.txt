@@ -34,6 +34,7 @@ set(MODULE_TEST_LINK
     muse_actions
     muse_ui
     muse_workspace # krasko
+    Qt::Quick
     )
 
 include(SetupGTest)

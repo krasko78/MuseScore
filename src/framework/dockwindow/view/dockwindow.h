@@ -139,7 +139,7 @@ private:
 
     void initDocks(DockPageView* page);
 
-    void adjustContentForAvailableSpace();
+    void adjustContentForAvailableSpace(DockPageView* page);
 
     void notifyAboutDocksOpenStatus();
 
@@ -150,6 +150,9 @@ private:
     uicomponents::QmlListProperty<DockToolBarView> m_toolBars;
     uicomponents::QmlListProperty<DockPageView> m_pages;
     async::Channel<QStringList> m_docksOpenStatusChanged;
+
+    class UniqueConnectionHolder;
+    QHash<DockPageView*, UniqueConnectionHolder*> m_pageConnections;
 
     bool m_hasGeometryBeenRestored = false;
     bool m_reloadCurrentPageAllowed = false;

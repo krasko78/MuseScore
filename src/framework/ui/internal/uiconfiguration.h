@@ -20,8 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef MUSE_UI_UICONFIGURATION_H
-#define MUSE_UI_UICONFIGURATION_H
+#pragma once
 
 #include "iuiconfiguration.h"
 
@@ -54,8 +53,9 @@ public:
     void deinit();
 
     ThemeList themes() const override;
-    QStringList possibleFontFamilies() const override;
     QStringList possibleAccentColors() const override;
+    QStringList possibleFontFamilies() const override;
+    void setNonTextFonts(const QStringList& fontFamilies) override;
 
     bool isDarkMode() const override;
     void setIsDarkMode(bool dark) override;
@@ -170,8 +170,8 @@ private:
     size_t m_currentThemeIndex = 0;
     std::optional<double> m_customDPI;
 
+    QStringList m_nonTextFonts;
+
     Config m_config;
 };
 }
-
-#endif // MUSE_UI_UICONFIGURATION_H
