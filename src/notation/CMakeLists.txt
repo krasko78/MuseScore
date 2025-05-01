@@ -20,8 +20,6 @@
 
 declare_module(notation)
 
-set(CMAKE_CXX_FLAGS "/bigobj") # krasko
-
 set(MODULE_QRC notationscene.qrc)
 set(MODULE_QML_IMPORT ${CMAKE_CURRENT_LIST_DIR}/qml)
 

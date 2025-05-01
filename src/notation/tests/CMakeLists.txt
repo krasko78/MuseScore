@@ -18,8 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-set(CMAKE_CXX_FLAGS "/bigobj")
-
 set(MODULE_TEST notation_tests)
 
 set(MODULE_TEST_SRC
