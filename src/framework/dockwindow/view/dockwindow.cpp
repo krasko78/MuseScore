@@ -575,11 +575,6 @@ void DockWindow::restoreGeometry()
         return;
     }
 
-    // The window must be visible when restoring its layout because if it is not and was maximized,
-    // restoring its maximized state won't change maximize it until it is shown causing everything
-    // to incorrectly scale to its normal geometry instead of the maximized geometry.
-    this->window()->setVisible(true);
-
     if (restoreLayout(uiConfiguration()->windowGeometry())) {
         m_hasGeometryBeenRestored = true;
     } else {
