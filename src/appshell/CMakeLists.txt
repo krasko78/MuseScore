@@ -109,7 +109,6 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/view/internal/splashscreen/newinstanceloadingscreenview.h
     )
 
-
 set(MODULE_LINK
     muse::ui
     muse::uicomponents

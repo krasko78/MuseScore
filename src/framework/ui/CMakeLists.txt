@@ -57,7 +57,10 @@ else()
     )
 endif()
 
+qt_wrap_ui(GENERATED_UI_HEADERS ${CMAKE_CURRENT_LIST_DIR}/dev/testdialog.ui)
+
 set(MODULE_SRC
+    ${GENERATED_UI_HEADERS}
     ${CMAKE_CURRENT_LIST_DIR}/uimodule.cpp
     ${CMAKE_CURRENT_LIST_DIR}/uimodule.h
     ${CMAKE_CURRENT_LIST_DIR}/iuiengine.h

@@ -1528,6 +1528,7 @@ void Score::addElement(EngravingItem* element)
     break;
 
     case ElementType::SLUR:
+    case ElementType::HAMMER_ON_PULL_OFF:
         addLayoutFlags(LayoutFlag::PLAY_EVENTS);
     // fall through
 
@@ -1722,6 +1723,7 @@ void Score::removeElement(EngravingItem* element)
         break;
 
     case ElementType::SLUR:
+    case ElementType::HAMMER_ON_PULL_OFF:
         addLayoutFlags(LayoutFlag::PLAY_EVENTS);
     // fall through
 
@@ -2344,7 +2346,6 @@ void Score::splitStaff(staff_idx_t staffIdx, int splitPoint)
     clef->setParent(seg);
     clef->setIsHeader(true);
     undoAddElement(clef);
-    renderer()->layoutItem(clef);
 
     undoChangeKeySig(ns, Fraction(0, 1), st->keySigEvent(Fraction(0, 1)));
 

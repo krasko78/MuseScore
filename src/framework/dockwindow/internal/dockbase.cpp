@@ -459,9 +459,9 @@ void DockBase::open()
     if (m_dockWidget->frame() && m_dockWidget->frame()->containsDockWidget(m_dockWidget)) {
         m_dockWidget->frame()->setCurrentDockWidget(m_dockWidget);
     } else {
+        setVisible(true);
         m_dockWidget->show();
     }
-    setVisible(true);
 
     applySizeConstraints();
 }

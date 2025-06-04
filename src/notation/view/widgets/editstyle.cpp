@@ -87,6 +87,7 @@ static const QStringList ALL_PAGE_CODES {
     "text-line",
     "system-text-line",
     "articulations-and-ornaments",
+    "hammer-ons-pull-offs-and-tapping",
     "fermatas",
     "staff-text",
     "tempo-text",
@@ -138,6 +139,7 @@ static const QStringList ALL_TEXT_STYLE_SUBPAGE_CODES {
     "fingering",
     "lh-guitar-fingering",
     "rh-guitar-fingering",
+    "hammer-ons-pull-offs-and-tapping",
     "string-number",
     "string-tunings",
     "fretboard-diagram-fingering",
@@ -380,6 +382,9 @@ EditStyle::EditStyle(QWidget* parent)
         { StyleId::lyricsMelismaForce,      false, lyricsMelismaForce,   resetLyricsMelismaForce },
         { StyleId::lyricsDashPosAtStartOfSystem, false, lyricsDashStartSystemPlacement, resetLyricsDashStartSystemPlacement },
         { StyleId::lyricsAvoidBarlines, false, lyricsAvoidBarlines, resetLyricsAvoidBarlines },
+        { StyleId::lyricsLimitDashCount, false, limitDashCount, 0 },
+        { StyleId::lyricsMaxDashCount, false, lyricsMaxDashCount, resetLyricsMaxDashCount },
+        { StyleId::lyricsCenterDashedSyllables, false, lyricsCenterDashedSyllables, lyricsResetCenterDashedSyllables },
 
         { StyleId::systemFrameDistance,     false, systemFrameDistance,     resetSystemFrameDistance },
         { StyleId::frameSystemDistance,     false, frameSystemDistance,     resetFrameSystemDistance },
@@ -937,6 +942,17 @@ EditStyle::EditStyle(QWidget* parent)
     fretboardsWidget->layout()->addWidget(fretboardsPage.widget);
 
     // ====================================================
+    // Hammer-on/pull-off and tapping STYLE PAGE (QML)
+    // ====================================================
+
+    auto hoposTappingPage = createQmlWidget(
+        hoposPageWidget,
+        QUrl(QString::fromUtf8("qrc:/qml/MuseScore/NotationScene/internal/EditStyle/HammerOnPullOffTappingPage.qml")));
+    hoposTappingPage.widget->setMinimumSize(224, 400);
+    connect(hoposTappingPage.view->rootObject(), SIGNAL(goToTextStylePage(QString)), this, SLOT(goToTextStylePage(QString)));
+    hoposPageWidget->layout()->addWidget(hoposTappingPage.widget);
+
+    // ====================================================
     // GLISSANDO STYLE SECTION (QML)
     // ====================================================
 
@@ -1074,7 +1090,11 @@ EditStyle::EditStyle(QWidget* parent)
         } else if (auto radioButton = qobject_cast<QRadioButton*>(sw.widget)) {
             connect(radioButton, &QRadioButton::toggled, setSignalMapper, mapFunction);
         } else if (auto checkBox = qobject_cast<QCheckBox*>(sw.widget)) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+            connect(checkBox, &QCheckBox::checkStateChanged, setSignalMapper, mapFunction);
+#else
             connect(checkBox, &QCheckBox::stateChanged, setSignalMapper, mapFunction);
+#endif
         } else if (auto button = qobject_cast<QAbstractButton*>(sw.widget)) {
             connect(button, &QAbstractButton::toggled, setSignalMapper, mapFunction);
         } else if (auto groupBox = qobject_cast<QGroupBox*>(sw.widget)) {
@@ -1265,6 +1285,11 @@ EditStyle::EditStyle(QWidget* parent)
     });
     connect(editLyricsTextStyleButton, &QPushButton::clicked, textStyles, [=](){
         textStyles->setCurrentRow(ALL_TEXT_STYLE_SUBPAGE_CODES.indexOf("lyrics-odd-lines"));
+    });
+
+    connect(resetLyricsMaxDashCount, &QCheckBox::clicked, this, [this] () {
+        resetStyleValue(int(StyleId::lyricsLimitDashCount));
+        resetStyleValue(int(StyleId::lyricsMaxDashCount));
     });
 
     adjustPagesStackSize(0);
@@ -1607,6 +1632,11 @@ QString EditStyle::pageCodeForElement(const EngravingItem* element)
     case ElementType::PARTIAL_TIE_SEGMENT:
         return "slurs-and-ties";
 
+    case ElementType::HAMMER_ON_PULL_OFF:
+    case ElementType::HAMMER_ON_PULL_OFF_SEGMENT:
+    case ElementType::HAMMER_ON_PULL_OFF_TEXT:
+        return "hammer-ons-pull-offs-and-tapping";
+
     case ElementType::HAIRPIN:
     case ElementType::HAIRPIN_SEGMENT:
         return "dynamics-hairpins";
@@ -1811,6 +1841,9 @@ QString EditStyle::subPageCodeForElement(const EngravingItem* element)
 
         case TextStyleType::RH_GUITAR_FINGERING:
             return "rh-guitar-fingering";
+
+        case TextStyleType::HAMMER_ON_PULL_OFF:
+            return "hammer-ons-pull-offs-and-tapping";
 
         case TextStyleType::STRING_NUMBER:
             return "string-number";
@@ -2427,6 +2460,14 @@ void EditStyle::setValues()
     mmRestSingleUseHBar->setEnabled(!styleValue(StyleId::oldStyleMultiMeasureRests).toBool());
     mmRestRefDuration->setEnabled(styleValue(StyleId::mmRestConstantWidth).toBool());
 
+    lyricsMaxDashCount->setEnabled(styleValue(StyleId::lyricsLimitDashCount).toBool());
+    resetLyricsMaxDashCount->setEnabled(styleValue(StyleId::lyricsLimitDashCount) != defaultStyleValue(StyleId::lyricsLimitDashCount)
+                                        || styleValue(StyleId::lyricsMaxDashCount) != defaultStyleValue(StyleId::lyricsMaxDashCount));
+    lyricsDashMaxDistance->setEnabled(!styleValue(StyleId::lyricsLimitDashCount).toBool()
+                                      || styleValue(StyleId::lyricsMaxDashCount).toInt() > 1);
+    resetLyricsDashMaxDistance->setEnabled(lyricsDashMaxDistance->isEnabled() && styleValue(StyleId::lyricsDashMaxDistance)
+                                           != defaultStyleValue(StyleId::lyricsDashMaxDistance));
+
     updateParenthesisIndicatingTiesGroupState();
 }
 
@@ -2759,6 +2800,16 @@ void EditStyle::valueChanged(int i)
             setValues();
         }
         mmRestSingleUseHBar->setEnabled(!useOldStyle);
+    }
+
+    if (idx == StyleId::lyricsLimitDashCount || idx == StyleId::lyricsMaxDashCount) {
+        lyricsMaxDashCount->setEnabled(styleValue(StyleId::lyricsLimitDashCount).toBool());
+        resetLyricsMaxDashCount->setEnabled(styleValue(StyleId::lyricsLimitDashCount) != defaultStyleValue(StyleId::lyricsLimitDashCount)
+                                            || styleValue(StyleId::lyricsMaxDashCount) != defaultStyleValue(StyleId::lyricsMaxDashCount));
+        lyricsDashMaxDistance->setEnabled(!styleValue(StyleId::lyricsLimitDashCount).toBool()
+                                          || styleValue(StyleId::lyricsMaxDashCount).toInt() > 1);
+        resetLyricsDashMaxDistance->setEnabled(lyricsDashMaxDistance->isEnabled() && styleValue(StyleId::lyricsDashMaxDistance)
+                                               != defaultStyleValue(StyleId::lyricsDashMaxDistance));
     }
 }
 

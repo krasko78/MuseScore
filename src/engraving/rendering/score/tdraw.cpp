@@ -63,6 +63,7 @@
 #include "dom/guitarbend.h"
 
 #include "dom/hairpin.h"
+#include "dom/hammeronpulloff.h"
 #include "dom/harppedaldiagram.h"
 #include "dom/harmonicmark.h"
 #include "dom/harmony.h"
@@ -242,6 +243,10 @@ void TDraw::drawItem(const EngravingItem* item, Painter* painter)
         break;
 
     case ElementType::HAIRPIN_SEGMENT: draw(item_cast<const HairpinSegment*>(item), painter);
+        break;
+    case ElementType::HAMMER_ON_PULL_OFF_SEGMENT: draw(item_cast<const HammerOnPullOffSegment*>(item), painter);
+        break;
+    case ElementType::HAMMER_ON_PULL_OFF_TEXT: draw(item_cast<const HammerOnPullOffText*>(item), painter);
         break;
     case ElementType::HARP_DIAGRAM: draw(item_cast<const HarpPedalDiagram*>(item), painter);
         break;
@@ -641,10 +646,10 @@ static void drawDots(const BarLine* item, Painter* painter, double x)
         y1l = st->doty1() * spatium;
         y2l = st->doty2() * spatium;
 
-        //workaround to make Emmentaler, Gonville and MuseJazz font work correctly with repeatDots
+        //workaround to make several fonts work correctly with repeatDots
         if (item->score()->engravingFont()->name() == "Emmentaler"
-            || item->score()->engravingFont()->name() == "Gonville"
-            || item->score()->engravingFont()->name() == "MuseJazz") {
+            // above internal, builtin fonts, below external fonts
+            || item->score()->engravingFont()->name() == "Ekmelos") { // not the other ones from the Ekmelos family though (EkmelosXXedo)
             double offset = 0.5 * item->style().spatium() * item->mag();
             y1l += offset;
             y2l += offset;
@@ -1183,7 +1188,7 @@ void TDraw::draw(const Fermata* item, Painter* painter)
 {
     TRACE_DRAW_ITEM;
     painter->setPen(item->curColor());
-    item->drawSymbol(item->symId(), painter, PointF(-0.5 * item->width(), 0.0));
+    item->drawSymbol(item->symId(), painter);
 }
 
 void TDraw::draw(const FiguredBass* item, Painter* painter)
@@ -1873,6 +1878,17 @@ void TDraw::draw(const HairpinSegment* item, Painter* painter)
     }
 }
 
+void TDraw::draw(const HammerOnPullOffSegment* item, muse::draw::Painter* painter)
+{
+    draw(toSlurSegment(item), painter);
+}
+
+void TDraw::draw(const HammerOnPullOffText* item, muse::draw::Painter* painter)
+{
+    TRACE_DRAW_ITEM;
+    drawTextBase(item, painter);
+}
+
 void TDraw::draw(const HarpPedalDiagram* item, Painter* painter)
 {
     TRACE_DRAW_ITEM;
@@ -1890,11 +1906,6 @@ void TDraw::draw(const Harmony* item, Painter* painter)
     TRACE_DRAW_ITEM;
 
     const TextBase::LayoutData* ldata = item->ldata();
-
-    if (item->isDrawEditMode()) {
-        drawTextBase(item, painter);
-        return;
-    }
 
     if (item->textList().empty()) {
         drawTextBase(item, painter);
@@ -2614,7 +2625,7 @@ void TDraw::draw(const SlurSegment* item, Painter* painter)
 {
     TRACE_DRAW_ITEM;
 
-    Pen pen(item->curColor(item->getProperty(Pid::VISIBLE).toBool(), item->getProperty(Pid::COLOR).value<Color>()));
+    Pen pen(item->curColor());
     double mag = item->staff() ? item->staff()->staffMag(item->slur()->tick()) : 1.0;
 
     //Replace generic Qt dash patterns with improved equivalents to show true dots (keep in sync with tie.cpp)
