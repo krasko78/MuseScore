@@ -137,7 +137,7 @@ void EditModeRenderer::drawEngravingItem(EngravingItem* item, muse::draw::Painte
     painter->setPen(pen);
     for (int i = 0; i < ed.grips; ++i) {
         if (Grip(i) == ed.curGrip) {
-            painter->setBrush(item->configuration()->scoreGreyColor());
+            painter->setBrush(item->configuration()->activeGripColor()); // krasko
         } else {
             painter->setBrush(BrushStyle::NoBrush);
         }
@@ -192,7 +192,7 @@ void EditModeRenderer::drawSlurTieSegment(SlurTieSegment* item, muse::draw::Pain
     for (int i = 0; i < ed.grips; ++i) {
         // Can't use ternary operator, because we want different overloads of `setBrush`
         if (Grip(i) == ed.curGrip) {
-            painter->setBrush(item->configuration()->scoreGreyColor());
+            painter->setBrush(item->configuration()->activeGripColor()); // krasko
         } else {
             painter->setBrush(BrushStyle::NoBrush);
         }
