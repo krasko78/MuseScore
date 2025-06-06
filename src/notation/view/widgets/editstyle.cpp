@@ -985,6 +985,16 @@ EditStyle::EditStyle(QWidget* parent)
     clefTimeKeySigPage->layout()->addWidget(clefKeyTimeSigPage.widget);
 
     // ====================================================
+    // REPEAT BARLINES STYLE SECTION (QML)
+    // ====================================================
+
+    auto repeatBarlinesSection = createQmlWidget(
+        repeatBarlinesGroupBox,
+        QUrl(QString::fromUtf8("qrc:/qml/MuseScore/NotationScene/internal/EditStyle/RepeatBarlinesSection.qml")));
+    repeatBarlinesSection.widget->setMinimumSize(224, 90);
+    repeatBarlinesGroupBox->layout()->addWidget(repeatBarlinesSection.widget);
+
+    // ====================================================
     // Figured Bass
     // ====================================================
 
@@ -2480,7 +2490,7 @@ void EditStyle::selectChordDescriptionFile()
     muse::io::path_t dir = configuration()->userStylesPath();
     std::vector<std::string> filter = { muse::trc("notation", "MuseScore chord symbol style files") + " (*.xml)" };
 
-    muse::io::path_t path = interactive()->selectOpeningFile(muse::qtrc("notation", "Load style"), dir, filter);
+    muse::io::path_t path = interactive()->selectOpeningFileSync(muse::trc("notation", "Load style"), dir, filter);
     if (path.empty()) {
         return;
     }
