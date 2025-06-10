@@ -34,7 +34,9 @@
 #include "../view/qmlapi.h"
 #include "../view/qmldataformatter.h"
 
+#include "global/modularity/ioc.h"
 #include "languages/ilanguagesservice.h"
+#include "../iuiconfiguration.h"
 #include "appshell/internal/appshellconfigurationproxy.h" // krasko
 
 namespace muse::ui {
@@ -50,11 +52,13 @@ class UiEngine : public QObject, public IUiEngine, public Injectable
     Q_PROPERTY(QQuickItem * rootItem READ rootItem WRITE setRootItem NOTIFY rootItemChanged)
 
     Q_PROPERTY(bool isEffectsAllowed READ isEffectsAllowed CONSTANT)
+    Q_PROPERTY(bool isSystemDragSupported READ isSystemDragSupported CONSTANT)
 
     // for internal use
     Q_PROPERTY(InteractiveProvider * _interactiveProvider READ interactiveProvider_property CONSTANT)
 
     GlobalInject<languages::ILanguagesService> languagesService;
+    GlobalInject<ui::IUiConfiguration> configuration;
 
 public:
     UiEngine(const modularity::ContextPtr& iocCtx);
@@ -91,6 +95,7 @@ public:
     QQuickItem* rootItem() const;
 
     bool isEffectsAllowed() const;
+    bool isSystemDragSupported() const;
 
 public slots:
     void setRootItem(QQuickItem* rootItem);
