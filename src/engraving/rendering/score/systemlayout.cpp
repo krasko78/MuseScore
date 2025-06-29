@@ -883,14 +883,14 @@ void SystemLayout::layoutParenthesisAndBigTimeSigs(const ElementsToLayout& eleme
     }
 }
 
-void SystemLayout::layoutHarmonies(const std::vector<Harmony*> harmonies, System* system, LayoutContext& ctx)
+void SystemLayout::layoutHarmonies(const std::vector<Harmony*> harmonies, System* system, bool verticalAlign, LayoutContext& ctx)
 {
     for (Harmony* harmony : harmonies) {
         TLayout::layoutHarmony(harmony, harmony->mutldata(), ctx);
         Autoplace::autoplaceSegmentElement(harmony, harmony->mutldata());
     }
 
-    if (ctx.conf().styleB(Sid::verticallyAlignChordSymbols)) {
+    if (ctx.conf().styleB(Sid::verticallyAlignChordSymbols) && verticalAlign) {
         std::vector<EngravingItem*> harmonyItems(harmonies.begin(), harmonies.end());
         AlignmentLayout::alignItemsForSystem(harmonyItems, system);
     }
@@ -1018,7 +1018,7 @@ void SystemLayout::layoutSystemElements(System* system, LayoutContext& ctx)
 
     bool hasFretDiagram = elementsToLayout.fretDiagrams.size() > 0;
     if (!hasFretDiagram) {
-        layoutHarmonies(elementsToLayout.harmonies, system, ctx);
+        layoutHarmonies(elementsToLayout.harmonies, system, true, ctx);
     }
 
     for (StaffText* st : elementsToLayout.staffText) {
@@ -1036,6 +1036,16 @@ void SystemLayout::layoutSystemElements(System* system, LayoutContext& ctx)
     if (hasFretDiagram) {
         for (FretDiagram* fretDiag : elementsToLayout.fretDiagrams) {
             Autoplace::autoplaceSegmentElement(fretDiag, fretDiag->mutldata());
+        }
+
+        if (ctx.conf().styleB(Sid::verticallyAlignChordSymbols)) {
+            std::vector<EngravingItem*> fretItems(elementsToLayout.fretDiagrams.begin(), elementsToLayout.fretDiagrams.end());
+            AlignmentLayout::alignItemsForSystem(fretItems, system);
+        }
+
+        layoutHarmonies(elementsToLayout.harmonies, system, false, ctx);
+
+        for (FretDiagram* fretDiag : elementsToLayout.fretDiagrams) {
             if (Harmony* harmony = fretDiag->harmony()) {
                 SkylineLine& skl = system->staff(fretDiag->staffIdx())->skyline().north();
                 Segment* s = fretDiag->segment();
@@ -1043,8 +1053,6 @@ void SystemLayout::layoutSystemElements(System* system, LayoutContext& ctx)
                 skl.add(harmShape);
             }
         }
-
-        layoutHarmonies(elementsToLayout.harmonies, system, ctx);
     }
 
     layoutVoltas(elementsToLayout, ctx);
@@ -1178,6 +1186,9 @@ void SystemLayout::collectElementsToLayout(Measure* measure, ElementsToLayout& e
                 break;
             case ElementType::FRET_DIAGRAM:
                 elements.fretDiagrams.push_back(toFretDiagram(item));
+                if (Harmony* h = toFretDiagram(item)->harmony()) {
+                    elements.harmonies.push_back(h);
+                }
                 break;
             case ElementType::STAFF_TEXT:
                 elements.staffText.push_back(toStaffText(item));
@@ -1333,39 +1344,52 @@ void SystemLayout::createSkylines(const ElementsToLayout& elementsToLayout, Layo
                         // add element to skyline
                         if (e->addToSkyline()) {
                             const PointF offset = e->staffOffset();
-                            skyline.add(e->shape().translate(e->pos() + p + offset));
+                            Shape shape = e->shape();
                             // add grace notes to skyline
                             if (e->isChord()) {
-                                GraceNotesGroup& graceBefore = toChord(e)->graceNotesBefore();
-                                GraceNotesGroup& graceAfter = toChord(e)->graceNotesAfter();
+                                Chord* chord = toChord(e);
+                                GraceNotesGroup& graceBefore = chord->graceNotesBefore();
+                                GraceNotesGroup& graceAfter = chord->graceNotesAfter();
                                 if (!graceBefore.empty()) {
                                     skyline.add(graceBefore.shape().translate(graceBefore.pos() + p + offset));
                                 }
                                 if (!graceAfter.empty()) {
                                     skyline.add(graceAfter.shape().translate(graceAfter.pos() + p + offset));
                                 }
-                            }
-                            // If present, add ornament cue note to skyline
-                            if (e->isChord()) {
-                                Ornament* ornament = toChord(e)->findOrnament();
+
+                                // If present, add ornament cue note to skyline
+                                Ornament* ornament = chord->findOrnament();
                                 if (ornament) {
                                     Chord* cue = ornament->cueNoteChord();
                                     if (cue && cue->upNote()->visible()) {
                                         skyline.add(cue->shape().translate(cue->pos() + p + cue->staffOffset()));
                                     }
                                 }
+
+                                // Don't include cross-staff arpeggios
+                                shape.remove_if([chord](ShapeElement& s) {
+                                    return s.item()->isArpeggio() && toArpeggio(s.item()) == chord->spanArpeggio();
+                                });
+                                Arpeggio* arp = chord->spanArpeggio();
+                                if (arp) {
+                                    RectF staffBbox = ss->bbox();
+                                    RectF arpBbox = arp->ldata()->bbox().translated(e->pos() + p + offset);
+                                    if (chord->track() == arp->track()) {
+                                        staffBbox.setTop(arpBbox.top());
+                                    } else if (chord->track() == arp->endTrack()) {
+                                        staffBbox.setBottom(arpBbox.bottom());
+                                    }
+                                    shape.add(arpBbox & staffBbox, arp);
+                                }
                             }
+                            skyline.add(shape.translate(e->pos() + p + offset));
                         }
 
                         // add tremolo to skyline
                         if (e->isChord()) {
                             Chord* ch = item_cast<Chord*>(e);
-                            if (ch->tremoloSingleChord()) {
-                                TremoloSingleChord* t = ch->tremoloSingleChord();
-                                if (t->addToSkyline()) {
-                                    skyline.add(t->shape().translate(t->pos() + e->pos() + p));
-                                }
-                            } else if (ch->tremoloTwoChord()) {
+                            // tremoloSingleChord is added directly to chord shape
+                            if (ch->tremoloTwoChord()) {
                                 TremoloTwoChord* t = ch->tremoloTwoChord();
                                 Chord* c1 = t->chord1();
                                 Chord* c2 = t->chord2();
@@ -1539,64 +1563,10 @@ void SystemLayout::processLines(System* system, LayoutContext& ctx, const std::v
         }
     }
 
-    if (segments.size() > 1) {
-        //how far vertically an endpoint should adjust to avoid other slur endpoints:
-        const double slurCollisionVertOffset = 0.65 * system->spatium();
-        const double slurCollisionHorizOffset = 0.2 * system->spatium();
-        const double fuzzyHorizCompare = 0.25 * system->spatium();
-        auto compare = [fuzzyHorizCompare](double x1, double x2) { return std::abs(x1 - x2) < fuzzyHorizCompare; };
-        for (SpannerSegment* seg1 : segments) {
-            if (!seg1->isSlurSegment()) {
-                continue;
-            }
-            SlurSegment* slur1 = toSlurSegment(seg1);
-            for (SpannerSegment* seg2 : segments) {
-                if (!seg2->isSlurTieSegment() || seg1 == seg2) {
-                    continue;
-                }
-                if (seg2->isSlurSegment()) {
-                    SlurSegment* slur2 = toSlurSegment(seg2);
-                    if (slur1->slur()->endChord() == slur2->slur()->startChord()
-                        && compare(slur1->ups(Grip::END).p.y(), slur2->ups(Grip::START).p.y())) {
-                        slur1->ups(Grip::END).p.rx() -= slurCollisionHorizOffset;
-                        slur2->ups(Grip::START).p.rx() += slurCollisionHorizOffset;
-                        SlurTieLayout::computeBezier(slur1);
-                        SlurTieLayout::computeBezier(slur2);
-                        continue;
-                    }
-                }
-                SlurTieSegment* slurTie2 = toSlurTieSegment(seg2);
-
-                // slurs don't collide with themselves or slurs on other staves
-                if (slur1->vStaffIdx() != slurTie2->vStaffIdx()) {
-                    continue;
-                }
-                // slurs which don't overlap don't need to be checked
-                if (slur1->ups(Grip::END).p.x() < slurTie2->ups(Grip::START).p.x()
-                    || slurTie2->ups(Grip::END).p.x() < slur1->ups(Grip::START).p.x()
-                    || slur1->slur()->up() != slurTie2->slurTie()->up()) {
-                    continue;
-                }
-                // START POINT
-                if (compare(slur1->ups(Grip::START).p.x(), slurTie2->ups(Grip::START).p.x())) {
-                    if (slur1->ups(Grip::END).p.x() > slurTie2->ups(Grip::END).p.x() || slurTie2->isTieSegment()) {
-                        // slur1 is the "outside" slur
-                        slur1->ups(Grip::START).p.ry() += slurCollisionVertOffset * (slur1->slur()->up() ? -1 : 1);
-                        SlurTieLayout::computeBezier(slur1);
-                    }
-                }
-                // END POINT
-                if (compare(slur1->ups(Grip::END).p.x(), slurTie2->ups(Grip::END).p.x())) {
-                    // slurs have the same endpoint
-                    if (slur1->ups(Grip::START).p.x() < slurTie2->ups(Grip::START).p.x() || slurTie2->isTieSegment()) {
-                        // slur1 is the "outside" slur
-                        slur1->ups(Grip::END).p.ry() += slurCollisionVertOffset * (slur1->slur()->up() ? -1 : 1);
-                        SlurTieLayout::computeBezier(slur1);
-                    }
-                }
-            }
-        }
+    if (segments.size() > 0 && segments.front()->isSlurSegment()) {
+        SlurTieLayout::adjustOverlappingSlurs(system->spannerSegments());
     }
+
     //
     // Fix harmonic marks and vibrato overlaps
     //

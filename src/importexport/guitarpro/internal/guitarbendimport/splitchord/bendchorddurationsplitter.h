@@ -5,7 +5,7 @@
  * MuseScore Studio
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore Limited
+ * Copyright (C) 2024 MuseScore Limited
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -20,20 +20,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef IMPORTMIDI_INSTRUMENT_NAMES_H
-#define IMPORTMIDI_INSTRUMENT_NAMES_H
+#pragma once
 
-#include <QString>
+#include <engraving/types/fraction.h>
 
-namespace mu::iex::midi {
-struct MidiInstrument {
-    int type;
-    int hbank, lbank, patch;
-    int split;
-    const char* name;
-
-    static QString instrName(int type, int hbank, int lbank, int program);
+namespace mu::iex::guitarpro {
+class BendChordDurationSplitter
+{
+public:
+    static std::vector<mu::engraving::Fraction> findValidNoteSplit(const mu::engraving::Fraction& totalDuration,
+                                                                   const std::vector<mu::engraving::Fraction>& proportions,
+                                                                   int maxDenominator);
 };
-}
-
-#endif // IMPORTMIDI_INSTRUMENT_NAMES_H
+} // mu::iex::guitarpro

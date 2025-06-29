@@ -26,6 +26,7 @@
 
 #include "actionicon.h"
 #include "factory.h"
+#include "harmony.h"
 #include "layoutbreak.h"
 #include "masterscore.h"
 #include "mscore.h"
@@ -815,6 +816,21 @@ PropertyValue FBox::propertyDefault(Pid propertyId) const
     default:
         return VBox::propertyDefault(propertyId);
     }
+}
+
+int FBox::gripsCount() const
+{
+    return 0;
+}
+
+Grip FBox::initialEditModeGrip() const
+{
+    return Grip::NO_GRIP;
+}
+
+Grip FBox::defaultGrip() const
+{
+    return Grip::NO_GRIP;
 }
 
 std::vector<PointF> FBox::gripsPositions(const EditData&) const

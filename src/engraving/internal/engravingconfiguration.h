@@ -118,12 +118,9 @@ public:
     void setDoNotSaveEIDsForBackCompat(bool doNotSave) override;
 
     bool guitarProImportExperimental() const override;
-    bool experimentalGuitarBendImport() const override;
-    void setExperimentalGuitarBendImport(bool enabled) override;
     bool shouldAddParenthesisOnStandardStaff() const override;
     bool negativeFretsAllowed() const override;
     bool crossNoteHeadAlwaysBlack() const override;
-    bool enableExperimentalFretCircle() const override;
     void setGuitarProMultivoiceEnabled(bool multiVoice) override;
     bool guitarProMultivoiceEnabled() const override;
     bool minDistanceForPartialSkylineCalculated() const override;
@@ -144,7 +141,6 @@ private:
     muse::ValNt<DebuggingOptions> m_debuggingOptions;
 
     bool m_multiVoice = false;
-    bool m_experimentalGuitarBendImport = false;
 };
 }
 

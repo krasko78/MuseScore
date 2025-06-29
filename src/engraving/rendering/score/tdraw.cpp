@@ -56,7 +56,6 @@
 #include "dom/figuredbass.h"
 #include "dom/fingering.h"
 #include "dom/fret.h"
-#include "dom/fretcircle.h"
 
 #include "dom/glissando.h"
 #include "dom/gradualtempochange.h"
@@ -131,6 +130,7 @@
 #include "dom/systemlock.h"
 #include "dom/soundflag.h"
 
+#include "dom/tapping.h"
 #include "dom/tempotext.h"
 #include "dom/text.h"
 #include "dom/textbase.h"
@@ -226,8 +226,6 @@ void TDraw::drawItem(const EngravingItem* item, Painter* painter)
     case ElementType::FINGERING:    draw(item_cast<const Fingering*>(item), painter);
         break;
     case ElementType::FRET_DIAGRAM: draw(item_cast<const FretDiagram*>(item), painter);
-        break;
-    case ElementType::FRET_CIRCLE:  draw(item_cast<const FretCircle*>(item), painter);
         break;
     case ElementType::FSYMBOL:      draw(item_cast<const FSymbol*>(item), painter);
         break;
@@ -368,6 +366,10 @@ void TDraw::drawItem(const EngravingItem* item, Painter* painter)
         break;
 
     case ElementType::TAB_DURATION_SYMBOL:  draw(item_cast<const TabDurationSymbol*>(item), painter);
+        break;
+    case ElementType::TAPPING:              draw(toTapping(item), painter);
+        break;
+    case ElementType::TAPPING_HALF_SLUR_SEGMENT: draw(toSlurSegment(item), painter);
         break;
     case ElementType::TEMPO_TEXT:           draw(item_cast<const TempoText*>(item), painter);
         break;
@@ -559,7 +561,7 @@ void TDraw::draw(const Articulation* item, Painter* painter)
     painter->setPen(item->curColor());
 
     if (item->textType() == ArticulationTextType::NO_TEXT) {
-        item->drawSymbol(item->symId(), painter, PointF(-0.5 * item->width(), 0.0));
+        item->drawSymbol(item->symId(), painter);
     } else {
         Font scaledFont(item->font());
         scaledFont.setPointSizeF(scaledFont.pointSizeF() * item->magS() * MScore::pixelRatio);
@@ -1477,17 +1479,6 @@ void TDraw::draw(const FretDiagram* item, Painter* painter)
     }
 }
 
-void TDraw::draw(const FretCircle* item, Painter* painter)
-{
-    TRACE_DRAW_ITEM;
-    const FretCircle::LayoutData* ldata = item->ldata();
-    painter->save();
-    painter->setPen(Pen(item->curColor(), item->spatium() * FretCircle::CIRCLE_WIDTH));
-    painter->setBrush(BrushStyle::NoBrush);
-    painter->drawEllipse(ldata->rect);
-    painter->restore();
-}
-
 static void setDashAndGapLen(const SLine* line, double& dash, double& gap, Pen& pen)
 {
     static constexpr double DOTTED_DASH_LEN = 0.01;
@@ -2215,7 +2206,7 @@ void TDraw::draw(const Note* item, Painter* painter)
         const Staff* st = item->staff();
         const StaffType* tab = st->staffTypeForElement(item);
 
-        if (item->fretConflict() && !item->score()->printing() && item->score()->showUnprintable()) {                    //on fret conflict, draw on red background
+        if (negativeFret || (item->fretConflict() && !item->score()->printing() && item->score()->showUnprintable())) {                    //on fret conflict, draw on red background
             painter->save();
             painter->setPen(config->criticalColor());
             painter->setBrush(config->criticalColor());
@@ -2226,11 +2217,10 @@ void TDraw::draw(const Note* item, Painter* painter)
         Font f(tab->fretFont());
         f.setPointSizeF(f.pointSizeF() * item->magS() * MScore::pixelRatio);
         painter->setFont(f);
-        painter->setPen(c);
+        painter->setPen(tab->fretColor());
         double startPosX = ldata->bbox().x();
 
-        const MStyle& style = item->style();
-        double yOffset = tab->fretFontYOffset(style);
+        double yOffset = tab->fretFontYOffset();
         painter->drawText(PointF(startPosX, yOffset * item->magS()), item->fretString());
     }
     // NOT tablature
@@ -2448,7 +2438,12 @@ void TDraw::draw(const Rest* item, Painter* painter)
     const Rest::LayoutData* ldata = item->ldata();
 
     painter->setPen(item->curColor());
-    item->drawSymbol(ldata->sym, painter);
+
+    if (DeadSlapped* ds = item->deadSlapped()) {
+        draw(ds, painter);
+    } else {
+        item->drawSymbol(ldata->sym, painter);
+    }
 }
 
 //! NOTE May be removed later (should be only single mode)
@@ -2554,6 +2549,9 @@ void TDraw::draw(const SlurSegment* item, Painter* painter)
 {
     TRACE_DRAW_ITEM;
 
+    painter->save();
+    setMask(item, painter);
+
     Pen pen(item->curColor());
     double mag = item->staff() ? item->staff()->staffMag(item->slur()->tick()) : 1.0;
 
@@ -2590,6 +2588,8 @@ void TDraw::draw(const SlurSegment* item, Painter* painter)
     }
     painter->setPen(pen);
     painter->drawPath(item->ldata()->path());
+
+    painter->restore();
 }
 
 void TDraw::draw(const Spacer* item, Painter* painter)
@@ -2982,6 +2982,19 @@ void TDraw::draw(const TabDurationSymbol* item, Painter* painter)
         }
     }
     painter->scale(imag, imag);
+}
+
+void TDraw::draw(const Tapping* item, muse::draw::Painter* painter)
+{
+    painter->setPen(item->curColor());
+    if (item->ldata()->symId != SymId::noSym) {
+        item->drawSymbol(item->ldata()->symId, painter);
+    } else {
+        TappingText* text = item->text();
+        painter->translate(text->pos());
+        drawTextBase(text, painter);
+        painter->translate(-text->pos());
+    }
 }
 
 void TDraw::draw(const TempoText* item, Painter* painter)

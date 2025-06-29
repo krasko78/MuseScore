@@ -75,13 +75,13 @@ enum class ElementType : unsigned char {
     MEASURE_NUMBER,
     MMREST_RANGE,
     INSTRUMENT_NAME,
+    BAR_LINE,
+    STAFF_LINES,
+    SYSTEM_DIVIDER,
     SLUR_SEGMENT,
     TIE_SEGMENT,
     LAISSEZ_VIB_SEGMENT,
     PARTIAL_TIE_SEGMENT,
-    BAR_LINE,
-    STAFF_LINES,
-    SYSTEM_DIVIDER,
     STEM_SLASH,
     ARPEGGIO,
     ACCIDENTAL,
@@ -195,7 +195,6 @@ enum class ElementType : unsigned char {
     BAGPIPE_EMBELLISHMENT,
     STICKING,
     GRACE_NOTES_GROUP,
-    FRET_CIRCLE,
     GUITAR_BEND,
     GUITAR_BEND_SEGMENT,
     GUITAR_BEND_HOLD,
@@ -208,6 +207,10 @@ enum class ElementType : unsigned char {
     HAMMER_ON_PULL_OFF,
     HAMMER_ON_PULL_OFF_SEGMENT,
     HAMMER_ON_PULL_OFF_TEXT,
+    TAPPING,
+    TAPPING_HALF_SLUR,
+    TAPPING_HALF_SLUR_SEGMENT,
+    TAPPING_TEXT,
 
     ROOT_ITEM,
     DUMMY,
@@ -792,6 +795,7 @@ enum class TextStyleType : unsigned char {
     TUPLET,
     STICKING,
     FINGERING,
+    TAB_FRET_NUMBER,
     LH_GUITAR_FINGERING,
     RH_GUITAR_FINGERING,
     HAMMER_ON_PULL_OFF,
@@ -879,8 +883,10 @@ const std::string textStyleNames[] = { // krasko
     "TUPLET",
     "STICKING",
     "FINGERING",
+    "TAB_FRET_NUMBER",
     "LH_GUITAR_FINGERING",
     "RH_GUITAR_FINGERING",
+    "HAMMER_ON_PULL_OFF",
     "STRING_NUMBER",
     "STRING_TUNINGS",
     "FRET_DIAGRAM_FINGERING",
@@ -890,6 +896,7 @@ const std::string textStyleNames[] = { // krasko
 
     // Line-oriented styles
     "TEXTLINE",
+    "NOTELINE",
     "VOLTA",
     "OTTAVA",
     "GLISSANDO",
@@ -915,6 +922,34 @@ const std::string textStyleNames[] = { // krasko
     "TEXT_TYPES",           // used for user-defined types
     "IGNORED_TYPES"         // used for types no longer relevant (mainly Figured bass text type)
 };
+
+//---------------------------------------------------------
+//   FontStyle
+//---------------------------------------------------------
+
+enum class FontStyle : signed char {
+    Undefined = -1,
+    Normal = 0,
+    Bold = 1 << 0,
+    Italic = 1 << 1,
+    Underline = 1 << 2,
+    Strike = 1 << 3
+};
+
+constexpr FontStyle operator+(FontStyle a1, FontStyle a2)
+{
+    return static_cast<FontStyle>(static_cast<char>(a1) | static_cast<char>(a2));
+}
+
+constexpr FontStyle operator-(FontStyle a1, FontStyle a2)
+{
+    return static_cast<FontStyle>(static_cast<char>(a1) & ~static_cast<char>(a2));
+}
+
+constexpr bool operator&(FontStyle a1, FontStyle a2)
+{
+    return static_cast<bool>(static_cast<char>(a1) & static_cast<char>(a2));
+}
 
 enum class AnnotationCategory : signed char {
     Undefined = -1,
@@ -990,6 +1025,20 @@ enum class AccidentalVal : signed char {
     MAX     = SHARP3
 };
 
+// Positions of naturals in key sig. changes
+enum class KeySigNatural : char {
+    NONE   = 0,      // no naturals, except for change to CMaj/Amin
+    BEFORE = 1,      // naturals before accidentals
+    AFTER  = 2       // naturals after accidentals (but always before if going sharps <=> flats)
+};
+
+// For barlines before key sig. and time sig. changes
+enum class CourtesyBarlineMode : char {
+    ALWAYS_SINGLE = 0,
+    ALWAYS_DOUBLE = 1,
+    DOUBLE_BEFORE_COURTESY = 2,
+};
+
 enum class FermataType : signed char {
     Undefined = -1,
     VeryShort,
@@ -1012,6 +1061,28 @@ enum class SlurStyleType : signed char {
     Dotted,
     Dashed,
     WideDashed
+};
+
+enum class TappingHand {
+    INVALID = -1,
+    LEFT,
+    RIGHT,
+};
+
+enum class LHTappingSymbol : unsigned char {
+    DOT,
+    CIRCLED_T,
+};
+
+enum class RHTappingSymbol : unsigned char {
+    T,
+    PLUS,
+};
+
+enum class LHTappingShowItems : unsigned char {
+    HALF_SLUR,
+    SYMBOL,
+    BOTH,
 };
 
 struct InstrumentTrackId {
@@ -1124,7 +1195,6 @@ enum class VibratoType : unsigned char {
 
 enum class ArticulationTextType : unsigned char {
     NO_TEXT,
-    TAP,
     SLAP,
     POP
 };

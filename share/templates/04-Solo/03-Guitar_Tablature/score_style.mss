@@ -623,6 +623,20 @@
     <fingeringFrameFgColor r="0" g="0" b="0" a="255"/>
     <fingeringFrameBgColor r="255" g="255" b="255" a="0"/>
     <fingeringOffset x="0" y="0"/>
+    <tabFretNumberFontFace>FreeSerif</tabFretNumberFontFace>
+    <tabFretNumberFontSize>9</tabFretNumberFontSize>
+    <tabFretNumberLineSpacing>1</tabFretNumberLineSpacing>
+    <tabFretNumberFontSpatiumDependent>1</tabFretNumberFontSpatiumDependent>
+    <tabFretNumberFontStyle>0</tabFretNumberFontStyle>
+    <tabFretNumberColor r="0" g="0" b="0" a="255"/>
+    <tabFretNumberAlign>left,baseline</tabFretNumberAlign>
+    <tabFretNumberOffset x="0" y="0"/>
+    <tabFretNumberFrameType>0</tabFretNumberFrameType>
+    <tabFretNumberFramePadding>0.2</tabFretNumberFramePadding>
+    <tabFretNumberFrameWidth>0.1</tabFretNumberFrameWidth>
+    <tabFretNumberFrameRound>0</tabFretNumberFrameRound>
+    <tabFretNumberFrameFgColor r="0" g="0" b="0" a="255"/>
+    <tabFretNumberFrameBgColor r="255" g="255" b="255" a="0"/>
     <lhGuitarFingeringFontFace>Edwin</lhGuitarFingeringFontFace>
     <lhGuitarFingeringFontSize>8</lhGuitarFingeringFontSize>
     <lhGuitarFingeringLineSpacing>1</lhGuitarFingeringLineSpacing>
@@ -872,7 +886,7 @@
     <rehearsalMarkPosBelow x="0" y="4"/>
     <rehearsalMarkMinDistance>0.5</rehearsalMarkMinDistance>
     <repeatLeftFontFace>Edwin</repeatLeftFontFace>
-    <repeatLeftFontSize>18</repeatLeftFontSize>
+    <repeatLeftFontSize>10</repeatLeftFontSize>
     <repeatLeftLineSpacing>1</repeatLeftLineSpacing>
     <repeatLeftFontSpatiumDependent>1</repeatLeftFontSpatiumDependent>
     <repeatLeftFontStyle>0</repeatLeftFontStyle>
@@ -886,7 +900,7 @@
     <repeatLeftFrameFgColor r="0" g="0" b="0" a="255"/>
     <repeatLeftFrameBgColor r="255" g="255" b="255" a="0"/>
     <repeatRightFontFace>Edwin</repeatRightFontFace>
-    <repeatRightFontSize>11</repeatRightFontSize>
+    <repeatRightFontSize>10</repeatRightFontSize>
     <repeatRightLineSpacing>1</repeatRightLineSpacing>
     <repeatRightFontSpatiumDependent>1</repeatRightFontSpatiumDependent>
     <repeatRightFontStyle>0</repeatRightFontStyle>

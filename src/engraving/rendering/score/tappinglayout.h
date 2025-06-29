@@ -5,7 +5,7 @@
  * MuseScore Studio
  * Music Composition & Notation
  *
- * Copyright (C) 2024 MuseScore Limited
+ * Copyright (C) 2023 MuseScore Limited
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -22,14 +22,21 @@
 
 #pragma once
 
-#include <engraving/dom/types.h>
+#include "layoutcontext.h"
 
-namespace mu::iex::guitarpro {
-class BendChordDurationSplitter
+#include "dom/tapping.h"
+
+namespace mu::engraving::rendering::score {
+class TappingLayout
 {
 public:
-    static std::vector<mu::engraving::Fraction> findValidNoteSplit(const mu::engraving::Fraction& totalDuration,
-                                                                   const std::vector<mu::engraving::Fraction>& proportions,
-                                                                   int maxDenominator);
+    static void layoutTapping(Tapping* item, Tapping::LayoutData* ldata, LayoutContext& ctx);
+
+private:
+    static void layoutLeftHandTapping(Tapping* item, Tapping::LayoutData* ldata, const MStyle& style, bool tabStaff, LayoutContext& ctx);
+    static void updateHalfSlurs(Tapping* item, const MStyle& style, bool tabStaff, LayoutContext& ctx);
+    static void layoutHalfSlur(Tapping* item, TappingHalfSlur* slur, LayoutContext& ctx);
+
+    static void layoutRightHandTapping(Tapping* item, Tapping::LayoutData* ldata, const MStyle& style, bool tabStaff, LayoutContext& ctx);
 };
-} // mu::iex::guitarpro
+}

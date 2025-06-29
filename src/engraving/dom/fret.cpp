@@ -753,6 +753,11 @@ Font FretDiagram::fingeringFont() const
     return f;
 }
 
+String FretDiagram::harmonyText() const
+{
+    return m_harmony ? m_harmony->plainText() : String();
+}
+
 //---------------------------------------------------------
 //   setHarmony
 ///   if this is being done by the user, use undoSetHarmony instead
@@ -947,6 +952,16 @@ bool FretDiagram::setProperty(Pid propertyId, const PropertyValue& v)
     case Pid::FRET_FINGERING:
         setFingering(v.value<std::vector<int> >());
         break;
+    case Pid::EXCLUDE_VERTICAL_ALIGN:
+    {
+        bool val = v.toBool();
+        setExcludeVerticalAlign(val);
+        Harmony* h = harmony();
+        if (h && h->excludeVerticalAlign() != val) {
+            h->setExcludeVerticalAlign(val);
+        }
+        break;
+    }
     default:
         return EngravingItem::setProperty(propertyId, v);
     }

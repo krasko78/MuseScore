@@ -164,6 +164,9 @@ class SystemDivider;
 class SystemLockIndicator;
 class SystemText;
 class SoundFlag;
+class Tapping;
+class TappingHalfSlur;
+class TappingHalfSlurSegment;
 class TBox;
 class TempoText;
 class Text;
@@ -188,7 +191,6 @@ class Volta;
 class VoltaSegment;
 class WhammyBar;
 class WhammyBarSegment;
-class FretCircle;
 class ShadowNote;
 
 class LinkedObjects;
@@ -448,7 +450,6 @@ public:
     CONVERT(Lasso,         LASSO)
     CONVERT(Sticking,      STICKING)
     CONVERT(GraceNotesGroup, GRACE_NOTES_GROUP)
-    CONVERT(FretCircle, FRET_CIRCLE)
     CONVERT(StringTunings, STRING_TUNINGS)
     CONVERT(TimeTickAnchor, TIME_TICK_ANCHOR)
     CONVERT(Parenthesis, PARENTHESIS)
@@ -456,6 +457,9 @@ public:
     CONVERT(HammerOnPullOff, HAMMER_ON_PULL_OFF)
     CONVERT(HammerOnPullOffSegment, HAMMER_ON_PULL_OFF_SEGMENT)
     CONVERT(HammerOnPullOffText, HAMMER_ON_PULL_OFF_TEXT)
+    CONVERT(Tapping, TAPPING)
+    CONVERT(TappingHalfSlur, TAPPING_HALF_SLUR)
+    CONVERT(TappingHalfSlurSegment, TAPPING_HALF_SLUR_SEGMENT)
 #undef CONVERT
 
     virtual bool isEngravingItem() const { return false; }   // overridden in element.h
@@ -487,12 +491,13 @@ public:
 
     bool isSlur() const
     {
-        return type() == ElementType::SLUR || type() == ElementType::HAMMER_ON_PULL_OFF;
+        return type() == ElementType::SLUR || type() == ElementType::HAMMER_ON_PULL_OFF || type() == ElementType::TAPPING_HALF_SLUR;
     }
 
     bool isSlurSegment() const
     {
-        return type() == ElementType::SLUR_SEGMENT || type() == ElementType::HAMMER_ON_PULL_OFF_SEGMENT;
+        return type() == ElementType::SLUR_SEGMENT || type() == ElementType::HAMMER_ON_PULL_OFF_SEGMENT
+               || type() == ElementType::TAPPING_HALF_SLUR_SEGMENT;
     }
 
     bool isLineSegment() const
@@ -572,7 +577,7 @@ public:
 
     bool isArticulationFamily() const
     {
-        return isArticulation() || isOrnament();
+        return isArticulation() || isOrnament() || isTapping();
     }
 
     bool isArticulationOrFermata() const
@@ -636,7 +641,7 @@ static inline SlurTieSegment* toSlurTieSegment(EngravingObject* e)
     assert(
         e == 0 || e->type() == ElementType::SLUR_SEGMENT || e->type() == ElementType::TIE_SEGMENT
         || e->type() == ElementType::LAISSEZ_VIB_SEGMENT || e->type() == ElementType::PARTIAL_TIE_SEGMENT
-        || e->type() == ElementType::HAMMER_ON_PULL_OFF_SEGMENT);
+        || e->type() == ElementType::HAMMER_ON_PULL_OFF_SEGMENT || e->type() == ElementType::TAPPING_HALF_SLUR_SEGMENT);
     return (SlurTieSegment*)e;
 }
 
@@ -645,7 +650,7 @@ static inline const SlurTieSegment* toSlurTieSegment(const EngravingObject* e)
     assert(
         e == 0 || e->type() == ElementType::SLUR_SEGMENT || e->type() == ElementType::TIE_SEGMENT
         || e->type() == ElementType::LAISSEZ_VIB_SEGMENT || e->type() == ElementType::PARTIAL_TIE_SEGMENT
-        || e->type() == ElementType::HAMMER_ON_PULL_OFF_SEGMENT);
+        || e->type() == ElementType::HAMMER_ON_PULL_OFF_SEGMENT || e->type() == ElementType::TAPPING_HALF_SLUR_SEGMENT);
     return (const SlurTieSegment*)e;
 }
 
@@ -876,7 +881,6 @@ CONVERT(Lasso)
 CONVERT(BagpipeEmbellishment)
 CONVERT(Sticking)
 CONVERT(GraceNotesGroup)
-CONVERT(FretCircle)
 CONVERT(DeadSlapped)
 CONVERT(StringTunings)
 CONVERT(SoundFlag)
@@ -890,5 +894,8 @@ CONVERT(ShadowNote)
 CONVERT(HammerOnPullOff)
 CONVERT(HammerOnPullOffSegment)
 CONVERT(HammerOnPullOffText)
+CONVERT(Tapping)
+CONVERT(TappingHalfSlur)
+CONVERT(TappingHalfSlurSegment)
 #undef CONVERT
 }

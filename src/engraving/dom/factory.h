@@ -26,7 +26,7 @@
 
 #include "engravingitem.h"
 #include "durationtype.h"
-#include "types.h"
+#include "tapping.h"
 
 namespace mu::engraving {
 class Instrument;
@@ -37,6 +37,8 @@ class TremoloSingleChord;
 
 class SoundFlag;
 class SystemLock;
+
+enum class TripletFeelType : unsigned char;
 
 class Factory
 {
@@ -56,6 +58,9 @@ public:
 
     static Articulation* createArticulation(ChordRest* parent, bool isAccessibleEnabled = true);
     static std::shared_ptr<Articulation> makeArticulation(ChordRest* parent);
+
+    static Tapping* createTapping(ChordRest* parent, bool isAccessibleEnabled = true);
+    static std::shared_ptr<Tapping> makeTapping(ChordRest* parent);
 
     static Ornament* createOrnament(ChordRest* parent, bool isAccessibleEnabled = true);
     static std::shared_ptr<Ornament> makeOrnament(ChordRest* parent);
@@ -227,10 +232,7 @@ public:
     static TremoloBar* createTremoloBar(EngravingItem* parent, bool isAccessibleEnabled = true);
     static std::shared_ptr<TremoloBar> makeTremoloBar(EngravingItem* parent);
 
-    static TripletFeel* createTripletFeel(Segment* parent, TripletFeelType type = TripletFeelType::NONE, bool isAccessibleEnabled = true);
-
-    static FretCircle* createFretCircle(Chord* parent, bool isAccessibleEnabled = true);
-    static FretCircle* copyFretCircle(const FretCircle& src);
+    static TripletFeel* createTripletFeel(Segment* parent, TripletFeelType type, bool isAccessibleEnabled = true);
 
     static Tuplet* createTuplet(Measure* parent, bool isAccessibleEnabled = true);
     static Tuplet* copyTuplet(const Tuplet& src);
@@ -262,6 +264,8 @@ public:
     static Marker* createMarker(EngravingItem* parent, bool isAccessibleEnabled = true);
 
     static Marker* createMarker(EngravingItem* parent, TextStyleType tid, bool isAccessibleEnabled = true);
+
+    static std::shared_ptr<Marker> makeMarker(EngravingItem* parent);
 
     static GradualTempoChange* createGradualTempoChange(EngravingItem* parent, bool isAccessibleEnabled = true);
 

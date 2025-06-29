@@ -20,8 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef MU_ENGRAVING_TEXTBASE_H
-#define MU_ENGRAVING_TEXTBASE_H
+#pragma once
 
 #include <variant>
 
@@ -33,7 +32,7 @@
 
 #include "engravingitem.h"
 #include "property.h"
-#include "types.h"
+#include "../types/types.h"
 
 namespace mu::engraving {
 class TextBase;
@@ -258,6 +257,7 @@ public:
     std::list<TextFragment>& fragments() { return m_fragments; }
     std::list<TextFragment> fragmentsWithoutEmpty();
     const Shape& shape() const { return m_shape; }
+    Shape& shape() { return m_shape; }
     const RectF& boundingRect() const { return m_shape.bbox(); }
     RectF boundingRect(int col1, int col2, const TextBase*) const;
     size_t columns() const;
@@ -282,6 +282,7 @@ public:
 
 private:
     void simplify();
+    double musicSymbolBaseLineAdjust(const TextBase* t, const TextFragment& f, const std::list<TextFragment>::iterator fi);
 
     std::list<TextFragment> m_fragments;
     double m_y = 0.0;
@@ -310,6 +311,8 @@ public:
 
     Align align() const { return m_align; }
     void setAlign(Align a) { m_align = a; }
+    AlignH position() const { return m_position; }
+    void setPosition(AlignH val) { m_position = val; }
 
     static void drawTextWorkaround(muse::draw::Painter* p, muse::draw::Font& f, const PointF& pos, const String& text);
 
@@ -492,6 +495,7 @@ public:
     //! NOTE It can only be set for some types of text, see who has the setter.
     //! At the moment it's: Text, Jump, Marker
     bool layoutToParentWidth() const { return m_layoutToParentWidth; }
+    virtual bool positionSeparateFromAlignment() const { return false; }
 
     void setVoiceAssignment(VoiceAssignment v) { m_voiceAssignment = v; }
     VoiceAssignment voiceAssignment() const { return m_voiceAssignment; }
@@ -552,6 +556,8 @@ private:
 
     Align m_align;
 
+    AlignH m_position = AlignH::LEFT;
+
     FrameType m_frameType = FrameType::NO_FRAME;
     double m_textLineSpacing = 1.0;
     Color m_bgColor;
@@ -585,5 +591,3 @@ inline bool isTextNavigationKey(int key, KeyboardModifiers modifiers)
     return (key == Key_Space && modifiers != TextEditingControlModifier) || key == Key_Tab;
 }
 } // namespace mu::engraving
-
-#endif

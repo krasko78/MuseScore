@@ -35,6 +35,15 @@
 namespace mu::engraving {
 struct ChordDescription;
 class ParsedChord;
+class Score;
+
+enum class HarmonyType : unsigned char {
+    ///.\{
+    STANDARD,
+    ROMAN,
+    NASHVILLE
+    ///\}
+};
 
 //---------------------------------------------------------
 //   TextSegment
@@ -196,6 +205,7 @@ public:
     void setRightParen(bool rightParen) { m_rightParen = rightParen; }
 
     Segment* getParentSeg() const;
+    FretDiagram* getParentFretDiagram() const;
     Harmony* findNext() const;
     Harmony* findPrev() const;
     Fraction ticksTillNext(int utick, bool stopAtMeasureEnd = false) const;
@@ -208,6 +218,8 @@ public:
     bool isTextualEditAllowed(EditData&) const override;
     bool editTextual(EditData&) override;
     void endEditTextual(EditData&) override;
+
+    bool isPlayable() const override;
 
     bool isRealizable() const;
     bool isInFretBox() const;
@@ -251,9 +263,6 @@ public:
 
     double mag() const override;
     void setUserMag(double m) { m_userMag = m; }
-
-    AlignH noteheadAlign() const { return m_noteheadAlign; }
-    void setNoteheadAlign(AlignH v) { m_noteheadAlign = v; }
 
     double bassScale() const { return m_bassScale; }
     void setBassScale(double v) { m_bassScale = v; }
@@ -318,7 +327,6 @@ private:
     NoteCaseType m_bassCase = NoteCaseType::AUTO;        // case as typed
 
     std::optional<double> m_userMag;
-    AlignH m_noteheadAlign = AlignH::HCENTER;
     double m_bassScale = 1.0;
 };
 } // namespace mu::engraving

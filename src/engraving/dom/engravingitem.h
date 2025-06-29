@@ -405,7 +405,7 @@ public:
     double magS() const;
 
     bool isPrintable() const;
-    bool isPlayable() const;
+    virtual bool isPlayable() const;
     virtual double absoluteFromSpatium(const Spatium& sp) const { return sp.val() * spatium(); }
 
     bool systemFlag() const { return flag(ElementFlag::SYSTEM); }
@@ -435,8 +435,8 @@ public:
     virtual void setAutoplace(bool v) { setFlag(ElementFlag::NO_AUTOPLACE, !v); }
     bool addToSkyline() const { return !(m_flags & (ElementFlag::INVISIBLE | ElementFlag::NO_AUTOPLACE)) && !ldata()->isSkipDraw(); }
 
-    bool verticalAlign() const { return m_verticalAlign; }
-    void setVerticalAlign(bool v) { m_verticalAlign = v; }
+    bool excludeVerticalAlign() const { return m_excludeVerticalAlign; }
+    void setExcludeVerticalAlign(bool v) { m_excludeVerticalAlign = v; }
 
     PropertyValue getProperty(Pid) const override;
     bool setProperty(Pid, const PropertyValue&) override;
@@ -741,7 +741,7 @@ private:
 
     bool m_colorsInversionEnabled = true;
 
-    bool m_verticalAlign = false;
+    bool m_excludeVerticalAlign = false;
 
     mutable LayoutData* m_layoutData = nullptr;
 };
