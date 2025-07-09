@@ -3527,30 +3527,42 @@ void Score::deleteOrShortenOutSpannersFromRange(const Fraction& t1, const Fracti
         Spanner* sp = i.value;
         Fraction spStartTick = sp->tick();
         Fraction spEndTick = sp->tick2();
-        if (sp->isVolta() || sp->systemFlag()) {
+        const bool trackValid = sp->track() >= track1 && sp->track() < track2;
+        if (!trackValid || sp->isVolta() || sp->systemFlag()) {
             continue;
         }
-        if (!filter.canSelectVoice(sp->track())) {
+
+        // Special handling for grace notes...
+        const Chord* startChord = sp->startChord();
+        const bool startChordIsSelectableGrace = startChord && startChord->isGrace() && filter.canSelect(startChord);
+
+        const Chord* endChord = sp->endChord();
+        const bool endChordIsSelectableGrace = endChord && endChord->isGrace() && filter.canSelect(endChord);
+
+        if (startChordIsSelectableGrace || endChordIsSelectableGrace) {
+            undoRemoveElement(sp);
             continue;
         }
-        if (sp->track() >= track1 && sp->track() < track2) {
-            if (spStartTick >= t1 && spStartTick < t2
-                && spEndTick >= t1 && spEndTick <= t2) {
-                undoRemoveElement(sp);
-            } else if (sp->isSlur() && ((spStartTick >= t1 && spStartTick < t2)
-                                        || (spEndTick >= t1 && spEndTick < t2))) {
-                undoRemoveElement(sp);
-            } else if (muse::contains(SPANNER_TYPES_TO_SHORTEN_OUT, sp->type())) {
-                bool moveStart = spStartTick >= t1 && spStartTick < t2;
-                bool moveEnd = spEndTick > t1 && spEndTick <= t2;
-                if (moveStart) {
-                    Fraction tickDiff = t2 - spStartTick;
-                    sp->undoChangeProperty(Pid::SPANNER_TICK, t2);
-                    sp->undoChangeProperty(Pid::SPANNER_TICKS, sp->ticks() - tickDiff);
-                } else if (moveEnd) {
-                    Fraction tickDiff = spEndTick - t1;
-                    sp->undoChangeProperty(Pid::SPANNER_TICKS, sp->ticks() - tickDiff);
-                }
+
+        if (!filter.canSelectVoice(sp->track()) || !filter.canSelect(sp)) {
+            continue;
+        }
+        if (spStartTick >= t1 && spStartTick < t2
+            && spEndTick > t1 && spEndTick <= t2) {
+            undoRemoveElement(sp);
+        } else if (sp->isSlur() && ((spStartTick >= t1 && spStartTick < t2)
+                                    || (spEndTick >= t1 && spEndTick < t2))) {
+            undoRemoveElement(sp);
+        } else if (muse::contains(SPANNER_TYPES_TO_SHORTEN_OUT, sp->type())) {
+            bool moveStart = spStartTick >= t1 && spStartTick < t2;
+            bool moveEnd = spEndTick > t1 && spEndTick <= t2;
+            if (moveStart) {
+                Fraction tickDiff = t2 - spStartTick;
+                sp->undoChangeProperty(Pid::SPANNER_TICK, t2);
+                sp->undoChangeProperty(Pid::SPANNER_TICKS, sp->ticks() - tickDiff);
+            } else if (moveEnd) {
+                Fraction tickDiff = spEndTick - t1;
+                sp->undoChangeProperty(Pid::SPANNER_TICKS, sp->ticks() - tickDiff);
             }
         }
     }
@@ -3567,7 +3579,7 @@ void Score::deleteSlursFromRange(const Fraction& t1, const Fraction& t2, track_i
         if (!sp->isSlur()) {
             continue;
         }
-        if (!filter.canSelectVoice(sp->track())) {
+        if (!filter.canSelectVoice(sp->track()) || !filter.canSelect(sp)) {
             continue;
         }
 
@@ -3705,6 +3717,35 @@ void Score::deleteRangeAtTrack(std::vector<ChordRest*>& crsToSelect, const track
             continue;
         }
 
+        for (EngravingItem* elem : collectElementsAnchoredToChordRest(cr1)) {
+            if (!elem->isChord()) {
+                if (filter.canSelect(elem)) {
+                    undoRemoveElement(elem);
+                }
+                continue;
+            }
+            // Special handling for grace notes...
+            const Chord* chord = toChord(elem);
+            IF_ASSERT_FAILED(chord->isGrace()) {
+                continue;
+            }
+            std::unordered_set<EngravingItem*> anchoredToGrace = collectElementsAnchoredToChordRest(chord);
+            for (const Note* graceNote : chord->notes()) {
+                const std::unordered_set<EngravingItem*> noteAnchored = collectElementsAnchoredToNote(graceNote, true, false);
+                anchoredToGrace.insert(noteAnchored.begin(), noteAnchored.end());
+            }
+            for (EngravingItem* graceElem : anchoredToGrace) {
+                if (filter.canSelect(graceElem)) {
+                    // Delete elements anchored to grace note...
+                    undoRemoveElement(graceElem);
+                }
+            }
+            if (filter.canSelect(elem)) {
+                // Delete grace note itself...
+                undoRemoveElement(elem);
+            }
+        }
+
         if (cr1->isRestFamily()) {
             if (cr1->selected()) {
                 restDuration += cr1->ticks();
@@ -3717,49 +3758,25 @@ void Score::deleteRangeAtTrack(std::vector<ChordRest*>& crsToSelect, const track
 
         Chord* chord = toChord(cr1);
 
-        // TODO: Not loving the duplication with Selection::appendChord here...
-        Arpeggio* arp = chord->arpeggio();
-        if (arp && filter.canSelect(arp)) {
-            undoRemoveElement(arp);
-        }
-        TremoloTwoChord* tremTwo = chord->tremoloTwoChord();
-        if (tremTwo && filter.canSelect(tremTwo)) {
-            undoRemoveElement(tremTwo);
-        }
-        TremoloSingleChord* tremSing = chord->tremoloSingleChord();
-        if (tremSing && filter.canSelect(tremSing)) {
-            undoRemoveElement(tremSing);
-        }
-        for (Articulation* art : chord->articulations()) {
-            if (filter.canSelect(art)) {
-                undoRemoveElement(art);
-            }
-        }
-
         const std::vector<Note*> allNotes = chord->notes();
         std::unordered_set<Note*> notesToRemove;
         for (size_t noteIdx = 0; noteIdx < allNotes.size(); ++noteIdx) {
             Note* note = allNotes.at(noteIdx);
-
-            // TODO: More duplication here...
-            LaissezVib* lv = note->laissezVib();
-            if (lv && filter.canSelect(lv)) {
-                undoRemoveElement(lv);
+            if (filter.canSelectNoteIdx(noteIdx, allNotes.size(), selectionContainsMultiNoteChords)) {
+                notesToRemove.emplace(note);
+                //! NOTE: Don't need to remove anchored elements - they won't survive the deletion of their parent note...
+                continue;
             }
-            PartialTie* ipt = note->incomingPartialTie();
-            if (ipt && filter.canSelect(ipt)) {
-                undoRemoveElement(lv);
-            }
-            PartialTie* opt = note->outgoingPartialTie();
-            if (opt && filter.canSelect(opt)) {
-                undoRemoveElement(lv);
-            }
-            const EngravingItem* endElement = note->tieFor() ? note->tieFor()->endElement() : nullptr;
-            if (endElement && endElement->isNote()) {
-                const Note* endNote = toNote(endElement);
-                const Segment* endSeg = endNote->chord()->segment();
-                if (!endSeg || endSeg->tick() <= endTick) {
-                    undoRemoveElement(note->tieFor());
+            for (EngravingItem* elem : collectElementsAnchoredToNote(note, true, false)) {
+                if (!filter.canSelect(elem)) {
+                    continue;
+                }
+                if (!elem->isSpanner() || elem->isPartialTie() || elem->isLaissezVib()) {
+                    undoRemoveElement(elem);
+                    continue;
+                }
+                if (noteAnchoredSpannerIsInRange(toSpanner(elem), cr1->tick(), endTick)) {
+                    undoRemoveElement(elem);
                 }
             }
             if (!filter.canSelectNoteIdx(noteIdx, allNotes.size(), selectionContainsMultiNoteChords)) {
@@ -3809,7 +3826,7 @@ std::vector<ChordRest*> Score::deleteRange(Segment* s1, Segment* s2, track_idx_t
     }
 
     const Fraction startTick = s1->tick();
-    const Fraction endTick = s2 ? s2->tick() : Fraction::max();
+    const Fraction endTick = s2 ? s2->tick() : lastMeasure()->endTick();
 
     deleteOrShortenOutSpannersFromRange(startTick, endTick, track1, track2, filter);
     deleteAnnotationsFromRange(s1, s2, track1, track2, filter);
@@ -3920,15 +3937,17 @@ void Score::cmdDeleteSelection()
                 continue;
             }
 
-            // We can't delete elements inside fret box
+            // We can't delete elements inside fret box, instead we hide them
             if (e->isFretDiagram() || e->isHarmony()) {
-                if (e->isFretDiagram() && e->explicitParent()->isFBox()) {
+                if (e->isFretDiagram() && toFretDiagram(e)->isInFretBox()) {
+                    undoChangeVisible(e, false);
                     elSelectedAfterDeletion = toFBox(e->explicitParent());
                     continue;
                 } else if (e->isHarmony()) {
                     EngravingObject* parent = toHarmony(e)->explicitParent();
                     FretDiagram* fretDiagram = parent->isFretDiagram() ? toFretDiagram(parent) : nullptr;
-                    if (fretDiagram && fretDiagram->explicitParent()->isFBox()) {
+                    if (fretDiagram && fretDiagram->isInFretBox()) {
+                        undoChangeVisible(fretDiagram, false);
                         elSelectedAfterDeletion = toFBox(fretDiagram->explicitParent());
                         continue;
                     }
@@ -3943,6 +3962,13 @@ void Score::cmdDeleteSelection()
                     elSelectedAfterDeletion = fretDiagram->segment()->findAnnotation(ElementType::HARMONY,
                                                                                      fretDiagram->track(),
                                                                                      fretDiagram->track());
+                }
+            }
+
+            if (e->isHarmony()) {
+                Harmony* harmony = toHarmony(e);
+                if (harmony->parentItem()->isFretDiagram()) {
+                    elSelectedAfterDeletion = harmony->parentItem();
                 }
             }
 

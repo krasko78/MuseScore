@@ -98,6 +98,7 @@ public:
     void clearSelection() override;
     muse::async::Notification selectionChanged() const override;
     void selectTopOrBottomOfChord(MoveDirection d) override;
+    void findAndSelectChordRest(const Fraction& tick) override;
     void moveSegmentSelection(MoveDirection d) override;
 
     EngravingItem* contextItem() const override;

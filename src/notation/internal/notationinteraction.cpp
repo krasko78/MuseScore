@@ -895,6 +895,68 @@ void NotationInteraction::selectTopOrBottomOfChord(MoveDirection d)
     showItem(target);
 }
 
+void NotationInteraction::findAndSelectChordRest(const Fraction& tick)
+{
+    IF_ASSERT_FAILED(selection() && score()) {
+        return;
+    }
+
+    Segment* startSeg = score()->tick2leftSegment(tick, /*useMMrest*/ false, SegmentType::ChordRest);
+    IF_ASSERT_FAILED(startSeg && startSeg->isChordRestType()) {
+        return;
+    }
+
+    staff_idx_t lastSelectedStaffIdx = 0;
+    voice_idx_t lastSelectedVoiceIdx = 0;
+    if (selection()->isRange()) {
+        lastSelectedStaffIdx = selection()->range()->startStaffIndex();
+    } else if (!selection()->elements().empty()) {
+        const EngravingItem* lastSelectedItem = selection()->elements().back();
+        if (lastSelectedItem) {
+            lastSelectedStaffIdx = lastSelectedItem->staffIdx();
+            lastSelectedVoiceIdx = lastSelectedItem->voice();
+        }
+    }
+
+    // startSeg could be a CR segment in any staff. The idea of this method is to select the CR in the last selected
+    // staff (or the top staff if none was selected). The following outer loop iterates backwards through previous CR
+    // segments until a valid CR is found in the desired staff...
+    EngravingItem* toSelect = nullptr;
+    for (Segment* currSeg = startSeg; currSeg && !toSelect; currSeg = currSeg->prev(SegmentType::ChordRest)) {
+        toSelect = currSeg->element(staff2track(lastSelectedStaffIdx, lastSelectedVoiceIdx));
+        if (toSelect && toSelect->isChordRest()) {
+            break;
+        }
+        toSelect = nullptr;
+        // Inner loop: Couldn't find a valid CR in the last selected voice - try other voices in the same staff...
+        for (voice_idx_t currVoice = 0; currVoice < VOICES; ++currVoice) {
+            if (currVoice == lastSelectedVoiceIdx) {
+                // Already tried this...
+                continue;
+            }
+            toSelect = currSeg->element(staff2track(lastSelectedStaffIdx, currVoice));
+            if (toSelect && toSelect->isChordRest()) {
+                break;
+            }
+            toSelect = nullptr;
+        }
+    }
+
+    IF_ASSERT_FAILED(toSelect) {
+        return;
+    }
+
+    std::vector<EngravingItem*> itemsToSelect;
+    if (toSelect->isChord()) {
+        const std::vector<Note*>& notes = toChord(toSelect)->notes();
+        itemsToSelect.insert(itemsToSelect.end(), notes.begin(), notes.end());
+    } else {
+        itemsToSelect = { toSelect };
+    }
+
+    select(itemsToSelect, SelectType::REPLACE);
+}
+
 void NotationInteraction::select(const std::vector<EngravingItem*>& elements, SelectType type, staff_idx_t staffIndex)
 {
     TRACEFUNC;
@@ -906,9 +968,18 @@ void NotationInteraction::select(const std::vector<EngravingItem*>& elements, Se
     const Fraction oldStartTick = selection.tickStart();
     const Fraction oldEndTick = selection.tickEnd();
 
+    const staff_idx_t oldStartStaff = selection.staffStart();
+    const staff_idx_t oldEndStaff = selection.staffEnd();
+
     doSelect(elements, type, staffIndex);
 
-    const bool rangeChanged = selection.isRange() && (oldStartTick != selection.tickStart() || oldEndTick != selection.tickEnd());
+    bool rangeChanged = false;
+    if (selection.isRange()) {
+        const bool ticksChanged = oldStartTick != selection.tickStart() || oldEndTick != selection.tickEnd();
+        const bool stavesChanged = oldStartStaff != selection.staffStart() || oldEndStaff != selection.staffEnd();
+        rangeChanged = ticksChanged || stavesChanged;
+    }
+
     if (rangeChanged || oldSelectionState != selection.state() || oldSelectedElements != selection.elements()) {
         notifyAboutSelectionChangedIfNeed();
     } else {
@@ -2858,7 +2929,7 @@ void NotationInteraction::doAddSlur(const Slur* slurTemplate)
         bool firstCrTrill = firstItem && firstItem->isChord() && toChord(firstItem)->isTrillCueNote();
         bool secondCrTrill = secondItem && secondItem->isChord() && toChord(secondItem)->isTrillCueNote();
 
-        if (firstItem && !(firstCrTrill || secondCrTrill)) {
+        if (firstItem && secondItem && (firstItem->isChordRest() || secondItem->isChordRest()) && !(firstCrTrill || secondCrTrill)) {
             doAddSlur(firstItem, secondItem, slurTemplate);
         }
     }
@@ -2880,22 +2951,27 @@ void NotationInteraction::doAddSlur(EngravingItem* firstItem, EngravingItem* sec
         const EngravingItem* otherElement = outgoing ? secondItem : firstItem;
         ChordRest* cr = outgoing ? toChordRest(firstItem) : toChordRest(secondItem);
 
-        const bool hasAdjacentJump = (outgoing && cr->hasFollowingJumpItem()) || (!outgoing && cr->hasPrecedingJumpItem());
-        const bool isNextToBarline = (outgoing ? cr->tick() + cr->actualTicks() : cr->tick()) == otherElement->tick();
+        // Check that cr and otherElement are part of the same repeat section
+        Segment* seg1 = toSegment(firstItem->findAncestor(ElementType::SEGMENT));
+        Segment* seg2 = toSegment(secondItem->findAncestor(ElementType::SEGMENT));
 
-        if (!cr || (!header && (!isNextToBarline || !hasAdjacentJump))) {
+        if (!cr || (!header && segmentsAreInDifferentRepeatSegments(seg1, seg2))) {
             return;
         }
 
         Slur* partialSlur = slurTemplate ? slurTemplate->clone() : Factory::createSlur(score()->dummy());
         if (outgoing) {
             partialSlur->undoSetOutgoing(true);
-            firstChordRest = toChordRest(firstItem);
-            secondChordRest = toChordRest(cr);
+            firstChordRest = toChordRest(cr);
+            const Measure* endMeas = otherElement->findMeasure();
+            ChordRest* endCr = endMeas->lastChordRest(0);
+            secondChordRest = endCr;
         } else {
             partialSlur->undoSetIncoming(true);
-            firstChordRest = toChordRest(cr);
-            secondChordRest = toChordRest(secondItem);
+            secondChordRest = toChordRest(cr);
+            const Measure* startMeas = otherElement->findMeasure();
+            ChordRest* startCr = startMeas->firstChordRest(0);
+            firstChordRest = startCr;
         }
         slurTemplate = partialSlur;
     } else {

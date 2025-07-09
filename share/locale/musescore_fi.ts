@@ -3095,7 +3095,7 @@ viivaston ensimmäisessä nuotissa</translation>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="8487"/>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="8490"/>
         <source>Override score font</source>
-        <translation>Ohita partituurin fontti</translation>
+        <translation>Partituurin fontin ohitus</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="8454"/>
@@ -5536,7 +5536,7 @@ x-korkeudesta):</translation>
     <message>
         <location filename="../../src/notation/view/widgets/pagesettings.ui" line="205"/>
         <source>Staff space (sp):</source>
-        <translation>Viivastoviivojen väli (sp):</translation>
+        <translation>Viivaston väli (sp):</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/pagesettings.ui" line="246"/>
@@ -15438,12 +15438,12 @@ Otenauha %1 kielissä %2</translation>
     <message>
         <location filename="../../src/engraving/types/typesconv.cpp" line="2447"/>
         <source>Square Click</source>
-        <translation>Square Click</translation>
+        <translation>Neliöklikkaus</translation>
     </message>
     <message>
         <location filename="../../src/engraving/types/typesconv.cpp" line="2448"/>
         <source>Metronome Click</source>
-        <translation>Metronominapsautus</translation>
+        <translation>Metronomin klikkaus</translation>
     </message>
     <message>
         <location filename="../../src/engraving/types/typesconv.cpp" line="2449"/>
@@ -31101,7 +31101,7 @@ Haluatko korvata sen?</translation>
         <location filename="../../src/engraving/devtools/corruptscoredevtoolsmodel.cpp" line="44"/>
         <source>Corrupt score</source>
         <extracomment>&quot;Corrupt&quot; is used as a verb here, i.e. &quot;Make the current score corrupted&quot; (for testing purposes).</extracomment>
-        <translation>Korruptoi partituuri</translation>
+        <translation>Korruptoitunut partituuri</translation>
     </message>
     <message>
         <location filename="../../src/engraving/dom/cmd.cpp" line="2842"/>
