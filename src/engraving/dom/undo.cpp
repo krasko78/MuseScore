@@ -683,6 +683,8 @@ UndoMacro::ChangesInfo UndoMacro::changesInfo(bool undo) const
             for (const auto& pair : changeStyle->values()) {
                 result.changedStyleIdSet.insert(pair.first);
             }
+        } else if (type == CommandType::TextEdit) {
+            result.isTextEditing |= static_cast<const TextEditUndoCommand*>(command)->cursor().editing();
         }
 
         if (undo) {
@@ -1766,7 +1768,6 @@ void TransposeHarmony::flip(EditData*)
     }
 
     m_harmony->setXmlText(m_harmony->harmonyName());
-    m_harmony->render();
     m_harmony->triggerLayout();
     m_interval.flip();
 }
@@ -1792,7 +1793,6 @@ void TransposeHarmonyDiatonic::flip(EditData*)
     }
 
     m_harmony->setXmlText(m_harmony->harmonyName());
-    m_harmony->render();
     m_harmony->triggerLayout();
 
     m_interval *= -1;

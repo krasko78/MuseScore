@@ -30,7 +30,6 @@
 #include "translation.h"
 #include "types/string.h"
 
-#include "audio/itracks.h"
 #include "audio/soundfonttypes.h"
 #include "audio/audioutils.h"
 
@@ -79,7 +78,7 @@ InputResourceItem::InputResourceItem(QObject* parent)
 
 void InputResourceItem::requestAvailableResources()
 {
-    playback()->tracks()->availableInputResources()
+    playback()->availableInputResources()
     .onResolve(this, [this](const AudioResourceMetaList& availableResources) {
         updateAvailableResources(availableResources);
 
