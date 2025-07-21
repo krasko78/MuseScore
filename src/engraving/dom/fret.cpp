@@ -26,6 +26,7 @@
 
 #include "io/file.h"
 
+#include "anchors.h"
 #include "chord.h"
 #include "factory.h"
 #include "harmony.h"
@@ -160,34 +161,6 @@ Segment* FretDiagram::segment() const
     }
 
     return toSegment(explicitParent());
-}
-
-//---------------------------------------------------------
-//   fromString
-//   Create diagram from string like "XO-[1-O][1-X,2-O,3-S][3-T];B1[0-5];B..."
-//   - Each character or bracketed block represents a string, from lowest to highest.
-//   - 'X' = muted string (cross marker)
-//   - 'O' = open string (circle marker)
-//   - '-' = empty or unused string
-//   - [fret-type,...] = one or more fretted dots on that string:
-//       • fret is absolute (already includes offset)
-//       • type is:
-//           - O = circle
-//           - X = cross
-//           - S = square
-//           - T = triangle
-//   - Example: [1-X,2-O,3-S] means three dots on frets 1, 2, and 3 with different types
-//   - Barre chords follow after ';', in the format: B{fret}[{start}-{end}]
-//     e.g. B1[0-5] = barre on fret 1 from string 0 to 5
-//---------------------------------------------------------
-
-std::shared_ptr<FretDiagram> FretDiagram::createFromPattern(Score* score, const String& s)
-{
-    auto fd = Factory::makeFretDiagram(score->dummy()->segment());
-
-    applyDiagramPattern(fd.get(), s);
-
-    return fd;
 }
 
 void FretDiagram::updateDiagram(const String& harmonyName)
@@ -582,6 +555,24 @@ void FretDiagram::removeDotsMarkers(int ss, int es, int fret)
     }
 }
 
+//---------------------------------------------------------
+//   Fill diagram from string like "XO-[1-O][1-X,2-O,3-S][3-T];B1[0-5];B..."
+//   - Each character or bracketed block represents a string, from lowest to highest.
+//   - 'X' = muted string (cross marker)
+//   - 'O' = open string (circle marker)
+//   - '-' = empty or unused string
+//   - [fret-type,...] = one or more fretted dots on that string:
+//       • fret is absolute (already includes offset)
+//       • type is:
+//           - O = circle
+//           - X = cross
+//           - S = square
+//           - T = triangle
+//   - Example: [1-X,2-O,3-S] means three dots on frets 1, 2, and 3 with different types
+//   - Barre chords follow after ';', in the format: B{fret}[{start}-{end}]
+//     e.g. B1[0-5] = barre on fret 1 from string 0 to 5
+//---------------------------------------------------------
+
 void FretDiagram::applyDiagramPattern(FretDiagram* diagram, const String& pattern)
 {
     diagram->clear();
@@ -970,6 +961,15 @@ void FretDiagram::remove(EngravingItem* e)
     }
 }
 
+RectF FretDiagram::drag(EditData& ed)
+{
+    RectF result = EngravingItem::drag(ed);
+
+    MoveElementAnchors::moveElementAnchorsOnDrag(this, ed);
+
+    return result;
+}
+
 //---------------------------------------------------------
 //   acceptDrop
 //---------------------------------------------------------
@@ -1122,17 +1122,6 @@ void FretDiagram::setTrack(track_idx_t val)
     if (m_harmony) {
         m_harmony->setTrack(val);
     }
-}
-
-//---------------------------------------------------------
-//   endEditDrag
-//---------------------------------------------------------
-
-void FretDiagram::endEditDrag(EditData& editData)
-{
-    EngravingItem::endEditDrag(editData);
-
-    triggerLayout();
 }
 
 //---------------------------------------------------------

@@ -82,6 +82,7 @@
 #include "../../dom/note.h"
 #include "../../dom/notedot.h"
 
+#include "../../dom/parenthesis.h"
 #include "../../dom/playtechannotation.h"
 
 #include "../../dom/rehearsalmark.h"
@@ -287,7 +288,6 @@ public:
     static void layoutMeasureBase(MeasureBase* item, LayoutContext& ctx); // factory
     static void layoutBaseMeasureBase(const MeasureBase* item, MeasureBase::LayoutData* ldata, const LayoutContext& ctx); // base class
     static void layoutMeasureNumber(const MeasureNumber* item, MeasureNumber::LayoutData* ldata, const LayoutContext& ctx);
-    static void layoutMeasureNumberBase(const MeasureNumberBase* item, MeasureNumberBase::LayoutData* ldata, const LayoutContext& ctx); // base class
     static void layoutMeasureRepeat(const MeasureRepeat* item, MeasureRepeat::LayoutData* ldata, const LayoutContext& ctx);
     static void layoutMeasureRepeatExtender(const MeasureRepeat* item, MeasureRepeat::LayoutData* ldata, const LayoutContext& ctx);
     static void layoutMMRest(const MMRest* item, MMRest::LayoutData* ldata, const LayoutContext& ctx);
@@ -308,7 +308,7 @@ public:
 
     static void layoutPalmMute(PalmMute* item, LayoutContext& ctx);
     static void layoutPalmMuteSegment(PalmMuteSegment* item, LayoutContext& ctx);
-    static void layoutParenthesis(Parenthesis* item, LayoutContext& ctx);
+    static void layoutParenthesis(Parenthesis* item, Parenthesis::LayoutData* ldata, const LayoutContext& ctx);
     static void layoutPedal(Pedal* item, LayoutContext& ctx);
     static void layoutPedalSegment(PedalSegment* item, LayoutContext& ctx);
     static void layoutPickScrapeSegment(PickScrapeSegment* item, LayoutContext& ctx);

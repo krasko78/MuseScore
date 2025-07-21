@@ -188,6 +188,12 @@ static void createGraceAfterBends(const BendDataContext& bendDataCtx, mu::engrav
                     Chord* graceChord = Factory::createChord(score->dummy()->segment());
                     graceChord->setTrack(track);
                     graceChord->setNoteType(NoteType::GRACE8_AFTER);
+                    graceChord->setNoStem(true);
+
+                    TDuration dur;
+                    dur.setVal(mu::engraving::Constants::DIVISION / 2);
+                    graceChord->setDurationType(dur);
+                    graceChord->setTicks(dur.fraction());
 
                     Note* graceNote = Factory::createNote(graceChord);
                     graceNote->setPitch(currentNote->pitch() + graceInfo.quarterTones / 2);
@@ -251,7 +257,7 @@ static void createTiedNotesBends(const BendDataContext& bendDataCtx, mu::engravi
                 bend->setEndNotePitch(bend->startNoteOfChain()->pitch() + noteInfo.quarterTones / 2, quarterOff);
                 bend->setStartTimeFactor(noteInfo.startFactor);
                 bend->setEndTimeFactor(noteInfo.endFactor);
-                endNote->setHeadHasParentheses(true);
+                endNote->setParenthesesMode(ParenthesesMode::BOTH);
 
                 Tie* tie = startNote->tieFor();
                 if (tie) {
@@ -268,7 +274,7 @@ static void createTiedNotesBends(const BendDataContext& bendDataCtx, mu::engravi
 
                     nextNote->setPitch(endNote->pitch());
                     nextNote->setTpcFromPitch();
-                    nextNote->setHeadHasParentheses(true);
+                    nextNote->setParenthesesMode(ParenthesesMode::BOTH);
                     tie = nextNote->tieFor();
                 }
             }

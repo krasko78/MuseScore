@@ -132,9 +132,9 @@ public:
     void setIsMidiInputEnabled(bool enabled)  override;
     muse::async::Notification isMidiInputEnabledChanged() const override;
 
-    bool startNoteInputAtSelectionWhenPressingMidiKey() const override;
-    void setStartNoteInputAtSelectionWhenPressingMidiKey(bool value) override;
-    muse::async::Notification startNoteInputAtSelectionWhenPressingMidiKeyChanged() const override;
+    bool startNoteInputAtSelectedNoteRestWhenPressingMidiKey() const override;
+    void setStartNoteInputAtSelectedNoteRestWhenPressingMidiKey(bool value) override;
+    muse::async::Notification startNoteInputAtSelectedNoteRestWhenPressingMidiKeyChanged() const override;
 
     bool isAutomaticallyPanEnabled() const override;
     void setIsAutomaticallyPanEnabled(bool enabled)  override;
@@ -150,6 +150,10 @@ public:
     bool isPlayPreviewNotesInInputByDuration() const override;
     void setIsPlayPreviewNotesInInputByDuration(bool play) override;
     muse::async::Notification isPlayPreviewNotesInInputByDurationChanged() const override;
+
+    bool playPreviewNotesWithScoreDynamics() const override;
+    void setPlayPreviewNotesWithScoreDynamics(bool use) override;
+    muse::async::Notification playPreviewNotesWithScoreDynamicsChanged() const override;
 
     bool isMetronomeEnabled() const override;
     void setIsMetronomeEnabled(bool enabled)  override;

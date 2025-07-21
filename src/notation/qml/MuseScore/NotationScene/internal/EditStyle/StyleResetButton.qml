@@ -1,11 +1,11 @@
 /*
  * SPDX-License-Identifier: GPL-3.0-only
- * MuseScore-Studio-CLA-applies
+ * MuseScore-CLA-applies
  *
- * MuseScore Studio
+ * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore Limited
+ * Copyright (C) 2021 MuseScore BVBA and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -19,13 +19,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+import QtQuick 2.15
+import QtQuick.Layouts 1.15
+import QtQuick.Controls
 
-#include "tie.h"
+import MuseScore.NotationScene 1.0
+import Muse.UiComponents 1.0
+import Muse.Ui 1.0
 
-using namespace mu::engraving::apiv1;
+FlatButton {
+    required property StyleItem styleItem
 
-Note* Tie::startNote() { return wrap<Note>(toTie(e)->startNote()); }
-
-Note* Tie::endNote() { return wrap<Note>(toTie(e)->endNote()); }
-
-Tie* mu::engraving::apiv1::tieWrap(mu::engraving::Tie* tie) { return wrap<Tie>(tie); }
+    icon: IconCode.UNDO
+    enabled: !styleItem.isDefault
+    onClicked: styleItem.value = styleItem.defaultValue
+}

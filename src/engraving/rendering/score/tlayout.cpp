@@ -170,6 +170,8 @@
 #include "tappinglayout.h"
 #include "harmonylayout.h"
 #include "markerlayout.h"
+#include "measurenumberlayout.h"
+#include "parenthesislayout.h"
 
 using namespace muse;
 using namespace muse::draw;
@@ -371,7 +373,7 @@ void TLayout::layoutItem(EngravingItem* item, LayoutContext& ctx)
         break;
     case ElementType::PALM_MUTE_SEGMENT: layoutPalmMuteSegment(item_cast<PalmMuteSegment*>(item), ctx);
         break;
-    case ElementType::PARENTHESIS:      layoutParenthesis(item_cast<Parenthesis*>(item), ctx);
+    case ElementType::PARENTHESIS:      layoutParenthesis(item_cast<Parenthesis*>(item), static_cast<Parenthesis::LayoutData*>(ldata), ctx);
         break;
     case ElementType::PEDAL:            layoutPedal(item_cast<Pedal*>(item), ctx);
         break;
@@ -4015,71 +4017,7 @@ void TLayout::layoutBaseMeasureBase(const MeasureBase* item, MeasureBase::Layout
 
 void TLayout::layoutMeasureNumber(const MeasureNumber* item, MeasureNumber::LayoutData* ldata, const LayoutContext& ctx)
 {
-    LAYOUT_CALL_ITEM(item);
-    LD_CONDITION(item->measure()->ldata()->isSetBbox()); // layoutMeasureNumberBase
-
-    layoutMeasureNumberBase(item, ldata, ctx);
-}
-
-void TLayout::layoutMeasureNumberBase(const MeasureNumberBase* item, MeasureNumberBase::LayoutData* ldata, const LayoutContext& ctx)
-{
-    IF_ASSERT_FAILED(item->explicitParent()) {
-        return;
-    }
-
-    LD_CONDITION(item->measure()->ldata()->isSetBbox());
-
-    ldata->setPos(PointF());
-
-    layoutBaseTextBase1(item, ldata);
-
-    if (item->placeBelow()) {
-        double yoff = ldata->bbox().height();
-
-        // If there is only one line, the barline spans outside the staff lines, so the default position is not correct.
-        if (item->staff()->constStaffType(item->measure()->tick())->lines() == 1) {
-            yoff += 2.0 * item->spatium();
-        } else {
-            yoff += item->staff()->staffHeight();
-        }
-
-        ldata->setPosY(yoff);
-    } else {
-        double yoff = 0.0;
-
-        // If there is only one line, the barline spans outside the staff lines, so the default position is not correct.
-        if (item->staff()->constStaffType(item->measure()->tick())->lines() == 1) {
-            yoff -= 2.0 * item->spatium();
-        }
-
-        ldata->setPosY(yoff);
-    }
-
-    if (item->hPlacement() == PlacementH::CENTER) {
-        // measure numbers should be centered over where there can be notes.
-        // This means that header and trailing segments should be ignored,
-        // which includes all timesigs, clefs, keysigs, etc.
-        // This is how it should be centered:
-        // |bb 4/4 notes-chords #| other measure |
-        // |      ------18------ | other measure |
-
-        //    x1 - left measure position of free space
-        //    x2 - right measure position of free space
-
-        const Measure* measure = item->measure();
-
-        // find first chordrest
-        const Segment* crSeg = measure->first(SegmentType::ChordRest);
-
-        const MeasureLayout::MeasureStartEndPos measureStartEnd = MeasureLayout::getMeasureStartEndPos(measure, crSeg,
-                                                                                                       item->staffIdx(), true, false, ctx);
-        const double x1 = measureStartEnd.x1;
-        const double x2 = measureStartEnd.x2;
-
-        ldata->setPosX((x1 + x2) * 0.5);
-    } else if (item->hPlacement() == PlacementH::RIGHT) {
-        ldata->setPosX(item->measure()->ldata()->bbox().width());
-    }
+    MeasureNumberLayout::layoutMeasureNumber(item,  ldata, ctx);
 }
 
 void TLayout::layoutMeasureRepeat(const MeasureRepeat* item, MeasureRepeat::LayoutData* ldata, const LayoutContext& ctx)
@@ -4299,10 +4237,7 @@ void TLayout::layoutMMRest(const MMRest* item, MMRest::LayoutData* ldata, const 
 
 void TLayout::layoutMMRestRange(const MMRestRange* item, MMRestRange::LayoutData* ldata, const LayoutContext& ctx)
 {
-    LAYOUT_CALL_ITEM(item);
-    LD_CONDITION(item->measure()->ldata()->isSetBbox()); // layoutMeasureNumberBase
-
-    layoutMeasureNumberBase(item, ldata, ctx);
+    MeasureNumberLayout::layoutMMRestRange(item, ldata, ctx);
 }
 
 void TLayout::layoutNote(const Note* item, Note::LayoutData* ldata)
@@ -4343,9 +4278,9 @@ void TLayout::layoutNote(const Note* item, Note::LayoutData* ldata)
         }
 
         if (item->ghost()) {
-            const_cast<Note*>(item)->setHeadHasParentheses(true, /* addToLinked= */ false, /* generated= */ true);
+            const_cast<Note*>(item)->setParenthesesMode(ParenthesesMode::BOTH, /* addToLinked= */ false, /* generated= */ true);
         } else {
-            const_cast<Note*>(item)->setHeadHasParentheses(false, /*addToLinked=*/ false, /* generated= */ true);
+            const_cast<Note*>(item)->setParenthesesMode(ParenthesesMode::NONE, /*addToLinked=*/ false, /* generated= */ true);
         }
 
         double w = item->tabHeadWidth(tab);
@@ -4363,9 +4298,9 @@ void TLayout::layoutNote(const Note* item, Note::LayoutData* ldata)
 
         if (item->configuration()->shouldAddParenthesisOnStandardStaff()) {
             if (item->ghost()) {
-                const_cast<Note*>(item)->setHeadHasParentheses(true, /* addToLinked= */ false, /* generated= */ true);
+                const_cast<Note*>(item)->setParenthesesMode(ParenthesesMode::BOTH, /* addToLinked= */ false, /* generated= */ true);
             } else {
-                const_cast<Note*>(item)->setHeadHasParentheses(false, /* addToLinked= */ false, /* generated= */ true);
+                const_cast<Note*>(item)->setParenthesesMode(ParenthesesMode::NONE, /* addToLinked= */ false, /* generated= */ true);
             }
         }
 
@@ -4428,6 +4363,15 @@ void TLayout::fillNoteShape(const Note* item, Note::LayoutData* ldata)
             }
             shape.add(e->ldata()->bbox().translated(e->pos()), e);
         }
+    }
+
+    const Parenthesis* leftParen = item->leftParen();
+    if (leftParen && leftParen->addToSkyline()) {
+        shape.add(leftParen->ldata()->shape().translated(leftParen->pos()));
+    }
+    const Parenthesis* rightParen = item->rightParen();
+    if (rightParen && rightParen->addToSkyline()) {
+        shape.add(rightParen->ldata()->shape().translated(rightParen->pos()));
     }
 
     // This method is also called from SingleLayout, where `part` may be nullptr
@@ -4593,87 +4537,9 @@ void TLayout::layoutPalmMuteSegment(PalmMuteSegment* item, LayoutContext& ctx)
     Autoplace::autoplaceSpannerSegment(item, ldata, ctx.conf().spatium());
 }
 
-void TLayout::layoutParenthesis(Parenthesis* item, LayoutContext& ctx)
+void TLayout::layoutParenthesis(Parenthesis* item, Parenthesis::LayoutData* ldata, const LayoutContext& ctx)
 {
-    UNUSED(ctx);
-
-    Parenthesis::LayoutData* ldata = item->mutldata();
-    ldata->setPos(PointF());
-    ldata->reset();
-    ldata->path.reset();
-
-    const Staff* staff = item->staff();
-    const Segment* seg = item->segment();
-    const bool isClefSeg = seg->isType(SegmentType::ClefType);
-    const Fraction tick = item->tick();
-    const Fraction tickPrev = tick - Fraction::eps();
-    const double spatium = item->spatium();
-    const double mag = item->mag();
-    const bool leftBracket = item->direction() == DirectionH::LEFT;
-
-    const StaffType* st = staff->staffType(tick);
-    const StaffType* stPrev = !tickPrev.negative() ? item->staff()->staffType(tickPrev) : nullptr;
-
-    double startY = ldata->startY;
-    double height = ldata->height;
-
-    if (isClefSeg && seg->rtick() == seg->measure()->ticks()) {
-        double offset = st->yoffset().val() - (stPrev ? stPrev->yoffset().val() : 0);
-        startY += offset * spatium;
-    }
-
-    const double heightInSpatium = height / spatium;
-    const double shoulderYOffset = 0.2 * height;
-    const double thickness = height / 60 * mag; // 0.1sp for a height of 6sp
-    ldata->thickness.set_value(thickness);
-    const double shoulderX = 0.2 * height * mag;
-
-    PointF start = PointF(0.0, startY);
-    const PointF end = PointF(0.0, start.y() + height);
-    const PointF endNormalised = end - start;
-
-    const int direction = leftBracket ? -1 : 1;
-    const double shoulderForX = direction * shoulderX + thickness * direction;
-    const double shoulderBackX = direction * shoulderX + thickness * direction * -1;
-
-    const PointF bezier1for = PointF(shoulderForX, shoulderYOffset);
-    const PointF bezier2for = PointF(shoulderForX, endNormalised.y() - shoulderYOffset);
-    const PointF bezier1back = PointF(shoulderBackX, endNormalised.y() - shoulderYOffset);
-    const PointF bezier2back = PointF(shoulderBackX, shoulderYOffset);
-
-    PainterPath path = PainterPath();
-    path.moveTo(PointF());
-    path.cubicTo(bezier1for, bezier2for, endNormalised);
-    path.cubicTo(bezier1back, bezier2back, PointF());
-
-    ldata->path = path;
-
-    // Fill shape
-    Shape shape(Shape::Type::Composite);
-
-    PointF startPoint = PointF();
-    double midThickness = 2 * thickness;
-    int nbShapes = round(5.0 * heightInSpatium);
-    nbShapes = std::clamp(nbShapes, 20, 50);
-    PointF bezier1mid = bezier1for - PointF(thickness * direction, 0.0);
-    PointF bezier2mid = bezier2for - PointF(thickness * direction, 0.0);
-    const CubicBezier b(startPoint, bezier1mid, bezier2mid, endNormalised);
-    for (int i = 1; i <= nbShapes; i++) {
-        double percent = pow(sin(0.5 * M_PI * (double(i) / double(nbShapes))), 2);
-        const PointF point = b.pointAtPercent(percent);
-        RectF re = RectF(startPoint, point).normalized();
-        double approxThicknessAtPercent = (1 - 2 * std::abs(0.5 - percent)) * midThickness;
-        if (re.width() < approxThicknessAtPercent) {
-            double adjust = (approxThicknessAtPercent - re.width()) * .5;
-            re.adjust(-adjust, 0.0, adjust, 0.0);
-        }
-        shape.add(re, item);
-        startPoint = point;
-    }
-
-    item->mutldata()->setShape(shape);
-
-    item->setPos(start);
+    ParenthesisLayout::layoutParenthesis(item, ldata, ctx);
 }
 
 void TLayout::layoutPedal(Pedal* item, LayoutContext& ctx)
@@ -5856,12 +5722,7 @@ void TLayout::layoutSymbol(const Symbol* item, Symbol::LayoutData* ldata, const 
         return;
     }
 
-    if (item->parentItem()->isNote()) {
-        double parenScale
-            = (item->onTabStaff()
-               && (item->sym() == SymId::noteheadParenthesisLeft || item->sym() == SymId::noteheadParenthesisRight)) ? 0.8 : 1;
-        ldata->setMag(item->parentItem()->mag() * parenScale);
-    } else if (item->staff()) {
+    if (item->staff()) {
         ldata->setMag(item->staff()->staffMag(item->tick()));
     }
     ldata->setBbox(item->scoreFont()

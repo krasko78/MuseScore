@@ -37,6 +37,7 @@
 #include "measure.h"
 #include "mscore.h"
 #include "part.h"
+#include "parenthesis.h"
 #include "pitchspelling.h"
 #include "repeatlist.h"
 #include "score.h"
@@ -175,7 +176,7 @@ String Harmony::harmonyName() const
 {
     String name;
 
-    if (m_leftParen) {
+    if (leftParen()) {
         name = u"(";
     }
 
@@ -234,7 +235,7 @@ String Harmony::harmonyName() const
         name += s;
     }
 
-    if (m_rightParen) {
+    if (rightParen()) {
         name += u")";
     }
 
@@ -304,8 +305,6 @@ Harmony::Harmony(Segment* parent)
     m_rootCase   = NoteCaseType::CAPITAL;
     m_bassCase   = NoteCaseType::CAPITAL;
     m_harmonyType = HarmonyType::STANDARD;
-    m_leftParen  = false;
-    m_rightParen = false;
     m_play = true;
     m_realizedHarmony = RealizedHarmony(this);
     initElementStyle(&chordSymbolStyle);
@@ -316,8 +315,6 @@ Harmony::Harmony(const Harmony& h)
 {
     m_rootCase   = h.m_rootCase;
     m_bassCase   = h.m_bassCase;
-    m_leftParen  = h.m_leftParen;
-    m_rightParen = h.m_rightParen;
     m_bassScale = h.m_bassScale;
     m_degreeList = h.m_degreeList;
     m_harmonyType = h.m_harmonyType;
@@ -430,13 +427,15 @@ const std::vector<const ChordDescription*> Harmony::parseHarmony(const String& s
 {
     // pre-process for parentheses
     String s = ss.simplified();
-    if ((m_leftParen = s.startsWith('('))) {
+    if (s.startsWith('(')) {
+        setParenthesesMode(rightParen() ? ParenthesesMode::BOTH : ParenthesesMode::LEFT, true, true);
         s.remove(0, 1);
     }
-    if ((m_rightParen = (s.endsWith(')') && s.count('(') < s.count(')')))) {
+    if (s.endsWith(')') && s.count('(') < s.count(')')) {
+        setParenthesesMode(leftParen() ? ParenthesesMode::BOTH : ParenthesesMode::RIGHT, true, true);
         s.remove(s.size() - 1, 1);
     }
-    if (m_leftParen || m_rightParen) {
+    if (parenthesesMode() == ParenthesesMode::BOTH) {
         s = s.simplified();         // in case of spaces inside parentheses
     }
 
@@ -637,7 +636,7 @@ NoteCaseType Harmony::bassRenderCase() const
 //   startEdit
 //---------------------------------------------------------
 
-void Harmony::startEditTextual(EditData& ed)
+void Harmony::startEdit(EditData& ed)
 {
     if (!ldata()->textList().empty()) {
         // convert chord symbol to plain text
@@ -649,14 +648,21 @@ void Harmony::startEditTextual(EditData& ed)
         mutldata()->textList.mut_value().clear();
     }
 
+    if (leftParen()) {
+        leftParen()->mutldata()->reset();
+    }
+    if (rightParen()) {
+        rightParen()->mutldata()->reset();
+    }
+
     // layout as text, without position reset
     renderer()->layoutText1(this, true);
     triggerLayout();
 
-    TextBase::startEditTextual(ed);
+    TextBase::startEdit(ed);
 }
 
-bool Harmony::isTextualEditAllowed(EditData& ed) const
+bool Harmony::isEditAllowed(EditData& ed) const
 {
     if (isTextNavigationKey(ed.key, ed.modifiers)) {
         return false;
@@ -675,20 +681,20 @@ bool Harmony::isTextualEditAllowed(EditData& ed) const
         return true;
     }
 
-    return TextBase::isTextualEditAllowed(ed);
+    return TextBase::isEditAllowed(ed);
 }
 
 //---------------------------------------------------------
 //   edit
 //---------------------------------------------------------
 
-bool Harmony::editTextual(EditData& ed)
+bool Harmony::edit(EditData& ed)
 {
     if (!isEditAllowed(ed)) {
         return false;
     }
 
-    bool rv = TextBase::editTextual(ed);
+    bool rv = TextBase::edit(ed);
 
     // layout as text, without position reset
     renderer()->layoutText1(this, true);
@@ -726,7 +732,7 @@ bool Harmony::editTextual(EditData& ed)
 //   endEdit
 //---------------------------------------------------------
 
-void Harmony::endEditTextual(EditData& ed)
+void Harmony::endEdit(EditData& ed)
 {
     // get plain text
     String s = plainText();
@@ -763,7 +769,7 @@ void Harmony::endEditTextual(EditData& ed)
     // disable spell check
     m_isMisspelled = false;
 
-    TextBase::endEditTextual(ed);
+    TextBase::endEdit(ed);
 
     TextEditData* ted = dynamic_cast<TextEditData*>(ed.getData(this).get());
     bool textChanged = ted != nullptr && ted->oldXmlText != harmonyName();
@@ -1583,27 +1589,6 @@ Sid Harmony::getPropertyStyle(Pid pid) const
 double Harmony::mag() const
 {
     return EngravingItem::mag();
-}
-
-void Harmony::undoMoveSegment(Segment* newSeg, Fraction tickDiff)
-{
-    IF_ASSERT_FAILED(parentItem()->isSegment()) {
-        return;
-    }
-
-    if (newSeg->isTimeTickType()) {
-        Measure* measure = newSeg->measure();
-        Segment* chordRestSegAtSameTick = measure->undoGetSegment(SegmentType::ChordRest, newSeg->tick());
-        newSeg = chordRestSegAtSameTick;
-    }
-
-    Segment* oldSegment = toSegment(parent());
-    TextBase::undoMoveSegment(newSeg, tickDiff);
-
-    oldSegment->checkEmpty();
-    if (oldSegment->empty()) {
-        score()->undoRemoveElement(oldSegment);
-    }
 }
 
 HarmonyInfo::HarmonyInfo(const HarmonyInfo& h)

@@ -89,7 +89,7 @@ static constexpr PropertyMetaData propertyList[] = {
     { Pid::SLUR_DIRECTION,          false, "up",                    P_TYPE::DIRECTION_V,        PropertyGroup::POSITION,        DUMMY_QT_TR_NOOP("propertyName", "up") },
     { Pid::LEADING_SPACE,           false, "leadingSpace",          P_TYPE::SPATIUM,            PropertyGroup::POSITION,        DUMMY_QT_TR_NOOP("propertyName", "leading space") },
     { Pid::MIRROR_HEAD,             false, "mirror",                P_TYPE::DIRECTION_H,        PropertyGroup::POSITION,        DUMMY_QT_TR_NOOP("propertyName", "mirror") },
-    { Pid::HEAD_HAS_PARENTHESES,    true , "parentheses",           P_TYPE::BOOL,               PropertyGroup::APPEARANCE,      DUMMY_QT_TR_NOOP("propertyName", "parentheses") },
+    { Pid::HAS_PARENTHESES,         true , "parentheses",           P_TYPE::PARENTHESES_MODE,   PropertyGroup::APPEARANCE,      DUMMY_QT_TR_NOOP("propertyName", "parentheses") },
     { Pid::DOT_POSITION,            false, "dotPosition",           P_TYPE::DIRECTION_V,        PropertyGroup::POSITION,        DUMMY_QT_TR_NOOP("propertyName", "dot position") },
     { Pid::COMBINE_VOICE,           true,  "combineVoice",          P_TYPE::AUTO_ON_OFF,        PropertyGroup::POSITION,        DUMMY_QT_TR_NOOP("propertyName", "combine voice") },
     { Pid::TUNING,                  false, "tuning",                P_TYPE::REAL,               PropertyGroup::APPEARANCE,      DUMMY_QT_TR_NOOP("propertyName", "tuning") },
@@ -461,6 +461,8 @@ static constexpr PropertyMetaData propertyList[] = {
     { Pid::APPLY_TO_ALL_STAVES,     false, "applyToAllStaves",      P_TYPE::BOOL,               PropertyGroup::NONE,            DUMMY_QT_TR_NOOP("propertyName", "apply to all staves") },
     { Pid::IS_COURTESY,             false, "isCourtesy",            P_TYPE::BOOL,               PropertyGroup::NONE,            DUMMY_QT_TR_NOOP("propertyName", "is courtesy") },
     { Pid::EXCLUDE_VERTICAL_ALIGN,  false, "excludeVerticalAlign",  P_TYPE::BOOL,               PropertyGroup::POSITION,        DUMMY_QT_TR_NOOP("propertyName", "exclude vertical align") },
+
+    { Pid::SHOW_MEASURE_NUMBERS,        false, "showMeasureNumbers",        P_TYPE::AUTO_ON_OFF,        PropertyGroup::NONE,            DUMMY_QT_TR_NOOP("propertyName", "show bar numbers")},
 
     { Pid::END,                     false, "++end++",               P_TYPE::INT,                PropertyGroup::NONE,            DUMMY_QT_TR_NOOP("propertyName", "<invalid property>") }
 };

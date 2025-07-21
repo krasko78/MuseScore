@@ -6,41 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>933</width>
-    <height>824</height>
+    <width>962</width>
+    <height>812</height>
    </rect>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>0</width>
-    <height>0</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>16777215</width>
-    <height>16777215</height>
-   </size>
   </property>
   <property name="windowTitle">
    <string>Style</string>
   </property>
-  <layout class="QVBoxLayout" name="mmRestWidthSection_2">
-   <property name="spacing">
-    <number>12</number>
-   </property>
-   <property name="leftMargin">
-    <number>6</number>
-   </property>
-   <property name="topMargin">
-    <number>0</number>
-   </property>
-   <property name="rightMargin">
-    <number>6</number>
-   </property>
-   <property name="bottomMargin">
-    <number>0</number>
-   </property>
+  <layout class="QVBoxLayout" name="editStyleBase_layout">
    <item>
     <widget class="QSplitter" name="splitter">
      <property name="orientation">
@@ -268,6 +241,9 @@
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
       <widget class="QWidget" name="PageScore">
        <layout class="QVBoxLayout" name="verticalLayout_20">
         <item>
@@ -301,8 +277,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>598</width>
-                <height>523</height>
+                <width>650</width>
+                <height>705</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_10">
@@ -983,12 +959,24 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-656</y>
-             <width>602</width>
-             <height>1122</height>
+             <y>0</y>
+             <width>654</width>
+             <height>1560</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_72">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
             <item>
              <layout class="QVBoxLayout" name="verticalLayout_74">
               <property name="spacing">
@@ -3275,8 +3263,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>685</width>
-             <height>298</height>
+             <width>737</width>
+             <height>734</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -3908,390 +3896,22 @@
       <widget class="QWidget" name="PageMeasureNumbers">
        <layout class="QVBoxLayout" name="verticalLayout_44">
         <item>
-         <widget class="QGroupBox" name="showMeasureNumber">
-          <property name="title">
-           <string>Measure numbers</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-          <layout class="QGridLayout" name="_2">
-           <item row="0" column="0">
-            <widget class="QCheckBox" name="showFirstMeasureNumber">
-             <property name="text">
-              <string>Show first</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="3" rowspan="2">
-            <widget class="QLabel" name="measureNumberPosAboveLabel">
-             <property name="text">
-              <string>Offset above:</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
-             </property>
-             <property name="buddy">
-              <cstring>measureNumberPosAbove</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0" colspan="2">
-            <layout class="QHBoxLayout" name="horizontalLayout_8">
-             <item>
-              <widget class="QRadioButton" name="showIntervalMeasureNumber">
-               <property name="text">
-                <string>Interval:</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QSpinBox" name="intervalMeasureNumber">
-               <property name="keyboardTracking">
-                <bool>false</bool>
-               </property>
-               <property name="minimum">
-                <number>1</number>
-               </property>
-               <property name="value">
-                <number>5</number>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="4" column="3" rowspan="2">
-            <widget class="QLabel" name="measureNumberPosBelowLabel">
-             <property name="text">
-              <string>Offset below:</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
-             </property>
-             <property name="buddy">
-              <cstring>measureNumberPosBelow</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="6" rowspan="2">
-            <widget class="QToolButton" name="resetMeasureNumberPosAbove">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Offset above' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="3">
-            <widget class="QLabel" name="label_921">
-             <property name="text">
-              <string>Vertical position:</string>
-             </property>
-             <property name="buddy">
-              <cstring>measureNumberVPlacement</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="6" rowspan="2">
-            <widget class="QToolButton" name="resetMeasureNumberPosBelow">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Offset below' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="3">
-            <widget class="QLabel" name="label_93">
-             <property name="text">
-              <string>Horizontal position:</string>
-             </property>
-             <property name="buddy">
-              <cstring>measureNumberHPlacement</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="4" rowspan="2" colspan="2">
-            <widget class="mu::notation::OffsetSelect" name="measureNumberPosAbove" native="true">
-             <property name="focusPolicy">
-              <enum>Qt::FocusPolicy::StrongFocus</enum>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="6">
-            <widget class="QToolButton" name="resetMeasureNumberHPlacement">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Horizontal placement' value</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="4" rowspan="2" colspan="2">
-            <widget class="mu::notation::OffsetSelect" name="measureNumberPosBelow" native="true">
-             <property name="focusPolicy">
-              <enum>Qt::FocusPolicy::StrongFocus</enum>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QRadioButton" name="showEverySystemMeasureNumber">
-             <property name="text">
-              <string>Every system</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="6">
-            <widget class="QToolButton" name="resetMeasureNumberVPlacement">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Vertical placement' value</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="4" colspan="2">
-            <widget class="QComboBox" name="measureNumberHPlacement"/>
-           </item>
-           <item row="1" column="0">
-            <widget class="QCheckBox" name="showAllStavesMeasureNumber">
-             <property name="text">
-              <string>All staves</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="4" colspan="2">
-            <widget class="QComboBox" name="measureNumberVPlacement"/>
-           </item>
-           <item row="0" column="2">
-            <spacer name="horizontalSpacer_18">
-             <property name="orientation">
-              <enum>Qt::Orientation::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="0" column="7">
-            <spacer name="horizontalSpacer_54">
-             <property name="orientation">
-              <enum>Qt::Orientation::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
+         <widget class="QWidget" name="pageMeasureNumbers" native="true">
+          <layout class="QVBoxLayout" name="verticalLayout_76">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
           </layout>
          </widget>
-        </item>
-        <item>
-         <widget class="QGroupBox" name="mmRestShowMeasureNumberRange">
-          <property name="title">
-           <string>Show measure number range at multimeasure rests</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_48">
-           <item row="0" column="2">
-            <widget class="QToolButton" name="resetMmRestRangeBracketType">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string comment="Bracket type for measure number ranges for multi-measure rests">Reset 'Bracket type' value</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QComboBox" name="mmRestRangeBracketType"/>
-           </item>
-           <item row="3" column="1">
-            <widget class="mu::notation::OffsetSelect" name="mmRestRangePosAbove" native="true">
-             <property name="focusPolicy">
-              <enum>Qt::FocusPolicy::StrongFocus</enum>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="2">
-            <widget class="QToolButton" name="resetMMRestRangePosAbove">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Offset above' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_165">
-             <property name="text">
-              <string>Vertical placement:</string>
-             </property>
-             <property name="buddy">
-              <cstring>mmRestRangeVPlacement</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QComboBox" name="mmRestRangeVPlacement"/>
-           </item>
-           <item row="2" column="1">
-            <widget class="QComboBox" name="mmRestRangeHPlacement"/>
-           </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="mmRestRangePosAboveLabel">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Offset above:</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
-             </property>
-             <property name="buddy">
-              <cstring>mmRestRangePosAbove</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_164">
-             <property name="text">
-              <string comment="Bracket type for measure number ranges for multi-measure rests">Bracket type:</string>
-             </property>
-             <property name="buddy">
-              <cstring>mmRestRangeBracketType</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="2">
-            <widget class="QToolButton" name="resetMmRestRangeVPlacement">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Vertical placement' value</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_166">
-             <property name="text">
-              <string>Horizontal placement:</string>
-             </property>
-             <property name="buddy">
-              <cstring>mmRestRangeHPlacement</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="2">
-            <widget class="QToolButton" name="resetMmRestRangeHPlacement">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Horizontal placement' value</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="mmRestRangePosBelowLabel">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Offset below:</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
-             </property>
-             <property name="buddy">
-              <cstring>mmRestRangePosBelow</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="1">
-            <widget class="mu::notation::OffsetSelect" name="mmRestRangePosBelow" native="true">
-             <property name="focusPolicy">
-              <enum>Qt::FocusPolicy::StrongFocus</enum>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="2">
-            <widget class="QToolButton" name="resetMMRestRangePosBelow">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Offset below' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="3">
-            <spacer name="horizontalSpacer_19">
-             <property name="orientation">
-              <enum>Qt::Orientation::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <spacer name="verticalSpacer_27">
-          <property name="orientation">
-           <enum>Qt::Orientation::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-         </spacer>
         </item>
        </layout>
       </widget>
@@ -4793,8 +4413,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>371</width>
-             <height>282</height>
+             <width>654</width>
+             <height>708</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_631">
@@ -4995,8 +4615,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>269</width>
-             <height>533</height>
+             <width>654</width>
+             <height>708</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_38">
@@ -5798,8 +5418,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>401</width>
-             <height>585</height>
+             <width>654</width>
+             <height>787</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_67">
@@ -6700,8 +6320,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>367</width>
-                <height>386</height>
+                <width>650</width>
+                <height>698</height>
                </rect>
               </property>
               <layout class="QGridLayout" name="gridLayout_54" rowstretch="0,0,0,2">
@@ -7571,8 +7191,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>424</width>
-             <height>409</height>
+             <width>654</width>
+             <height>708</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_70">
@@ -8327,8 +7947,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>459</width>
-             <height>496</height>
+             <width>654</width>
+             <height>708</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_68">
@@ -11832,8 +11452,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>483</width>
-             <height>543</height>
+             <width>725</width>
+             <height>777</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_64" stretch="0,0,2">
@@ -12299,9 +11919,6 @@
                 <layout class="QVBoxLayout" name="verticalLayout_632">
                  <item>
                   <layout class="QGridLayout" name="gridLayout_23">
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
                    <item row="4" column="0">
                     <widget class="QLabel" name="label_195">
                      <property name="text">
@@ -12577,9 +12194,6 @@ text x-height):</string>
                  </item>
                  <item>
                   <layout class="QGridLayout" name="gridLayout_57">
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
                    <item row="4" column="1">
                     <widget class="QToolButton" name="resetLyricsDashStartSystemPlacement">
                      <property name="toolTip">
@@ -13401,8 +13015,8 @@ followed by dashes</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>28</height>
+             <width>678</width>
+             <height>732</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -13508,8 +13122,8 @@ followed by dashes</string>
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>363</width>
-                <height>550</height>
+                <width>648</width>
+                <height>696</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_40">
@@ -14633,21 +14247,6 @@ followed by dashes</string>
    </item>
    <item>
     <layout class="QHBoxLayout">
-     <property name="spacing">
-      <number>6</number>
-     </property>
-     <property name="leftMargin">
-      <number>0</number>
-     </property>
-     <property name="topMargin">
-      <number>0</number>
-     </property>
-     <property name="rightMargin">
-      <number>0</number>
-     </property>
-     <property name="bottomMargin">
-      <number>0</number>
-     </property>
      <item>
       <widget class="QPushButton" name="buttonTogglePagelist">
        <property name="maximumSize">
@@ -14747,10 +14346,89 @@ followed by dashes</string>
   <tabstop>resetAutoplaceVerticalAlignRange</tabstop>
   <tabstop>minVerticalDistance</tabstop>
   <tabstop>resetMinVerticalDistance</tabstop>
+  <tabstop>spacingScrollArea</tabstop>
+  <tabstop>staffUpperBorder</tabstop>
+  <tabstop>resetStaffUpperBorder</tabstop>
+  <tabstop>staffLowerBorder</tabstop>
+  <tabstop>resetStaffLowerBorder</tabstop>
+  <tabstop>enableVerticalSpread</tabstop>
+  <tabstop>spreadSystem</tabstop>
+  <tabstop>resetSpreadSystem</tabstop>
+  <tabstop>spreadSquareBracket</tabstop>
+  <tabstop>resetSpreadSquareBracket</tabstop>
+  <tabstop>spreadCurlyBracket</tabstop>
+  <tabstop>resetSpreadCurlyBracket</tabstop>
+  <tabstop>minSystemSpread</tabstop>
+  <tabstop>resetMinSystemSpread</tabstop>
+  <tabstop>maxSystemSpread</tabstop>
+  <tabstop>resetMaxSystemSpread</tabstop>
+  <tabstop>minStaffSpread</tabstop>
+  <tabstop>resetMinStaffSpread</tabstop>
+  <tabstop>maxStaffSpread</tabstop>
+  <tabstop>resetMaxStaffSpread</tabstop>
+  <tabstop>maxAkkoladeDistance</tabstop>
+  <tabstop>resetMaxAkkoladeDistance</tabstop>
+  <tabstop>maxPageFillSpread</tabstop>
+  <tabstop>resetMaxPageFillSpread</tabstop>
+  <tabstop>disableVerticalSpread</tabstop>
+  <tabstop>staffDistance</tabstop>
+  <tabstop>resetStaffDistance</tabstop>
+  <tabstop>akkoladeDistance</tabstop>
+  <tabstop>resetAkkoladeDistance</tabstop>
+  <tabstop>minSystemDistance</tabstop>
+  <tabstop>resetMinSystemDistance</tabstop>
+  <tabstop>maxSystemDistance</tabstop>
+  <tabstop>resetMaxSystemDistance</tabstop>
+  <tabstop>systemFrameDistance</tabstop>
+  <tabstop>resetSystemFrameDistance</tabstop>
+  <tabstop>frameSystemDistance</tabstop>
+  <tabstop>resetFrameSystemDistance</tabstop>
+  <tabstop>spacingDensity</tabstop>
+  <tabstop>resetSpacingDensity</tabstop>
+  <tabstop>measureSpacing</tabstop>
+  <tabstop>resetMeasureSpacing</tabstop>
+  <tabstop>minMeasureWidth_2</tabstop>
+  <tabstop>resetMinMeasureWidth</tabstop>
+  <tabstop>lastSystemFillThreshold</tabstop>
+  <tabstop>resetLastSystemFillThreshold</tabstop>
+  <tabstop>clefKeyDistance</tabstop>
+  <tabstop>resetClefKeyDistance</tabstop>
+  <tabstop>clefTimesigDistance</tabstop>
+  <tabstop>resetClefTimesigDistance</tabstop>
+  <tabstop>keyTimesigDistance</tabstop>
+  <tabstop>resetKeyTimesigDistance</tabstop>
+  <tabstop>clefKeyRightMargin</tabstop>
+  <tabstop>resetClefKeyRightMargin</tabstop>
+  <tabstop>minNoteDistance</tabstop>
+  <tabstop>resetMinNoteDistance</tabstop>
+  <tabstop>noteBarDistance</tabstop>
+  <tabstop>resetNoteBarDistance</tabstop>
+  <tabstop>barNoteDistance</tabstop>
+  <tabstop>resetBarNoteDistance</tabstop>
+  <tabstop>barAccidentalDistance</tabstop>
+  <tabstop>resetBarAccidentalDistance</tabstop>
+  <tabstop>barGraceDistance</tabstop>
+  <tabstop>resetBarGraceDistance</tabstop>
+  <tabstop>clefLeftMargin</tabstop>
+  <tabstop>resetClefLeftMargin</tabstop>
+  <tabstop>clefBarlineDistance</tabstop>
+  <tabstop>resetClefBarlineDistance</tabstop>
+  <tabstop>keysigLeftMargin</tabstop>
+  <tabstop>resetKeysigLeftMargin</tabstop>
+  <tabstop>keyBarlineDistance</tabstop>
+  <tabstop>resetKeyBarlineDistance</tabstop>
+  <tabstop>timesigLeftMargin</tabstop>
+  <tabstop>resetTimesigLeftMargin</tabstop>
+  <tabstop>timesigBarlineDistance</tabstop>
+  <tabstop>resetTimesigBarlineDistance</tabstop>
+  <tabstop>systemHeaderDistance</tabstop>
+  <tabstop>resetSystemHeaderDistance</tabstop>
+  <tabstop>systemHeaderTimeSigDistance</tabstop>
+  <tabstop>resetSystemHeaderTimeSigDistance</tabstop>
+  <tabstop>systemHeaderMinStartOfSystemDistance</tabstop>
+  <tabstop>resetSystemHeaderMinStartOfSystemDistance</tabstop>
   <tabstop>maskBarlines</tabstop>
-  <tabstop>partialSlursAngleNormal</tabstop>
   <tabstop>resetMaskBarlines</tabstop>
-  <tabstop>partialSlursAngleWeird</tabstop>
   <tabstop>smallStaffSize</tabstop>
   <tabstop>resetSmallStaffSize</tabstop>
   <tabstop>smallClefSize</tabstop>
@@ -14779,31 +14457,6 @@ followed by dashes</string>
   <tabstop>evenFooterL</tabstop>
   <tabstop>evenFooterC</tabstop>
   <tabstop>evenFooterR</tabstop>
-  <tabstop>showMeasureNumber</tabstop>
-  <tabstop>showFirstMeasureNumber</tabstop>
-  <tabstop>measureNumberVPlacement</tabstop>
-  <tabstop>resetMeasureNumberVPlacement</tabstop>
-  <tabstop>showAllStavesMeasureNumber</tabstop>
-  <tabstop>measureNumberHPlacement</tabstop>
-  <tabstop>resetMeasureNumberHPlacement</tabstop>
-  <tabstop>showEverySystemMeasureNumber</tabstop>
-  <tabstop>measureNumberPosAbove</tabstop>
-  <tabstop>resetMeasureNumberPosAbove</tabstop>
-  <tabstop>showIntervalMeasureNumber</tabstop>
-  <tabstop>intervalMeasureNumber</tabstop>
-  <tabstop>measureNumberPosBelow</tabstop>
-  <tabstop>resetMeasureNumberPosBelow</tabstop>
-  <tabstop>mmRestShowMeasureNumberRange</tabstop>
-  <tabstop>mmRestRangeBracketType</tabstop>
-  <tabstop>resetMmRestRangeBracketType</tabstop>
-  <tabstop>mmRestRangeVPlacement</tabstop>
-  <tabstop>resetMmRestRangeVPlacement</tabstop>
-  <tabstop>mmRestRangeHPlacement</tabstop>
-  <tabstop>resetMmRestRangeHPlacement</tabstop>
-  <tabstop>mmRestRangePosAbove</tabstop>
-  <tabstop>resetMMRestRangePosAbove</tabstop>
-  <tabstop>mmRestRangePosBelow</tabstop>
-  <tabstop>resetMMRestRangePosBelow</tabstop>
   <tabstop>bracketWidth</tabstop>
   <tabstop>resetBracketThickness</tabstop>
   <tabstop>akkoladeWidth</tabstop>
@@ -14949,6 +14602,8 @@ followed by dashes</string>
   <tabstop>resetSlurDottedLineWidth</tabstop>
   <tabstop>slurMinDistance</tabstop>
   <tabstop>resetSlurMinDistance</tabstop>
+  <tabstop>partialSlursAngleNormal</tabstop>
+  <tabstop>partialSlursAngleWeird</tabstop>
   <tabstop>tieEndLineWidth</tabstop>
   <tabstop>resetTieEndLineWidth</tabstop>
   <tabstop>tieMidLineWidth</tabstop>
@@ -15121,6 +14776,8 @@ followed by dashes</string>
   <tabstop>resetLyricsPosBelow</tabstop>
   <tabstop>lyricsLineHeight</tabstop>
   <tabstop>resetLyricsLineHeight</tabstop>
+  <tabstop>lyricsAvoidBarlines</tabstop>
+  <tabstop>resetLyricsAvoidBarlines</tabstop>
   <tabstop>lyricsMinTopDistance</tabstop>
   <tabstop>resetLyricsMinTopDistance</tabstop>
   <tabstop>lyricsMinBottomDistance</tabstop>
@@ -15135,12 +14792,19 @@ followed by dashes</string>
   <tabstop>resetLyricsDashMaxLength</tabstop>
   <tabstop>lyricsDashLineThickness</tabstop>
   <tabstop>resetLyricsDashLineThickness</tabstop>
+  <tabstop>lyricsDashYposRatio</tabstop>
+  <tabstop>resetLyricsDashYposRatio</tabstop>
   <tabstop>lyricsDashPad</tabstop>
   <tabstop>resetLyricsDashPad</tabstop>
   <tabstop>lyricsDashMaxDistance</tabstop>
   <tabstop>resetLyricsDashMaxDistance</tabstop>
+  <tabstop>limitDashCount</tabstop>
+  <tabstop>lyricsMaxDashCount</tabstop>
+  <tabstop>resetLyricsMaxDashCount</tabstop>
   <tabstop>lyricsDashForce</tabstop>
   <tabstop>resetLyricsDashForce</tabstop>
+  <tabstop>lyricsCenterDashedSyllables</tabstop>
+  <tabstop>lyricsResetCenterDashedSyllables</tabstop>
   <tabstop>lyricsShowDashIfSyllableOnFirstNote</tabstop>
   <tabstop>resetLyricsShowDashIfSyllableOnFirstNote</tabstop>
   <tabstop>lyricsDashStartSystemPlacement</tabstop>
@@ -15243,96 +14907,6 @@ followed by dashes</string>
   <tabstop>resetTextStyleFrameBorderRadius</tabstop>
   <tabstop>buttonTogglePagelist</tabstop>
   <tabstop>resetStylesButton</tabstop>
-  <tabstop>spacingScrollArea</tabstop>
-  <tabstop>staffUpperBorder</tabstop>
-  <tabstop>resetStaffUpperBorder</tabstop>
-  <tabstop>staffLowerBorder</tabstop>
-  <tabstop>resetStaffLowerBorder</tabstop>
-  <tabstop>enableVerticalSpread</tabstop>
-  <tabstop>spreadSystem</tabstop>
-  <tabstop>resetSpreadSystem</tabstop>
-  <tabstop>spreadSquareBracket</tabstop>
-  <tabstop>resetSpreadSquareBracket</tabstop>
-  <tabstop>spreadCurlyBracket</tabstop>
-  <tabstop>resetSpreadCurlyBracket</tabstop>
-  <tabstop>minSystemSpread</tabstop>
-  <tabstop>resetMinSystemSpread</tabstop>
-  <tabstop>maxSystemSpread</tabstop>
-  <tabstop>resetMaxSystemSpread</tabstop>
-  <tabstop>minStaffSpread</tabstop>
-  <tabstop>resetMinStaffSpread</tabstop>
-  <tabstop>maxStaffSpread</tabstop>
-  <tabstop>resetMaxStaffSpread</tabstop>
-  <tabstop>maxAkkoladeDistance</tabstop>
-  <tabstop>resetMaxAkkoladeDistance</tabstop>
-  <tabstop>maxPageFillSpread</tabstop>
-  <tabstop>resetMaxPageFillSpread</tabstop>
-  <tabstop>disableVerticalSpread</tabstop>
-  <tabstop>staffDistance</tabstop>
-  <tabstop>resetStaffDistance</tabstop>
-  <tabstop>akkoladeDistance</tabstop>
-  <tabstop>resetAkkoladeDistance</tabstop>
-  <tabstop>minSystemDistance</tabstop>
-  <tabstop>resetMinSystemDistance</tabstop>
-  <tabstop>maxSystemDistance</tabstop>
-  <tabstop>resetMaxSystemDistance</tabstop>
-  <tabstop>systemFrameDistance</tabstop>
-  <tabstop>resetSystemFrameDistance</tabstop>
-  <tabstop>frameSystemDistance</tabstop>
-  <tabstop>resetFrameSystemDistance</tabstop>
-  <tabstop>spacingDensity</tabstop>
-  <tabstop>resetSpacingDensity</tabstop>
-  <tabstop>measureSpacing</tabstop>
-  <tabstop>resetMeasureSpacing</tabstop>
-  <tabstop>minMeasureWidth_2</tabstop>
-  <tabstop>resetMinMeasureWidth</tabstop>
-  <tabstop>lastSystemFillThreshold</tabstop>
-  <tabstop>resetLastSystemFillThreshold</tabstop>
-  <tabstop>clefKeyDistance</tabstop>
-  <tabstop>resetClefKeyDistance</tabstop>
-  <tabstop>clefTimesigDistance</tabstop>
-  <tabstop>resetClefTimesigDistance</tabstop>
-  <tabstop>keyTimesigDistance</tabstop>
-  <tabstop>resetKeyTimesigDistance</tabstop>
-  <tabstop>clefKeyRightMargin</tabstop>
-  <tabstop>resetClefKeyRightMargin</tabstop>
-  <tabstop>minNoteDistance</tabstop>
-  <tabstop>resetMinNoteDistance</tabstop>
-  <tabstop>noteBarDistance</tabstop>
-  <tabstop>resetNoteBarDistance</tabstop>
-  <tabstop>barNoteDistance</tabstop>
-  <tabstop>resetBarNoteDistance</tabstop>
-  <tabstop>barAccidentalDistance</tabstop>
-  <tabstop>resetBarAccidentalDistance</tabstop>
-  <tabstop>barGraceDistance</tabstop>
-  <tabstop>resetBarGraceDistance</tabstop>
-  <tabstop>clefLeftMargin</tabstop>
-  <tabstop>resetClefLeftMargin</tabstop>
-  <tabstop>clefBarlineDistance</tabstop>
-  <tabstop>resetClefBarlineDistance</tabstop>
-  <tabstop>keysigLeftMargin</tabstop>
-  <tabstop>resetKeysigLeftMargin</tabstop>
-  <tabstop>keyBarlineDistance</tabstop>
-  <tabstop>resetKeyBarlineDistance</tabstop>
-  <tabstop>timesigLeftMargin</tabstop>
-  <tabstop>resetTimesigLeftMargin</tabstop>
-  <tabstop>timesigBarlineDistance</tabstop>
-  <tabstop>resetTimesigBarlineDistance</tabstop>
-  <tabstop>systemHeaderDistance</tabstop>
-  <tabstop>resetSystemHeaderDistance</tabstop>
-  <tabstop>systemHeaderTimeSigDistance</tabstop>
-  <tabstop>resetSystemHeaderTimeSigDistance</tabstop>
-  <tabstop>systemHeaderMinStartOfSystemDistance</tabstop>
-  <tabstop>resetSystemHeaderMinStartOfSystemDistance</tabstop>
-  <tabstop>lyricsAvoidBarlines</tabstop>
-  <tabstop>resetLyricsAvoidBarlines</tabstop>
-  <tabstop>limitDashCount</tabstop>
-  <tabstop>lyricsDashYposRatio</tabstop>
-  <tabstop>resetLyricsMaxDashCount</tabstop>
-  <tabstop>resetLyricsDashYposRatio</tabstop>
-  <tabstop>lyricsMaxDashCount</tabstop>
-  <tabstop>lyricsCenterDashedSyllables</tabstop>
-  <tabstop>lyricsResetCenterDashedSyllables</tabstop>
  </tabstops>
  <resources/>
  <connections/>

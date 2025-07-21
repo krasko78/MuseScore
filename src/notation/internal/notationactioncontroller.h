@@ -124,8 +124,6 @@ private:
 
     muse::async::Promise<muse::IInteractive::Result> showErrorMessage(const std::string& message);
 
-    bool isElementsSelected(const std::vector<ElementType>& elementsTypes) const;
-
     void addText(TextStyleType type);
     void addImage();
     void addFiguredBass();
@@ -210,6 +208,7 @@ private:
     void navigateToTextElementByFraction(const Fraction& fraction);
     void navigateToTextElementInNearMeasure(MoveDirection direction);
 
+    bool startNoteInputAllowed() const;
     void startNoteInput();
 
     bool hasSelection() const;
@@ -224,7 +223,6 @@ private:
     bool canRedo() const;
 
     bool isNotationPage() const;
-    bool isStandardStaff() const;
     bool isTablatureStaff() const;
 
     void checkForScoreCorruptions();
@@ -245,6 +243,8 @@ private:
                         muse::Ret (INotationInteraction::*)() const);
 
     void registerNoteInputAction(const muse::actions::ActionCode&, NoteInputMethod inputMethod);
+
+    bool noteInputActionAllowed() const;
     void registerNoteAction(const muse::actions::ActionCode&, NoteName, NoteAddingMode addingMode = NoteAddingMode::NextChord);
 
     void registerPadNoteAction(const muse::actions::ActionCode&, Pad padding);

@@ -920,6 +920,24 @@ RHTappingSymbol TConv::fromXml(const AsciiStringView& str, RHTappingSymbol def)
     return findTypeByXmlTag<RHTappingSymbol>(RH_TAPPING_SYMBOL, str, def);
 }
 
+std::vector<Item<ParenthesesMode> > PARENTHESES_MODE
+{
+    { ParenthesesMode::NONE, "none" },
+    { ParenthesesMode::BOTH, "both" },
+    { ParenthesesMode::LEFT, "left" },
+    { ParenthesesMode::RIGHT, "right" }
+};
+
+AsciiStringView TConv::toXml(ParenthesesMode pm)
+{
+    return findXmlTagByType<ParenthesesMode>(PARENTHESES_MODE, pm);
+}
+
+ParenthesesMode TConv::fromXml(const AsciiStringView& str, ParenthesesMode def)
+{
+    return findTypeByXmlTag<ParenthesesMode>(PARENTHESES_MODE, str, def);
+}
+
 static const std::vector<Item<VoiceAssignment> > VOICE_ASSIGNMENT = {
     { VoiceAssignment::ALL_VOICE_IN_INSTRUMENT, "allInInstrument" },
     { VoiceAssignment::ALL_VOICE_IN_STAFF,      "allInStaff" },
@@ -1627,6 +1645,8 @@ static const std::vector<Item<TextStyleType> > TEXTSTYLE_TYPES = {
     { TextStyleType::PAGE_NUMBER,       "page_number",          muse::TranslatableString("engraving", "Page number") },
 
     { TextStyleType::MEASURE_NUMBER,    "measure_number",       muse::TranslatableString("engraving", "Measure number") },
+    { TextStyleType::MEASURE_NUMBER_ALTERNATE, "measure_number_alternate",
+      muse::TranslatableString("engraving", "Measure number (alternate)") },
     { TextStyleType::MMREST_RANGE,      "mmrest_range",         muse::TranslatableString("engraving", "Multimeasure rest range") },
 
     { TextStyleType::TEMPO,             "tempo",                muse::TranslatableString("engraving", "Tempo") },

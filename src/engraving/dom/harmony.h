@@ -171,11 +171,6 @@ public:
     void setRootCase(NoteCaseType c) { m_rootCase = c; }
     NoteCaseType rootCase() const { return m_rootCase; }
 
-    bool leftParen() const { return m_leftParen; }
-    bool rightParen() const { return m_rightParen; }
-    void setLeftParen(bool leftParen) { m_leftParen = leftParen; }
-    void setRightParen(bool rightParen) { m_rightParen = rightParen; }
-
     Segment* getParentSeg() const;
     FretDiagram* getParentFretDiagram() const;
     Harmony* findNext() const;
@@ -186,10 +181,10 @@ public:
     const RealizedHarmony& getRealizedHarmony() const;
 
     bool isEditable() const override { return !isInFretBox(); }
-    void startEditTextual(EditData&) override;
-    bool isTextualEditAllowed(EditData&) const override;
-    bool editTextual(EditData&) override;
-    void endEditTextual(EditData&) override;
+    void startEdit(EditData&) override;
+    bool isEditAllowed(EditData&) const override;
+    bool edit(EditData&) override;
+    void endEdit(EditData&) override;
 
     bool isPlayable() const override;
 
@@ -236,8 +231,6 @@ public:
     double bassScale() const { return m_bassScale; }
     void setBassScale(double v) { m_bassScale = v; }
 
-    void undoMoveSegment(Segment* newSeg, Fraction tickDiff) override;
-
     Color curColor() const override;
 
     bool doNotStackModifiers() const { return m_doNotStackModifiers; }
@@ -272,8 +265,6 @@ private:
 
     std::vector<HDegree> m_degreeList;
 
-    bool m_leftParen = false;
-    bool m_rightParen = false;                           // include opening and/or closing parenthesis
     bool m_play = true;                                  // whether or not to play back the harmony
     bool m_doNotStackModifiers = false;
 

@@ -624,4 +624,9 @@ enum class PercussionPanelAutoShowMode {
     UNPITCHED_STAFF_NOTE_INPUT,
     NEVER,
 };
+
+static const mu::engraving::ElementTypeSet NOTE_REST_TYPES {
+    mu::engraving::ElementType::NOTE,
+    mu::engraving::ElementType::REST,
+};
 }

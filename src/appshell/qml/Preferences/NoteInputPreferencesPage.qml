@@ -68,7 +68,7 @@ PreferencesPage {
 
         MidiInputSection {
             midiInputEnabled: noteInputModel.midiInputEnabled
-            startNoteInputWhenPressingKey: noteInputModel.startNoteInputAtSelectionWhenPressingMidiKey
+            startNoteInputWhenPressingKey: noteInputModel.startNoteInputAtSelectedNoteRestWhenPressingMidiKey
             advanceToNextNote: noteInputModel.advanceToNextNoteOnKeyRelease
             delayBetweenNotes: noteInputModel.delayBetweenNotesInRealTimeModeMilliseconds
 
@@ -80,7 +80,7 @@ PreferencesPage {
             }
 
             onStartNoteInputWhenPressingKeyChangeRequested: function(start) {
-                noteInputModel.startNoteInputAtSelectionWhenPressingMidiKey = start
+                noteInputModel.startNoteInputAtSelectedNoteRestWhenPressingMidiKey = start
             }
 
             onAdvanceToNextNoteChangeRequested: function(advance) {
@@ -100,6 +100,7 @@ PreferencesPage {
             playChordWhenEditing: noteInputModel.playNotesWhenEditing ? noteInputModel.playChordWhenEditing : false
             playChordSymbolWhenEditing: noteInputModel.playNotesWhenEditing ? noteInputModel.playChordSymbolWhenEditing : false
             notePlayDurationMilliseconds: noteInputModel.notePlayDurationMilliseconds
+            playNotesWithScoreDynamics: noteInputModel.playPreviewNotesWithScoreDynamics
 
             playNotesOnMidiInput: noteInputModel.playNotesWhenEditing && noteInputModel.midiInputEnabled ? noteInputModel.playNotesOnMidiInput : false
             playNotesOnMidiInputBoxEnabled: noteInputModel.midiInputEnabled && noteInputModel.playNotesWhenEditing
@@ -125,6 +126,10 @@ PreferencesPage {
 
             onNotePlayDurationChangeRequested: function(duration) {
                 noteInputModel.notePlayDurationMilliseconds = duration
+            }
+
+            onPlayNotesWithScoreDynamicsChangeRequested: function(play) {
+                noteInputModel.playPreviewNotesWithScoreDynamics = play
             }
 
             onPlayNotesOnMidiInputChangeRequested: function(play) {

@@ -49,8 +49,8 @@ void NoteInputPreferencesModel::load()
         emit midiInputEnabledChanged(midiInputEnabled());
     });
 
-    notationConfiguration()->startNoteInputAtSelectionWhenPressingMidiKeyChanged().onNotify(this, [this]() {
-        emit startNoteInputAtSelectionWhenPressingMidiKeyChanged(startNoteInputAtSelectionWhenPressingMidiKey());
+    notationConfiguration()->startNoteInputAtSelectedNoteRestWhenPressingMidiKeyChanged().onNotify(this, [this]() {
+        emit startNoteInputAtSelectedNoteRestWhenPressingMidiKeyChanged(startNoteInputAtSelectedNoteRestWhenPressingMidiKey());
     });
 
     playbackConfiguration()->playNotesWhenEditingChanged().onNotify(this, [this]() {
@@ -67,6 +67,10 @@ void NoteInputPreferencesModel::load()
 
     playbackConfiguration()->playNotesOnMidiInputChanged().onReceive(this, [this](bool value) {
         emit playNotesOnMidiInputChanged(value);
+    });
+
+    notationConfiguration()->playPreviewNotesWithScoreDynamicsChanged().onNotify(this, [this]() {
+        emit playPreviewNotesWithScoreDynamicsChanged(playPreviewNotesWithScoreDynamics());
     });
 
     notationConfiguration()->isPlayPreviewNotesInInputByDurationChanged().onNotify(this, [this]() {
@@ -146,9 +150,9 @@ bool NoteInputPreferencesModel::midiInputEnabled() const
     return notationConfiguration()->isMidiInputEnabled();
 }
 
-bool NoteInputPreferencesModel::startNoteInputAtSelectionWhenPressingMidiKey() const
+bool NoteInputPreferencesModel::startNoteInputAtSelectedNoteRestWhenPressingMidiKey() const
 {
-    return notationConfiguration()->startNoteInputAtSelectionWhenPressingMidiKey();
+    return notationConfiguration()->startNoteInputAtSelectedNoteRestWhenPressingMidiKey();
 }
 
 bool NoteInputPreferencesModel::advanceToNextNoteOnKeyRelease() const
@@ -184,6 +188,11 @@ bool NoteInputPreferencesModel::playChordWhenEditing() const
 bool NoteInputPreferencesModel::playChordSymbolWhenEditing() const
 {
     return playbackConfiguration()->playHarmonyWhenEditing();
+}
+
+bool NoteInputPreferencesModel::playPreviewNotesWithScoreDynamics() const
+{
+    return notationConfiguration()->playPreviewNotesWithScoreDynamics();
 }
 
 bool NoteInputPreferencesModel::playNotesOnMidiInput() const
@@ -242,13 +251,13 @@ void NoteInputPreferencesModel::setMidiInputEnabled(bool value)
     notationConfiguration()->setIsMidiInputEnabled(value);
 }
 
-void NoteInputPreferencesModel::setStartNoteInputAtSelectionWhenPressingMidiKey(bool value)
+void NoteInputPreferencesModel::setStartNoteInputAtSelectedNoteRestWhenPressingMidiKey(bool value)
 {
-    if (value == startNoteInputAtSelectionWhenPressingMidiKey()) {
+    if (value == startNoteInputAtSelectedNoteRestWhenPressingMidiKey()) {
         return;
     }
 
-    notationConfiguration()->setStartNoteInputAtSelectionWhenPressingMidiKey(value);
+    notationConfiguration()->setStartNoteInputAtSelectedNoteRestWhenPressingMidiKey(value);
 }
 
 void NoteInputPreferencesModel::setAdvanceToNextNoteOnKeyRelease(bool value)
@@ -312,6 +321,15 @@ void NoteInputPreferencesModel::setPlayChordSymbolWhenEditing(bool value)
     }
 
     playbackConfiguration()->setPlayHarmonyWhenEditing(value);
+}
+
+void NoteInputPreferencesModel::setPlayPreviewNotesWithScoreDynamics(bool play)
+{
+    if (play == playPreviewNotesWithScoreDynamics()) {
+        return;
+    }
+
+    notationConfiguration()->setPlayPreviewNotesWithScoreDynamics(play);
 }
 
 void NoteInputPreferencesModel::setPlayNotesOnMidiInput(bool value)

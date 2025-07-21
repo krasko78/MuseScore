@@ -1048,7 +1048,15 @@ bool Read206::readNoteProperties206(Note* note, XmlReader& e, ReadContext& ctx)
         Symbol* s = new Symbol(note);
         s->setTrack(note->track());
         read400::TRead::read(s, e, ctx);
-        note->add(s);
+        if (s->sym() == SymId::noteheadParenthesisLeft) {
+            note->setParenthesesMode(note->rightParen() ? ParenthesesMode::BOTH : ParenthesesMode::LEFT);
+            ctx.score()->deleteLater(s);
+        } else if (s->sym() == SymId::noteheadParenthesisRight) {
+            note->setParenthesesMode(note->leftParen() ? ParenthesesMode::BOTH : ParenthesesMode::RIGHT);
+            ctx.score()->deleteLater(s);
+        } else {
+            note->add(s);
+        }
     } else if (tag == "Image") {
         if (MScore::noImages) {
             e.skipCurrentElement();
@@ -3012,7 +3020,7 @@ static void readMeasure206(Measure* m, int staffIdx, XmlReader& e, ReadContext& 
             readText206(e, ctx, noText, m);
             noText->setTrack(ctx.track());
             noText->setParent(m);
-            m->setNoText(noText->staffIdx(), noText);
+            m->setMeasureNumber(noText->staffIdx(), noText);
         } else if (tag == "SystemDivider") {
             SystemDivider* sd = new SystemDivider(ctx.dummy()->system());
             read400::TRead::read(sd, e, ctx);

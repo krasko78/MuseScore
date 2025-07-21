@@ -44,6 +44,8 @@ RadioDelegate {
 
     hoverEnabled: true
 
+    opacity: root.enabled ? 1.0 : ui.theme.itemOpacityDisabled
+
     onToggled: {
         navigation.requestActiveByInteraction()
     }

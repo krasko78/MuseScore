@@ -359,16 +359,16 @@ muse::async::Notification NotationConfigurationStub::isMidiInputEnabledChanged()
     return n;
 }
 
-bool NotationConfigurationStub::startNoteInputAtSelectionWhenPressingMidiKey() const
+bool NotationConfigurationStub::startNoteInputAtSelectedNoteRestWhenPressingMidiKey() const
 {
     return false;
 }
 
-void NotationConfigurationStub::setStartNoteInputAtSelectionWhenPressingMidiKey(bool)
+void NotationConfigurationStub::setStartNoteInputAtSelectedNoteRestWhenPressingMidiKey(bool)
 {
 }
 
-muse::async::Notification NotationConfigurationStub::startNoteInputAtSelectionWhenPressingMidiKeyChanged() const
+muse::async::Notification NotationConfigurationStub::startNoteInputAtSelectedNoteRestWhenPressingMidiKeyChanged() const
 {
     static muse::async::Notification n;
     return n;
@@ -426,6 +426,20 @@ muse::async::Notification NotationConfigurationStub::isPlayPreviewNotesInInputBy
 {
     static muse::async::Notification n;
     return n;
+}
+
+bool NotationConfigurationStub::playPreviewNotesWithScoreDynamics() const
+{
+    return false;
+}
+
+void NotationConfigurationStub::setPlayPreviewNotesWithScoreDynamics(bool)
+{
+}
+
+muse::async::Notification NotationConfigurationStub::playPreviewNotesWithScoreDynamicsChanged() const
+{
+    return {};
 }
 
 bool NotationConfigurationStub::isMetronomeEnabled() const

@@ -61,6 +61,8 @@ public:
     void init() override;
     void resetToDefault() override;
 
+    void toggleFloating();
+
 public slots:
     void setOrientation(Qt::Orientation orientation);
     void setAlignment(int alignment);

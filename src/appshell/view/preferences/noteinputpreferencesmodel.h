@@ -47,7 +47,7 @@ class NoteInputPreferencesModel : public QObject, public muse::Injectable, publi
 
     Q_PROPERTY(bool midiInputEnabled READ midiInputEnabled WRITE setMidiInputEnabled NOTIFY midiInputEnabledChanged)
     Q_PROPERTY(
-        bool startNoteInputAtSelectionWhenPressingMidiKey READ startNoteInputAtSelectionWhenPressingMidiKey WRITE setStartNoteInputAtSelectionWhenPressingMidiKey NOTIFY startNoteInputAtSelectionWhenPressingMidiKeyChanged)
+        bool startNoteInputAtSelectedNoteRestWhenPressingMidiKey READ startNoteInputAtSelectedNoteRestWhenPressingMidiKey WRITE setStartNoteInputAtSelectedNoteRestWhenPressingMidiKey NOTIFY startNoteInputAtSelectedNoteRestWhenPressingMidiKeyChanged)
     Q_PROPERTY(
         bool advanceToNextNoteOnKeyRelease READ advanceToNextNoteOnKeyRelease WRITE setAdvanceToNextNoteOnKeyRelease NOTIFY advanceToNextNoteOnKeyReleaseChanged)
     Q_PROPERTY(
@@ -65,6 +65,8 @@ class NoteInputPreferencesModel : public QObject, public muse::Injectable, publi
     Q_PROPERTY(bool playChordWhenEditing READ playChordWhenEditing WRITE setPlayChordWhenEditing NOTIFY playChordWhenEditingChanged)
     Q_PROPERTY(
         bool playChordSymbolWhenEditing READ playChordSymbolWhenEditing WRITE setPlayChordSymbolWhenEditing NOTIFY playChordSymbolWhenEditingChanged)
+    Q_PROPERTY(
+        bool playPreviewNotesWithScoreDynamics READ playPreviewNotesWithScoreDynamics WRITE setPlayPreviewNotesWithScoreDynamics NOTIFY playPreviewNotesWithScoreDynamicsChanged)
     Q_PROPERTY(bool playNotesOnMidiInput READ playNotesOnMidiInput WRITE setPlayNotesOnMidiInput NOTIFY playNotesOnMidiInputChanged)
 
     Q_PROPERTY(
@@ -91,7 +93,7 @@ public:
     bool useNoteInputCursorInInputByDuration() const;
 
     bool midiInputEnabled() const;
-    bool startNoteInputAtSelectionWhenPressingMidiKey() const;
+    bool startNoteInputAtSelectedNoteRestWhenPressingMidiKey() const;
     bool advanceToNextNoteOnKeyRelease() const;
     int delayBetweenNotesInRealTimeModeMilliseconds() const;
 
@@ -100,6 +102,7 @@ public:
     int notePlayDurationMilliseconds() const;
     bool playChordWhenEditing() const;
     bool playChordSymbolWhenEditing() const;
+    bool playPreviewNotesWithScoreDynamics() const;
     bool playNotesOnMidiInput() const;
 
     bool dynamicsApplyToAllVoices() const;
@@ -115,7 +118,7 @@ public slots:
     void setUseNoteInputCursorInInputByDuration(bool value);
 
     void setMidiInputEnabled(bool value);
-    void setStartNoteInputAtSelectionWhenPressingMidiKey(bool value);
+    void setStartNoteInputAtSelectedNoteRestWhenPressingMidiKey(bool value);
     void setAdvanceToNextNoteOnKeyRelease(bool value);
     void setDelayBetweenNotesInRealTimeModeMilliseconds(int delay);
 
@@ -124,6 +127,7 @@ public slots:
     void setNotePlayDurationMilliseconds(int duration);
     void setPlayChordWhenEditing(bool value);
     void setPlayChordSymbolWhenEditing(bool value);
+    void setPlayPreviewNotesWithScoreDynamics(bool value);
     void setPlayNotesOnMidiInput(bool value);
 
     void setDynamicsApplyToAllVoices(bool value);
@@ -139,7 +143,7 @@ signals:
     void useNoteInputCursorInInputByDurationChanged(bool value);
 
     void midiInputEnabledChanged(bool value);
-    void startNoteInputAtSelectionWhenPressingMidiKeyChanged(bool value);
+    void startNoteInputAtSelectedNoteRestWhenPressingMidiKeyChanged(bool value);
     void advanceToNextNoteOnKeyReleaseChanged(bool value);
     void delayBetweenNotesInRealTimeModeMillisecondsChanged(int delay);
 
@@ -148,6 +152,7 @@ signals:
     void notePlayDurationMillisecondsChanged(int duration);
     void playChordWhenEditingChanged(bool value);
     void playChordSymbolWhenEditingChanged(bool value);
+    void playPreviewNotesWithScoreDynamicsChanged(bool value);
     void playNotesOnMidiInputChanged(bool value);
 
     void dynamicsApplyToAllVoicesChanged(bool value);
