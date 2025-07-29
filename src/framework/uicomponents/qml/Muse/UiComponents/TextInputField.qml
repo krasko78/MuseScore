@@ -118,6 +118,7 @@ FocusScope {
             }
         }
 
+        // Focus the text input field with Enter/Space when it is the navigation-active control.
         onTriggered: root.ensureActiveFocus()
     }
 
@@ -193,6 +194,8 @@ FocusScope {
                     return
                 }
 
+                // Pass the UP/DOWN arrow keys on without defocusing the text input field
+                // to allow the containing control (e.g. IncrementalPropertyControl) to react to them.
                 if (event.key === Qt.Key_Up || event.key === Qt.Key_Down) {
                     return;
                 }

@@ -20,38 +20,36 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef MU_APPSHELL_FREMELESSWINDOWMODEL_H
-#define MU_APPSHELL_FREMELESSWINDOWMODEL_H
+#pragma once
 
 #include <QObject>
 
 class QWindow;
 
 namespace mu::appshell {
-class FramelessWindowController;
-class FramelessWindowModel : public QObject
+class WindowsController;
+class WindowsModel : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(QRect titleBarMoveArea READ titleBarMoveArea WRITE setTitleBarMoveArea NOTIFY titleBarMoveAreaChanged)
+    Q_PROPERTY(
+        QRect mainWindowTitleBarMoveArea READ mainWindowTitleBarMoveArea WRITE setMainWindowTitleBarMoveArea NOTIFY mainWindowTitleBarMoveAreaChanged)
 
 public:
-    explicit FramelessWindowModel(QObject* parent = nullptr);
-    ~FramelessWindowModel();
+    explicit WindowsModel(QObject* parent = nullptr);
+    ~WindowsModel();
 
     Q_INVOKABLE void init();
 
-    QRect titleBarMoveArea() const;
+    QRect mainWindowTitleBarMoveArea() const;
 
 public slots:
-    void setTitleBarMoveArea(const QRect& area);
+    void setMainWindowTitleBarMoveArea(const QRect& area);
 
 signals:
-    void titleBarMoveAreaChanged(QRect titleBarMoveArea);
+    void mainWindowTitleBarMoveAreaChanged(QRect titleBarMoveArea);
 
 private:
-    FramelessWindowController* m_controller = nullptr;
+    WindowsController* m_controller = nullptr;
 };
 }
-
-#endif // MU_APPSHELL_FREMELESSWINDOWMODEL_H

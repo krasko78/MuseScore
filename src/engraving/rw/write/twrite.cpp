@@ -454,7 +454,12 @@ void TWrite::writeItemEid(const EngravingObject* item, XmlWriter& xml, WriteCont
     if (!eid.isValid()) {
         eid = item->assignNewEID();
     }
-    xml.tag("eid", eid.toStdString());
+
+    std::array<char, EID::MAX_STR_SIZE> buf{};
+    const char* last = eid.toChars(buf.data(), buf.data() + buf.size());
+    const auto size = static_cast<size_t>(last - buf.data());
+
+    xml.tag("eid", AsciiStringView { buf.data(), size });
 }
 
 void TWrite::writeItemLink(const EngravingObject* item, XmlWriter& xml, WriteContext& ctx)
@@ -467,7 +472,7 @@ void TWrite::writeItemLink(const EngravingObject* item, XmlWriter& xml, WriteCon
     if (mainElement != item) {
         EID eidOfMainElement = mainElement->eid();
         DO_ASSERT(eidOfMainElement.isValid());
-        xml.tag("linkedTo", mainElement->eid().toStdString());
+        xml.tag("linkedTo", eidOfMainElement.toStdString());
     }
 }
 
@@ -802,6 +807,7 @@ void TWrite::write(const FBox* item, XmlWriter& xml, WriteContext& ctx)
     writeProperty(item, xml, Pid::FRET_FRAME_ROW_GAP);
     writeProperty(item, xml, Pid::FRET_FRAME_CHORDS_PER_ROW);
     writeProperty(item, xml, Pid::FRET_FRAME_H_ALIGN);
+    writeProperty(item, xml, Pid::FRET_FRAME_DIAGRAMS_ORDER);
 
     writeProperties(static_cast<const Box*>(item), xml, ctx);
 
@@ -2733,9 +2739,6 @@ void TWrite::write(const Staff* item, XmlWriter& xml, WriteContext& ctx)
         xml.tag("defaultTransposingClef", TConv::toXml(ct.transposingClef));
     }
 
-    if (item->isLinesInvisible(Fraction(0, 1))) {
-        xml.tag("invisible", item->isLinesInvisible(Fraction(0, 1)));
-    }
     if (item->hideWhenEmpty() != Staff::HideMode::AUTO) {
         xml.tag("hideWhenEmpty", int(item->hideWhenEmpty()));
     }
@@ -2769,7 +2772,6 @@ void TWrite::write(const Staff* item, XmlWriter& xml, WriteContext& ctx)
     writeProperty(item, xml, Pid::STAFF_BARLINE_SPAN_FROM);
     writeProperty(item, xml, Pid::STAFF_BARLINE_SPAN_TO);
     writeProperty(item, xml, Pid::STAFF_USERDIST);
-    writeProperty(item, xml, Pid::STAFF_COLOR);
     writeProperty(item, xml, Pid::PLAYBACK_VOICE1);
     writeProperty(item, xml, Pid::PLAYBACK_VOICE2);
     writeProperty(item, xml, Pid::PLAYBACK_VOICE3);

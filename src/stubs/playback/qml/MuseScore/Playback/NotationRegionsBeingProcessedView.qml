@@ -5,7 +5,7 @@
  * MuseScore Studio
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore Limited
+ * Copyright (C) 2025 MuseScore Limited
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -19,29 +19,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+import QtQuick 2.15
 
-#include "framelesswindowcontroller.h"
+Loader {
+    id: root
 
-using namespace mu::appshell;
+    property rect notationViewRect
+    property var notationViewMatrix
 
-void FramelessWindowController::init()
-{
-}
+    active: false
+    enabled: false
 
-QRect FramelessWindowController::windowTitleBarMoveArea() const
-{
-    return m_windowTitleBarMoveArea;
-}
-
-void FramelessWindowController::setWindowTitleBarMoveArea(const QRect& area)
-{
-    m_windowTitleBarMoveArea = area;
-}
-
-bool FramelessWindowController::nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result)
-{
-    Q_UNUSED(eventType)
-    Q_UNUSED(message)
-    Q_UNUSED(result)
-    return true;
 }

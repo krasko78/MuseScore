@@ -4454,7 +4454,7 @@ void MusicXmlParserDirection::textToCrescLine(String& text)
     text.clear();
     Hairpin* line = Factory::createHairpin(m_score->dummy()->segment());
 
-    line->setHairpinType(cresc ? HairpinType::CRESC_LINE : HairpinType::DECRESC_LINE);
+    line->setHairpinType(cresc ? HairpinType::CRESC_LINE : HairpinType::DIM_LINE);
     line->setBeginText(simplifiedText);
     line->setContinueText(u"");
     line->setProperty(Pid::LINE_VISIBLE, false);
@@ -5338,7 +5338,7 @@ void MusicXmlParserDirection::wedge(const String& type, const int number,
     if (type == "crescendo" || type == "diminuendo") {
         Hairpin* h = spdesc.isStopped ? toHairpin(spdesc.sp) : Factory::createHairpin(m_score->dummy()->segment());
         h->setHairpinType(type == "crescendo"
-                          ? HairpinType::CRESC_HAIRPIN : HairpinType::DECRESC_HAIRPIN);
+                          ? HairpinType::CRESC_HAIRPIN : HairpinType::DIM_HAIRPIN);
         if (niente == "yes") {
             h->setHairpinCircledTip(true);
         }
@@ -8181,9 +8181,17 @@ static void addSlur(const Notation& notation, SlurStack& slurs, ChordRest* cr, c
         } else if (slurs[slurNo].isStop()) {
             // slur start when slur already stopped: wrap up
             Slur* newSlur = slurs[slurNo].slur();
+            newSlur->setTrack(track);
             newSlur->setTick(Fraction::fromTicks(tick));
             newSlur->setStartElement(cr);
+            newSlur->setTick2(newSlur->endElement()->tick());
             slurs[slurNo] = SlurDesc();
+            if (newSlur->ticks().negative()) {
+                logger->logError(String(u"slur end is before slur start"), xmlreader);
+                delete newSlur;
+                return;
+            }
+            score->addElement(newSlur);
         } else {
             // slur start for new slur: init
             Slur* newSlur = Factory::createSlur(score->dummy());
@@ -8220,7 +8228,6 @@ static void addSlur(const Notation& notation, SlurStack& slurs, ChordRest* cr, c
             newSlur->setTrack(track);
             newSlur->setTrack2(track);
             slurs[slurNo].start(newSlur);
-            score->addElement(newSlur);
         }
     } else if (slurType == u"stop") {
         if (slurs[slurNo].isStart()) {
@@ -8232,6 +8239,7 @@ static void addSlur(const Notation& notation, SlurStack& slurs, ChordRest* cr, c
             }
             newSlur->setEndElement(cr);
             slurs[slurNo] = SlurDesc();
+            score->addElement(newSlur);
         } else if (slurs[slurNo].isStop()) {
             // slur stop when slur already stopped: report error
             logger->logError(String(u"ignoring duplicate slur stop"), xmlreader);
@@ -8239,7 +8247,6 @@ static void addSlur(const Notation& notation, SlurStack& slurs, ChordRest* cr, c
             // slur stop for new slur: init
             Slur* newSlur = Factory::createSlur(score->dummy());
             if (!(cr->isGrace())) {
-                newSlur->setTick2(Fraction::fromTicks(tick));
                 newSlur->setTrack2(track);
             }
             newSlur->setEndElement(cr);

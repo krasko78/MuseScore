@@ -94,6 +94,12 @@ int main(int argc, char** argv)
     qputenv("QT_STYLE_OVERRIDE", "Fusion");
     qputenv("QML_DISABLE_DISK_CACHE", "true");
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+    if (!qEnvironmentVariableIsSet("QT_QUICK_FLICKABLE_WHEEL_DECELERATION")) {
+        qputenv("QT_QUICK_FLICKABLE_WHEEL_DECELERATION", "5000");
+    }
+#endif
+
 #ifdef Q_OS_LINUX
     if (qEnvironmentVariable("QT_QPA_PLATFORM") != "offscreen") {
         qputenv("QT_QPA_PLATFORMTHEME", "gtk3");
@@ -113,12 +119,7 @@ int main(int argc, char** argv)
     }
 #endif
 
-//! NOTE: For unknown reasons, Linux scaling for 1 is defined as 1.003 in fractional scaling.
-//!       Because of this, some elements are drawn with a shift on the score.
-//!       Let's make a Linux hack and round values above 0.75(see RoundPreferFloor)
-#ifdef Q_OS_LINUX
-    QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::RoundPreferFloor);
-#elif defined(Q_OS_WIN)
+#ifdef Q_OS_WIN
     QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 #endif
 
