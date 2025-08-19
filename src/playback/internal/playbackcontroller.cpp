@@ -27,8 +27,8 @@
 #include "engraving/dom/utils.h"
 #include "engraving/dom/factory.h"
 
-#include "audio/audioutils.h"
-#include "audio/audioerrors.h"
+#include "audio/common/audioutils.h"
+#include "audio/common/audioerrors.h"
 #include "audio/devtools/inputlag.h"
 
 #include "containers.h"
@@ -1298,10 +1298,10 @@ void PlaybackController::removeTrack(const InstrumentTrackId& instrumentTrackId)
         }
     }
 
+    removeFromOnlineSounds(search->second);
+
     m_trackRemoved.send(search->second);
     m_instrumentTrackIdMap.erase(instrumentTrackId);
-
-    removeFromOnlineSounds(search->second);
 }
 
 void PlaybackController::onTrackNewlyAdded(const InstrumentTrackId& instrumentTrackId)

@@ -236,7 +236,7 @@ void LayoutPanelTreeModel::setupPartsConnections()
     m_notation->parts()->systemObjectStavesChanged().onNotify(this, [this]() {
         m_shouldUpdateSystemObjectLayers = true;
         if (!m_isLoadingBlocked) {
-            updateSystemObjectLayers();
+            load();
         }
     });
 }
@@ -310,7 +310,11 @@ void LayoutPanelTreeModel::setupNotationConnections()
         updateSelectedRows();
     });
 
-    m_notation->undoStack()->changesChannel().onReceive(this, [this](const mu::engraving::ScoreChangesRange& changes) {
+    m_notation->undoStack()->changesChannel().onReceive(this, [this](const mu::engraving::ScoreChanges& changes) {
+        if (changes.isTextEditing) {
+            return;
+        }
+
         if (!m_layoutPanelVisible) {
             m_scoreChanged = true;
             return;
@@ -351,7 +355,7 @@ void LayoutPanelTreeModel::updateSelectedRows()
     }
 }
 
-void LayoutPanelTreeModel::onScoreChanged(const mu::engraving::ScoreChangesRange& changes)
+void LayoutPanelTreeModel::onScoreChanged(const mu::engraving::ScoreChanges& changes)
 {
     if (!m_rootItem) {
         return;
@@ -410,13 +414,21 @@ void LayoutPanelTreeModel::load()
     for (const Part* part : masterParts) {
         if (showSystemObjectLayers) {
             for (Staff* staff : part->staves()) {
-                if (muse::contains(systemObjectStaves, staff)) {
+                if (!staff->hasSystemObjectsBelowBottomStaff() && muse::contains(systemObjectStaves, staff)) {
                     m_rootItem->appendChild(buildSystemObjectsLayerItem(staff, systemObjects[staff]));
                 }
             }
         }
 
         m_rootItem->appendChild(buildMasterPartItem(part));
+
+        if (showSystemObjectLayers) {
+            for (Staff* staff : part->staves()) {
+                if (staff->hasSystemObjectsBelowBottomStaff()) {
+                    m_rootItem->appendChild(buildSystemObjectsLayerItem(staff, systemObjects[staff]));
+                }
+            }
+        }
     }
 
     endResetModel();
@@ -906,7 +918,7 @@ void LayoutPanelTreeModel::updateMovingDownAvailability(bool isSelectionMovable,
         return;
     }
 
-    int lastItemRowIndex = parentItem->childCount() - 1 - (hasControlItem ? 1 : 0) - (lastSelectedIsSystemObjectLayer ? 1 : 0);
+    int lastItemRowIndex = parentItem->childCount() - 1 - (hasControlItem ? 1 : 0);
 
     bool isRowInBoundaries = lastSelectedRowIndex.isValid() && lastSelectedRowIndex.row() < lastItemRowIndex;
 
@@ -1139,8 +1151,9 @@ void LayoutPanelTreeModel::updateSystemObjectLayers()
 
         const int partRow = partItem->row();
         const int layerRow = layerItem->row();
+        const int correctLayerRow = layerItem->staff()->hasSystemObjectsBelowBottomStaff() ? partRow + 1 : partRow - 1;
 
-        if (layerRow != partRow - 1) {
+        if (layerRow != correctLayerRow) {
             beginMoveRows(QModelIndex(), layerRow, layerRow, QModelIndex(), partRow);
             m_rootItem->moveChildren(layerRow, 1, m_rootItem, partRow, false /*updateNotation*/);
             endMoveRows();
@@ -1157,7 +1170,7 @@ void LayoutPanelTreeModel::updateSystemObjectLayers()
             }
 
             AbstractLayoutPanelTreeItem* newItem = buildSystemObjectsLayerItem(staff, systemObjects[staff]);
-            int row = partItem->row();
+            int row = staff->hasSystemObjectsBelowBottomStaff() ? partItem->row() + 1 : partItem->row();
 
             beginInsertRows(QModelIndex(), row, row);
             m_rootItem->insertChild(newItem, row);

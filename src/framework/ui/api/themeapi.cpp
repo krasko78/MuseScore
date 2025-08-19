@@ -120,6 +120,7 @@ void ThemeApi::init()
     initUiFonts();
     initIconsFont();
     initMusicalFont();
+    initMusicalTextFont();
     calculateDefaultButtonSize();
 
     setupWidgetTheme();
@@ -308,6 +309,11 @@ QFont ThemeApi::musicalFont() const
     return m_musicalFont;
 }
 
+QFont ThemeApi::musicalTextFont() const
+{
+    return m_musicalTextFont;
+}
+
 QFont ThemeApi::defaultFont() const
 {
     return m_defaultFont;
@@ -415,6 +421,16 @@ void ThemeApi::initMusicalFont()
     });
 }
 
+void ThemeApi::initMusicalTextFont()
+{
+    setupMusicTextFont();
+
+    configuration()->musicalTextFontChanged().onNotify(this, [this]() {
+        setupMusicTextFont();
+        update();
+    });
+}
+
 void ThemeApi::setupUiFonts()
 {
     const std::vector<std::pair<QFont*, FontConfig> > fonts {
@@ -460,6 +476,12 @@ void ThemeApi::setupMusicFont()
 {
     m_musicalFont.setFamily(QString::fromStdString(configuration()->musicalFontFamily()));
     m_musicalFont.setPixelSize(configuration()->musicalFontSize());
+}
+
+void ThemeApi::setupMusicTextFont()
+{
+    m_musicalTextFont.setFamily(QString::fromStdString(configuration()->musicalTextFontFamily()));
+    m_musicalTextFont.setPixelSize(configuration()->musicalTextFontSize());
 }
 
 void ThemeApi::calculateDefaultButtonSize()

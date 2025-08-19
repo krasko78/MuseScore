@@ -117,6 +117,7 @@ enum class CommandType : signed char {
     InsertStaves,
     RemoveStaves,
     ChangeMStaffProperties,
+    ChangeMStaffHideIfEmpty,
 
     // Instruments
     ChangeInstrumentShort,
@@ -929,8 +930,6 @@ class ChangeStaff : public UndoCommand
     bool visible = false;
     ClefTypeList clefType;
     Spatium userDist = Spatium(0.0);
-    Staff::HideMode hideMode = Staff::HideMode::AUTO;
-    bool showIfEmpty = false;
     bool cutaway = false;
     bool hideSystemBarLine = false;
     AutoOnOff mergeMatchingRests = AutoOnOff::AUTO;
@@ -941,8 +940,8 @@ class ChangeStaff : public UndoCommand
 public:
     ChangeStaff(Staff*);
 
-    ChangeStaff(Staff*, bool _visible, ClefTypeList _clefType, Spatium userDist, Staff::HideMode _hideMode, bool _showIfEmpty,
-                bool _cutaway, bool _hideSystemBarLine, AutoOnOff _mergeRests, bool _reflectTranspositionInLinkedTab);
+    ChangeStaff(Staff*, bool _visible, ClefTypeList _clefType, Spatium userDist, bool _cutaway, bool _hideSystemBarLine,
+                AutoOnOff _mergeRests, bool _reflectTranspositionInLinkedTab);
 
     UNDO_TYPE(CommandType::ChangeStaff)
     UNDO_NAME("ChangeStaff")
@@ -1087,17 +1086,35 @@ class ChangeMStaffProperties : public UndoCommand
     OBJECT_ALLOCATOR(engraving, ChangeMStaffProperties)
 
     Measure* measure = nullptr;
-    int staffIdx = 0;
+    staff_idx_t staffIdx = 0;
     bool visible = false;
     bool stemless = false;
 
     void flip(EditData*) override;
 
 public:
-    ChangeMStaffProperties(Measure*, int staffIdx, bool visible, bool stemless);
+    ChangeMStaffProperties(Measure*, staff_idx_t staffIdx, bool visible, bool stemless);
 
     UNDO_TYPE(CommandType::ChangeMStaffProperties)
     UNDO_NAME("ChangeMStaffProperties")
+    UNDO_CHANGED_OBJECTS({ measure })
+};
+
+class ChangeMStaffHideIfEmpty : public UndoCommand
+{
+    OBJECT_ALLOCATOR(engraving, ChangeMStaffHideIfEmpty)
+
+    Measure* measure = nullptr;
+    staff_idx_t staffIdx = 0;
+    AutoOnOff hideIfEmpty = AutoOnOff::AUTO;
+
+    void flip(EditData*) override;
+
+public:
+    ChangeMStaffHideIfEmpty(Measure*, staff_idx_t staffIdx, AutoOnOff hideIfEmpty);
+
+    UNDO_TYPE(CommandType::ChangeMStaffHideIfEmpty)
+    UNDO_NAME("ChangeMStaffHideIfEmpty")
     UNDO_CHANGED_OBJECTS({ measure })
 };
 

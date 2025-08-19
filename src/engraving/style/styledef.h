@@ -156,6 +156,8 @@ enum class Sid {
     figuredBassStyle,
     systemFrameDistance,
     frameSystemDistance,
+    paddingToNotationAbove,
+    paddingToNotationBelow,
     minMeasureWidth,
 
     barWidth,
@@ -1050,6 +1052,22 @@ enum class Sid {
     harpPedalTextDiagramMinDistance,
     harpPedalTextDiagramPosition,
 
+    articulationFontFace,
+    articulationFontSize,
+    articulationLineSpacing,
+    articulationFontSpatiumDependent,
+    articulationFontStyle,
+    articulationColor,
+    articulationAlign,
+    articulationFrameType,
+    articulationFramePadding,
+    articulationFrameWidth,
+    articulationFrameRound,
+    articulationFrameFgColor,
+    articulationFrameBgColor,
+    articulationOffset,
+    articulationPosition,
+
     longInstrumentFontFace,
     longInstrumentFontSize,
     longInstrumentLineSpacing,
@@ -1363,6 +1381,25 @@ enum class Sid {
     rehearsalMarkPosAbove,
     rehearsalMarkPosBelow,
     rehearsalMarkMinDistance,
+
+    repeatPlayCountFontFace,
+    repeatPlayCountFontSize,
+    repeatPlayCountLineSpacing,
+    repeatPlayCountFontSpatiumDependent,
+    repeatPlayCountFontStyle,
+    repeatPlayCountColor,
+    repeatPlayCountAlign,
+    repeatPlayCountPlacement,
+    repeatPlayCountFrameType,
+    repeatPlayCountFramePadding,
+    repeatPlayCountFrameWidth,
+    repeatPlayCountFrameRound,
+    repeatPlayCountFrameFgColor,
+    repeatPlayCountFrameBgColor,
+    repeatPlayCountPosition,
+    repeatPlayCountPosAbove,
+    repeatPlayCountPosBelow,
+    repeatPlayCountMinDistance,
 
     repeatLeftFontFace,
     repeatLeftFontSize,
@@ -1966,6 +2003,12 @@ enum class Sid {
     useParensOtherJumpCourtesiesAfterCancelling,
 
     smallParens,
+
+    repeatPlayCountPreset,
+    repeatPlayCountShow,
+    repeatPlayCountShowSingleRepeats,
+
+    systemObjectsBelowBottomStaff,
 
     STYLES
     ///\}

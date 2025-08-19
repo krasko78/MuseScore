@@ -50,6 +50,7 @@
 #include "engraving/dom/fret.h"
 #include "engraving/dom/glissando.h"
 #include "engraving/dom/gradualtempochange.h"
+#include "engraving/dom/hammeronpulloff.h"
 #include "engraving/dom/hairpin.h"
 #include "engraving/dom/harmony.h"
 #include "engraving/dom/instrchange.h"
@@ -72,6 +73,7 @@
 #include "engraving/dom/slur.h"
 #include "engraving/dom/staff.h"
 #include "engraving/dom/stafftext.h"
+#include "engraving/dom/tapping.h"
 #include "engraving/dom/tempo.h"
 #include "engraving/dom/tempotext.h"
 #include "engraving/dom/textline.h"
@@ -1007,7 +1009,7 @@ void MusicXmlParserPass2::addElemOffset(engraving::EngravingItem* el, engraving:
         Score* score = measure->score();
         Staff* st = score->staff(track2staff(track));
 
-        if (!score->isSystemObjectStaff(st) && st->idx() != 0) {
+        if (!st->isSystemObjectStaff() && st->idx() != 0) {
             if (finale) {
                 delete el;
                 return;
@@ -1243,6 +1245,38 @@ static void addFermataToChord(const Notation& notation, ChordRest* cr)
     } else {
         cr->segment()->add(fermata);
     }
+}
+
+//---------------------------------------------------------
+//   addTapToChord
+//---------------------------------------------------------
+
+/**
+ Add Tap to Chord.
+ */
+
+static void addTapToChord(const Notation& notation, ChordRest* cr)
+{
+    const Color color = Color::fromString(notation.attribute(u"color"));
+    const String place = notation.attribute(u"placement");
+    const TappingHand hand = notation.attribute(u"hand") == u"right" ? TappingHand::RIGHT : TappingHand::LEFT;
+
+    Tapping* tap = Factory::createTapping(cr);
+    tap->setTrack(cr->track());
+    tap->setHand(hand);
+    if (place == u"above") {
+        tap->setAnchor(ArticulationAnchor::TOP);
+        tap->setPropertyFlags(Pid::ARTICULATION_ANCHOR, PropertyFlags::UNSTYLED);
+    } else if (place == u"below") {
+        tap->setAnchor(ArticulationAnchor::BOTTOM);
+        tap->setPropertyFlags(Pid::ARTICULATION_ANCHOR, PropertyFlags::UNSTYLED);
+    } else {
+        tap->setAnchor(ArticulationAnchor::AUTO);
+    }
+    if (color.isValid()) {
+        tap->setColor(color);
+    }
+    cr->add(tap);
 }
 
 //---------------------------------------------------------
@@ -1530,7 +1564,7 @@ static NoteHeadGroup convertNotehead(String mxmlName)
  Add Text to Note.
  */
 
-static void addTextToNote(int l, int c, String txt, String placement, String fontWeight,
+static void addTextToNote(int64_t byteOffset, String txt, String placement, String fontWeight,
                           double fontSize, String fontStyle, String fontFamily, Color color,
                           TextStyleType subType, const Score*, Note* note)
 {
@@ -1567,7 +1601,7 @@ static void addTextToNote(int l, int c, String txt, String placement, String fon
             note->add(t);
         }
     } else {
-        LOGD("%s", muPrintable(String(u"Error at line %1 col %2: no note for text").arg(l).arg(c)));           // TODO
+        LOGD("%s", muPrintable(String(u"Error at byte offset %1: no note for text").arg(byteOffset)));           // TODO
     }
 }
 
@@ -1646,7 +1680,7 @@ void MusicXmlParserPass2::addError(const String& error)
 {
     if (!error.empty()) {
         m_logger->logError(error, &m_e);
-        m_errors += errorStringWithLocation(m_e.lineNumber(), m_e.columnNumber(), error) + u'\n';
+        m_errors += errorStringWithLocation(m_e.byteOffset(), error) + u'\n';
     }
 }
 
@@ -3129,8 +3163,10 @@ void MusicXmlParserPass2::staffDetails(const String& partId, Measure* measure)
         } else if (m_e.name() == "staff-tuning") {
             staffTuning(&stringData);
         } else if (m_e.name() == "staff-size") {
+            const double scale = m_e.doubleAttribute("scale", 1.0);
             const double val = m_e.readDouble() / 100;
-            m_score->staff(staffIdx)->setProperty(Pid::MAG, val);
+            m_score->staff(staffIdx)->setProperty(Pid::MAG, scale);
+            m_score->staff(staffIdx)->setProperty(Pid::LINE_DISTANCE, val);
         } else {
             skipLogCurrElem();
         }
@@ -3551,6 +3587,7 @@ void MusicXmlParserDirection::direction(const String& partId,
 
             if (m_color.isValid()) {
                 t->setColor(m_color);
+                t->setPropertyFlags(Pid::COLOR, PropertyFlags::UNSTYLED);
             }
 
             if (configuration()->importLayout()) {
@@ -3937,7 +3974,7 @@ void MusicXmlParserDirection::directionType(std::vector<MusicXmlSpannerDesc>& st
         m_defaultY = m_e.asciiAttribute("default-y").toDouble(&m_hasDefaultY) * -0.1;
         m_relativeX = m_e.doubleAttribute("relative-x") / 10 * m_score->style().spatium();
         m_visible = m_e.asciiAttribute("print-object") != "no";
-        String number = m_e.attribute("number");
+        const String number = m_e.attribute("number");
         int n = 0;
         if (!number.empty()) {
             n = number.toInt();
@@ -3947,7 +3984,7 @@ void MusicXmlParserDirection::directionType(std::vector<MusicXmlSpannerDesc>& st
                 n--;          // make zero-based
             }
         }
-        String type = m_e.attribute("type");
+        const String type = m_e.attribute("type");
         m_color = Color::fromString(m_e.asciiAttribute("color").ascii());
         m_justify = m_e.attribute("justify");
         if (m_e.name() == "metronome") {
@@ -3992,6 +4029,13 @@ void MusicXmlParserDirection::directionType(std::vector<MusicXmlSpannerDesc>& st
             if (!smufl.empty()) {
                 m_wordsText += u"<sym>" + smufl + u"</sym>";
             }
+        } else if (m_e.name() == "string-mute") {
+            if (type == u"on") {
+                m_wordsText += u"<sym>stringsMuteOn</sym>";
+            } else if (type == u"off") {
+                m_wordsText += u"<sym>stringsMuteOff</sym>";
+            }
+            m_e.skipCurrentElement();
         } else if (m_e.name() == "other-direction") {
             otherDirection();
         } else {
@@ -4382,7 +4426,7 @@ void MusicXmlInferredFingering::addToNotes(std::vector<Note*>& notes) const
     assert(notes.size() >= m_fingerings.size());
     for (size_t i = 0; i < m_fingerings.size(); ++i) {
         // Fingerings in reverse order
-        addTextToNote(-1, -1,
+        addTextToNote(-1,
                       m_fingerings[m_fingerings.size() - 1 - i], m_placement, u"", -1, u"", u"",
                       Color::BLACK, TextStyleType::FINGERING,
                       notes[i]->score(),
@@ -4657,7 +4701,9 @@ void MusicXmlParserDirection::handleRepeats(Measure* measure, const Fraction tic
                 measure = measure->nextMeasure();
             }
             // Temporary solution to indent codas - add a horizontal frame at start of system or midway through
-            if (tb->isMarker() && toMarker(tb)->markerType() == MarkerType::CODA) {
+            MeasureBase* prevMeasureBase = measure->prev();
+            bool hbox = prevMeasureBase && prevMeasureBase->isHBox();
+            if (tb->isMarker() && toMarker(tb)->markerType() == MarkerType::CODA && !hbox) {
                 MeasureBase* gap = m_score->insertBox(ElementType::HBOX, measure);
                 toHBox(gap)->setBoxWidth(Spatium(10));
             }
@@ -5345,6 +5391,17 @@ void MusicXmlParserDirection::wedge(const String& type, const int number,
         const Color color = Color::fromString(m_e.asciiAttribute("color").ascii());
         if (color.isValid()) {
             h->setLineColor(color);
+        }
+        AsciiStringView lineType = m_e.asciiAttribute("line-type");
+        if (lineType == "dashed") {
+            h->setLineStyle(LineType::DASHED);
+        } else if (lineType == "dotted") {
+            h->setLineStyle(LineType::DOTTED);
+        }
+        const String spread = m_e.attribute("spread");
+        if (!spread.empty() && configuration()->importLayout()) {
+            const Spatium val(spread.toDouble() / 10.0);
+            h->setHairpinHeight(val);
         }
         starts.push_back(MusicXmlSpannerDesc(h, ElementType::HAIRPIN, number));
     } else if (type == "stop") {
@@ -8194,7 +8251,9 @@ static void addSlur(const Notation& notation, SlurStack& slurs, ChordRest* cr, c
             score->addElement(newSlur);
         } else {
             // slur start for new slur: init
-            Slur* newSlur = Factory::createSlur(score->dummy());
+            Slur* newSlur = notation.name() == "slur"
+                            ? Factory::createSlur(score->dummy())
+                            : static_cast<Slur*>(Factory::createHammerOnPullOff(score->dummy()));
             if (cr->isGrace()) {
                 newSlur->setAnchor(Spanner::Anchor::CHORD);
             }
@@ -8482,7 +8541,8 @@ void MusicXmlParserNotations::technical()
                                                                  m_e.attributes(), u"technical", id);
             m_notations.push_back(notation);
             m_e.skipCurrentElement();  // skip but don't log
-        } else if (m_e.name() == "fingering" || m_e.name() == "fret" || m_e.name() == "pluck" || m_e.name() == "string") {
+        } else if (m_e.name() == "fingering" || m_e.name() == "fret" || m_e.name() == "pluck"
+                   || m_e.name() == "string" || m_e.name() == "tap") {
             Notation notation = Notation::notationWithAttributes(String::fromAscii(m_e.name().ascii()),
                                                                  m_e.attributes(), u"technical");
             notation.setText(m_e.readText());
@@ -8498,11 +8558,6 @@ void MusicXmlParserNotations::technical()
             harmonMute();
         } else if (m_e.name() == "hole") {
             hole();
-        } else if (m_e.name() == "tap") {
-            id = (m_e.attribute("hand") == u"left") ? SymId::guitarLeftHandTapping : SymId::guitarRightHandTapping;
-            m_notations.push_back(Notation::notationWithAttributes(String::fromAscii(m_e.name().ascii()),
-                                                                   m_e.attributes(), u"technical", id));
-            m_e.skipCurrentElement();  // skip but don't log
         } else if (m_e.name() == "other-technical") {
             otherTechnical();
         } else {
@@ -8645,7 +8700,7 @@ void MusicXmlParserNotations::addTechnical(const Notation& notation, Note* note)
     if (notation.name() == u"fingering") {
         // TODO: distinguish between keyboards (style TextStyleName::FINGERING)
         // and (plucked) strings (style TextStyleName::LH_GUITAR_FINGERING)
-        addTextToNote(m_e.lineNumber(), m_e.columnNumber(), notation.text(), placement, fontWeight, fontSize, fontStyle, fontFamily,
+        addTextToNote(m_e.byteOffset(), notation.text(), placement, fontWeight, fontSize, fontStyle, fontFamily,
                       color, TextStyleType::FINGERING, m_score, note);
     } else if (notation.name() == u"fret") {
         int fret = notation.text().toInt();
@@ -8657,18 +8712,24 @@ void MusicXmlParserNotations::addTechnical(const Notation& notation, Note* note)
             m_logger->logError(u"no note for fret", &m_e);
         }
     } else if (notation.name() == "pluck") {
-        addTextToNote(m_e.lineNumber(), m_e.columnNumber(), notation.text(), placement, fontWeight, fontSize, fontStyle, fontFamily,
+        addTextToNote(m_e.byteOffset(), notation.text(), placement, fontWeight, fontSize, fontStyle, fontFamily,
                       color, TextStyleType::RH_GUITAR_FINGERING, m_score, note);
     } else if (notation.name() == "string") {
         if (note) {
             if (note->staff()->isTabStaff(Fraction(0, 1))) {
                 note->setString(notation.text().toInt() - 1);
             } else {
-                addTextToNote(m_e.lineNumber(), m_e.columnNumber(), notation.text(), placement, fontWeight, fontSize, fontStyle, fontFamily,
+                addTextToNote(m_e.byteOffset(), notation.text(), placement, fontWeight, fontSize, fontStyle, fontFamily,
                               color, TextStyleType::STRING_NUMBER, m_score, note);
             }
         } else {
             m_logger->logError(u"no note for string", &m_e);
+        }
+    } else if (notation.name() == u"tap") {
+        if (note) {
+            addTapToChord(notation, note->chord());
+        } else {
+            m_logger->logError(u"no note for tap", &m_e);
         }
     }
 }
@@ -9177,12 +9238,16 @@ void MusicXmlParserNotations::parse()
             fermata();
         } else if (m_e.name() == "glissando") {
             glissandoSlide();
+        } else if (m_e.name() == "hammer-on") {
+            slur();
         } else if (m_e.name() == "non-arpeggiate") {
             m_arpeggioColor = Color::fromString(m_e.attribute("color"));
             m_arpeggioType = u"non-arpeggiate";
             m_e.skipCurrentElement();  // skip but don't log
         } else if (m_e.name() == "ornaments") {
             ornaments();
+        } else if (m_e.name() == "pull-off") {
+            slur();
         } else if (m_e.name() == "slur") {
             slur();
         } else if (m_e.name() == "slide") {
@@ -9267,7 +9332,7 @@ void MusicXmlParserNotations::addToScore(ChordRest* const cr, Note* const note, 
     for (const Notation& notation : m_notations) {
         if (notation.symId() != SymId::noSym) {
             addNotation(notation, cr, note);
-        } else if (notation.name() == "slur") {
+        } else if (notation.name() == "slur" || notation.name() == "hammer-on" || notation.name() == "pull-off") {
             addSlur(notation, slurs, cr, tick, m_logger, &m_e);
         } else if (note && (notation.name() == "glissando" || notation.name() == "slide")) {
             addGlissandoSlide(notation, note, glissandi, spanners, m_logger, &m_e);

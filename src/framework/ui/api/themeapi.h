@@ -83,6 +83,7 @@ class ThemeApi : public api::ApiObject, public async::Asyncable
     Q_PROPERTY(QFont toolbarIconsFont READ toolbarIconsFont NOTIFY themeChanged)
 
     Q_PROPERTY(QFont musicalFont READ musicalFont NOTIFY themeChanged)
+    Q_PROPERTY(QFont musicalTextFont READ musicalTextFont NOTIFY themeChanged)
 
     Q_PROPERTY(QFont defaultFont READ defaultFont NOTIFY themeChanged) // krasko
 
@@ -135,6 +136,7 @@ public:
     QFont iconsFont() const;
     QFont toolbarIconsFont() const;
     QFont musicalFont() const;
+    QFont musicalTextFont() const;
 
     QFont defaultFont() const;
 
@@ -166,11 +168,13 @@ private:
     void initUiFonts();
     void initIconsFont();
     void initMusicalFont();
+    void initMusicalTextFont();
 
     void setupUiFonts();
     void setupDefaultFont(); // krasko
     void setupIconsFont();
     void setupMusicFont();
+    void setupMusicTextFont();
 
     void calculateDefaultButtonSize();
 
@@ -190,6 +194,7 @@ private:
     QFont m_iconsFont;
     QFont m_toolbarIconsFont;
     QFont m_musicalFont;
+    QFont m_musicalTextFont;
     QFont m_defaultFont;
 
     QColor m_backgroundPrimaryColor;

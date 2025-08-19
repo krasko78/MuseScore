@@ -111,7 +111,7 @@ static UndoMacro::ChangesInfo changesInfo(const UndoStack* stack, bool undo = fa
     return actualMacro->changesInfo(undo);
 }
 
-static ScoreChangesRange buildChangesRange(const CmdState& cmdState, const UndoMacro::ChangesInfo& changes)
+static ScoreChanges buildScoreChanges(const CmdState& cmdState, const UndoMacro::ChangesInfo& changes)
 {
     int startTick = cmdState.startTick().ticks();
     int endTick = cmdState.endTick().ticks();
@@ -378,8 +378,8 @@ void Score::undoRedo(bool undo, EditData* ed)
     masterScore()->setPlaylistDirty();    // TODO: flag all individual operations
     updateSelection();
 
-    ScoreChangesRange range = buildChangesRange(cmdState(), changes);
-    changesChannel().send(range);
+    ScoreChanges result = buildScoreChanges(cmdState(), changes);
+    changesChannel().send(result);
 }
 
 //---------------------------------------------------------
@@ -410,9 +410,9 @@ void Score::endCmd(bool rollback, bool layoutAllParts)
 
     update(false, layoutAllParts);
 
-    ScoreChangesRange range;
+    ScoreChanges changes;
     if (!rollback) {
-        range = buildChangesRange(cmdState(), changesInfo(undoStack()));
+        changes = buildScoreChanges(cmdState(), changesInfo(undoStack()));
     }
 
     LOGD() << "Undo stack current macro child count: " << undoStack()->activeCommand()->childCount();
@@ -427,7 +427,7 @@ void Score::endCmd(bool rollback, bool layoutAllParts)
     cmdState().reset();
 
     if (!isCurrentCommandEmpty && !rollback) {
-        changesChannel().send(range);
+        changesChannel().send(changes);
     }
 }
 
@@ -457,6 +457,11 @@ void Score::update(bool resetCmdState, bool layoutAllParts)
     }
 
     TRACEFUNC;
+
+    if (m_needLayoutFretBox) {
+        relayoutFretBox();
+        m_needLayoutFretBox = false;
+    }
 
     bool updateAll = false;
     {
@@ -2299,7 +2304,7 @@ static void changeAccidental2(Note* n, int pitch, int tpc)
 
 void Score::changeAccidental(Note* note, AccidentalType accidental)
 {
-    Chord* chord = note->chord();
+    Chord* chord = note ? note->chord() : nullptr;
     if (!chord) {
         return;
     }
@@ -3363,7 +3368,7 @@ void Score::cmdAddParentheses(EngravingItem* el)
         TimeSig* ts = toTimeSig(el);
         ts->setLargeParentheses(true);
     } else {
-        ParenthesesMode p = el->bothParentheses() ? ParenthesesMode::NONE : ParenthesesMode::BOTH;
+        ParenthesesMode p = el->leftParen() || el->rightParen() ? ParenthesesMode::NONE : ParenthesesMode::BOTH;
         el->undoChangeProperty(Pid::HAS_PARENTHESES, p);
     }
 }
@@ -4924,6 +4929,16 @@ void Score::cmdToggleHideEmpty()
     bool val = !style().styleB(Sid::hideEmptyStaves);
     deselectAll();
     undoChangeStyleVal(Sid::hideEmptyStaves, val);
+}
+
+void Score::cmdSetHideStaffIfEmptyOverride(staff_idx_t staffIdx, System* system, engraving::AutoOnOff value)
+{
+    for (MeasureBase* mb : system->measures()) {
+        if (!mb->isMeasure()) {
+            continue;
+        }
+        undo(new ChangeMStaffHideIfEmpty(engraving::toMeasure(mb), staffIdx, value));
+    }
 }
 
 //---------------------------------------------------------

@@ -52,12 +52,14 @@
 #include "dom/trill.h"
 #include "dom/undo.h"
 #include "dom/utils.h"
+#include "types/typesconv.h"
 
 #include "tlayout.h"
 #include "layoutcontext.h"
 #include "arpeggiolayout.h"
 #include "beamlayout.h"
 #include "chordlayout.h"
+#include "restlayout.h"
 #include "slurtielayout.h"
 #include "horizontalspacing.h"
 #include "tremololayout.h"
@@ -226,6 +228,7 @@ void MeasureLayout::createMMRest(LayoutContext& ctx, Measure* firstMeasure, Meas
     mmrMeasure->setTimesig(firstMeasure->timesig());
     mmrMeasure->setPageBreak(lastMeasure->pageBreak());
     mmrMeasure->setLineBreak(lastMeasure->lineBreak());
+    mmrMeasure->setRepeatCount(lastMeasure->repeatCount());
     mmrMeasure->setMMRestCount(numMeasuresInMMRest);
     mmrMeasure->setNo(firstMeasure->no());
 
@@ -246,11 +249,17 @@ void MeasureLayout::createMMRest(LayoutContext& ctx, Measure* firstMeasure, Meas
                     eClone->setGenerated(generated);
                     eClone->setParent(mmrEndBarlineSeg);
                     ctx.mutDom().doUndoAddElement(eClone);// ???
+                    if (PlayCountText* playCount = toBarLine(eClone)->playCountText()) {
+                        ctx.mutDom().undo(new Link(playCount, toBarLine(e)->playCountText()));
+                    }
                 } else {
                     BarLine* mmrEndBarline = toBarLine(mmrEndBarlineSeg->element(staffIdx * VOICES));
                     BarLine* lastMeasureEndBarline = toBarLine(e);
                     if (!generated && !mmrEndBarline->links()) {
                         ctx.mutDom().undo(new Link(mmrEndBarline, lastMeasureEndBarline));
+                        if (PlayCountText* playCount = mmrEndBarline->playCountText()) {
+                            ctx.mutDom().undo(new Link(playCount, lastMeasureEndBarline->playCountText()));
+                        }
                     }
                     if (mmrEndBarline->barLineType() != lastMeasureEndBarline->barLineType()) {
                         // change directly when generating mmrests, do not change underlying measures or follow links
@@ -1016,7 +1025,7 @@ void MeasureLayout::layoutMeasure(MeasureBase* currentMB, LayoutContext& ctx)
         for (Segment& segment : measure->segments()) {
             if (segment.isChordRestType()) {
                 ChordLayout::layoutChords1(ctx, &segment, staffIdx);
-                ChordLayout::resolveVerticalRestConflicts(ctx, &segment, staffIdx);
+                RestLayout::resolveVerticalRestConflicts(ctx, &segment, staffIdx);
                 for (voice_idx_t voice = 0; voice < VOICES; ++voice) {
                     ChordRest* cr = segment.cr(staffIdx * VOICES + voice);
                     if (cr) {
@@ -1219,6 +1228,46 @@ void MeasureLayout::layoutStaffLines(Measure* m, LayoutContext& ctx)
             TLayout::layoutStaffLines(ms->lines(), ctx);
         }
         staffIdx += 1;
+    }
+}
+
+void MeasureLayout::layoutPlayCountText(Measure* m, LayoutContext& ctx)
+{
+    if (!m->repeatEnd()) {
+        return;
+    }
+
+    Score* score = m->score();
+    const std::vector<MStaff*>& measureStaves = m->mstaves();
+
+    for (staff_idx_t staffIdx = 0; staffIdx < score->nstaves(); ++staffIdx) {
+        if (staffIdx >= measureStaves.size()) {
+            break;
+        }
+
+        Segment* endBarSeg = m->last(SegmentType::BarLineType);
+        BarLine* bl = endBarSeg ? toBarLine(endBarSeg->element(staff2track(staffIdx))) : nullptr;
+        PlayCountText* playCount = bl ? bl->playCountText() : nullptr;
+        if (!playCount) {
+            continue;
+        }
+
+        String text;
+        if (bl->playCountTextSetting() == AutoCustomHide::AUTO) {
+            const int repeatCount = m->repeatCount();
+            text = TConv::translatedUserName(ctx.conf().styleV(Sid::repeatPlayCountPreset).value<RepeatPlayCountPreset>()).arg(
+                repeatCount);
+        } else if (bl->playCountTextSetting() == AutoCustomHide::CUSTOM) {
+            text = bl->playCountCustomText();
+            if (text.empty()) {
+                const int repeatCount = m->repeatCount();
+                text = TConv::translatedUserName(ctx.conf().styleV(Sid::repeatPlayCountPreset).value<RepeatPlayCountPreset>()).arg(
+                    repeatCount);
+            }
+        }
+        if (!playCount->cursor()->editing()) {
+            playCount->setXmlText(text);
+        }
     }
 }
 
@@ -1633,7 +1682,7 @@ void MeasureLayout::createEndBarLines(Measure* m, bool isLastMeasureInSystem, La
                     barLine->setSpanTo(staff->barLineTo());
                     barLine->setBarLineType(blType);
                 } else if (barLine->barLineType() != blType && force) {
-                    barLine->undoChangeProperty(Pid::BARLINE_TYPE, PropertyValue::fromValue(blType));
+                    barLine->setBarLineType(blType);
                     barLine->setGenerated(true);
                 }
             }

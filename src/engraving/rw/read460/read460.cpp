@@ -51,6 +51,7 @@
 #include "engravingerrors.h"
 
 #include "../compat/tremolocompat.h"
+#include "../inoutdata.h"
 #include "staffread.h"
 #include "tread.h"
 
@@ -245,7 +246,7 @@ bool Read460::readScore410(Score* score, XmlReader& e, ReadContext& ctx)
         if (e.error() == muse::XmlStreamReader::CustomError) {
             LOGE() << e.errorString();
         } else {
-            LOGE() << String(u"XML read error at line %1, column %2: %3").arg(e.lineNumber(), e.columnNumber())
+            LOGE() << String(u"XML read error at byte offset %1: %2").arg(e.byteOffset())
                 .arg(String::fromAscii(e.name().ascii()));
         }
         return false;
