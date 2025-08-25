@@ -2223,16 +2223,6 @@ bool NotationInteraction::dropRange(const QByteArray& data, const PointF& pos, b
     XmlReader e(data);
     score()->pasteStaff(e, segment, staffIdx);
 
-    if (deleteSourceMaterial) {
-        // pasteStaff limits the layout range to just the destination region,
-        // but if the source material was deleted we must also layout the source region.
-        CmdState& cmdState = score()->cmdState();
-        cmdState.setTick(rdd.sourceTick);
-        cmdState.setTick(rdd.sourceTick + rdd.tickLength);
-        cmdState.setStaff(rdd.sourceStaffIdx);
-        cmdState.setStaff(rdd.sourceStaffIdx + rdd.numStaves);
-    }
-
     endDrop();
     apply();
 
@@ -2462,7 +2452,7 @@ void NotationInteraction::applyPaletteElementToList(EngravingItem* element, bool
         return;
     }
 
-    if (element->isSlur() && addSingle) {
+    if (element->isSlur()) {
         doAddSlur(toSlur(element));
         return;
     }
@@ -4165,8 +4155,8 @@ void NotationInteraction::moveElementSelection(MoveDirection d)
         score()->setPlayNote(true);
     }
 
-    if (toEl->hasGrips()) {
-        startEditGrip(toEl, toEl->defaultGrip());
+    if (toEl->needStartEditingAfterSelecting()) {
+        startEditElement(toEl);
     }
 }
 
@@ -4693,7 +4683,7 @@ bool NotationInteraction::isElementEditStarted() const
 
 void NotationInteraction::startEditElement(EngravingItem* element)
 {
-    if (!element) {
+    if (!element || !element->isEditable()) {
         return;
     }
 
@@ -4703,7 +4693,9 @@ void NotationInteraction::startEditElement(EngravingItem* element)
 
     if (element->isTextBase()) {
         startEditText(element);
-    } else if (element->isEditable()) {
+    } else if (element->hasGrips() && !element->isImage()) {
+        startEditGrip(element, element->defaultGrip());
+    } else {
         element->startEdit(m_editData);
         m_editData.element = element;
     }
@@ -6348,7 +6340,7 @@ void NotationInteraction::changeEnharmonicSpelling(bool both)
 
 void NotationInteraction::spellPitches()
 {
-    startEdit(TranslatableString("undoableAction", "Respell pitches"));
+    startEdit(TranslatableString("undoableAction", "Optimize enharmonic spelling"));
     score()->spell();
     apply();
 }

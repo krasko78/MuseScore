@@ -54,6 +54,7 @@
 #include "dom/utils.h"
 #include "types/typesconv.h"
 
+#include "autoplace.h"
 #include "tlayout.h"
 #include "layoutcontext.h"
 #include "arpeggiolayout.h"
@@ -601,6 +602,11 @@ static bool validMMRestMeasure(const LayoutContext& ctx, const Measure* m)
                 if (s->element(track)) {
                     if (!s->element(track)->isRest()) {
                         return false;
+                    } else {
+                        bool isNonEmptyIrregular = m->isIrregular() && !toRest(s->element(track))->isFullMeasureRest();
+                        if (isNonEmptyIrregular) {
+                            return false;
+                        }
                     }
                     restFound = true;
                 }

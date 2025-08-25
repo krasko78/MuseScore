@@ -1383,6 +1383,13 @@ struct SettingsCompat {
     std::map<muse::ID /*partid*/, PartAudioSettingsCompat> audioSettings;
 };
 
+struct MeasureBeat {
+    int measureIndex = 0;
+    int maxMeasureIndex = 0;
+    float beat = 0.f;
+    int maxBeatIndex = 0;
+};
+
 //---------------------------------------------------------
 //   UpdateMode
 //    There is an implied order from least invasive update

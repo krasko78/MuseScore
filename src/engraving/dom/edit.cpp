@@ -700,7 +700,7 @@ Slur* Score::addSlur(ChordRest* firstChordRest, ChordRest* secondChordRest, cons
         }
     }
 
-    Slur* slur = slurTemplate ? slurTemplate->clone() : Factory::createSlur(firstChordRest->measure()->system());
+    Slur* slur = slurTemplate ? slurTemplate->clone() : Factory::createSlur(score()->dummy());
     slur->setScore(firstChordRest->score());
     slur->setTick(firstChordRest->tick());
     slur->setTick2(secondChordRest->tick());
@@ -5526,7 +5526,8 @@ void Score::undoResetPlayCountTextSettings(BarLine* bl)
             continue;
         }
 
-        curBl->undoChangeProperty(Pid::PLAY_COUNT_TEXT_SETTING, AutoCustomHide::AUTO);
+        curBl->undoResetProperty(Pid::PLAY_COUNT_TEXT_SETTING);
+        curBl->undoResetProperty(Pid::PLAY_COUNT_TEXT);
     }
 }
 
@@ -7449,25 +7450,6 @@ void Score::rebuildFretBox()
 
         FBox* box = toFBox(linkedObject);
         box->init();
-    }
-}
-
-void Score::relayoutFretBox()
-{
-    FBox* fretBox = findFretBox();
-    if (!fretBox) {
-        return;
-    }
-
-    fretBox->triggerLayout();
-
-    for (EngravingObject* linkedObject : fretBox->linkList()) {
-        if (!linkedObject || !linkedObject->isFBox() || linkedObject == fretBox) {
-            continue;
-        }
-
-        FBox* box = toFBox(linkedObject);
-        box->triggerLayout();
     }
 }
 

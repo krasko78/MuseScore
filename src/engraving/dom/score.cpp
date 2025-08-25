@@ -167,9 +167,6 @@ Score::Score(const modularity::ContextPtr& iocCtx)
     m_rootItem = new RootItem(this);
     m_rootItem->init();
 
-    //! NOTE Looks like a bug, `minimumPaddingUnit` is set using the default style's spatium value
-    //! and does not change if the style or the spatium of this score is changed
-    m_paddingTable.setMinimumPaddingUnit(0.1 * style().spatium());
     createPaddingTable();
 
     m_shadowNote = new ShadowNote(this);
@@ -494,11 +491,6 @@ void Score::setUpTempoMap()
         fixAnacrusisTempo(anacrusisMeasures);
     }
     m_needSetUpTempoMap = false;
-}
-
-void Score::setNeedLayoutFretBox(bool layout)
-{
-    m_needLayoutFretBox = layout;
 }
 
 //---------------------------------------------------------
@@ -5118,7 +5110,7 @@ String Score::extractLyrics()
         const RepeatList& rlist = repeatList();
         for (const RepeatSegment* rs : rlist) {
             Fraction startTick  = Fraction::fromTicks(rs->tick);
-            Fraction endTick    = startTick + Fraction::fromTicks(rs->len());
+            Fraction endTick    = Fraction::fromTicks(rs->endTick());
             for (Measure* m = tick2measure(startTick); m; m = m->nextMeasure()) {
                 size_t playCount = m->playbackCount();
                 for (Segment* seg = m->first(st); seg; seg = seg->next(st)) {
