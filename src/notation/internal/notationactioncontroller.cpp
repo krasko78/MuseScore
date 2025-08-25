@@ -1700,7 +1700,9 @@ void NotationActionController::startEditSelectedElement(const ActionData& args)
 
     if (elementHasPopup(element) && !interaction->textEditingAllowed(element)) {
         dispatcher()->dispatch("notation-popup-menu", ActionData::make_arg1<EngravingItem*>(element));
-        return;
+        if (!element->hasGrips()) { // krasko
+            return;
+        }
     }
 
     if (element->isText()) {

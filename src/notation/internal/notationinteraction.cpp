@@ -4687,6 +4687,12 @@ void NotationInteraction::startEditElement(EngravingItem* element)
         return;
     }
 
+    if (element->hasGrips() && isGripEditStarted() // krasko start
+            && appshellConfiguration()->changeActiveGripWithEditElementKey()) {
+        nextGrip();
+        return;
+    } // krasko end
+
     if (isElementEditStarted()) {
         return;
     }
