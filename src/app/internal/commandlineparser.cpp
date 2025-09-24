@@ -106,6 +106,9 @@ void CommandLineParser::init()
     m_parser.addOption(QCommandLineOption("score-transpose",
                                           "Transpose the given score and export the data to a single JSON file, print it to stdout",
                                           "options"));
+    m_parser.addOption(QCommandLineOption("score-elements",
+                                          "Scan the given score and export elements to a single JSON file, print it to stdout",
+                                          "options"));
     m_parser.addOption(QCommandLineOption("source-update", "Update the source in the given score"));
 
     m_parser.addOption(QCommandLineOption({ "S", "style" }, "Load style file", "style"));
@@ -116,6 +119,11 @@ void CommandLineParser::init()
 
     m_parser.addOption(QCommandLineOption("transpose",
                                           "Transpose the given score before executing the '-o' options",
+                                          "options"));
+
+    m_parser.addOption(QCommandLineOption("page",
+                                          "Use with '-o <file>', export only the specified page. "
+                                          "Supported output formats: SVG, PNG, PDF, MSCZ",
                                           "options"));
 
     // MusicXML
@@ -303,6 +311,10 @@ void CommandLineParser::parse(int argc, char** argv)
             if (m_parser.isSet("transpose")) {
                 m_options.converterTask.params[CmdOptions::ParamKey::ScoreTransposeOptions] = m_parser.value("transpose");
             }
+
+            if (m_parser.isSet("page")) {
+                m_options.converterTask.params[CmdOptions::ParamKey::PageNumber] = m_parser.value("page");
+            }
         }
     }
 
@@ -353,6 +365,13 @@ void CommandLineParser::parse(int argc, char** argv)
         m_options.converterTask.type = ConvertType::ExportScoreTranspose;
         m_options.converterTask.inputFile = scorefiles[0];
         m_options.converterTask.params[CmdOptions::ParamKey::ScoreTransposeOptions] = m_parser.value("score-transpose");
+    }
+
+    if (m_parser.isSet("score-elements")) {
+        m_options.runMode = IApplication::RunMode::ConsoleApp;
+        m_options.converterTask.type = ConvertType::ExportScoreElements;
+        m_options.converterTask.inputFile = scorefiles[0];
+        m_options.converterTask.params[CmdOptions::ParamKey::ScoreElementsOptions] = m_parser.value("score-elements");
     }
 
     if (m_parser.isSet("source-update")) {

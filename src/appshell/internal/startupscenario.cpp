@@ -23,8 +23,10 @@
 #include "startupscenario.h"
 
 #include <QCoreApplication>
+#include <QTimer>
 
 #include "async/async.h"
+#include "network/networkerrors.h"
 #include "translation.h"
 #include "log.h"
 
@@ -94,50 +96,45 @@ muse::async::Promise<muse::Ret> StartupScenario::runOnSplashScreen()
         registerAudioPlugins();
 
         if (multiInstancesProvider()->instances().size() != 1) {
-            const Ret ret = muse::make_ret(Ret::Code::Cancel);
+            const Ret ret = muse::make_ret(Ret::Code::Ok);
             return resolve(ret);
         }
 
         // Calculate the total number of expected update checks (TODO: check the
         // connection before trying any of this)...
-        static size_t totalChecksExpected = 0;
 
         const bool canCheckAppUpdate = appUpdateScenario() && appUpdateScenario()->needCheckForUpdate();
-        if (canCheckAppUpdate) {
-            ++totalChecksExpected;
-        }
-
         const bool canCheckMuseSoundsUpdate = museSoundsUpdateScenario() && museSoundsUpdateScenario()->needCheckForUpdate();
-        if (canCheckMuseSoundsUpdate) {
-            ++totalChecksExpected;
-        }
-
         //! NOTE: A MuseSampler update check also exists but we run it later (see onStartupPageOpened)...
+        m_totalChecksExpected = size_t(canCheckAppUpdate) + size_t(canCheckMuseSoundsUpdate);
 
-        if (totalChecksExpected == 0) {
+        if (m_totalChecksExpected == 0) {
             const Ret ret = muse::make_ret(Ret::Code::Ok);
             return resolve(ret);
         }
 
+        m_totalChecksReceived = 0;
+
         // Resolve once all checks are completed...
         const auto onUpdateCheckCompleted = [this, resolve](){
-            static size_t totalChecksReceived = 0;
-            IF_ASSERT_FAILED(m_updateCheckInProgress && totalChecksReceived < totalChecksExpected) {
-                m_updateCheckInProgress = false;
-                return;
+            if (!m_updateChecksInProgress) {
+                return; // Already resolved or timed out...
             }
 
-            ++totalChecksReceived;
+            ++m_totalChecksReceived;
 
-            if (totalChecksReceived == totalChecksExpected) {
-                m_updateCheckInProgress = false;
-                const Ret ret = muse::make_ret(Ret::Code::Ok);
-                (void)resolve(ret);
+            if (m_totalChecksReceived < m_totalChecksExpected) {
+                return; // Not ready to resolve yet...
             }
+
+            m_updateChecksInProgress = false;
+
+            const Ret ret = muse::make_ret(Ret::Code::Ok);
+            (void)resolve(ret);
         };
 
         // Asynchronously start the checks once we know the total number of expected checks...
-        m_updateCheckInProgress = true;
+        m_updateChecksInProgress = true;
         async::Async::call(this, [this, onUpdateCheckCompleted, canCheckAppUpdate, canCheckMuseSoundsUpdate]() {
             if (canCheckAppUpdate) {
                 muse::async::Promise<Ret> promise = appUpdateScenario()->checkForUpdate(/*manual*/ false);
@@ -155,11 +152,15 @@ muse::async::Promise<muse::Ret> StartupScenario::runOnSplashScreen()
 
         // Timeout if the checks take too long...
         QTimer::singleShot(CHECK_FOR_UPDATES_TIMEOUT, [this, resolve]() {
-            if (m_updateCheckInProgress) {
-                LOGE() << "Update checks timed out...";
-                const Ret ret = muse::make_ret(Ret::Code::Cancel);
-                (void)resolve(ret);
+            if (!m_updateChecksInProgress) {
+                return;
             }
+
+            m_updateChecksInProgress = false;
+
+            LOGE() << "Update checks timed out...";
+            const Ret ret = network::make_ret(network::Err::Timeout);
+            (void)resolve(ret);
         });
 
         return muse::async::Promise<Ret>::dummy_result();
@@ -235,7 +236,8 @@ QList<QVariantMap> StartupScenario::welcomeDialogData() const
     item1.insert("description", muse::qtrc("appshell/welcome",
                                            "Includes a new system for hiding empty staves, a new text editing widget, guitar notation improvements, engraving improvements and more."));
     item1.insert("buttonText", muse::qtrc("appshell/welcome", "Watch video"));
-    item1.insert("destinationUrl", "https://www.youtube.com/watch?v=-I-InDHIzdQ"); // TODO: Placeholder (4.6 video does not exist yet)
+    item1.insert("destinationUrl",
+                 "https://www.youtube.com/watch?v=83ZMq8JP-x8&utm_source=mss-yt-4.6-release&utm_medium=mss-yt-4.6-release&utm_campaign=mss-yt-4.6-release&utm_id=mss-yt-4.6-release");
 
     QVariantMap item2;
     item2.insert("title", muse::qtrc("appshell/welcome", "Install our free MuseSounds libraries"));

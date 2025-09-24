@@ -522,15 +522,15 @@ bool Read460::pasteStaff(XmlReader& e, Segment* dst, staff_idx_t dstStaff, Fract
                                 prevTremolo = nullptr;
                             }
 
-                            if (TremoloTwoChord* tremolo = chord->tremoloTwoChord()) {
+                            TremoloTwoChord* tremolo = chord->tremoloTwoChord();
+                            if (tremolo && chord == tremolo->chord2()) {
                                 if (doScale) {
                                     Fraction d = tremolo->durationType().ticks();
                                     tremolo->setDurationType(d * scale);
                                 }
-                                Measure* m = score->tick2measure(tick);
-                                Fraction ticks = cr->actualTicks();
-                                Fraction rticks = m->endTick() - tick;
-                                if (rticks < ticks || (rticks != ticks && rticks < ticks * 2)) {
+                                Fraction tremoloEndTick = tick + chord->actualTicks();
+                                Fraction measureEndTick = score->tick2measure(tick)->endTick();
+                                if (tremoloEndTick > measureEndTick) {
                                     MScore::setError(MsError::DEST_TREMOLO);
                                     return false;
                                 }
@@ -562,7 +562,7 @@ bool Read460::pasteStaff(XmlReader& e, Segment* dst, staff_idx_t dstStaff, Fract
                             // check previous CR on same track, if it has tremolo, delete the tremolo
                             // we don't want a tremolo and two different chord durations
                             if (cr->isChord()) {
-                                Segment* s = score->tick2leftSegment(tick - Fraction::fromTicks(1));
+                                Segment* s = score->tick2leftSegment(tick - Fraction::eps());
                                 if (s) {
                                     ChordRest* crt = toChordRest(s->element(cr->track()));
                                     if (!crt) {
@@ -647,7 +647,9 @@ bool Read460::pasteStaff(XmlReader& e, Segment* dst, staff_idx_t dstStaff, Fract
 
                     Fraction tick = doScale ? (ctx.tick() - dstTick) * scale + dstTick : ctx.tick();
                     Measure* m = score->tick2measure(tick);
-                    Segment* seg = m->undoGetChordRestOrTimeTickSegment(tick);
+                    Segment* seg = el->isFretDiagram()
+                                   ? m->undoGetSegment(SegmentType::ChordRest, tick)
+                                   : m->undoGetChordRestOrTimeTickSegment(tick);
                     el->setParent(seg);
 
                     // be sure to paste the element in the destination track;

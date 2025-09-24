@@ -13,6 +13,7 @@ declare_muse_module_opt(ACTIONS ON)
 declare_muse_module_opt(AUDIO ON)
 option(MUSE_MODULE_AUDIO_JACK "Enable jack support" OFF)
 option(MUSE_MODULE_AUDIO_EXPORT "Enable audio export" ON)
+option(MUSE_MODULE_AUDIO_WORKER "Enable audio worker" OFF)
 
 declare_muse_module_opt(AUDIOPLUGINS ON)
 
@@ -67,6 +68,8 @@ set(MUSE_MODULE_VST_VST3_SDK_PATH "" CACHE PATH "Path to VST3_SDK. SDK version >
 declare_muse_module_opt(WORKSPACE ON)
 
 # === Enviropment ===
+option(MUSE_THREADS_SUPPORT "Build with threads support" ON)
+option(MUSE_CONFIGURATION_IS_WEB "Configuration is web" OFF)
 option(MUSE_COMPILE_BUILD_64 "Build 64 bit version" ON)
 option(MUSE_COMPILE_ASAN "Enable Address Sanitizer" OFF)
 option(MUSE_COMPILE_USE_PCH "Use precompiled headers." ON)

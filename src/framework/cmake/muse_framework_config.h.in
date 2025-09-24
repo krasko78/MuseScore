@@ -36,6 +36,12 @@
 #cmakedefine QT_CONCURRENT_SUPPORTED 1
 
 /* ============================================== */
+/* Enviropment                                    */
+/* ============================================== */
+#cmakedefine MUSE_CONFIGURATION_IS_WEB 1
+#cmakedefine MUSE_THREADS_SUPPORT 1
+
+/* ============================================== */
 /* Modules                                        */
 /* ============================================== */
 
@@ -52,6 +58,7 @@
 #cmakedefine MUSE_MODULE_AUDIO_API 1
 #cmakedefine MUSE_MODULE_AUDIO_JACK 1
 #cmakedefine MUSE_MODULE_AUDIO_EXPORT 1
+#cmakedefine MUSE_MODULE_AUDIO_WORKER 1
 
 #cmakedefine MUSE_MODULE_AUDIOPLUGINS 1
 

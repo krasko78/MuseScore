@@ -560,6 +560,15 @@ void TablEdit::createRepeats()
     }
 }
 
+static void setInstrumentIDs(const std::vector<Part*>& parts)
+{
+    for (Part* part : parts) {
+        for (const auto& pair : part->instruments()) {
+            pair.second->updateInstrumentId();
+        }
+    }
+}
+
 void TablEdit::createScore()
 {
     createProperties();
@@ -571,6 +580,7 @@ void TablEdit::createScore()
     createRepeats();
     createTexts();
     createLinkedTabs();
+    setInstrumentIDs(score->parts());
 }
 
 void TablEdit::createTempo()
@@ -788,7 +798,7 @@ void TablEdit::readTefContents()
             note.dots = duration2dots(note.duration);
             note.triplet = duration2triplet(note.duration);
             note.voice = extractVoice(byte3);
-            note.tie = byte2 & 0x80;
+            note.tie = (byte2 / 0x20) == 7;
             if (byte1 & 0x40) {
                 note.graceEffect = byte4 / 0x20;
                 note.graceFret = byte4 & 0x1F;

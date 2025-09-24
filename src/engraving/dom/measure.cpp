@@ -54,6 +54,7 @@
 #include "page.h"
 #include "part.h"
 #include "pitchspelling.h"
+#include "playcounttext.h"
 #include "rest.h"
 #include "score.h"
 #include "segment.h"
@@ -1294,7 +1295,6 @@ void Measure::cmdAddStaves(staff_idx_t sStaff, staff_idx_t eStaff, bool createRe
             }
         }
     }
-    score()->undoUpdatePlayCountText(this);
 }
 
 //---------------------------------------------------------
@@ -1766,8 +1766,12 @@ EngravingItem* Measure::drop(EditData& data)
             score()->insertBox(ElementType::TBOX, this);
             break;
         case ActionIconType::FFRAME:
-            score()->insertBox(ElementType::FBOX, this);
+        {
+            Score::InsertMeasureOptions options;
+            options.cloneBoxToAllParts = false;
+            score()->insertBox(ElementType::FBOX, this, options);
             break;
+        }
         case ActionIconType::MEASURE:
             score()->insertMeasure(ElementType::MEASURE, this);
             break;
@@ -2001,6 +2005,10 @@ bool Measure::visible(staff_idx_t staffIdx) const
 bool Measure::stemless(staff_idx_t staffIdx) const
 {
     const Staff* staff = score()->staff(staffIdx);
+    if (!staff) {
+        return false;
+    }
+
     return staff->stemless(tick()) || m_mstaves[staffIdx]->stemless() || staff->staffType(tick())->stemless();
 }
 
@@ -2328,7 +2336,7 @@ bool Measure::hasVoices(staff_idx_t staffIdx, Fraction stick, Fraction len, bool
         for (track_idx_t track = strack; track < etrack; ++track) {
             ChordRest* cr = toChordRest(s->element(track));
             if (cr) {
-                if (cr->tick() + cr->actualTicks() <= stick) {
+                if (cr->endTick() <= stick) {
                     continue;
                 }
                 if (considerInvisible) {
@@ -2790,6 +2798,9 @@ Segment* Measure::searchSegment(double x, SegmentType st, track_idx_t strack, tr
     const track_idx_t lastTrack = etrack - 1;
     for (Segment* segment = first(st); segment; segment = segment->next(st)) {
         if (!segment->hasElements(strack, lastTrack)) {
+            continue;
+        }
+        if (segment->isTimeTickType() && segment->rtick() == ticks()) {
             continue;
         }
         Segment* ns = segment->next(st);
@@ -3454,6 +3465,11 @@ bool Measure::endBarLineVisible() const
 
 const BarLine* Measure::startBarLine() const
 {
+    return startBarLine(0, true);
+}
+
+const BarLine* Measure::startBarLine(staff_idx_t staffIdx, bool firstStaff) const
+{
     // search barline segment:
     Segment* s = first();
     while (s && !(s->isStartRepeatBarLineType() || s->isBeginBarLineType())) {
@@ -3462,7 +3478,7 @@ const BarLine* Measure::startBarLine() const
     // search first element
     if (s) {
         for (const EngravingItem* e : s->elist()) {
-            if (e) {
+            if (e && (e->staffIdx() == staffIdx || firstStaff)) {
                 return toBarLine(e);
             }
         }

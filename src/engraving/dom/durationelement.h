@@ -56,6 +56,8 @@ public:
     Fraction actualTicksAt(const Fraction& tick) const;
     Fraction actualTicks() const;
 
+    Fraction endTick() const { return tick() + actualTicks(); }
+
     // Length expressed as a fraction of a whole note
     virtual Fraction ticks() const { return m_duration; }
     Fraction globalTicks() const;
@@ -67,7 +69,7 @@ public:
 
 protected:
     DurationElement(const ElementType& type, EngravingItem* parent = nullptr, ElementFlags = ElementFlag::MOVABLE | ElementFlag::ON_STAFF);
-    DurationElement(const DurationElement& e);
+    DurationElement(const DurationElement& e, bool link = false);
 
 private:
     Fraction m_duration;

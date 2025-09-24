@@ -54,6 +54,9 @@ void GuitarBendLayout::updateSegmentsAndLayout(SLine* item, LayoutContext& ctx)
         return;
     }
 
+    item->setTick(startNote->tick());
+    item->setTick2(endNote->tick());
+
     unsigned int segmentsNeeded = system1 == system2 ? 1 : 2;
     size_t segmentCount = item->spannerSegments().size();
     if (segmentCount != segmentsNeeded) {
@@ -308,10 +311,10 @@ void GuitarBendLayout::adjustX(GuitarBendSegment* item, PointF& startPos, PointF
     Chord* startChord = startNote->chord();
     Chord* endChord = endNote->chord();
 
-    bool adjustStart = item->isSingleBeginType() && ((startChord->stem() && startChord->up() == up)
+    bool adjustStart = item->isSingleBeginType() && ((startChord->stem() && startChord->up() && up)
                                                      || (up && startNote != startChord->upNote())
                                                      || (!up && startNote != startChord->downNote()));
-    bool adjustEnd = item->isSingleEndType() && ((endChord->stem() && endChord->up() == up)
+    bool adjustEnd = item->isSingleEndType() && ((endChord->stem() && !endChord->up() && !up)
                                                  || (up && endNote != endChord->upNote())
                                                  || (!up && endNote != endChord->downNote()));
 
@@ -465,7 +468,7 @@ void GuitarBendLayout::layoutTabStaff(GuitarBendSegment* item, LayoutContext& ct
         TLayout::layoutChord(endNote->chord(), ctx);
     }
 
-    if (bend->type() != GuitarBendType::SLIGHT_BEND && !bend->isFullRelease()) {
+    if (bend->type() != GuitarBendType::SLIGHT_BEND && (!style.styleB(Sid::showFretOnFullBendRelease) || !bend->isFullRelease())) {
         endNote->setVisible(false);
     }
 

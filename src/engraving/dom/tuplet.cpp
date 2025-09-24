@@ -381,12 +381,12 @@ bool Tuplet::isEditable() const
 }
 
 //---------------------------------------------------------
-//   startEditDrag
+//   startDragGrip
 //---------------------------------------------------------
 
-void Tuplet::startEditDrag(EditData& ed)
+void Tuplet::startDragGrip(EditData& ed)
 {
-    DurationElement::startEditDrag(ed);
+    DurationElement::startDragGrip(ed);
     ElementEditDataPtr eed = ed.getData(this);
 
     eed->pushProperty(Pid::P1);
@@ -394,21 +394,21 @@ void Tuplet::startEditDrag(EditData& ed)
 }
 
 //---------------------------------------------------------
-//   editDrag
+//   dragGrip
 //---------------------------------------------------------
 
-void Tuplet::editDrag(EditData& ed)
+void Tuplet::dragGrip(EditData& ed)
 {
     if (ed.curGrip == Grip::START || ed.curGrip == Grip::MIDDLE) {
         m_userP1 += ed.delta;
-    }
-    if (ed.curGrip == Grip::END || ed.curGrip == Grip::MIDDLE) {
+    } else if (ed.curGrip == Grip::END || ed.curGrip == Grip::MIDDLE) {
         m_userP2 += ed.delta;
+    } else {
+        UNREACHABLE;
+        return;
     }
 
     setGenerated(false);
-    //layout();
-    //score()->setUpdateAll();
     triggerLayout();
 }
 
@@ -720,7 +720,7 @@ void Tuplet::sanitizeTuplet()
     }
     testDuration = testDuration / ratio();
     testDuration.reduce();
-    if (elements().back()->tick() + elements().back()->actualTicks() - elements().front()->tick() > testDuration) {
+    if (elements().back()->endTick() - elements().front()->tick() > testDuration) {
         return;         // this tuplet has missing elements; do not sanitize
     }
     if (!(testDuration == baseLenDuration && baseLenDuration == ticks())) {
@@ -814,7 +814,7 @@ void Tuplet::addMissingElements()
         Segment* segment = measure()->findSegment(SegmentType::ChordRest, elements().front()->tick());
         ChordRest* prevChordRest = segment && segment->prev() ? segment->prev()->nextChordRest(track(), true) : nullptr;
         if (prevChordRest && prevChordRest->measure() == measure()) {
-            firstAvailableTick = prevChordRest->tick() + prevChordRest->actualTicks();
+            firstAvailableTick = prevChordRest->endTick();
         }
         if (firstAvailableTick != elements().front()->tick()) {
             Fraction f = missingElementsDuration / ratio();
@@ -831,7 +831,7 @@ void Tuplet::addMissingElements()
         }
     }
     // now fill a hole at the end of the tuplet
-    Fraction startTick = elements().back()->tick() + elements().back()->actualTicks();
+    Fraction startTick = elements().back()->endTick();
     Fraction endTick = elements().front()->tick() + ticks();
     // just to be safe, find the next ChordRest in the track, and adjust endTick if necessary
     Segment* segment = measure()->findSegment(SegmentType::ChordRest, elements().back()->tick());

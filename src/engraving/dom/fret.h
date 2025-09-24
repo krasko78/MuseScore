@@ -69,10 +69,11 @@ public:
         int fingering = 0;     // NOTE:JT - possible future feature?
 
         Dot() = default;
-        Dot(int f, FretDotType t = FretDotType::NORMAL)
-            : fret(f), dtype(t) {}
+        Dot(int f, FretDotType t = FretDotType::NORMAL, bool isPartOfSlurBarre = false)
+            : fret(f), dtype(t), isPartOfSlurBarre(isPartOfSlurBarre) {}
 
         bool exists() const { return fret > 0; }
+        bool isPartOfSlurBarre = false;
     };
 
     struct Marker {
@@ -186,7 +187,10 @@ public:
     void setBarre(int string, int fret, bool add = false);
     void setMarker(int string, FretMarkerType marker);
     /*void setFingering(int string, int finger);*/
+
     void clear();
+    bool isClear() const;
+
     void undoSetFretDot(int _string, int _fret, bool _add = false, FretDotType _dtype = FretDotType::NORMAL);
     void undoSetFretMarker(int _string, FretMarkerType _mtype);
     void undoSetFretBarre(int _string, int _fret, bool _add = false);
@@ -206,8 +210,6 @@ public:
     String harmonyText() const;
     Harmony* harmony() const { return m_harmony; }
     void setHarmony(String harmonyText);
-    void linkHarmony(Harmony* harmony);
-    void unlinkHarmony();
 
     std::vector<FretItem::Dot> dot(int s, int f = 0) const;
     FretItem::Marker marker(int s) const;
@@ -298,9 +300,6 @@ private:
     void removeDotsMarkers(int ss, int es, int fret);
 
     static void applyDiagramPattern(FretDiagram* diagram, const String& pattern);
-
-    void applyAlignmentToHarmony();
-    void resetHarmonyAlignment();
 
     int m_strings = 0;
     int m_frets = 0;

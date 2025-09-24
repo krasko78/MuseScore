@@ -183,42 +183,6 @@ TEST_F(Engraving_PlaybackEventsRendererTests, SingleNote_NoArticulations)
 }
 
 /**
- * @brief PlaybackEventsRendererTests_Rest
- * @details In this case we're gonna render a simple piece of score with a single measure,
- *          which consists a rest only
- */
-TEST_F(Engraving_PlaybackEventsRendererTests, Rest)
-{
-    // [GIVEN] Simple piece of score (piano, 4/4, 120 bpm, Treble Cleff)
-    Score* score = ScoreRW::readScore(PLAYBACK_EVENTS_RENDERING_DIR + "whole_measure_rest/whole_measure_rest.mscx");
-
-    Measure* firstMeasure = score->firstMeasure();
-    ASSERT_TRUE(firstMeasure);
-
-    Segment* firstSegment = firstMeasure->segments().firstCRSegment();
-    ASSERT_TRUE(firstSegment);
-
-    ChordRest* rest = firstSegment->nextChordRest(0);
-    ASSERT_TRUE(rest);
-
-    // [GIVEN] Dummy context
-    PlaybackContextPtr ctx = std::make_shared<PlaybackContext>();
-
-    // [WHEN] Request to render the rest
-    PlaybackEventsMap result;
-    m_renderer.render(rest, 0, m_defaultProfile, ctx, result);
-
-    // [THEN] We expect that a single rest event will be rendered
-    EXPECT_EQ(result.size(), 1);
-
-    RestEvent event = std::get<RestEvent>(result.begin()->second.front());
-
-    // [THEN] We expect that the rest event will match time expectations of the whole measure rest with 120BPM tempo
-    EXPECT_EQ(event.arrangementCtx().nominalTimestamp, 0);
-    EXPECT_EQ(event.arrangementCtx().nominalDuration, QUARTER_NOTE_DURATION * 4);
-}
-
-/**
  * @brief PlaybackEventsRendererTests_SingleNote_Trill_Modern
  * @details In this case we're gonna render a simple piece of score with a single measure,
  *          which starts with the F4 quarter note marked by Trill articulation.
@@ -3505,6 +3469,74 @@ TEST_F(Engraving_PlaybackEventsRendererTests, CountIn)
             EXPECT_EQ(noteEvent.arrangementCtx().actualTimestamp, expectedTimestamp);
 
             expectedTimestamp += QUAVER_NOTE_DURATION;
+        }
+    }
+
+    delete score;
+}
+
+TEST_F(Engraving_PlaybackEventsRendererTests, HandbellsLetVibrate)
+{
+    // [GIVEN] Score with LV & Damp techniques
+    Score* score = ScoreRW::readScore(PLAYBACK_EVENTS_RENDERING_DIR + "handbells_let_vibrate.mscx");
+    ASSERT_TRUE(score);
+    ASSERT_EQ(score->parts().size(), 1);
+
+    // [GIVEN] Fulfill articulations profile with dummy patterns
+    m_defaultProfile->setPattern(ArticulationType::Pedal, m_dummyPattern);
+
+    // [GIVEN] Playback context
+    PlaybackContextPtr ctx = std::make_shared<PlaybackContext>();
+
+    // [WHEN] Init the context
+    ctx->update(score->parts().front()->id(), score);
+
+    // [WHEN] Render the score
+    PlaybackEventsMap result;
+
+    for (const Measure* measure = score->firstMeasure(); measure; measure = measure->nextMeasure()) {
+        for (const Segment* segment = measure->first(SegmentType::ChordRest); segment; segment = segment->next(SegmentType::ChordRest)) {
+            const mu::engraving::EngravingItem* element = segment->element(0);
+            if (element && element->isChord()) {
+                m_renderer.render(toChord(element), 0, m_defaultProfile, ctx, result);
+            }
+        }
+    }
+
+    // [THEN] Pedal is correctly applied to the note events
+    constexpr mpe::timestamp_t first_lv_start_timestamp = 0; // 1st measure: LV
+    constexpr mpe::timestamp_t first_lv_end_timestamp = 2000000; // 2nd measure: Damp
+    constexpr mpe::timestamp_t second_lv_start_timestamp = 4000000; // 3rd measure: LV (no Damp)
+
+    EXPECT_FALSE(result.empty());
+
+    for (const auto& pair : result) {
+        EXPECT_FALSE(pair.second.empty());
+
+        for (const PlaybackEvent& event : pair.second) {
+            ASSERT_TRUE(std::holds_alternative<mpe::NoteEvent>(event));
+
+            const mpe::NoteEvent& noteEvent = std::get<mpe::NoteEvent>(event);
+            const mpe::timestamp_t timestamp = noteEvent.arrangementCtx().actualTimestamp;
+            const mpe::ArticulationMap& articulations = noteEvent.expressionCtx().articulations;
+
+            auto pedalIt = articulations.find(mpe::ArticulationType::Pedal);
+
+            if (timestamp < first_lv_end_timestamp) {
+                ASSERT_NE(pedalIt, articulations.end());
+
+                const mpe::ArticulationMeta& meta = pedalIt->second.meta;
+                EXPECT_EQ(meta.timestamp, first_lv_start_timestamp);
+                EXPECT_EQ(meta.overallDuration, first_lv_end_timestamp);
+            } else if (timestamp >= first_lv_end_timestamp && timestamp < second_lv_start_timestamp) {
+                ASSERT_EQ(pedalIt, articulations.end());
+            } else {
+                ASSERT_NE(pedalIt, articulations.end());
+
+                const mpe::ArticulationMeta& meta = pedalIt->second.meta;
+                EXPECT_EQ(meta.timestamp, second_lv_start_timestamp);
+                EXPECT_EQ(meta.overallDuration, mpe::INFINITE_DURATION); // no Damp
+            }
         }
     }
 

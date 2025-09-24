@@ -497,7 +497,15 @@ InterruptionPoints RestLayout::computeInterruptionPoints(const Measure* measure,
     for (const Segment* segment = measure->first(SegmentType::ChordRest); segment; segment = segment->next(SegmentType::ChordRest)) {
         for (track_idx_t track = sTrack; track < eTrack; ++track) {
             EngravingItem* item = segment->element(track);
-            if (item && item->isRest() && toRest(item)->isGap()) {
+            if (!item) {
+                continue;
+            }
+            const bool gapRest = item->isRest() && toRest(item)->isGap();
+            // TODO: The fact that "merged" rests exists in both voices and are just graphically overlapped is a messy way of
+            // doing it and way too fragile, because it means that any logic that may move one rest can break the "merging".
+            // A more solid way of merging rests would be to *delete* the second voice rests, i.e. turn them into gap rests [M.S.].
+            const bool hasMergedRest = item->isRest() && !toRest(item)->ldata()->mergedRests.empty();
+            if (gapRest || hasMergedRest || !item->visible()) {
                 for (voice_idx_t voice = 0; voice < VOICES; ++voice) {
                     interruptionPointSets[voice].insert(segment->rtick());
                     interruptionPointSets[voice].insert(segment->rtick() + segment->ticks());
@@ -597,12 +605,15 @@ void RestLayout::checkFullMeasureRestCollisions(const System* system, LayoutCont
 
             Shape measureShape;
             for (const Segment& segment : measure->segments()) {
+                if (!segment.isActive()) {
+                    continue;
+                }
                 double xSegment = segment.pagePos().x() - system->pagePos().x();
                 measureShape.add(segment.staffShape(staffIdx).translated(PointF(xSegment, 0.0)));
             }
             measureShape.remove_if([fullMeasureRest] (const ShapeElement& shapeEl) {
                 const EngravingItem* shapeItem = shapeEl.item();
-                return shapeItem && (shapeItem == fullMeasureRest || shapeItem->isBarLine());
+                return shapeItem && (shapeItem == fullMeasureRest || shapeItem->isBarLine() || shapeItem->isAccidental());
             });
 
             const double spatium = fullMeasureRest->spatium();

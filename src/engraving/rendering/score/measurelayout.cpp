@@ -111,6 +111,23 @@ void MeasureLayout::layout2(Measure* item, LayoutContext& ctx)
     //    layout cross-staff ties
     //---------------------------------------------------
 
+    auto layoutCrossStaffTies = [](Chord* chord, Measure* item, const Fraction& stick, LayoutContext& ctx) ->void {
+        for (Note* note : chord->notes()) {
+            Tie* tieFor = note->tieFor();
+            Tie* tieBack = note->tieBack();
+            LaissezVib* lv = note->laissezVib();
+            if (lv && lv->isCrossStaff()) {
+                SlurTieLayout::layoutLaissezVibChord(chord, ctx);
+            }
+            if (tieFor && !lv && tieFor->isCrossStaff()) {
+                SlurTieLayout::layoutTieFor(tieFor, item->system());
+            }
+            if (tieBack && tieBack->tick() < stick && tieBack->isCrossStaff()) {
+                SlurTieLayout::layoutTieBack(tieBack, item->system(), ctx);
+            }
+        }
+    };
+
     const Fraction stick = item->system()->measures().front()->tick();
     const size_t tracks = ctx.dom().ntracks();
     static const SegmentType st { SegmentType::ChordRest };
@@ -125,19 +142,10 @@ void MeasureLayout::layout2(Measure* item, LayoutContext& ctx)
                 continue;
             }
             Chord* chord = toChord(element);
-            for (Note* note : chord->notes()) {
-                Tie* tieFor = note->tieFor();
-                Tie* tieBack = note->tieBack();
-                LaissezVib* lv = note->laissezVib();
-                if (lv && lv->isCrossStaff()) {
-                    SlurTieLayout::layoutLaissezVibChord(chord, ctx);
-                }
-                if (tieFor && !lv && tieFor->isCrossStaff()) {
-                    SlurTieLayout::layoutTieFor(tieFor, item->system());
-                }
-                if (tieBack && tieBack->tick() < stick && tieBack->isCrossStaff()) {
-                    SlurTieLayout::layoutTieBack(tieBack, item->system(), ctx);
-                }
+            layoutCrossStaffTies(chord, item, stick, ctx);
+
+            for (Chord* graceChord : chord->graceNotes()) {
+                layoutCrossStaffTies(graceChord, item, stick, ctx);
             }
         }
     }
@@ -149,6 +157,7 @@ static const std::unordered_set<ElementType> BREAK_TYPES {
     ElementType::HARMONY,
     ElementType::STAFF_TEXT,
     ElementType::EXPRESSION,
+    ElementType::DYNAMIC,
     ElementType::SYSTEM_TEXT,
     ElementType::TRIPLET_FEEL,
     ElementType::PLAYTECH_ANNOTATION,
@@ -158,6 +167,7 @@ static const std::unordered_set<ElementType> BREAK_TYPES {
     ElementType::SYMBOL,
     ElementType::FRET_DIAGRAM,
     ElementType::HARP_DIAGRAM,
+    ElementType::PLAY_COUNT_TEXT
 };
 
 static const std::unordered_set<ElementType> ALWAYS_BREAK_TYPES {
@@ -169,6 +179,7 @@ static const std::unordered_set<ElementType> CONDITIONAL_BREAK_TYPES {
     ElementType::HARMONY,
     ElementType::STAFF_TEXT,
     ElementType::EXPRESSION,
+    ElementType::DYNAMIC,
     ElementType::SYSTEM_TEXT,
     ElementType::TRIPLET_FEEL,
     ElementType::PLAYTECH_ANNOTATION,
@@ -250,17 +261,11 @@ void MeasureLayout::createMMRest(LayoutContext& ctx, Measure* firstMeasure, Meas
                     eClone->setGenerated(generated);
                     eClone->setParent(mmrEndBarlineSeg);
                     ctx.mutDom().doUndoAddElement(eClone);// ???
-                    if (PlayCountText* playCount = toBarLine(eClone)->playCountText()) {
-                        ctx.mutDom().undo(new Link(playCount, toBarLine(e)->playCountText()));
-                    }
                 } else {
                     BarLine* mmrEndBarline = toBarLine(mmrEndBarlineSeg->element(staffIdx * VOICES));
                     BarLine* lastMeasureEndBarline = toBarLine(e);
                     if (!generated && !mmrEndBarline->links()) {
                         ctx.mutDom().undo(new Link(mmrEndBarline, lastMeasureEndBarline));
-                        if (PlayCountText* playCount = mmrEndBarline->playCountText()) {
-                            ctx.mutDom().undo(new Link(playCount, lastMeasureEndBarline->playCountText()));
-                        }
                     }
                     if (mmrEndBarline->barLineType() != lastMeasureEndBarline->barLineType()) {
                         // change directly when generating mmrests, do not change underlying measures or follow links
@@ -272,6 +277,7 @@ void MeasureLayout::createMMRest(LayoutContext& ctx, Measure* firstMeasure, Meas
                 }
             }
         }
+        cloneAnnotationsToMMRest(lastMeasureEndBarlineSeg, mmrEndBarlineSeg, ctx);
     }
 
     //
@@ -512,54 +518,60 @@ void MeasureLayout::createMMRest(LayoutContext& ctx, Measure* firstMeasure, Meas
     // check for rehearsal mark etc.
     //
     underlyingSeg = firstMeasure->findSegmentR(SegmentType::ChordRest, Fraction(0, 1));
-    if (underlyingSeg) {
-        // clone elements from underlying measure to mmr
-        for (EngravingItem* e : underlyingSeg->annotations()) {
-            // look at elements in underlying measure
-            if (!muse::contains(BREAK_TYPES, e->type()) || !e->visible()) {
-                continue;
-            }
-            // try to find a match in mmr
-            bool found = false;
-            for (EngravingItem* ee : s->annotations()) {
-                if (muse::contains(e->linkList(), static_cast<EngravingObject*>(ee))) {
-                    found = true;
-                    break;
-                }
-            }
-            // add to mmr if no match found
-            if (!found) {
-                EngravingItem* eClone = e->linkedClone();
-                eClone->setParent(s);
-                ctx.mutDom().doUndoAddElement(eClone);
-            }
-        }
-
-        // remove stray elements (possibly leftover from a previous layout of this mmr)
-        // this should not happen since the elements are linked?
-        const auto annotations = s->annotations(); // make a copy since we alter the list
-        for (EngravingItem* e : annotations) { // look at elements in mmr
-            if (!muse::contains(BREAK_TYPES, e->type())) {
-                continue;
-            }
-            // try to find a match in underlying measure
-            bool found = false;
-            for (EngravingItem* ee : underlyingSeg->annotations()) {
-                if (muse::contains(e->linkList(), static_cast<EngravingObject*>(ee))) {
-                    found = true;
-                    break;
-                }
-            }
-            // remove from mmr if no match found
-            if (!found) {
-                ctx.mutDom().doUndoRemoveElement(e);
-            }
-        }
-    }
+    cloneAnnotationsToMMRest(underlyingSeg, s, ctx);
 
     MeasureBase* nm = ctx.conf().isShowVBox() ? lastMeasure->next() : lastMeasure->nextMeasure();
     mmrMeasure->setNext(nm);
     mmrMeasure->setPrev(firstMeasure->prev());
+}
+
+void MeasureLayout::cloneAnnotationsToMMRest(Segment* underlyingSeg, Segment* mmrSeg, LayoutContext& ctx)
+{
+    if (!underlyingSeg) {
+        return;
+    }
+    // clone elements from underlying measure to mmr
+    for (EngravingItem* e : underlyingSeg->annotations()) {
+        // look at elements in underlying measure
+        if (!muse::contains(BREAK_TYPES, e->type()) || !e->visible()) {
+            continue;
+        }
+        // try to find a match in mmr
+        bool found = false;
+        for (EngravingItem* ee : mmrSeg->annotations()) {
+            if (muse::contains(e->linkList(), static_cast<EngravingObject*>(ee))) {
+                found = true;
+                break;
+            }
+        }
+        // add to mmr if no match found
+        if (!found) {
+            EngravingItem* eClone = e->linkedClone();
+            eClone->setParent(mmrSeg);
+            ctx.mutDom().doUndoAddElement(eClone);
+        }
+    }
+
+    // remove stray elements (possibly leftover from a previous layout of this mmr)
+    // this should not happen since the elements are linked?
+    const auto annotations = mmrSeg->annotations();     // make a copy since we alter the list
+    for (EngravingItem* e : annotations) {     // look at elements in mmr
+        if (!muse::contains(BREAK_TYPES, e->type())) {
+            continue;
+        }
+        // try to find a match in underlying measure
+        bool found = false;
+        for (EngravingItem* ee : underlyingSeg->annotations()) {
+            if (muse::contains(e->linkList(), static_cast<EngravingObject*>(ee))) {
+                found = true;
+                break;
+            }
+        }
+        // remove from mmr if no match found
+        if (!found) {
+            ctx.mutDom().doUndoRemoveElement(e);
+        }
+    }
 }
 
 //---------------------------------------------------------
@@ -588,7 +600,10 @@ static bool validMMRestMeasure(const LayoutContext& ctx, const Measure* m)
                 continue;
             }
             if (muse::contains(BREAK_TYPES, e->type()) && !s->rtick().isZero()) {
-                return false;
+                // play count text is permitted at the end of a measure
+                if (e->type() != ElementType::PLAY_COUNT_TEXT) {
+                    return false;
+                }
             }
         }
         if (s->isChordRestType()) {
@@ -817,7 +832,7 @@ void MeasureLayout::createMultiMeasureRestsIfNeed(MeasureBase* currentMB, Layout
 {
     LAYOUT_CALL() << LAYOUT_ITEM_INFO(currentMB);
 
-    if (!currentMB->isMeasure()) {
+    if (!currentMB->isMeasure() || ctx.dom().nstaves() == 0) {
         return;
     }
 
@@ -874,21 +889,16 @@ void MeasureLayout::createMultiMeasureRestsIfNeed(MeasureBase* currentMB, Layout
 void MeasureLayout::removeMMRestElements(Measure* mmRestMeasure)
 {
     // Removed linked clones that were created for the mmRest measure
-    for (EngravingItem* item : mmRestMeasure->el()) {
+    // copy because we're removing elements
+    const ElementList elements = mmRestMeasure->el();
+    for (EngravingItem* item : elements) {
         item->undoUnlink();
         mmRestMeasure->score()->doUndoRemoveElement(item);
     }
 
     for (Segment* seg = mmRestMeasure->first(); seg && seg->rtick().isZero(); seg = seg->next()) {
-        if (!seg->isChordRestType()) {
-            for (EngravingItem* item : seg->elist()) {
-                if (item) {
-                    item->undoUnlink();
-                    mmRestMeasure->score()->doUndoRemoveElement(item);
-                }
-            }
-        }
-        for (EngravingItem* item : seg->annotations()) {
+        const std::vector<EngravingItem*> annotations = seg->annotations(); // copy because we're removing elements
+        for (EngravingItem* item : annotations) {
             item->undoUnlink();
             mmRestMeasure->score()->doUndoRemoveElement(item);
         }
@@ -1250,27 +1260,35 @@ void MeasureLayout::layoutPlayCountText(Measure* m, LayoutContext& ctx)
         if (staffIdx >= measureStaves.size()) {
             break;
         }
+        track_idx_t track = staff2track(staffIdx);
 
         Segment* endBarSeg = m->last(SegmentType::BarLineType);
-        BarLine* bl = endBarSeg ? toBarLine(endBarSeg->element(staff2track(staffIdx))) : nullptr;
-        PlayCountText* playCount = bl ? bl->playCountText() : nullptr;
+        PlayCountText* playCount
+            = endBarSeg ? toPlayCountText(endBarSeg->findAnnotation(ElementType::PLAY_COUNT_TEXT, track, track)) : nullptr;
         if (!playCount) {
             continue;
         }
 
         String text;
-        if (bl->playCountTextSetting() == AutoCustomHide::AUTO) {
-            const int repeatCount = m->repeatCount();
-            text = TConv::translatedUserName(ctx.conf().styleV(Sid::repeatPlayCountPreset).value<RepeatPlayCountPreset>()).arg(
-                repeatCount);
-        } else if (bl->playCountTextSetting() == AutoCustomHide::CUSTOM) {
-            text = bl->playCountCustomText();
+        const int repeatCount = m->repeatCount();
+        String defaultText = TConv::translatedUserName(ctx.conf().styleV(Sid::repeatPlayCountPreset).value<RepeatPlayCountPreset>()).arg(
+            repeatCount);
+
+        switch (playCount->playCountTextSetting()) {
+        case AutoCustomHide::AUTO:
+            text = defaultText;
+            break;
+        case AutoCustomHide::CUSTOM:
+            text = playCount->playCountCustomText();
             if (text.empty()) {
-                const int repeatCount = m->repeatCount();
-                text = TConv::translatedUserName(ctx.conf().styleV(Sid::repeatPlayCountPreset).value<RepeatPlayCountPreset>()).arg(
-                    repeatCount);
+                text = defaultText;
             }
+            break;
+        case AutoCustomHide::HIDE:
+            playCount->mutldata()->setIsSkipDraw(true);
+            break;
         }
+
         if (!playCount->cursor()->editing()) {
             playCount->setXmlText(text);
         }
@@ -1280,6 +1298,7 @@ void MeasureLayout::layoutPlayCountText(Measure* m, LayoutContext& ctx)
 void MeasureLayout::layoutMeasureNumber(Measure* m, LayoutContext& ctx)
 {
     bool showMeasureNumber = m->showsMeasureNumber();
+    MeasureNumberPlacement placementMode = ctx.conf().styleV(Sid::measureNumberPlacementMode).value<MeasureNumberPlacement>();
 
     String stringNum = String::number(m->no() + 1);
 
@@ -1306,7 +1325,7 @@ void MeasureLayout::layoutMeasureNumber(Measure* m, LayoutContext& ctx)
             }
 
             measureNumber->setXmlText(stringNum);
-            measureNumber->setSystemFlag(!score->style().styleB(Sid::measureNumberAllStaves));
+            measureNumber->setSystemFlag(placementMode != MeasureNumberPlacement::ON_ALL_STAVES);
             TLayout::layoutMeasureNumber(measureNumber, measureNumber->mutldata(), ctx);
         } else if (measureNumber) {
             measureNumber->setTrack(staff2track(staffIdx));
@@ -1579,7 +1598,7 @@ void MeasureLayout::createEndBarLines(Measure* m, bool isLastMeasureInSystem, La
         Fraction tick = m->endTick();
         for (staff_idx_t staffIdx = 0; staffIdx < nstaves; ++staffIdx) {
             const Staff* staff     = ctx.dom().staff(staffIdx);
-            const KeySigEvent key1 = staff->keySigEvent(tick - Fraction::fromTicks(1));
+            const KeySigEvent key1 = staff->keySigEvent(tick - Fraction::eps());
             const KeySigEvent key2 = staff->keySigEvent(tick);
             if (key1 == key2) {
                 continue;
@@ -2489,7 +2508,7 @@ Segment* MeasureLayout::addHeaderClef(Measure* m, bool isFirstClef, const Staff*
     const bool hideClef = staffType->isTabStaff() ? ctx.conf().styleB(Sid::hideTabClefAfterFirst) : !ctx.conf().styleB(Sid::genClef);
 
     // find the clef type at the previous tick
-    ClefTypeList cl = staff->clefType(m->tick() - Fraction::fromTicks(1));
+    ClefTypeList cl = staff->clefType(m->tick() - Fraction::eps());
     bool showCourtesy = true;
     Segment* s = nullptr;
     if (m->prevMeasure()) {

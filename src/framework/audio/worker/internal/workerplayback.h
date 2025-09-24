@@ -80,13 +80,15 @@ public:
     void setInputParams(const TrackSequenceId sequenceId, const TrackId trackId, const AudioInputParams& params) override;
     async::Channel<TrackSequenceId, TrackId, AudioInputParams> inputParamsChanged() const override;
 
+    void processInput(const TrackSequenceId sequenceId, const TrackId trackId) const override;
     RetVal<InputProcessingProgress> inputProcessingProgress(const TrackSequenceId sequenceId, const TrackId trackId) const override;
 
+    void clearCache(const TrackSequenceId sequenceId, const TrackId trackId) const override;
     void clearSources() override;
 
     // 3. Play Sequence
     void play(TrackSequenceId sequenceId, const secs_t delay = 0.0) override;
-    void seek(TrackSequenceId sequenceId, const secs_t newPosition) override;
+    void seek(TrackSequenceId sequenceId, const secs_t newPosition, const bool flushSound = true) override;
     void stop(TrackSequenceId sequenceId) override;
     void pause(TrackSequenceId sequenceId) override;
     void resume(TrackSequenceId sequenceId, const secs_t delay = 0.0) override;

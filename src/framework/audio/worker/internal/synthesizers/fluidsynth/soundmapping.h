@@ -236,10 +236,11 @@ static const auto& mappingByCategory(const mpe::SoundCategory category)
         { { mpe::SoundId::Balalaika,  { mpe::SoundSubCategory::Secunda,
                                         mpe::SoundSubCategory::Plucked, } }, { midi::Program(8, 107) } },
 
+        { { mpe::SoundId::Guzheng,  { mpe::SoundSubCategory::Chinese, mpe::SoundSubCategory::Plucked } }, { midi::Program(8, 107) } },
         { { mpe::SoundId::Koto,  { mpe::SoundSubCategory::Japanese, mpe::SoundSubCategory::Plucked } }, { midi::Program(8, 107) } },
+        { { mpe::SoundId::Oud,  { mpe::SoundSubCategory::African, mpe::SoundSubCategory::Plucked } }, { midi::Program(8, 25) } },
         { { mpe::SoundId::Shamisen,  { mpe::SoundSubCategory::Japanese, mpe::SoundSubCategory::Plucked } }, { midi::Program(0, 106) } },
         { { mpe::SoundId::Sitar,  { mpe::SoundSubCategory::Indian, mpe::SoundSubCategory::Plucked } }, { midi::Program(0, 104) } },
-        { { mpe::SoundId::Oud,  { mpe::SoundSubCategory::African, mpe::SoundSubCategory::Plucked } }, { midi::Program(8, 25) } },
         { { mpe::SoundId::Prim,  { mpe::SoundSubCategory::Plucked, } }, { midi::Program(0, 24) } },
         { { mpe::SoundId::Brac,  { mpe::SoundSubCategory::Plucked } }, { midi::Program(0, 24) } },
         { { mpe::SoundId::Bugarija,  { mpe::SoundSubCategory::Plucked } }, { midi::Program(0, 24) } },
@@ -271,6 +272,11 @@ static const auto& mappingByCategory(const mpe::SoundCategory category)
         { { mpe::SoundId::Violone,  { } }, { midi::Program(0, 43) } },
 
         { { mpe::SoundId::Octobass,  { } }, { midi::Program(0, 43) } },
+        { { mpe::SoundId::TimpleCanario,  { mpe::SoundSubCategory::Acoustic,
+                                            mpe::SoundSubCategory::Nylon,
+                                            mpe::SoundSubCategory::Spanish,
+                                            mpe::SoundSubCategory::Plucked } }, { midi::Program(0, 24) } },
+
         { { mpe::SoundId::Erhu,  { mpe::SoundSubCategory::Chinese } }, { midi::Program(0, 110) } },
         { { mpe::SoundId::Nyckelharpa,  { mpe::SoundSubCategory::Swedish } }, { midi::Program(0, 41) } },
 
@@ -1059,11 +1065,11 @@ inline const ArticulationMapping& articulationSounds(const mpe::PlaybackSetupDat
     return empty;
 }
 
-static const mpe::ArticulationTypeSet SUSTAIN_PEDAL_CC_SUPPORTED_TYPES = {
-    mpe::ArticulationType::Pedal, mpe::ArticulationType::LetRing,
+static const mpe::ArticulationTypeSet SUSTAIN_PEDAL_CC_SUPPORTED_TYPES {
+    mpe::ArticulationType::Pedal
 };
 
-static const mpe::ArticulationTypeSet SOSTENUTO_PEDAL_CC_SUPPORTED_TYPES = {
+static const mpe::ArticulationTypeSet SOSTENUTO_PEDAL_CC_SUPPORTED_TYPES {
     mpe::ArticulationType::LaissezVibrer,
 };
 

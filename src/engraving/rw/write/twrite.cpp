@@ -532,11 +532,15 @@ void TWrite::writeItemProperties(const EngravingItem* item, XmlWriter& xml, Writ
     writeProperty(item, xml, Pid::APPEARANCE_LINKED_TO_MASTER);
     writeProperty(item, xml, Pid::EXCLUDE_FROM_OTHER_PARTS);
 
-    writeProperty(item, xml, Pid::HAS_PARENTHESES);
-    if (item->leftParen()) {
+    bool leftGenerated = item->leftParen() && item->leftParen()->generated();
+    bool rightGenerated = item->rightParen() && item->rightParen()->generated();
+    if (!leftGenerated || !rightGenerated) {
+        writeProperty(item, xml, Pid::HAS_PARENTHESES);
+    }
+    if (item->leftParen() && !item->leftParen()->generated()) {
         writeItem(item->leftParen(), xml, ctx);
     }
-    if (item->rightParen()) {
+    if (item->rightParen() && !item->rightParen()->generated()) {
         writeItem(item->rightParen(), xml, ctx);
     }
 }
@@ -697,19 +701,6 @@ void TWrite::write(const BarLine* item, XmlWriter& xml, WriteContext& ctx)
     for (const EngravingItem* e : *item->el()) {
         writeItem(e, xml, ctx);
     }
-    writeProperty(item, xml, Pid::PLAY_COUNT_TEXT_SETTING);
-
-    const bool showText = item->style().styleB(Sid::repeatPlayCountShow);
-    const bool singleRepeats = item->style().styleB(Sid::repeatPlayCountShowSingleRepeats);
-    const int playCount = item->measure() ? item->measure()->repeatCount() : 2;
-    const bool showPlayCount = showText && (playCount == 2 ? singleRepeats : true);
-    if (showPlayCount) {
-        writeProperty(item, xml, Pid::PLAY_COUNT_TEXT);
-    }
-
-    if (item->playCountText()) {
-        writeItem(item->playCountText(), xml, ctx);
-    }
 
     if (ctx.clipboardmode() && item->measure()) {
         xml.tag("playCount", item->measure()->repeatCount());
@@ -831,7 +822,6 @@ void TWrite::write(const FBox* item, XmlWriter& xml, WriteContext& ctx)
     writeProperty(item, xml, Pid::FRET_FRAME_ROW_GAP);
     writeProperty(item, xml, Pid::FRET_FRAME_CHORDS_PER_ROW);
     writeProperty(item, xml, Pid::FRET_FRAME_H_ALIGN);
-    writeProperty(item, xml, Pid::FRET_FRAME_DIAGRAMS_ORDER);
 
     writeProperties(static_cast<const Box*>(item), xml, ctx);
 
@@ -1241,6 +1231,10 @@ void TWrite::writeProperties(const TextBase* item, XmlWriter& xml, WriteContext&
         writeProperty(item, xml, Pid::CENTER_BETWEEN_STAVES);
     }
 
+    if (item->hasSymbolSize()) {
+        writeProperty(item, xml, Pid::MUSIC_SYMBOL_SIZE);
+    }
+
     writeItemProperties(item, xml, ctx);
     writeProperty(item, xml, Pid::TEXT_STYLE);
 
@@ -1393,7 +1387,7 @@ void TWrite::write(const FretDiagram* item, XmlWriter& xml, WriteContext& ctx)
 
             bool dotExists = false;
             for (auto const& d : allDots) {
-                if (d.exists()) {
+                if (d.exists() && !d.isPartOfSlurBarre) { // Don't write dot if part of slur barré (will be generate during layout)
                     dotExists = true;
                     break;
                 }
@@ -1789,6 +1783,9 @@ void TWrite::write(const Harmony* item, XmlWriter& xml, WriteContext& ctx)
     writeProperty(item, xml, Pid::HARMONY_TYPE);
     writeProperty(item, xml, Pid::PLAY);
 
+    //! needed to genarate harmony_to_diagram.xml
+    // xml.tag("name", item->harmonyName());
+
     // check tpcs valid?
     if (item->rootCase() != NoteCaseType::CAPITAL) {
         xml.tag("rootCase", static_cast<int>(item->rootCase()));
@@ -2008,9 +2005,14 @@ void TWrite::write(const Instrument* item, XmlWriter& xml, WriteContext&, const 
         xml.tag("singleNoteDynamics", item->singleNoteDynamics());
     }
 
+    if (item->glissandoStyle() != GlissandoStyle::CHROMATIC) {
+        xml.tag("glissandoStyle", TConv::toXml(item->glissandoStyle()));
+    }
+
     if (!item->stringData()->isNull()) {
         write(item->stringData(), xml);
     }
+
     for (const NamedEventList& a : item->midiActions()) {
         write(&a, xml, "MidiAction");
     }
@@ -2302,7 +2304,6 @@ void TWrite::write(const Marker* item, XmlWriter& xml, WriteContext& ctx)
     xml.tag("label", item->label());
     writeProperty(item, xml, Pid::MARKER_TYPE);
     writeProperty(item, xml, Pid::MARKER_CENTER_ON_SYMBOL);
-    writeProperty(item, xml, Pid::MARKER_SYMBOL_SIZE);
     xml.endElement();
 }
 
@@ -2611,6 +2612,8 @@ void TWrite::write(const PickScrape* item, XmlWriter& xml, WriteContext& ctx)
 void TWrite::write(const PlayCountText* item, XmlWriter& xml, WriteContext& ctx)
 {
     xml.startElement(item);
+    writeProperty(item, xml, Pid::PLAY_COUNT_TEXT_SETTING);
+    writeProperty(item, xml, Pid::PLAY_COUNT_TEXT);
     writeProperties(static_cast<const TextBase*>(item), xml, ctx, true);
     xml.endElement();
 }
@@ -3441,7 +3444,7 @@ void TWrite::writeSegments(XmlWriter& xml, WriteContext& ctx, track_idx_t strack
         if (fm && fm->isMMRest()) {
             fm = fm->mmRestFirst();
             if (fm) {
-                sseg = fm->first();
+                sseg = fm->first(SegmentType::ChordRest);
             }
         }
     }
@@ -3515,7 +3518,8 @@ void TWrite::writeSegments(XmlWriter& xml, WriteContext& ctx, track_idx_t strack
                         || (et == ElementType::MARKER)
                         || (et == ElementType::TEMPO_TEXT)
                         || (et == ElementType::VOLTA)
-                        || (et == ElementType::GRADUAL_TEMPO_CHANGE)) {
+                        || (et == ElementType::GRADUAL_TEMPO_CHANGE)
+                        || (et == ElementType::PLAY_COUNT_TEXT)) {
                         writeSystem = (e1->track() == track); // always show these on appropriate staves
                     }
                 }

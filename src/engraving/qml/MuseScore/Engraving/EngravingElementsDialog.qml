@@ -27,7 +27,7 @@ import Muse.UiComponents 1.0
 StyledDialogView {
     id: root
 
-    title: "Diagnostic: Accessibility"
+    title: "Diagnostic: Engraving elements"
 
     contentHeight: 800
     contentWidth: 600

@@ -80,7 +80,7 @@ ChordRest::ChordRest(const ElementType& type, Segment* parent)
 }
 
 ChordRest::ChordRest(const ChordRest& cr, bool link)
-    : DurationElement(cr)
+    : DurationElement(cr, link)
 {
     m_durationType = cr.m_durationType;
     m_staffMove    = cr.m_staffMove;
@@ -151,7 +151,7 @@ void ChordRest::undoSetSmall(bool val)
 
 EngravingItem* ChordRest::drop(EditData& data)
 {
-    EngravingItem* e       = data.dropElement;
+    EngravingItem* e = data.dropElement;
     Measure* m       = measure();
     bool fromPalette = (e->track() == muse::nidx);
     switch (e->type()) {
@@ -162,12 +162,10 @@ EngravingItem* ChordRest::drop(EditData& data)
         // allow breath marks in voice > 1
         b->setTrack(this->track());
         b->setPlacement(b->track() & 1 ? PlacementV::BELOW : PlacementV::ABOVE);
-        Fraction bt = tick() + actualTicks();
-        bt = tick() + actualTicks();
 
         // TODO: insert automatically in all staves?
 
-        Segment* seg = m->undoGetSegment(SegmentType::Breath, bt);
+        Segment* seg = m->undoGetSegment(SegmentType::Breath, endTick());
         b->setParent(seg);
         score()->undoAddElement(b);
     }
@@ -181,7 +179,7 @@ EngravingItem* ChordRest::drop(EditData& data)
             bl->setPos(PointF());
             bl->setTrack(staffIdx() * VOICES);
             bl->setGenerated(false);
-            Fraction blt = bl->barLineType() == BarLineType::START_REPEAT ? tick() : tick() + actualTicks();
+            Fraction blt = bl->barLineType() == BarLineType::START_REPEAT ? tick() : endTick();
 
             if (blt == m->tick() || blt == m->endTick()) {
                 return m->drop(data);
@@ -794,9 +792,8 @@ bool ChordRest::isGraceAfter() const
 //---------------------------------------------------------
 Breath* ChordRest::hasBreathMark() const
 {
-    Fraction end = tick() + actualTicks();
-    Segment* s = measure()->findSegment(SegmentType::Breath, end);
-    return s ? toBreath(s->element(track())) : 0;
+    Segment* s = measure()->findSegment(SegmentType::Breath, endTick());
+    return s ? toBreath(s->element(track())) : nullptr;
 }
 
 //---------------------------------------------------------

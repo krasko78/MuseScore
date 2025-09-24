@@ -32,6 +32,8 @@
 #include "chord.h"
 #include "chordrest.h"
 #include "clef.h"
+#include "fret.h"
+#include "harmony.h"
 #include "laissezvib.h"
 #include "lyrics.h"
 #include "marker.h"
@@ -779,14 +781,10 @@ Note* searchTieNote(const Note* note, const Segment* nextSegment, const bool dis
     Note* note2  = nullptr;
     Chord* chord = note->chord();
     Segment* seg = chord->segment();
-    Part* part   = chord->part();
-    track_idx_t strack = part->staves().front()->idx() * VOICES;
-    track_idx_t etrack = strack + part->staves().size() * VOICES;
 
     if (!nextSegment) {
-        const Fraction nextTick = chord->tick() + chord->actualTicks();
         nextSegment = seg->next1(SegmentType::ChordRest);
-        while (nextSegment && nextSegment->tick() < nextTick) {
+        while (nextSegment && nextSegment->tick() < chord->endTick()) {
             nextSegment = nextSegment->next1(SegmentType::ChordRest);
         }
     }
@@ -829,7 +827,7 @@ Note* searchTieNote(const Note* note, const Segment* nextSegment, const bool dis
         // try to tie to grace note after if present
         std::vector<Chord*> gna = chord->graceNotesAfter();
         if (!gna.empty()) {
-            Chord* gc = gna[0];
+            Chord* gc = gna.front();
             note2 = gc->findNote(note->pitch());
             if (note2) {
                 return note2;
@@ -840,21 +838,21 @@ Note* searchTieNote(const Note* note, const Segment* nextSegment, const bool dis
     // and we are looking for a note in the *next* chord (grace or regular)
 
     int idx1 = note->unisonIndex();
-    for (track_idx_t track = strack; track < etrack; ++track) {
+    Part* part = chord->part();
+    for (track_idx_t track = part->startTrack(); track < part->endTrack(); ++track) {
         EngravingItem* e = nextSegment->element(track);
         if (!e || !e->isChord()) {
             continue;
         }
         Chord* c = toChord(e);
-        const staff_idx_t staffIdx = c->staffIdx() + c->staffMove();
-        if (staffIdx != chord->staffIdx() + chord->staffMove()) {
+        if (c->vStaffIdx() != chord->vStaffIdx()) {
             // this check is needed as we are iterating over all staves to capture cross-staff chords
             continue;
         }
         // if there are grace notes before, try to tie to first one
         std::vector<Chord*> gnb = c->graceNotesBefore();
         if (!gnb.empty()) {
-            Chord* gc = gnb[0];
+            Chord* gc = gnb.front();
             Note* gn2 = gc->findNote(note->pitch());
             if (gn2) {
                 return gn2;
@@ -1480,7 +1478,7 @@ std::vector<EngravingItem*> collectSystemObjects(const Score* score, const std::
         }
 
         for (const Segment& seg : measure->segments()) {
-            if (seg.isType(Segment::CHORD_REST_OR_TIME_TICK_TYPE)) {
+            if (seg.isType(Segment::CHORD_REST_OR_TIME_TICK_TYPE | SegmentType::EndBarLine)) {
                 for (EngravingItem* annotation : seg.annotations()) {
                     if (!annotation || !annotation->systemFlag()) {
                         continue;
@@ -1508,21 +1506,6 @@ std::vector<EngravingItem*> collectSystemObjects(const Score* score, const std::
                         }
                     } else if (item->staffIdx() == 0) {
                         result.push_back(item);
-                    }
-                }
-            }
-
-            if (measure->repeatEnd() && seg.isType(SegmentType::BarLineType)) {
-                for (EngravingItem* item : seg.elist()) {
-                    if (!item || !item->isBarLine()) {
-                        continue;
-                    }
-
-                    if ((!staves.empty() && muse::contains(staves, item->staff())) || (staves.empty() && (item->staffIdx() == 0))) {
-                        BarLine* bl = toBarLine(item);
-                        if (PlayCountText* playCount = bl->playCountText()) {
-                            result.push_back(playCount);
-                        }
                     }
                 }
             }
@@ -1878,18 +1861,46 @@ bool segmentsAreInDifferentRepeatSegments(const Segment* firstSeg, const Segment
     return false;
 }
 
-EngravingItem* findNewSystemMarkingParent(const EngravingItem* item, const Staff* staff)
+bool isValidBarLineForRepeatSection(const Segment* firstSeg, const Segment* secondSeg)
 {
-    EngravingItem* newParent = nullptr;
-    if (item->isPlayCountText()) {
-        BarLine* oldParent = toBarLine(item->parent());
-        Segment* blSeg = oldParent->segment();
-        newParent = toBarLine(blSeg->element(staff2track(staff->idx())));
-    } else {
-        newParent = item->findLinkedInStaff(staff);
+    if (!firstSeg || !secondSeg) {
+        return false;
+    }
+    if (!firstSeg->isType(SegmentType::BarLineType)) {
+        return false;
     }
 
-    return newParent;
+    const MasterScore* master = firstSeg->masterScore();
+
+    Measure* firstMeasure = firstSeg->measure();
+    Measure* secondMeasure = secondSeg->measure();
+
+    const Measure* firstMasterMeasure = master->tick2measure(firstMeasure->tick());
+    const Measure* secondMasterMeasure = master->tick2measure(secondMeasure->tick());
+    const Measure* adjacentMasterMeasure = firstMasterMeasure->nextMeasure();
+
+    Score* score = firstSeg->score();
+
+    const RepeatList& repeatList = score->repeatList(true, false);
+
+    std::vector<const Measure*> measures;
+
+    bool segEndsWithBl = false;
+    bool adjacentAndSecondShareSegment = false;
+
+    for (auto it = repeatList.begin(); it != repeatList.end(); it++) {
+        const RepeatSegment* rs = *it;
+
+        if (rs->endsWithMeasure(firstMasterMeasure)) {
+            segEndsWithBl = true;
+        }
+
+        if (rs->startsWithMeasure(adjacentMasterMeasure) && rs->containsMeasure(secondMasterMeasure)) {
+            adjacentAndSecondShareSegment = true;
+        }
+    }
+
+    return segEndsWithBl && adjacentAndSecondShareSegment;
 }
 
 MeasureBeat findBeat(const Score* score, int tick)
@@ -1911,5 +1922,15 @@ MeasureBeat findBeat(const Score* score, int tick)
     measureBeat.maxBeatIndex = timeSig.numerator() - 1;
 
     return measureBeat;
+}
+
+bool isElementInFretBox(const EngravingItem* item)
+{
+    if (item->isHarmony()) {
+        return toHarmony(item)->isInFretBox();
+    } else if (item->isFretDiagram()) {
+        return toFretDiagram(item)->isInFretBox();
+    }
+    return false;
 }
 }

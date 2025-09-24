@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore BVBA and others
+ * Copyright (C) 2025 MuseScore BVBA and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -19,8 +19,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef MUSE_AUDIO_IAUDIODRIVER_H
-#define MUSE_AUDIO_IAUDIODRIVER_H
+#pragma once
 
 #include <cstdint>
 #include <string>
@@ -29,15 +28,12 @@
 #include <memory>
 
 #include "global/async/notification.h"
-#include "modularity/imoduleinterface.h"
 
 #include "audio/common/audiotypes.h"
 
 namespace muse::audio {
-class IAudioDriver : MODULE_EXPORT_INTERFACE
+class IAudioDriver
 {
-    INTERFACE_ID(IAudioDriver)
-
 public:
     virtual ~IAudioDriver() = default;
 
@@ -50,10 +46,8 @@ public:
 
     struct Spec
     {
-        unsigned int sampleRate;      // frequency -- samples per second
+        OutputSpec output;
         Format format;                // Audio data format
-        uint8_t channels;             // Number of channels: 1 mono, 2 stereo
-        uint16_t samples;             // Audio buffer size in sample FRAMES (total samples divided by channel count)
         Callback callback;            // Callback that feeds the audio device
         void* userdata;               // Userdata passed to callback (ignored for NULL callbacks).
     };
@@ -66,6 +60,12 @@ public:
     virtual bool isOpened() const = 0;
 
     virtual const Spec& activeSpec() const = 0;
+    virtual bool setOutputDeviceBufferSize(unsigned int bufferSize) = 0;
+    virtual async::Notification outputDeviceBufferSizeChanged() const = 0;
+    virtual bool setOutputDeviceSampleRate(unsigned int sampleRate) = 0;
+    virtual async::Notification outputDeviceSampleRateChanged() const = 0;
+    virtual std::vector<unsigned int> availableOutputDeviceBufferSizes() const = 0;
+    virtual std::vector<unsigned int> availableOutputDeviceSampleRates() const = 0;
 
     virtual AudioDeviceID outputDevice() const = 0;
     virtual bool selectOutputDevice(const AudioDeviceID& id) = 0;
@@ -75,22 +75,8 @@ public:
     virtual AudioDeviceList availableOutputDevices() const = 0;
     virtual async::Notification availableOutputDevicesChanged() const = 0;
 
-    virtual unsigned int outputDeviceBufferSize() const = 0;
-    virtual bool setOutputDeviceBufferSize(unsigned int bufferSize) = 0;
-    virtual async::Notification outputDeviceBufferSizeChanged() const = 0;
-
-    virtual std::vector<unsigned int> availableOutputDeviceBufferSizes() const = 0;
-
-    virtual unsigned int outputDeviceSampleRate() const = 0;
-    virtual bool setOutputDeviceSampleRate(unsigned int bufferSize) = 0;
-    virtual async::Notification outputDeviceSampleRateChanged() const = 0;
-
-    virtual std::vector<unsigned int> availableOutputDeviceSampleRates() const = 0;
-
     virtual void resume() = 0;
     virtual void suspend() = 0;
 };
 using IAudioDriverPtr = std::shared_ptr<IAudioDriver>;
 }
-
-#endif // MUSE_AUDIO_IAUDIODRIVER_H

@@ -40,6 +40,8 @@ public:
     virtual void init() = 0;
     virtual void reload() = 0;
 
+    virtual muse::async::Channel<InstrumentTrackIdSet> tracksDataChanged() const = 0;
+
     virtual const engraving::InstrumentTrackId& metronomeTrackId() const = 0;
     virtual engraving::InstrumentTrackId chordSymbolsTrackId(const muse::ID& partId) const = 0;
     virtual bool isChordSymbolsTrack(const engraving::InstrumentTrackId& trackId) const = 0;
@@ -73,6 +75,7 @@ public:
 
     virtual void addLoopBoundary(LoopBoundaryType boundaryType, muse::midi::tick_t tick) = 0;
     virtual void setLoopBoundariesEnabled(bool enabled) = 0;
+    virtual bool isLoopEnabled() const = 0;
     virtual const LoopBoundaries& loopBoundaries() const = 0;
     virtual muse::async::Notification loopBoundariesChanged() const = 0;
 

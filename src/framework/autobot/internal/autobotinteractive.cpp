@@ -107,9 +107,9 @@ async::Promise<io::path_t> AutobotInteractive::selectOpeningFile(const std::stri
 }
 
 io::path_t AutobotInteractive::selectOpeningFileSync(const std::string& title, const io::path_t& dir,
-                                                     const std::vector<std::string>& filter)
+                                                     const std::vector<std::string>& filter, const int options)
 {
-    return m_real->selectOpeningFileSync(title, dir, filter);
+    return m_real->selectOpeningFileSync(title, dir, filter, options);
 }
 
 io::path_t AutobotInteractive::selectSavingFileSync(const std::string& title, const io::path_t& dir, const std::vector<std::string>& filter,
@@ -223,12 +223,12 @@ Ret AutobotInteractive::isAppExists(const std::string& appIdentifier) const
     return m_real->isAppExists(appIdentifier);
 }
 
-Ret AutobotInteractive::canOpenApp(const Uri& uri) const
+Ret AutobotInteractive::canOpenApp(const UriQuery& uri) const
 {
     return m_real->canOpenApp(uri);
 }
 
-async::Promise<Ret> AutobotInteractive::openApp(const Uri& uri) const
+async::Promise<Ret> AutobotInteractive::openApp(const UriQuery& uri) const
 {
     return m_real->openApp(uri);
 }

@@ -27,7 +27,6 @@
 #include "containers.h"
 
 #include "dom/partialtie.h"
-#include "dom/playcounttext.h"
 #include "style/style.h"
 
 #include "barline.h"
@@ -1024,14 +1023,7 @@ static MeasureBase* cloneMeasure(MeasureBase* mb, Score* score, const Score* osc
                         }
                     }
 
-                    bool cloneBarLine = false;
-                    if (oseg->isEndBarLineType()) {
-                        BarLine* topBarLine = toBarLine(oseg->element(0));
-                        PlayCountText* topPlayCount = topBarLine ? topBarLine->playCountText() : nullptr;
-                        cloneBarLine = oe && oe->isBarLine() && toBarLine(oe)->barLineType() == BarLineType::END_REPEAT && topPlayCount;
-                    }
-
-                    bool clone = oe && (!oe->generated() || cloneBarLine) && !oe->excludeFromOtherParts();
+                    bool clone = oe && !oe->generated() && !oe->excludeFromOtherParts();
 
                     if (clone) {
                         EngravingItem* ne;
@@ -1048,22 +1040,6 @@ static MeasureBase* cloneMeasure(MeasureBase* mb, Score* score, const Score* osc
                             BarLine* nbl = toBarLine(ne);
                             if (adjustedBarlineSpan) {
                                 nbl->setSpanStaff(adjustedBarlineSpan);
-                            }
-                            if (PlayCountText* newText = nbl->playCountText()) {
-                                newText->setTrack(track);
-                                PlayCountText* oldText = toBarLine(oe)->playCountText();
-                                score->undo(new Link(newText, oldText));
-                            } else {
-                                BarLine* topBarLine = toBarLine(oseg->element(0));
-                                PlayCountText* oldText = topBarLine ? topBarLine->playCountText() : nullptr;
-                                if (oldText) {
-                                    EngravingItem* npc = oldText->linkedClone();
-                                    npc->setTrack(track);
-                                    npc->setParent(ne);
-                                    npc->setScore(score);
-                                    npc->styleChanged();
-                                    score->doUndoAddElement(npc);
-                                }
                             }
                         } else if (oe->isChordRest()) {
                             ChordRest* ocr = toChordRest(oe);
@@ -1407,9 +1383,6 @@ void Excerpt::cloneStaff(Staff* srcStaff, Staff* dstStaff, bool cloneSpanners)
                             continue;
                         }
                         default:
-                            if (toTextLine(e)->systemFlag()) {
-                                continue;
-                            }
                             EngravingItem* ne1 = e->clone();
                             ne1->setTrack(dstTrack);
                             ne1->setParent(seg);
@@ -1629,6 +1602,7 @@ void Excerpt::cloneStaff2(Staff* srcStaff, Staff* dstStaff, const Fraction& star
                     continue;
                 }
 
+                oe->setGenerated(false);
                 EngravingItem* ne = oe->linkedClone();
                 ne->setTrack(dstTrack);
                 ne->setParent(ns);
@@ -1681,26 +1655,6 @@ void Excerpt::cloneStaff2(Staff* srcStaff, Staff* dstStaff, const Fraction& star
                         }
                         addGraceNoteTiesAndBackSpanners(och->graceNotesAfter(), nch, tieMap, score);
                         addTremoloTwoChord(och, nch, prevTremolo);
-                    }
-                }
-
-                if (oe->isBarLine() && toBarLine(oe)->barLineType() == BarLineType::END_REPEAT) {
-                    if (PlayCountText* invalidPcText = toBarLine(ne)->playCountText()) {
-                        ne->remove(invalidPcText);
-                    }
-
-                    BarLine* topBarLine = toBarLine(oseg->element(0));
-                    PlayCountText* pc = topBarLine->playCountText();
-
-                    EngravingItem* linkedElement = pc->findLinkedInScore(score);
-
-                    if (!linkedElement) {
-                        EngravingItem* npc = pc->linkedClone();
-                        npc->setTrack(dstTrack);
-                        npc->setParent(ne);
-                        npc->setScore(score);
-                        npc->styleChanged();
-                        addElement(npc);
                     }
                 }
             }

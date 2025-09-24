@@ -507,15 +507,14 @@ bool Read400::pasteStaff(XmlReader& e, Segment* dst, staff_idx_t dstStaff, Fract
                             // tremolos can potentially still straddle the barline if no tie is required
                             // but these will be removed later
                             TremoloTwoChord* t = chord->tremoloTwoChord();
-                            if (t) {
+                            if (t && chord == t->chord2()) {
                                 if (doScale) {
                                     Fraction d = t->durationType().ticks();
                                     t->setDurationType(d * scale);
                                 }
-                                Measure* m = score->tick2measure(tick);
-                                Fraction ticks = cr->actualTicks();
-                                Fraction rticks = m->endTick() - tick;
-                                if (rticks < ticks || (rticks != ticks && rticks < ticks * 2)) {
+                                Fraction tremoloEndTick = tick + chord->actualTicks();
+                                Fraction measureEndTick = score->tick2measure(tick)->endTick();
+                                if (tremoloEndTick > measureEndTick) {
                                     MScore::setError(MsError::DEST_TREMOLO);
                                     return false;
                                 }
@@ -547,7 +546,7 @@ bool Read400::pasteStaff(XmlReader& e, Segment* dst, staff_idx_t dstStaff, Fract
                             // check previous CR on same track, if it has tremolo, delete the tremolo
                             // we don't want a tremolo and two different chord durations
                             if (cr->isChord()) {
-                                Segment* s = score->tick2leftSegment(tick - Fraction::fromTicks(1));
+                                Segment* s = score->tick2leftSegment(tick - Fraction::eps());
                                 if (s) {
                                     ChordRest* crt = toChordRest(s->element(cr->track()));
                                     if (!crt) {

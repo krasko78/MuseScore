@@ -40,6 +40,11 @@ void NotationPlaybackStub::reload()
 {
 }
 
+muse::async::Channel<InstrumentTrackIdSet> NotationPlaybackStub::tracksDataChanged() const
+{
+    return {};
+}
+
 const engraving::InstrumentTrackId& NotationPlaybackStub::metronomeTrackId() const
 {
     static const engraving::InstrumentTrackId dummy;
@@ -48,8 +53,7 @@ const engraving::InstrumentTrackId& NotationPlaybackStub::metronomeTrackId() con
 
 engraving::InstrumentTrackId NotationPlaybackStub::chordSymbolsTrackId(const ID&) const
 {
-    static const engraving::InstrumentTrackId dummy;
-    return dummy;
+    return {};
 }
 
 bool NotationPlaybackStub::isChordSymbolsTrack(const engraving::InstrumentTrackId&) const
@@ -135,6 +139,11 @@ void NotationPlaybackStub::addLoopBoundary(LoopBoundaryType, tick_t)
 
 void NotationPlaybackStub::setLoopBoundariesEnabled(bool)
 {
+}
+
+bool NotationPlaybackStub::isLoopEnabled() const
+{
+    return false;
 }
 
 const LoopBoundaries& NotationPlaybackStub::loopBoundaries() const

@@ -29,6 +29,7 @@
 #include "modularity/ioc.h"
 #include "imainwindow.h"
 #include "internal/iplatformtheme.h"
+#include "io/filewatcher.h"
 
 #include "types/val.h"
 #include "uiarrangement.h"
@@ -179,5 +180,7 @@ private:
     QStringList m_nonTextFonts;
 
     Config m_config;
+
+    mutable io::FileWatcher m_themeWatcher;
 };
 }

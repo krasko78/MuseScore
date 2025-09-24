@@ -6,7 +6,8 @@ on:
     inputs:
       platforms:
         description: 'Platforms to build:'
-        default: 'backend linux_arm32 linux_arm64 linux_x64 macos windows_x64 windows_portable'
+        # default: 'backend linux_arm32 linux_arm64 linux_x64 macos windows_x64 windows_portable'
+        default: 'backend linux_arm64 linux_x64 macos windows_x64 windows_portable'
         required: true
       build_mode:
         description: 'Build mode: devel,nightly,testing,stable'
@@ -21,7 +22,7 @@ on:
         default: 'off'
         required: false
       sentry_project:
-        description: 'Upload symbols and dumps to Sentry (choose a project): mu4(default for stable build), sandbox'
+        description: 'Upload symbols and dumps to Sentry (choose a project): mu4(default for stable build), mu4-sandbox'
         default: ''
         required: false
       use_qt69:
@@ -32,7 +33,8 @@ on:
     inputs:
       platforms:
         description: 'Platforms to build:'
-        default: 'backend linux_arm32 linux_arm64 linux_x64 macos windows_x64 windows_portable'
+        # default: 'backend linux_arm32 linux_arm64 linux_x64 macos windows_x64 windows_portable'
+        default: 'backend linux_arm64 linux_x64 macos windows_x64 windows_portable'
         type: string
         required: true
       build_mode:
@@ -51,7 +53,7 @@ on:
         type: string
         required: false
       sentry_project:
-        description: 'Upload symbols and dumps to Sentry (choose a project): mu4(default for stable build), sandbox'
+        description: 'Upload symbols and dumps to Sentry (choose a project): mu4(default for stable build), mu4-sandbox'
         default: ''
         type: string
         required: false
@@ -133,7 +135,7 @@ jobs:
         os:
         - ubuntu-22.04 # linux_x64, backend, linux_arm32, linux_arm64
         - macos-latest
-        - windows-2022 # windows_x64, windows_portable
+        - windows-2025 # windows_x64, windows_portable
     runs-on: ${{ matrix.os }}
     steps:
     - name: Clone repository

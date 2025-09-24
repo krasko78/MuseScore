@@ -22,11 +22,14 @@
 
 #include "editstyle.h"
 
+#include <QAnyStringView>
 #include <QButtonGroup>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickView>
 #include <QSignalMapper>
+#include <QStringBuilder>
+#include <QStringLiteral>
 
 #include "translation.h"
 #include "types/translatablestring.h"
@@ -247,11 +250,6 @@ EditStyle::EditStyle(QWidget* parent)
     // use this group widgets in list styleWidgets
     // This works for groups which represent an int enumeration.
 
-    QButtonGroup* ksng = new QButtonGroup(this);
-    ksng->addButton(radioKeySigNatNone, int(KeySigNatural::NONE));
-    ksng->addButton(radioKeySigNatBefore, int(KeySigNatural::BEFORE));
-    ksng->addButton(radioKeySigNatAfter, int(KeySigNatural::AFTER));
-
     QButtonGroup* ksbl = new QButtonGroup(this);
     ksbl->addButton(radioKeySigCourtesyBarlineAlwaysSingle, int(CourtesyBarlineMode::ALWAYS_SINGLE));
     ksbl->addButton(radioKeySigCourtesyBarlineAlwaysDouble, int(CourtesyBarlineMode::ALWAYS_DOUBLE));
@@ -316,10 +314,6 @@ EditStyle::EditStyle(QWidget* parent)
     mmRestConstantWidth->addButton(mmRestWidthProportional, 0);
     mmRestConstantWidth->addButton(mmRestWidthConstant, 1);
 
-    QButtonGroup* partialSlurAngle = new QButtonGroup(this);
-    partialSlurAngle->addButton(partialSlursAngleNormal, 0);
-    partialSlurAngle->addButton(partialSlursAngleWeird, 1);
-
     // ====================================================
     // Style widgets
     // ====================================================
@@ -331,7 +325,6 @@ EditStyle::EditStyle(QWidget* parent)
         { StyleId::figuredBassFontSize,     false, doubleSpinFBSize,        0 },
         { StyleId::figuredBassYOffset,      false, doubleSpinFBVertPos,     0 },
         { StyleId::figuredBassLineHeight,   true,  spinFBLineHeight,        0 },
-        { StyleId::keySigNaturals,          false, ksng,                    0 },
         { StyleId::ottavaLineStyle,         false, ottavaLineStyle,         resetOttavaLineStyle },
         { StyleId::ottavaDashLineLen,       false, ottavaLineStyleDashSize, resetOttavaLineStyleDashSize },
         { StyleId::ottavaDashGapLen,        false, ottavaLineStyleGapSize,  resetOttavaLineStyleGapSize },
@@ -432,7 +425,6 @@ EditStyle::EditStyle(QWidget* parent)
         { StyleId::subsSystemInstNameVisibility, false, subsSysLabels, resetSubsSystemLabel },
         { StyleId::accidentalNoteDistance,  false, accidentalNoteDistance,  0 },
         { StyleId::accidentalDistance,      false, accidentalDistance,      0 },
-        { StyleId::bracketedAccidentalPadding, false, accidentalsBracketsBadding, resetAccidentalsBracketPadding },
         { StyleId::minNoteDistance,         false, minNoteDistance,         resetMinNoteDistance },
         { StyleId::barNoteDistance,         false, barNoteDistance,         resetBarNoteDistance },
         { StyleId::barAccidentalDistance,   false, barAccidentalDistance,   resetBarAccidentalDistance },
@@ -471,20 +463,6 @@ EditStyle::EditStyle(QWidget* parent)
         { StyleId::arpeggioLineWidth,       false, arpeggioLineWidth,       0 },
         { StyleId::arpeggioHookLen,         false, arpeggioHookLen,         0 },
         { StyleId::arpeggioHiddenInStdIfTab, false, arpeggioHiddenInStdIfTab, 0 },
-        { StyleId::slurEndWidth,            false, slurEndLineWidth,        resetSlurEndLineWidth },
-        { StyleId::slurMidWidth,            false, slurMidLineWidth,        resetSlurMidLineWidth },
-        { StyleId::slurDottedWidth,         false, slurDottedLineWidth,     resetSlurDottedLineWidth },
-        { StyleId::slurMinDistance,         false, slurMinDistance,         resetSlurMinDistance },
-        { StyleId::angleHangingSlursAwayFromStaff, false, partialSlurAngle, 0 },
-        { StyleId::tieEndWidth,             false, tieEndLineWidth,         resetTieEndLineWidth },
-        { StyleId::tieMidWidth,             false, tieMidLineWidth,         resetTieMidLineWidth },
-        { StyleId::tieDottedWidth,          false, tieDottedLineWidth,      resetTieDottedLineWidth },
-        { StyleId::tieMinDistance,          false, tieMinDistance,          resetTieMinDistance },
-        { StyleId::minTieLength,            false, minTieLength,            resetMinTieLength },
-        { StyleId::minHangingTieLength,     false, minHangingTieLength,     resetMinHangingTieLength },
-
-        { StyleId::minLaissezVibLength,            false, minLaissezVibLength,            resetMinLaissezVibLength },
-        { StyleId::laissezVibUseSmuflSym,          false, laissezVibUseSmufl,            0 },
 
         { StyleId::bracketWidth,            false, bracketWidth,            resetBracketThickness },
         { StyleId::bracketDistance,         false, bracketDistance,         resetBracketDistance },
@@ -620,7 +598,6 @@ EditStyle::EditStyle(QWidget* parent)
         { StyleId::rehearsalMarkPosBelow,    false, rehearsalMarkPosBelow,      resetRehearsalMarkPosBelow },
         { StyleId::rehearsalMarkMinDistance, false, rehearsalMarkMinDistance,   resetRehearsalMarkMinDistance },
 
-        { StyleId::autoplaceVerticalAlignRange, false, autoplaceVerticalAlignRange, resetAutoplaceVerticalAlignRange },
         { StyleId::minVerticalDistance,         false, minVerticalDistance,         resetMinVerticalDistance },
 
         { StyleId::textLinePlacement,           false, textLinePlacement,           resetTextLinePlacement },
@@ -754,11 +731,6 @@ EditStyle::EditStyle(QWidget* parent)
         cb->addItem(muse::qtrc("notation/editstyle", "Below"), int(PlacementV::BELOW));
     }
 
-    autoplaceVerticalAlignRange->clear();
-    autoplaceVerticalAlignRange->addItem(muse::qtrc("notation/editstyle", "Segment"), int(VerticalAlignRange::SEGMENT));
-    autoplaceVerticalAlignRange->addItem(muse::qtrc("notation/editstyle", "Measure"), int(VerticalAlignRange::MEASURE));
-    autoplaceVerticalAlignRange->addItem(muse::qtrc("notation/editstyle", "System"),  int(VerticalAlignRange::SYSTEM));
-
     tupletNumberType->clear();
     tupletNumberType->addItem(muse::qtrc("notation/editstyle", "Number"), int(TupletNumberType::SHOW_NUMBER));
     tupletNumberType->addItem(muse::qtrc("notation/editstyle", "Ratio"), int(TupletNumberType::SHOW_RELATION));
@@ -847,35 +819,32 @@ EditStyle::EditStyle(QWidget* parent)
     fullBendStyleBoxSelector->layout()->addWidget(fullBendStyleSelector.widget);
 
     // ====================================================
-    // TIE PLACEMENT (QML)
+    //  SLURS AND TIES (QML)
     // ====================================================
 
-    auto tiePlacementSelector = createQmlWidget(
-        groupBox_ties,
-        QUrl(QString::fromUtf8("qrc:/qml/MuseScore/NotationScene/internal/EditStyle/TiePlacementSelector.qml")));
-    tiePlacementSelector.widget->setMinimumSize(224, 240);
-    groupBox_ties->layout()->addWidget(tiePlacementSelector.widget);
+    auto slursAndTiesPage = createQmlWidget(
+        PageSlursTies,
+        QUrl(QString::fromUtf8("qrc:/qml/MuseScore/NotationScene/internal/EditStyle/SlursAndTiesPage.qml")));
+    PageSlursTies->layout()->addWidget(slursAndTiesPage.widget);
 
     // ====================================================
-    // ACCIDENTAL GROUP PLACEMENT (QML)
+    // ACCIDENTALS (QML)
     // ====================================================
 
-    auto accidPlacementSelector = createQmlWidget(
-        groupBoxAccidentalStacking,
-        QUrl(QString::fromUtf8("qrc:/qml/MuseScore/NotationScene/internal/EditStyle/AccidentalGroupPage.qml")));
-    accidPlacementSelector.widget->setMinimumSize(224, 440);
-    groupBoxAccidentalStacking->layout()->addWidget(accidPlacementSelector.widget);
+    auto accidentalsPage = createQmlWidget(
+        PageAccidentals,
+        QUrl(QString::fromUtf8("qrc:/qml/MuseScore/NotationScene/internal/EditStyle/AccidentalsPage.qml")));
+    PageAccidentals->layout()->addWidget(accidentalsPage.widget);
 
     // ====================================================
     // FRETBOARDS STYLE PAGE (QML)
     // ====================================================
 
     auto fretboardsPage = createQmlWidget(
-        fretboardsWidget,
+        PageFretboardDiagrams,
         QUrl(QString::fromUtf8("qrc:/qml/MuseScore/NotationScene/internal/EditStyle/FretboardsPage.qml")));
-    fretboardsPage.widget->setMinimumSize(224, 1006);
     connect(fretboardsPage.view->rootObject(), SIGNAL(goToTextStylePage(QString)), this, SLOT(goToTextStylePage(QString)));
-    fretboardsWidget->layout()->addWidget(fretboardsPage.widget);
+    PageFretboardDiagrams->layout()->addWidget(fretboardsPage.widget);
 
     // ====================================================
     // Hammer-on/pull-off and tapping STYLE PAGE (QML)
@@ -998,7 +967,7 @@ EditStyle::EditStyle(QWidget* parent)
     // Miscellaneous
     // ====================================================
 
-    setHeaderFooterToolTip();
+    setHeaderFooterMacroInfoText();
 
     connect(buttonBox,             &QDialogButtonBox::clicked,  this, &EditStyle::buttonClicked);
     connect(enableVerticalSpread,  &QGroupBox::clicked,         this, &EditStyle::enableVerticalSpreadClicked);
@@ -1015,8 +984,6 @@ EditStyle::EditStyle(QWidget* parent)
     connect(lyricsDashMaxLength, &QDoubleSpinBox::valueChanged, this, &EditStyle::lyricsDashMaxLengthValueChanged);
     connect(minSystemDistance,   &QDoubleSpinBox::valueChanged, this, &EditStyle::systemMinDistanceValueChanged);
     connect(maxSystemDistance,   &QDoubleSpinBox::valueChanged, this, &EditStyle::systemMaxDistanceValueChanged);
-
-    accidentalsGroup->setVisible(false);   // disable, not yet implemented
 
     // ====================================================
     // Signal Mappers
@@ -1322,10 +1289,6 @@ void EditStyle::retranslate()
         cb->setItemText(1, muse::qtrc("notation/editstyle", "Below"));
     }
 
-    autoplaceVerticalAlignRange->setItemText(0, muse::qtrc("notation/editstyle", "Segment"));
-    autoplaceVerticalAlignRange->setItemText(1, muse::qtrc("notation/editstyle", "Measure"));
-    autoplaceVerticalAlignRange->setItemText(2, muse::qtrc("notation/editstyle", "System"));
-
     tupletNumberType->setItemText(0, muse::qtrc("notation/editstyle", "Number"));
     tupletNumberType->setItemText(1, muse::qtrc("notation/editstyle", "Ratio"));
     tupletNumberType->setItemText(2, muse::qtrc("notation/editstyle", "None", "no tuplet number type"));
@@ -1349,7 +1312,7 @@ void EditStyle::retranslate()
     // voicingSelectWidget->durationBox->setItemText(1, muse::qtrc("notation/editstyle", "Until end of measure"));
     // voicingSelectWidget->durationBox->setItemText(2, muse::qtrc("notation/editstyle", "Chord/rest duration"));
 
-    setHeaderFooterToolTip();
+    setHeaderFooterMacroInfoText();
 
     Score* score = globalContext()->currentNotation()->elements()->msScore();
 
@@ -1365,86 +1328,78 @@ void EditStyle::retranslate()
 }
 
 //---------------------------------------------------------
-//   setHeaderFooterToolTip
+//   setHeaderFooterMacroInfoText
 //---------------------------------------------------------
 
-void EditStyle::setHeaderFooterToolTip()
+void EditStyle::setHeaderFooterMacroInfoText()
 {
+    using namespace Qt::Literals::StringLiterals;
+
     // keep in sync with implementation in Page::replaceTextMacros (page.cpp)
     // jumping thru hoops here to make the job of translators easier, yet have a nice display
     QString toolTipHeaderFooter
-        = QString("<html><head></head><body><p><b>")
-          + muse::qtrc("notation/editstyle", "Special symbols in header/footer")
-          + QString("</b></p>")
-          + QString("<table><tr><td>$p</td><td>-</td><td><i>")
-          + muse::qtrc("notation/editstyle", "Page number, except on first page")
-          + QString("</i></td></tr><tr><td>$N</td><td>-</td><td><i>")
-          + muse::qtrc("notation/editstyle", "Page number, if there is more than one page")
-          + QString("</i></td></tr><tr><td>$P</td><td>-</td><td><i>")
-          + muse::qtrc("notation/editstyle", "Page number, on all pages")
-          + QString("</i></td></tr><tr><td>$n</td><td>-</td><td><i>")
-          + muse::qtrc("notation/editstyle", "Number of pages")
-          + QString("</i></td></tr><tr><td>$f</td><td>-</td><td><i>")
-          + muse::qtrc("notation/editstyle", "File name")
-          + QString("</i></td></tr><tr><td>$F</td><td>-</td><td><i>")
-          + muse::qtrc("notation/editstyle", "File path+name")
-          + QString("</i></td></tr><tr><td>$i</td><td>-</td><td><i>")
-          + muse::qtrc("notation/editstyle", "Part name, except on first page")
-          + QString("</i></td></tr><tr><td>$I</td><td>-</td><td><i>")
-          + muse::qtrc("notation/editstyle", "Part name, on all pages")
-          + QString("</i></td></tr><tr><td>$d</td><td>-</td><td><i>")
-          + muse::qtrc("notation/editstyle", "Current date")
-          + QString("</i></td></tr><tr><td>$D</td><td>-</td><td><i>")
-          + muse::qtrc("notation/editstyle", "Creation date")
-          + QString("</i></td></tr><tr><td>$m</td><td>-</td><td><i>")
-          + muse::qtrc("notation/editstyle", "Last modification time")
-          + QString("</i></td></tr><tr><td>$M</td><td>-</td><td><i>")
-          + muse::qtrc("notation/editstyle", "Last modification date")
-          + QString("</i></td></tr><tr><td>$C</td><td>-</td><td><i>")
-          + muse::qtrc("notation/editstyle", "Copyright, on first page only")
-          + QString("</i></td></tr><tr><td>$c</td><td>-</td><td><i>")
-          + muse::qtrc("notation/editstyle", "Copyright, on all pages")
-          + QString("</i></td></tr><tr><td>$v</td><td>-</td><td><i>")
-          + muse::qtrc("notation/editstyle", "MuseScore Studio version this score was last saved with")
-          + QString("</i></td></tr><tr><td>$r</td><td>-</td><td><i>")
-          + muse::qtrc("notation/editstyle", "MuseScore Studio revision this score was last saved with")
-          + QString("</i></td></tr><tr><td>$$</td><td>-</td><td><i>")
-          + muse::qtrc("notation/editstyle", "The $ sign itself")
-          + QString("</i></td></tr><tr><td>$:tag:</td><td>-</td><td><i>")
-          + muse::qtrc("notation/editstyle", "Metadata tag, see below")
-          + QString("</i></td></tr></table><p>")
-          + muse::qtrc("notation/editstyle", "Available metadata tags and their current values")
-          + QString("<br />")
-          + muse::qtrc("notation/editstyle", "(in File > Project properties…):")
-          + QString("</p><table>");
+        = "<html><head></head><body><p><b>"_L1
+          % muse::qtrc("notation/editstyle", "Using variables in the header/footer")
+          % "</b><br/>"_L1
+          % muse::qtrc("notation/editstyle",
+                       "Type these special character combinations in the fields above to reference document data in the header/footer.")
+          % "<br/></p><table><tr><td>$p</td><td width=\"12\"/><td><i>"_L1
+          % muse::qtrc("notation/editstyle", "Page number, except on first page")
+          % "</i></td></tr><tr><td>$N</td><td width=\"12\"/><td><i>"_L1
+          % muse::qtrc("notation/editstyle", "Page number, if there is more than one page")
+          % "</i></td></tr><tr><td>$P</td><td width=\"12\"/><td><i>"_L1
+          % muse::qtrc("notation/editstyle", "Page number, on all pages")
+          % "</i></td></tr><tr><td>$n</td><td width=\"12\"/><td><i>"_L1
+          % muse::qtrc("notation/editstyle", "Number of pages")
+          % "</i></td></tr><tr><td>$f</td><td width=\"12\"/><td><i>"_L1
+          % muse::qtrc("notation/editstyle", "File name")
+          % "</i></td></tr><tr><td>$F</td><td width=\"12\"/><td><i>"_L1
+          % muse::qtrc("notation/editstyle", "File path+name")
+          % "</i></td></tr><tr><td>$i</td><td width=\"12\"/><td><i>"_L1
+          % muse::qtrc("notation/editstyle", "Part name, except on first page")
+          % "</i></td></tr><tr><td>$I</td><td width=\"12\"/><td><i>"_L1
+          % muse::qtrc("notation/editstyle", "Part name, on all pages")
+          % "</i></td></tr><tr><td>$d</td><td width=\"12\"/><td><i>"_L1
+          % muse::qtrc("notation/editstyle", "Current date")
+          % "</i></td></tr><tr><td>$D</td><td width=\"12\"/><td><i>"_L1
+          % muse::qtrc("notation/editstyle", "Creation date")
+          % "</i></td></tr><tr><td>$m</td><td width=\"12\"/><td><i>"_L1
+          % muse::qtrc("notation/editstyle", "Last modification time")
+          % "</i></td></tr><tr><td>$M</td><td width=\"12\"/><td><i>"_L1
+          % muse::qtrc("notation/editstyle", "Last modification date")
+          % "</i></td></tr><tr><td>$C</td><td width=\"12\"/><td><i>"_L1
+          % muse::qtrc("notation/editstyle", "Copyright, on first page only")
+          % "</i></td></tr><tr><td>$c</td><td width=\"12\"/><td><i>"_L1
+          % muse::qtrc("notation/editstyle", "Copyright, on all pages")
+          % "</i></td></tr><tr><td>$v</td><td width=\"12\"/><td><i>"_L1
+          % muse::qtrc("notation/editstyle", "MuseScore Studio version this score was last saved with")
+          % "</i></td></tr><tr><td>$r</td><td width=\"12\"/><td><i>"_L1
+          % muse::qtrc("notation/editstyle", "MuseScore Studio revision this score was last saved with")
+          % "</i></td></tr><tr><td>$$</td><td width=\"12\"/><td><i>"_L1
+          % muse::qtrc("notation/editstyle", "The $ sign itself")
+          % "</i></td></tr></table><p>"_L1
+          % muse::qtrc("notation/editstyle", "<b>Metadata tags and current values</b> (configured in <b>File > Project properties…</b>)")
+          % "<br>"_L1
+          % muse::qtrc("notation/editstyle",
+                       "Type $:tag: into a field above, replacing the word ‘tag’ with one of the labels below. Its associated metadata will be shown on your score.")
+          % "<br/></p><table>"_L1;
 
     // show all tags for current score/part
     Score* score = globalContext()->currentNotation()->elements()->msScore();
     if (!score->isMaster()) {
         for (const auto& tag : score->masterScore()->metaTags()) {
-            toolTipHeaderFooter += QString("<tr><td>%1</td><td>-</td><td>%2</td></tr>")
-                                   .arg(tag.first.toQString(), tag.second.toQString());
+            toolTipHeaderFooter += "<tr><td>%1</td><td width=\"12\"/><td><i>%2</i></td></tr>"_L1
+                                   .arg(tag.first, tag.second.empty() ? QAnyStringView { "-" } : QAnyStringView { tag.second });
         }
     }
-    for (const auto& tag : score->masterScore()->metaTags()) {
-        toolTipHeaderFooter += QString("<tr><td>%1</td><td>-</td><td>%2</td></tr>")
-                               .arg(tag.first.toQString(), tag.second.toQString());
+    for (const auto& tag : score->metaTags()) {
+        toolTipHeaderFooter += "<tr><td>%1</td><td width=\"12\"/><td><i>%2</i></td></tr>"_L1
+                               .arg(tag.first, tag.second.empty() ? QAnyStringView { "-" } : QAnyStringView { tag.second });
     }
 
-    QList<QMap<QString, QString> > tags; // FIXME
-    for (const QMap<QString, QString>& tag: tags) {
-        QMapIterator<QString, QString> i(tag);
-        while (i.hasNext()) {
-            i.next();
-            toolTipHeaderFooter += QString("<tr><td>%1</td><td>-</td><td>%2</td></tr>").arg(i.key(), i.value());
-        }
-    }
+    toolTipHeaderFooter += "</table></body></html>"_L1;
 
-    toolTipHeaderFooter += QString("</table></body></html>");
-    showHeader->setToolTip(toolTipHeaderFooter);
-    showHeader->setToolTipDuration(5000);   // leaving the default value of -1 calculates the duration automatically and it takes too long
-    showFooter->setToolTip(toolTipHeaderFooter);
-    showFooter->setToolTipDuration(5000);
+    headerFooterMacroInfo->setText(toolTipHeaderFooter);
 }
 
 //---------------------------------------------------------
@@ -1490,7 +1445,7 @@ EditStyle::WidgetAndView EditStyle::createQmlWidget(QWidget* parent, const QUrl&
     view->setSource(source);
 
     QWidget* container = QWidget::createWindowContainer(view, parent);
-    container->setMinimumSize(view->size());
+    container->setMinimumSize(view->rootObject()->implicitWidth(), view->rootObject()->implicitHeight());
     container->setFocusPolicy(Qt::TabFocus);
 
     return { container, view };

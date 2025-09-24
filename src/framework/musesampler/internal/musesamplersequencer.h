@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2022 MuseScore BVBA and others
+ * Copyright (C) 2025 MuseScore BVBA and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -19,17 +19,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
-#ifndef MUSE_MUSESAMPLER_MUSESAMPLERSEQUENCER_H
-#define MUSE_MUSESAMPLER_MUSESAMPLERSEQUENCER_H
+#pragma once
 
 #include "audio/worker/internal/abstracteventsequencer.h"
 #include "imusesamplertracks.h"
 
 #include "internal/apitypes.h"
 #include "internal/libhandler.h"
-
-#include "global/timer.h"
 
 typedef typename std::variant<muse::mpe::NoteEvent,
                               muse::musesampler::AuditionStartNoteEvent,
@@ -79,18 +75,10 @@ class MuseSamplerSequencer : public audio::worker::AbstractEventSequencer<mpe::N
 {
 public:
     void init(MuseSamplerLibHandlerPtr samplerLib, ms_MuseSampler sampler, IMuseSamplerTracks* tracks, std::string&& defaultPresetCode);
-    void deinit();
-
-    void setRenderingProgress(audio::InputProcessingProgress* progress);
-    void setAutoRenderInterval(double secs);
-    void triggerRender();
 
 private:
     void updateOffStreamEvents(const mpe::PlaybackEventsMap& events, const mpe::DynamicLevelLayers& dynamics) override;
     void updateMainStreamEvents(const mpe::PlaybackEventsMap& events, const mpe::DynamicLevelLayers& dynamics) override;
-
-    void pollRenderingProgress();
-    void doPollProgress();
 
     void clearAllTracks();
     void finalizeAllTracks();
@@ -104,6 +92,7 @@ private:
     void loadDynamicEvents(const mpe::DynamicLevelLayers& changes);
 
     void addNoteEvent(const mpe::NoteEvent& noteEvent);
+    void addPedalEvent(const mpe::ArticulationMeta& meta, ms_Track track);
     void addTextArticulationEvent(const mpe::TextArticulationEvent& event, long long startUs);
     void addSoundPresetEvent(const mpe::SoundPresetChangeEvent& event, long long positionUs);
     void addSyllableEvent(const mpe::SyllableEvent& event, long long positionUs);
@@ -111,6 +100,7 @@ private:
     void addVibrato(const mpe::NoteEvent& noteEvent, long long noteEventId, ms_Track track);
 
     void addAuditionNoteEvent(const mpe::NoteEvent& noteEvent);
+    void addAuditionPedalEvent(const mpe::ArticulationMeta& meta, ms_Track track);
     void addAuditionCCEvent(const mpe::ControllerChangeEvent& event, long long positionUs);
 
     void pitchAndTuning(const mpe::pitch_level_t nominalPitch, int& pitch, int& centsOffset) const;
@@ -135,18 +125,6 @@ private:
 
     void parseAuditionParams(const mpe::PlaybackEvent& event, AuditionParams& out) const;
 
-    struct RenderingInfo {
-        long long initialChunksDurationUs = 0;
-        std::string error;
-        int64_t percentage = 0;
-        audio::InputProcessingProgress::ChunkInfoList lastReceivedChunks;
-
-        void clear()
-        {
-            *this = RenderingInfo();
-        }
-    };
-
     MuseSamplerLibHandlerPtr m_samplerLib = nullptr;
     ms_MuseSampler m_sampler = nullptr;
     IMuseSamplerTracks* m_tracks = nullptr;
@@ -156,11 +134,5 @@ private:
 
     std::string m_defaultPresetCode;
     AuditionParams m_auditionParamsCache;
-
-    std::unique_ptr<Timer> m_pollRenderingProgressTimer;
-    audio::InputProcessingProgress* m_renderingProgress = nullptr;
-    RenderingInfo m_renderingInfo;
 };
 }
-
-#endif // MUSE_MUSESAMPLER_MUSESAMPLERSEQUENCER_H

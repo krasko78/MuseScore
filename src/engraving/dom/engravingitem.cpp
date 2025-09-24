@@ -92,7 +92,7 @@ EngravingItem::EngravingItem(const ElementType& type, EngravingObject* parent, E
     m_minDistance   = Spatium(0.0);
 }
 
-EngravingItem::EngravingItem(const EngravingItem& e)
+EngravingItem::EngravingItem(const EngravingItem& e, bool link)
     : EngravingObject(e)
 {
     m_offset     = e.m_offset;
@@ -106,6 +106,23 @@ EngravingItem::EngravingItem(const EngravingItem& e)
     itemDiscovered = false;
 
     m_accessibleEnabled = e.m_accessibleEnabled;
+
+    if (e.m_leftParenthesis) {
+        m_leftParenthesis = e.m_leftParenthesis->clone();
+        m_leftParenthesis->setParent(this);
+        m_leftParenthesis->setTrack(track());
+        if (link) {
+            score()->undo(new Link(m_leftParenthesis, e.m_leftParenthesis));
+        }
+    }
+    if (e.m_rightParenthesis) {
+        m_rightParenthesis = e.m_rightParenthesis->clone();
+        m_rightParenthesis->setParent(this);
+        m_rightParenthesis->setTrack(track());
+        if (link) {
+            score()->undo(new Link(m_rightParenthesis, e.m_rightParenthesis));
+        }
+    }
 }
 
 EngravingItem::~EngravingItem()
@@ -556,16 +573,6 @@ Fraction EngravingItem::rtick() const
 }
 
 //---------------------------------------------------------
-//   playTick
-//---------------------------------------------------------
-
-Fraction EngravingItem::playTick() const
-{
-    // Play from the element's tick position by default.
-    return tick();
-}
-
-//---------------------------------------------------------
 //   beat
 //---------------------------------------------------------
 
@@ -876,78 +883,6 @@ void ElementList::replace(EngravingItem* o, EngravingItem* n)
 }
 
 //---------------------------------------------------------
-//   Compound
-//---------------------------------------------------------
-
-Compound::Compound(const ElementType& type, Score* s)
-    : EngravingItem(type, s)
-{
-}
-
-Compound::Compound(const Compound& c)
-    : EngravingItem(c)
-{
-    m_elements.clear();
-    for (EngravingItem* e : c.m_elements) {
-        m_elements.push_back(e->clone());
-    }
-}
-
-//---------------------------------------------------------
-//   addElement
-//---------------------------------------------------------
-
-/**
- offset \a x and \a y are in Point units
-*/
-
-void Compound::addElement(EngravingItem* e, double x, double y)
-{
-    e->setPos(x, y);
-    e->setParent(this);
-    m_elements.push_back(e);
-}
-
-//---------------------------------------------------------
-//   setSelected
-//---------------------------------------------------------
-
-void Compound::setSelected(bool f)
-{
-    EngravingItem::setSelected(f);
-    for (auto i = m_elements.begin(); i != m_elements.end(); ++i) {
-        (*i)->setSelected(f);
-    }
-}
-
-//---------------------------------------------------------
-//   setVisible
-//---------------------------------------------------------
-
-void Compound::setVisible(bool f)
-{
-    EngravingItem::setVisible(f);
-    for (auto i = m_elements.begin(); i != m_elements.end(); ++i) {
-        (*i)->setVisible(f);
-    }
-}
-
-//---------------------------------------------------------
-//   clear
-//---------------------------------------------------------
-
-void Compound::clear()
-{
-    for (EngravingItem* e : m_elements) {
-        if (e->selected()) {
-            score()->deselect(e);
-        }
-        delete e;
-    }
-    m_elements.clear();
-}
-
-//---------------------------------------------------------
 //   dump
 //---------------------------------------------------------
 
@@ -1050,6 +985,7 @@ void EngravingItem::add(EngravingItem* e)
     switch (e->type()) {
     case ElementType::PARENTHESIS: {
         Parenthesis* p = toParenthesis(e);
+        p->setVisible(visible());
         if (p->direction() == DirectionH::LEFT) {
             m_leftParenthesis = p;
         } else if (p->direction() == DirectionH::RIGHT) {
@@ -1257,15 +1193,6 @@ bool EngravingItem::setProperty(Pid propertyId, const PropertyValue& v)
         break;
     case Pid::HAS_PARENTHESES:
         setParenthesesMode(v.value<ParenthesesMode>());
-        if (links()) {
-            for (EngravingObject* scoreElement : *links()) {
-                Note* note = toNote(scoreElement);
-                Staff* linkedStaff = note ? note->staff() : nullptr;
-                if (linkedStaff && linkedStaff->isTabStaff(tick())) {
-                    note->setGhost(v.toBool());
-                }
-            }
-        }
         break;
     default:
         if (explicitParent()) {
@@ -1399,7 +1326,7 @@ void EngravingItem::setPlacementBasedOnVoiceAssignment(DirectionV styledDirectio
                 if (segment && segment->isTimeTickType() && segment->measure() != measure) {
                     // Edge case: this is a TimeTick segment at the end of previous measure. Happens only
                     // when dynamic is anchorToEndOfPrevious. In this case look for preceding segment.
-                    segment = segment->prev1ChordRestOrTimeTick();
+                    segment = segment->prev1(Segment::CHORD_REST_OR_TIME_TICK_TYPE);
                     assert(segment);
                     measure = segment->measure();
                 }
@@ -2350,10 +2277,10 @@ bool EngravingItem::edit(EditData& ed)
 }
 
 //---------------------------------------------------------
-//   startEditDrag
+//   startDragGrip
 //---------------------------------------------------------
 
-void EngravingItem::startEditDrag(EditData& ed)
+void EngravingItem::startDragGrip(EditData& ed)
 {
     ElementEditDataPtr eed = ed.getData(this);
     if (!eed) {
@@ -2369,11 +2296,15 @@ void EngravingItem::startEditDrag(EditData& ed)
 }
 
 //---------------------------------------------------------
-//   editDrag
+//   dragGrip
 //---------------------------------------------------------
 
-void EngravingItem::editDrag(EditData& ed)
+void EngravingItem::dragGrip(EditData& ed)
 {
+    IF_ASSERT_FAILED(ed.curGrip != Grip::NO_GRIP) {
+        return;
+    }
+
     score()->addRefresh(canvasBoundingRect());
     setOffset(offset() + ed.delta);
     setOffsetChanged(true);
@@ -2381,10 +2312,10 @@ void EngravingItem::editDrag(EditData& ed)
 }
 
 //---------------------------------------------------------
-//   endEditDrag
+//   endDragGrip
 //---------------------------------------------------------
 
-void EngravingItem::endEditDrag(EditData& ed)
+void EngravingItem::endDragGrip(EditData& ed)
 {
     ElementEditDataPtr eed = ed.getData(this);
     bool changed = false;
@@ -2430,7 +2361,7 @@ bool EngravingItem::colorsInversionEnabled() const
     return m_colorsInversionEnabled;
 }
 
-void EngravingItem::setColorsInverionEnabled(bool enabled)
+void EngravingItem::setColorsInversionEnabled(bool enabled)
 {
     m_colorsInversionEnabled = enabled;
 }

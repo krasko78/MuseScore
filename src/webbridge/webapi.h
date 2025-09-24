@@ -27,6 +27,8 @@
 #include "global/iinteractive.h"
 #include "actions/iactionsdispatcher.h"
 #include "context/iglobalcontext.h"
+#include "audio/main/istartaudiocontroller.h"
+#include "audio/main/isoundfontcontroller.h"
 
 namespace mu::webbridge {
 class WebApi : public muse::async::Asyncable
@@ -34,20 +36,23 @@ class WebApi : public muse::async::Asyncable
     inline static muse::GlobalInject<muse::IInteractive> interactive;
     inline static muse::GlobalInject<muse::actions::IActionsDispatcher> dispatcher;
     inline static muse::GlobalInject<mu::context::IGlobalContext> globalContext;
+    inline static muse::GlobalInject<muse::audio::IStartAudioController> startAudioController;
+    inline static muse::GlobalInject<muse::audio::ISoundFontController> soundFontController;
 
 public:
-    WebApi() = default;
 
     static WebApi* instance();
 
     void init();
     void deinit();
 
-    void onclickTest1(int num);
-
     void load(const void* source, unsigned int len);
+    void addSoundFont(const std::string& uri);
+    void startAudioProcessing();
 
 private:
+
+    WebApi() = default;
 
     void onProjectSaved(const muse::io::path_t& path, mu::project::SaveMode mode);
 

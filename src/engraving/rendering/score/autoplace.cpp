@@ -21,6 +21,7 @@
  */
 #include "autoplace.h"
 
+#include "dom/harmony.h"
 #include "style/style.h"
 
 #include "dom/chordrest.h"
@@ -404,8 +405,11 @@ bool Autoplace::itemsShouldIgnoreEachOther(const EngravingItem* itemToAutoplace,
         return type2 != ElementType::KEYSIG;
     }
 
-    if (type1 == ElementType::FRET_DIAGRAM && type2 == ElementType::HARMONY) {
-        return true;
+    if (type1 == ElementType::FRET_DIAGRAM && (type2 == ElementType::FRET_DIAGRAM || type2 == ElementType::HARMONY)) {
+        bool isFretDiagAgainstItsOwnHarmony = itemInSkyline->parentItem() == itemToAutoplace;
+        bool areOnDifferentSegments = itemToAutoplace->findAncestor(ElementType::SEGMENT)
+                                      != itemInSkyline->findAncestor(ElementType::SEGMENT);
+        return isFretDiagAgainstItsOwnHarmony || areOnDifferentSegments;
     }
 
     if ((type1 == ElementType::DYNAMIC || type1 == ElementType::HAIRPIN_SEGMENT)

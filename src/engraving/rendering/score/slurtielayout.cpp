@@ -150,11 +150,12 @@ SpannerSegment* SlurTieLayout::layoutSystem(Slur* item, System* system, LayoutCo
         // beginning of system
         Measure* measure = item->startCR()->measure();
         ChordRest* firstCr = incomingPartialSlur ? measure->firstChordRest(item->track()) : system->firstChordRest(item->track2());
+        const bool sameStaff = firstCr && firstCr->vStaffIdx() == slurSegment->vStaffIdx();
         double y = p1.y();
         if (firstCr && firstCr == item->endCR()) {
             constrainLeftAnchor = true;
         }
-        if (firstCr && firstCr->isChord()) {
+        if (firstCr && firstCr->isChord() && sameStaff) {
             Chord* chord = toChord(firstCr);
             Shape chordShape = chord->shape();
             chordShape.removeTypes({ ElementType::ACCIDENTAL });
@@ -170,7 +171,8 @@ SpannerSegment* SlurTieLayout::layoutSystem(Slur* item, System* system, LayoutCo
 
         // adjust for ties at the start of the system
         ChordRest* cr = incomingPartialSlur ? measure->firstChordRest(item->track()) : system->firstChordRest(item->track());
-        if (cr && cr->isChord() && cr->tick() >= stick && cr->tick() <= etick) {
+        const bool tieSameStaff = cr && cr->vStaffIdx() == item->staffIdx();
+        if (cr && cr->isChord() && cr->tick() >= stick && cr->tick() <= etick && tieSameStaff) {
             Chord* c = toChord(cr);
             Tie* tie = nullptr;
             PointF endPoint;
@@ -238,9 +240,10 @@ SpannerSegment* SlurTieLayout::layoutSystem(Slur* item, System* system, LayoutCo
         Measure* measure = item->endCR()->measure();
         ChordRest* lastCr = outgoingPartialSlur ? measure->lastChordRest(item->track()) : system->lastChordRest(item->track());
         double y = p1.y();
+        const bool sameStaff = lastCr && lastCr->vStaffIdx() == slurSegment->vStaffIdx();
         if (lastCr && lastCr == item->startCR()) {
             y += 0.25 * item->spatium() * (item->up() ? -1 : 1);
-        } else if (lastCr && lastCr->isChord()) {
+        } else if (lastCr && lastCr->isChord() && sameStaff) {
             Chord* chord = toChord(lastCr);
             Shape chordShape = chord->shape();
             chordShape.removeTypes({ ElementType::ACCIDENTAL });
@@ -260,8 +263,9 @@ SpannerSegment* SlurTieLayout::layoutSystem(Slur* item, System* system, LayoutCo
 
         // adjust for ties at the end of the system
         ChordRest* cr = outgoingPartialSlur ? measure->lastChordRest(item->track()) : system->lastChordRest(item->track());
+        const bool tieSameStaff = cr && cr->vStaffIdx() == item->staffIdx();
 
-        if (cr && cr->isChord() && cr->tick() >= stick && cr->tick() <= etick) {
+        if (cr && cr->isChord() && cr->tick() >= stick && cr->tick() <= etick && tieSameStaff) {
             Chord* c = toChord(cr);
             Tie* tie = nullptr;
             PointF endPoint;
@@ -1161,8 +1165,10 @@ Shape SlurTieLayout::getSegmentShape(SlurSegment* slurSeg, Segment* seg, ChordRe
     staff_idx_t endStaffIdx = endCR->staffIdx();
     Shape segShape = seg->staffShape(startStaffIdx).translated(seg->pos() + seg->measure()->pos());
 
+    bool crossStaffSlur = slur->isCrossStaff() && seg != startCR->segment();
+
     // If cross-staff, also add the shape of second staff
-    if (slur->isCrossStaff() && seg != startCR->segment()) {
+    if (crossStaffSlur) {
         endStaffIdx = (endCR->staffIdx() != startStaffIdx) ? endCR->staffIdx() : endCR->vStaffIdx();
         SysStaff* startStaff = slurSeg->system()->staves().at(startStaffIdx);
         SysStaff* endStaff = slurSeg->system()->staves().at(endStaffIdx);
@@ -1175,6 +1181,9 @@ Shape SlurTieLayout::getSegmentShape(SlurSegment* slurSeg, Segment* seg, ChordRe
     for (track_idx_t track = staff2track(startStaffIdx); track < staff2track(endStaffIdx, VOICES); ++track) {
         EngravingItem* e = seg->elementAt(track);
         if (!e || !e->isChordRest()) {
+            continue;
+        }
+        if (e->vStaffIdx() != slurSeg->vStaffIdx() && !crossStaffSlur) {
             continue;
         }
         // Gets tie and 2 note tremolo shapes
@@ -1248,6 +1257,10 @@ Shape SlurTieLayout::getSegmentShape(SlurSegment* slurSeg, Segment* seg, ChordRe
         }
         // Ignore fermatas
         if (item->isFermata()) {
+            return true;
+        }
+        // Ignore fret diagrams
+        if (item->isFretDiagram()) {
             return true;
         }
         return false;
@@ -1854,6 +1867,8 @@ void SlurTieLayout::calculateLaissezVibX(LaissezVibSegment* segment, SlurTiePos&
     computeStartAndEndSystem(lv, sPos);
     sPos.p1 = computeDefaultStartOrEndPoint(lv, Grip::START);
 
+    correctForCrossStaff(lv, sPos, SpannerSegmentType::SINGLE);
+
     if (segment->autoplace() && !segment->isEdited()) {
         adjustX(segment, sPos, Grip::START);
     }
@@ -1874,9 +1889,20 @@ void SlurTieLayout::calculateLaissezVibX(LaissezVibSegment* segment, SlurTiePos&
 void SlurTieLayout::calculateLaissezVibY(LaissezVibSegment* segment, SlurTiePos& sPos)
 {
     LaissezVib* lv = segment->laissezVib();
-    correctForCrossStaff(lv, sPos, SpannerSegmentType::SINGLE);
 
     adjustYforLedgerLines(segment, sPos);
+
+    Parenthesis* paren = lv->parentItem()->leftParen();
+    Chord* chord = lv->startNote()->chord();
+    const bool avoidStem = chord->stem() && chord->stem()->visible() && chord->up() == lv->up();
+    if (paren && (!lv->isOuterTieOfChord(Grip::START) || avoidStem)) {
+        RectF parenBbox = paren->ldata()->bbox().translated(paren->systemPos());
+        double adj = sPos.p1.y() - (lv->up() ? parenBbox.top() : parenBbox.bottom());
+        const double PAREN_LV_PADDING = 0.1 * segment->spatium();
+        adj += PAREN_LV_PADDING * (lv->up() ? 1.0 : -1.0);
+        sPos.p1.ry() -= adj;
+        sPos.p2.ry() -= adj;
+    }
 
     segment->ups(Grip::START).p = sPos.p1;
     segment->ups(Grip::END).p = sPos.p2;
@@ -1999,7 +2025,6 @@ void SlurTieLayout::layoutLaissezVibChord(Chord* chord, LayoutContext& ctx)
     double chordLvEndPoint = -DBL_MAX;
     std::map<LaissezVibSegment*, SlurTiePos> lvSegmentsWithPositions;
     const bool smuflLayout = ctx.conf().styleB(Sid::laissezVibUseSmuflSym);
-    const PointF chordPos = chord->pos() + chord->segment()->pos() + chord->measure()->pos();
 
     for (const Note* note : chord->notes()) {
         LaissezVib* lv = note->laissezVib();
@@ -2035,6 +2060,9 @@ void SlurTieLayout::layoutLaissezVibChord(Chord* chord, LayoutContext& ctx)
             ldata->setPos(sPos.p1);
         }
 
+        const System* system = sPos.system1;
+        const SysStaff* staff = system->staff(chord->vStaffIdx());
+        const PointF chordPos = chord->pos() + chord->segment()->pos() + chord->measure()->pos() + PointF(0.0, staff->y());
         const PointF notePos = chordPos + note->pos();
         ldata->posRelativeToNote = sPos.p1 - notePos;
     }
@@ -2169,8 +2197,14 @@ void SlurTieLayout::adjustX(TieSegment* tieSegment, SlurTiePos& sPos, Grip start
 
     Shape shape = isGrace ? chord->shape().translate(systemPos) : chordSeg->staffShape(chord->vStaffIdx()).translated(systemPos);
     bool ignoreDot = start && (isOuterTieOfChord || dotsPlacement == TieDotsPlacement::BEFORE_DOTS);
-    const bool ignoreAccidental = !start && isOuterTieOfChord;
     bool ignoreLvSeg = tieSegment->isLaissezVibSegment();
+    bool ignoreArpeggio = note == chord->downNote() && !tie->up();
+    bool ignoreParen = tieSegment->isLaissezVibSegment() && start;
+    auto ignoreAccidental = [&](const Accidental* acc) {
+        bool accIsInwardOfTie = tie->up() ? acc->line() >= note->line() : acc->line() <= note->line();
+        return !start && isOuterTieOfChord && accIsInwardOfTie;
+    };
+
     static const std::set<ElementType> IGNORED_TYPES = {
         ElementType::HOOK,
         ElementType::STEM_SLASH,
@@ -2182,8 +2216,11 @@ void SlurTieLayout::adjustX(TieSegment* tieSegment, SlurTiePos& sPos, Grip start
     shape.remove_if([&](ShapeElement& s) {
         bool remove =  !s.item() || s.item() == note || muse::contains(IGNORED_TYPES, s.item()->type())
                       || (s.item()->isNoteDot() && ignoreDot)
-                      || (s.item()->isAccidental() && ignoreAccidental && s.item()->track() == chord->track())
-                      || (s.item()->isLaissezVibSegment() && ignoreLvSeg) || !s.item()->addToSkyline();
+                      || (s.item()->isAccidental() && ignoreAccidental(toAccidental(s.item())))
+                      || (s.item()->isLaissezVibSegment() && ignoreLvSeg)
+                      || (s.item()->isArpeggio() && ignoreArpeggio)
+                      || (s.item()->isParenthesis() && ignoreParen)
+                      || !s.item()->addToSkyline();
         return remove;
     });
 
@@ -2870,6 +2907,10 @@ bool SlurTieLayout::isDirectionMixture(const Chord* c1, const Chord* c2, LayoutC
 
 bool SlurTieLayout::shouldHideSlurSegment(SlurSegment* item)
 {
+    if (item->isHammerOnPullOffSegment()) {
+        return false;
+    }
+
     if (item->configuration()->specificSlursLayoutWorkaround()) {
         Slur* slur = item->slur();
         if (slur->connectedElement() == Slur::ConnectedElement::GLISSANDO) {

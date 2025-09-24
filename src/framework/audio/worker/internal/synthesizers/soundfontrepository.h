@@ -40,16 +40,18 @@ public:
 
     void init();
 
-    const SoundFontPaths& soundFontPaths() const override;
+    bool isSoundFontLoaded(const std::string& name) const override;
     const SoundFontsMap& soundFonts() const override;
     async::Notification soundFontsChanged() const override;
 
 private:
 
-    void addSoundFont(const SoundFontPath& path);
-    void loadSoundFonts(const SoundFontPaths& paths);
+    void loadSoundFonts(const std::vector<SoundFontUri>& uris);
+    void addSoundFont(const SoundFontUri& uri);
+    void addSoundFontData(const SoundFontUri& uri, const ByteArray& data);
 
-    SoundFontPaths m_soundFontPaths;
+    void doAddSoundFont(const SoundFontUri& uri, const SoundFontsMap* cache = nullptr, std::function<void()> onFinished = nullptr);
+
     SoundFontsMap m_soundFonts;
     async::Notification m_soundFontsChanged;
 };

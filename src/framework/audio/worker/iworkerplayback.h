@@ -30,7 +30,7 @@
 namespace muse::audio::worker {
 class IWorkerPlayback : MODULE_EXPORT_INTERFACE
 {
-    INTERFACE_ID(IWorkerPlayback);
+    INTERFACE_ID(IWorkerPlayback)
 public:
     virtual ~IWorkerPlayback() = default;
 
@@ -62,13 +62,15 @@ public:
     virtual void setInputParams(const TrackSequenceId sequenceId, const TrackId trackId, const AudioInputParams& params) = 0;
     virtual async::Channel<TrackSequenceId, TrackId, AudioInputParams> inputParamsChanged() const = 0;
 
+    virtual void processInput(const TrackSequenceId sequenceId, const TrackId trackId) const = 0;
     virtual RetVal<InputProcessingProgress> inputProcessingProgress(const TrackSequenceId sequenceId, const TrackId trackId) const = 0;
 
+    virtual void clearCache(const TrackSequenceId sequenceId, const TrackId trackId) const = 0;
     virtual void clearSources() = 0;
 
     // 3. Play Sequence
     virtual void play(TrackSequenceId sequenceId, const secs_t delay = 0.0) = 0;
-    virtual void seek(TrackSequenceId sequenceId, const secs_t newPosition) = 0;
+    virtual void seek(TrackSequenceId sequenceId, const secs_t newPosition, const bool flushSound = true) = 0;
     virtual void stop(TrackSequenceId sequenceId) = 0;
     virtual void pause(TrackSequenceId sequenceId) = 0;
     virtual void resume(TrackSequenceId sequenceId, const secs_t delay = 0.0) = 0;

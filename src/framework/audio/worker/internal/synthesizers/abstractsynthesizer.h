@@ -53,9 +53,10 @@ public:
     bool readyToPlay() const override;
     async::Notification readyToPlayChanged() const override;
 
-    void revokePlayingNotes() override;
-
+    void processInput() override;
     InputProcessingProgress inputProcessingProgress() const override;
+
+    void clearCache() override;
 
 protected:
     virtual void setupSound(const mpe::PlaybackSetupData& setupData) = 0;
@@ -73,8 +74,6 @@ protected:
     async::Channel<audio::AudioInputParams> m_paramsChanges;
 
     async::Notification m_readyToPlayChanged;
-
-    samples_t m_sampleRate = 0;
 
     InputProcessingProgress m_inputProcessingProgress;
 };

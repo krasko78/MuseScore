@@ -60,6 +60,7 @@ public:
 
     SizeF defaultPageSize() const override;
 
+    bool canLayoutIcons() const override;
     String iconsFontFamily() const override;
 
     Color defaultColor() const override;

@@ -587,7 +587,7 @@ std::vector<Note*> Note::compoundNotes() const
 }
 
 Note::Note(const Note& n, bool link)
-    : EngravingItem(n)
+    : EngravingItem(n, link)
 {
     if (link) {
         score()->undo(new Link(this, const_cast<Note*>(&n)));
@@ -601,7 +601,6 @@ Note::Note(const Note& n, bool link)
     m_fretConflict      = n.m_fretConflict;
     m_ghost             = n.m_ghost;
     m_deadNote          = n.m_deadNote;
-    m_dragMode           = n.m_dragMode;
     m_pitch             = n.m_pitch;
     m_tpc[0]            = n.m_tpc[0];
     m_tpc[1]            = n.m_tpc[1];
@@ -1205,10 +1204,7 @@ Fraction Note::playTicksFraction() const
     if (!m_tieBack && !m_tieFor && chord()) {
         return chord()->actualTicks();
     }
-
-    Fraction stick = firstTiedNote()->chord()->tick();
-    const Note* note = lastTiedNote();
-    return note->chord()->tick() + note->chord()->actualTicks() - stick;
+    return lastTiedNote()->chord()->endTick() - firstTiedNote()->chord()->tick();
 }
 
 //---------------------------------------------------------
@@ -1477,7 +1473,7 @@ bool Note::shouldForceShowFret() const
     };
 
     auto hasVibratoLine = [&] () {
-        auto spanners = score()->spannerMap().findOverlapping(tick().ticks(), (tick() + ch->actualTicks()).ticks());
+        auto spanners = score()->spannerMap().findOverlapping(tick().ticks(), ch->endTick().ticks());
         for (auto interval : spanners) {
             Spanner* sp = interval.value;
             if (sp->isVibrato() && sp->startElement() == ch) {
@@ -1978,6 +1974,7 @@ EngravingItem* Note::drop(EditData& data)
                 gliss->setShowText(false);
             }
             gliss->setParent(this);
+            gliss->setGlissandoStyle(part()->instrument(gliss->tick())->glissandoStyle());
             score()->undoAddElement(e);
         } else {
             LOGD("no segment for second note of glissando found");
@@ -2255,7 +2252,7 @@ void Note::scanElements(void* data, void (* func)(void*, EngravingItem*), bool a
         sp->scanElements(data, func, all);
     }
 
-    if (!m_dragMode && m_accidental) {
+    if (m_accidental) {
         func(data, m_accidental);
     }
     for (NoteDot* dot : m_dots) {
@@ -2645,6 +2642,11 @@ RectF Note::drag(EditData& ed)
         return RectF();
     }
 
+    if (ed.isEditMode) {
+        dragInEditMode(ed);
+        return RectF();
+    }
+
     PointF delta = ed.evtDelta;
     noteEditData->delta = delta;
 
@@ -2681,10 +2683,10 @@ void Note::endDrag(EditData& ed)
 }
 
 //---------------------------------------------------------
-//   editDrag
+//   dragInEditMode
 //---------------------------------------------------------
 
-void Note::editDrag(EditData& editData)
+void Note::dragInEditMode(EditData& editData)
 {
     Chord* ch = chord();
     Segment* seg = ch->segment();
@@ -3086,6 +3088,18 @@ bool Note::setProperty(Pid propertyId, const PropertyValue& v)
     case Pid::FIXED_LINE:
         setFixedLine(v.toInt());
         break;
+    case Pid::HAS_PARENTHESES:
+        setParenthesesMode(v.value<ParenthesesMode>());
+        if (links()) {
+            for (EngravingObject* scoreElement : *links()) {
+                Note* note = toNote(scoreElement);
+                Staff* linkedStaff = note ? note->staff() : nullptr;
+                if (linkedStaff && linkedStaff->isTabStaff(tick())) {
+                    note->setGhost(v.toBool());
+                }
+            }
+        }
+        break;
     case Pid::POSITION_LINKED_TO_MASTER:
     case Pid::APPEARANCE_LINKED_TO_MASTER:
         if (v.toBool() == true && chord()) {
@@ -3145,8 +3159,11 @@ PropertyValue Note::propertyDefault(Pid propertyId) const
     case Pid::TPC1:
         return PropertyValue();
     case Pid::VISIBLE:
-        if (staffType() && staffType()->isTabStaff() && bendBack()) {
-            return false;
+        if (staffType() && staffType()->isTabStaff()) {
+            GuitarBend* bend = bendBack();
+            if (bend && !bend->isFullRelease()) {
+                return false;
+            }
         }
         return EngravingItem::propertyDefault(propertyId);
     case Pid::COLOR: {

@@ -461,6 +461,8 @@ void TRead::read(TempoText* t, XmlReader& e, ReadContext& ctx)
         t->setXmlText(String(u"<sym>metNoteQuarterUp</sym> = %1").arg(int(lrint(t->tempo().toBPM().val))));
         t->setVisible(false);
     }
+
+    t->resetProperty(Pid::MUSIC_SYMBOL_SIZE);
 }
 
 void TRead::read(StaffText* t, XmlReader& xml, ReadContext& ctx)
@@ -879,6 +881,8 @@ bool TRead::readProperties(Instrument* item, XmlReader& e, ReadContext& ctx, Par
     } else if (tag == "transposingClef") {
         int idx = e.intAttribute("staff", 1) - 1;
         item->setClefType(idx, ClefTypeList(item->clefType(idx).concertClef, TConv::fromXml(e.readAsciiText(), ClefType::G)));
+    } else if (tag == "glissandoStyle") {
+        item->setGlissandoStyle(TConv::fromXml(e.readAsciiText(), GlissandoStyle::CHROMATIC));
     } else {
         return false;
     }

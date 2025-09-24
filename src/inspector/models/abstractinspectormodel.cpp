@@ -180,6 +180,11 @@ bool AbstractInspectorModel::shouldUpdateOnScoreChange() const
     return m_shouldUpdateOnScoreChange;
 }
 
+bool AbstractInspectorModel::shouldUpdateOnEmptyPropertyAndStyleIdSets() const
+{
+    return false;
+}
+
 void AbstractInspectorModel::updateIsSystemObjectBelowBottomStaff()
 {
     bool soBelowBottomStaff = false;
@@ -299,7 +304,10 @@ static bool barlineWithPlayText(const QList<mu::engraving::EngravingItem*>& sele
             continue;
         }
 
-        if (toBarLine(item)->playCountText()) {
+        Segment* seg = toBarLine(item)->segment();
+        PlayCountText* playCountText = toPlayCountText(seg->findAnnotation(ElementType::PLAY_COUNT_TEXT, 0, 0));
+
+        if (playCountText) {
             return true;
         }
     }
@@ -801,6 +809,8 @@ void AbstractInspectorModel::endCommand()
     if (undoStack()) {
         undoStack()->commitChanges();
     }
+
+    m_shouldUpdateOnScoreChange = true;
 }
 
 INotationPtr AbstractInspectorModel::currentNotation() const

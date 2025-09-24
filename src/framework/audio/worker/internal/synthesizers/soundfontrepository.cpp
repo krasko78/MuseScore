@@ -21,10 +21,14 @@
  */
 #include "soundfontrepository.h"
 
-#include "audio/common/rpc/rpcpacker.h"
 #include "audio/common/audiosanitizer.h"
+#include "audio/common/rpc/rpcpacker.h"
 
 #include "fluidsynth/fluidsoundfontparser.h"
+
+#ifdef Q_OS_WASM
+#include "audio/worker/platform/web/networksfloader.h"
+#endif
 
 #include "log.h"
 
@@ -39,28 +43,43 @@ void SoundFontRepository::init()
     ONLY_AUDIO_WORKER_THREAD;
 
     channel()->onMethod(Method::LoadSoundFonts, [this](const Msg& msg) {
-        synth::SoundFontPaths paths;
-        IF_ASSERT_FAILED(RpcPacker::unpack(msg.data, paths)) {
+        std::vector<SoundFontUri> uris;
+        IF_ASSERT_FAILED(RpcPacker::unpack(msg.data, uris)) {
             return;
         }
 
-        this->loadSoundFonts(paths);
+        this->loadSoundFonts(uris);
     });
 
     channel()->onMethod(Method::AddSoundFont, [this](const Msg& msg) {
-        synth::SoundFontPath path;
-        IF_ASSERT_FAILED(RpcPacker::unpack(msg.data, path)) {
+        SoundFontUri uri;
+        IF_ASSERT_FAILED(RpcPacker::unpack(msg.data, uri)) {
             return;
         }
 
-        this->addSoundFont(path);
+        this->addSoundFont(uri);
+    });
+
+    channel()->onMethod(Method::AddSoundFontData, [this](const Msg& msg) {
+        SoundFontUri uri;
+        ByteArray data;
+        IF_ASSERT_FAILED(RpcPacker::unpack(msg.data, uri, data)) {
+            return;
+        }
+
+        this->addSoundFontData(uri, data);
     });
 }
 
-const SoundFontPaths& SoundFontRepository::soundFontPaths() const
+bool SoundFontRepository::isSoundFontLoaded(const std::string& name) const
 {
     ONLY_AUDIO_WORKER_THREAD;
-    return m_soundFontPaths;
+    for (const auto& p : m_soundFonts) {
+        if (p.second.name == name) {
+            return true;
+        }
+    }
+    return false;
 }
 
 const SoundFontsMap& SoundFontRepository::soundFonts() const
@@ -75,51 +94,123 @@ Notification SoundFontRepository::soundFontsChanged() const
     return m_soundFontsChanged;
 }
 
-void SoundFontRepository::addSoundFont(const SoundFontPath& path)
+void SoundFontRepository::addSoundFont(const SoundFontUri& uri)
+{
+    ONLY_AUDIO_WORKER_THREAD;
+    doAddSoundFont(uri, nullptr, [this]() {
+        m_soundFontsChanged.notify();
+    });
+}
+
+static io::path_t fileNameFromUri(const SoundFontUri& uri)
+{
+    io::path_t path = uri.toLocalFile();
+    return io::filename(path);
+}
+
+void SoundFontRepository::addSoundFontData(const SoundFontUri& uri, const ByteArray& data)
 {
     ONLY_AUDIO_WORKER_THREAD;
 
-    m_soundFontPaths.push_back(path);
+    const io::path_t fileName = fileNameFromUri(uri);
 
-    RetVal<SoundFontMeta> meta = FluidSoundFontParser::parseSoundFont(path);
-
-    if (!meta.ret) {
-        LOGE() << "Failed parse SoundFont presets for " << path << ": " << meta.ret.toString();
-        return;
+    {
+        FILE* file = fopen(fileName.c_str(), "wb");
+        size_t wsize = fwrite(data.constChar(), sizeof(char), data.size(), file);
+        IF_ASSERT_FAILED(wsize == data.size()) {
+            return;
+        }
+        fclose(file);
     }
 
-    m_soundFonts.insert_or_assign(path, std::move(meta.val));
+    RetVal<SoundFontMeta> meta = FluidSoundFontParser::parseSoundFont(fileName);
+
+    if (meta.ret) {
+        m_soundFonts.insert_or_assign(uri, std::move(meta.val));
+        LOGI() << "added sound font, uri: " << uri;
+    } else {
+        LOGE() << "Failed parse SoundFont presets for " << fileName << ": " << meta.ret.toString();
+    }
 
     m_soundFontsChanged.notify();
 }
 
-void SoundFontRepository::loadSoundFonts(const SoundFontPaths& paths)
+void SoundFontRepository::doAddSoundFont(const SoundFontUri& uri, const SoundFontsMap* cache, std::function<void()> onFinished)
+{
+    if (cache) {
+        auto it = cache->find(uri);
+        if (it != cache->cend()) {
+            m_soundFonts.insert(*it);
+            LOGI() << "added sound font from cache, uri: " << uri;
+            if (onFinished) {
+                onFinished();
+            }
+            return;
+        }
+    }
+
+    auto parseAndAdd = [this, onFinished](const SoundFontUri& uri, const SoundFontPath& path) {
+        RetVal<SoundFontMeta> meta = FluidSoundFontParser::parseSoundFont(path);
+
+        if (meta.ret) {
+            m_soundFonts.insert_or_assign(uri, std::move(meta.val));
+            LOGI() << "added sound font, uri: " << uri;
+        } else {
+            LOGE() << "Failed parse SoundFont presets for " << path << ": " << meta.ret.toString();
+        }
+
+        if (onFinished) {
+            onFinished();
+        }
+    };
+
+    if (uri.scheme() == "file") {
+        SoundFontPath path = uri.toLocalFile();
+        parseAndAdd(uri, path);
+    } else {
+#ifdef Q_OS_WASM
+        auto promise = NetworkSFLoader::load(uri);
+        promise.onResolve(this, [uri, parseAndAdd](const RetVal<ByteArray>& data) {
+            if (data.ret) {
+                const io::path_t fileName = fileNameFromUri(uri);
+
+                {
+                    FILE* file = fopen(fileName.c_str(), "wb");
+                    size_t wsize = fwrite(data.val.constChar(), sizeof(char), data.val.size(), file);
+                    IF_ASSERT_FAILED(wsize == data.val.size()) {
+                        return;
+                    }
+                    fclose(file);
+                }
+
+                parseAndAdd(uri, fileName);
+            }
+        });
+#else
+        NOT_SUPPORTED;
+        if (onFinished) {
+            onFinished();
+        }
+#endif
+    }
+}
+
+void SoundFontRepository::loadSoundFonts(const std::vector<SoundFontUri>& uris)
 {
     ONLY_AUDIO_WORKER_THREAD;
 
-    m_soundFontPaths.clear();
+    SoundFontsMap* cache = new SoundFontsMap();
+    m_soundFonts.swap(*cache);
 
-    SoundFontsMap oldSoundFonts;
-    m_soundFonts.swap(oldSoundFonts);
-
-    for (const synth::SoundFontPath& path : paths) {
-        m_soundFontPaths.push_back(path);
-
-        auto it = oldSoundFonts.find(path);
-        if (it != oldSoundFonts.cend()) {
-            m_soundFonts.insert(*it);
-            continue;
-        }
-
-        RetVal<SoundFontMeta> meta = FluidSoundFontParser::parseSoundFont(path);
-
-        if (!meta.ret) {
-            LOGE() << "Failed parse SoundFont presets for " << path << ": " << meta.ret.toString();
-            continue;
-        }
-
-        m_soundFonts.insert_or_assign(path, std::move(meta.val));
+    size_t total = uris.size();
+    size_t count = 0;
+    for (const SoundFontUri& uri : uris) {
+        doAddSoundFont(uri, cache, [this, &count, total, cache]() {
+            ++count;
+            if (count == total) {
+                delete cache;
+                m_soundFontsChanged.notify();
+            }
+        });
     }
-
-    m_soundFontsChanged.notify();
 }

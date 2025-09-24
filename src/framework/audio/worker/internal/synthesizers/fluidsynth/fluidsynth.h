@@ -27,6 +27,8 @@
 #include <optional>
 #include <vector>
 
+#include "global/io/path.h"
+
 #include "global/modularity/ioc.h"
 #include "midi/imidioutport.h"
 
@@ -42,6 +44,7 @@ class FluidSynth : public AbstractSynthesizer
 public:
     FluidSynth(const audio::AudioSourceParams& params, const modularity::ContextPtr& iocCtx);
 
+    Ret init(const OutputSpec& spec);
     Ret addSoundFonts(const std::vector<io::path_t>& sfonts);
     void setPreset(const std::optional<midi::Program>& preset);
 
@@ -52,7 +55,7 @@ public:
     void setupEvents(const mpe::PlaybackData& playbackData) override;
     const mpe::PlaybackData& playbackData() const override;
 
-    void flushSound() override;
+    void flushSound() override; // all channels
 
     bool isActive() const override;
     void setIsActive(const bool isActive) override;
@@ -60,12 +63,10 @@ public:
     msecs_t playbackPosition() const override;
     void setPlaybackPosition(const msecs_t newPosition) override;
 
-    void revokePlayingNotes() override; // all channels
-
     unsigned int audioChannelsCount() const override;
     samples_t process(float* buffer, samples_t samplesPerChannel) override;
     async::Channel<unsigned int> audioChannelsCountChanged() const override;
-    void setSampleRate(unsigned int sampleRate) override;
+    void setOutputSpec(const OutputSpec& spec) override;
 
     bool isValid() const override;
 
@@ -97,10 +98,9 @@ private:
         }
     };
 
-    Ret init();
     void createFluidInstance();
 
-    void allNotesOff();
+    void doFlushSound();
 
     bool processSequence(const FluidSequencer::EventSequence& sequence, const samples_t samples, float* buffer);
     bool handleEvent(const midi::Event& event);
@@ -111,7 +111,10 @@ private:
     int setControllerValue(int channel, int ctrl, int value);
     int setPitchBend(int channel, int pitchBend);
 
-    std::shared_ptr<Fluid> m_fluid = nullptr;
+    OutputSpec m_outputSpec;
+
+    std::shared_ptr<Fluid> m_fluid;
+    std::shared_ptr<midi::IMidiOutPort> m_midiOutPort;
 
     async::Channel<unsigned int> m_streamsCountChanged;
 
@@ -121,7 +124,7 @@ private:
 
     KeyTuning m_tuning;
 
-    bool m_allNotesOffRequested = false;
+    bool m_flushSoundRequested = false;
 };
 
 using FluidSynthPtr = std::shared_ptr<FluidSynth>;

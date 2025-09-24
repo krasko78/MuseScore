@@ -24,67 +24,31 @@
 #include "ui/iuiengine.h"
 #include "global/modularity/ioc.h"
 
-#include "internal/audioconfiguration.h"
 #include "audio/common/audiosanitizer.h"
 #include "audio/common/audiothreadsecurer.h"
-#include "internal/audiooutputdevicecontroller.h"
-
+#ifdef Q_OS_WASM
+#include "audio/common/rpc/platform/web/webrpcchannel.h"
+#include "audio/worker/platform/web/webaudioworker.h"
+#include "platform/web/websoundfontcontroller.h"
+#else
 #include "audio/common/rpc/platform/general/generalrpcchannel.h"
+#include "audio/worker/platform/general/generalaudioworker.h"
+#include "platform/general/generalsoundfontcontroller.h"
+#endif
+
+#include "internal/audioconfiguration.h"
+#include "internal/startaudiocontroller.h"
 #include "internal/playback.h"
-#include "internal/soundfontcontroller.h"
+#include "internal/audiooutputdevicecontroller.h"
+#include "internal/audiodrivercontroller.h"
 
 #include "diagnostics/idiagnosticspathsregister.h"
-#include "devtools/inputlag.h"
-
-// Temporarily for compatibility
-#include "audio/worker/internal/audioengine.h"
-#include "audio/worker/internal/audiobuffer.h"
-#include "audio/worker/internal/synthesizers/synthresolver.h"
-#include "audio/worker/audioworker.h"
 
 #include "log.h"
 
 using namespace muse;
 using namespace muse::modularity;
 using namespace muse::audio;
-
-#ifdef MUSE_MODULE_AUDIO_JACK
-#include "audio/driver/platform/jack/jackaudiodriver.h"
-#endif
-
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-#include <QtEnvironmentVariables>
-#include "audio/driver/platform/lin/alsaaudiodriver.h"
-#ifdef MUSE_PIPEWIRE_AUDIO_DRIVER
-#include "audio/driver/platform/lin/pwaudiodriver.h"
-#endif
-#endif
-
-#ifdef Q_OS_WIN
-//#include "audio/driver/platform/win/winmmdriver.h"
-//#include "audio/driver/platform/win/wincoreaudiodriver.h"
-#include "audio/driver/platform/win/wasapiaudiodriver.h"
-#endif
-
-#ifdef Q_OS_MACOS
-#include "audio/driver/platform/osx/osxaudiodriver.h"
-#endif
-
-#ifdef Q_OS_WASM
-#include "audio/driver/platform/web/webaudiodriver.h"
-#endif
-
-static void measureInputLag(const float* buf, const size_t size)
-{
-    if (INPUT_LAG_TIMER_STARTED) {
-        for (size_t i = 0; i < size; ++i) {
-            if (!RealIsNull(buf[i])) {
-                STOP_INPUT_LAG_TIMER;
-                return;
-            }
-        }
-    }
-}
 
 static void audio_init_qrc()
 {
@@ -101,64 +65,33 @@ std::string AudioModule::moduleName() const
     return "audio";
 }
 
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-std::shared_ptr<IAudioDriver> makeLinuxAudioDriver()
-{
-#if defined(MUSE_PIPEWIRE_AUDIO_DRIVER)
-    if (!qEnvironmentVariableIsSet("MUSESCORE_FORCE_ALSA")) {
-        auto driver = std::make_shared<PwAudioDriver>();
-        if (driver->connectedToPwServer()) {
-            LOGI() << "Using audio driver: Pipewire";
-            return driver;
-        }
-    }
-#endif // MUSE_PIPEWIRE_AUDIO_DRIVER
-    LOGI() << "Using audio driver: ALSA";
-    return std::make_shared<AlsaAudioDriver>();
-}
-
-#endif // Q_OS_LINUX || Q_OS_FREEBSD
-
 void AudioModule::registerExports()
 {
     m_configuration = std::make_shared<AudioConfiguration>(iocContext());
+    m_startAudioController = std::make_shared<StartAudioController>();
     m_audioOutputController = std::make_shared<AudioOutputDeviceController>(iocContext());
     m_mainPlayback = std::make_shared<Playback>(iocContext());
-    m_rpcChannel = std::make_shared<rpc::GeneralRpcChannel>();
-    m_soundFontController = std::make_shared<SoundFontController>();
-
-    m_audioWorker = std::make_shared<worker::AudioWorker>(m_rpcChannel);
-
-#if defined(MUSE_MODULE_AUDIO_JACK)
-    m_audioDriver = std::shared_ptr<IAudioDriver>(new JackAudioDriver());
-#else
-
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-    m_audioDriver = makeLinuxAudioDriver();
-#endif
-
-#ifdef Q_OS_WIN
-    //m_audioDriver = std::shared_ptr<IAudioDriver>(new WinmmDriver());
-    //m_audioDriver = std::shared_ptr<IAudioDriver>(new CoreAudioDriver());
-    m_audioDriver = std::shared_ptr<IAudioDriver>(new WasapiAudioDriver());
-#endif
-
-#ifdef Q_OS_MACOS
-    m_audioDriver = std::shared_ptr<IAudioDriver>(new OSXAudioDriver());
-#endif
+    m_audioDriverController = std::make_shared<AudioDriverController>(iocContext());
 
 #ifdef Q_OS_WASM
-    m_audioDriver = std::shared_ptr<IAudioDriver>(new WebAudioDriver());
+    m_rpcChannel = std::make_shared<rpc::WebRpcChannel>();
+    m_audioWorker = std::make_shared<worker::WebAudioWorker>(m_rpcChannel);
+    m_soundFontController = std::make_shared<WebSoundFontController>();
+#else
+    m_rpcChannel = std::make_shared<rpc::GeneralRpcChannel>();
+    m_audioWorker = std::make_shared<worker::GeneralAudioWorker>(m_rpcChannel);
+    m_audioWorker->registerExports();
+    m_soundFontController = std::make_shared<GeneralSoundFontController>();
 #endif
 
-#endif // MUSE_MODULE_AUDIO_JACK
-
     ioc()->registerExport<IAudioConfiguration>(moduleName(), m_configuration);
+    ioc()->registerExport<IStartAudioController>(moduleName(), m_startAudioController);
     ioc()->registerExport<IAudioThreadSecurer>(moduleName(), std::make_shared<AudioThreadSecurer>());
-    ioc()->registerExport<IAudioDriver>(moduleName(), m_audioDriver);
-    ioc()->registerExport<IPlayback>(moduleName(), m_mainPlayback);
     ioc()->registerExport<rpc::IRpcChannel>(moduleName(), m_rpcChannel);
+    ioc()->registerExport<worker::IAudioWorker>(moduleName(), m_audioWorker);
+    ioc()->registerExport<IAudioDriverController>(moduleName(), m_audioDriverController);
     ioc()->registerExport<ISoundFontController>(moduleName(), m_soundFontController);
+    ioc()->registerExport<IPlayback>(moduleName(), m_mainPlayback);
 }
 
 void AudioModule::registerResources()
@@ -210,27 +143,29 @@ void AudioModule::onInit(const IApplication::RunMode& mode)
     // Init configuration
     m_configuration->init();
 
+    m_audioDriverController->init();
+
     if (mode == IApplication::RunMode::AudioPluginRegistration) {
         return;
     }
 
-    m_audioWorker->init();
-
-    m_audioOutputController->init();
-
-    m_soundFontController->init();
-
     // rpc
+    m_rpcChannel->setupOnMain();
+#ifndef Q_OS_WASM
     m_rpcTimer.setInterval(16); // corresponding to 60 fps
     QObject::connect(&m_rpcTimer, &QTimer::timeout, [this]() {
         m_rpcChannel->process();
     });
     m_rpcTimer.start();
+#endif
 
+    m_audioOutputController->init();
+    m_soundFontController->init();
     m_mainPlayback->init();
 
-    // Setup audio driver
-    setupAudioDriver(mode);
+#ifndef Q_OS_WASM
+    m_startAudioController->startAudioProcessing(mode);
+#endif
 
     //! --- Diagnostics ---
     auto pr = ioc()->resolve<muse::diagnostics::IDiagnosticsPathsRegister>(moduleName());
@@ -247,64 +182,5 @@ void AudioModule::onDeinit()
     m_mainPlayback->deinit();
     m_rpcTimer.stop();
 
-    if (m_audioDriver->isOpened()) {
-        m_audioDriver->close();
-    }
-}
-
-void AudioModule::onDestroy()
-{
-    //! NOTE During deinitialization, objects that process events are destroyed,
-    //! it is better to destroy them on onDestroy, when no events should come anymore
-    if (m_audioWorker->isRunning()) {
-        m_audioWorker->stop();
-    }
-}
-
-void AudioModule::setupAudioDriver(const IApplication::RunMode& mode)
-{
-    IAudioDriver::Spec requiredSpec;
-    requiredSpec.sampleRate = m_configuration->sampleRate();
-    requiredSpec.format = IAudioDriver::Format::AudioF32;
-    requiredSpec.channels = m_configuration->audioChannelsCount();
-    requiredSpec.samples = m_configuration->driverBufferSize();
-
-    if (m_configuration->shouldMeasureInputLag()) {
-        requiredSpec.callback = [this](void* /*userdata*/, uint8_t* stream, int byteCount) {
-            auto samplesPerChannel = byteCount / (2 * sizeof(float));  // 2 == m_configuration->audioChannelsCount()
-            float* dest = reinterpret_cast<float*>(stream);
-            const std::shared_ptr<worker::AudioBuffer>& audioBuffer = m_audioWorker->audioBuffer();
-            audioBuffer->pop(dest, samplesPerChannel);
-            measureInputLag(dest, samplesPerChannel * audioBuffer->audioChannelCount());
-        };
-    } else {
-        requiredSpec.callback = [this](void* /*userdata*/, uint8_t* stream, int byteCount) {
-            auto samplesPerChannel = byteCount / (2 * sizeof(float));
-            const std::shared_ptr<worker::AudioBuffer>& audioBuffer = m_audioWorker->audioBuffer();
-            audioBuffer->pop(reinterpret_cast<float*>(stream), samplesPerChannel);
-        };
-    }
-
-    if (mode == IApplication::RunMode::GuiApp) {
-        m_audioDriver->init();
-
-        IAudioDriver::Spec activeSpec;
-        if (m_audioDriver->open(requiredSpec, &activeSpec)) {
-            setupAudioWorker(activeSpec);
-            return;
-        }
-
-        LOGE() << "audio output open failed";
-    }
-
-    setupAudioWorker(requiredSpec);
-}
-
-void AudioModule::setupAudioWorker(const IAudioDriver::Spec& activeSpec)
-{
-    worker::AudioWorker::ActiveSpec spec;
-    spec.bufferSize = activeSpec.samples;
-    spec.sampleRate = activeSpec.sampleRate;
-
-    m_audioWorker->run(spec);
+    m_startAudioController->stopAudioProcessing();
 }

@@ -96,6 +96,7 @@ option(MUE_BUILD_PLAYBACK_TESTS "Build playback tests" ON)
 option(MUE_BUILD_PRINT_MODULE "Build print module" ON)
 option(MUE_BUILD_PROJECT_MODULE "Build project module" ON)
 option(MUE_BUILD_PROJECT_TESTS "Build project tests" ON)
+option(MUE_BUILD_CONVERTER_TESTS "Build converter tests" ON)
 
 # === Setup ===
 option(MUE_DOWNLOAD_SOUNDFONT "Download the latest soundfont version as part of the build process" ON)
@@ -122,7 +123,6 @@ option(MUE_COMPILE_USE_SYSTEM_FREETYPE "Try use system freetype" OFF)
 option(MUE_COMPILE_USE_SYSTEM_HARFBUZZ "Try use system harfbuzz" OFF)
 option(MUE_COMPILE_USE_SYSTEM_OPUS "Try use system opus" OFF)
 option(MUE_COMPILE_USE_SYSTEM_OPUSENC "Try use system libopusenc" OFF)
-option(MUE_COMPILE_USE_SYSTEM_TINYXML "Try use system tinyxml" OFF)
 
 # === Debug ===
 option(MUE_ENABLE_LOAD_QML_FROM_SOURCE "Load qml files from source (not resource)" OFF)

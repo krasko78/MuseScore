@@ -24,6 +24,8 @@
 
 #include <cstring>
 
+#include "audio/common/audioerrors.h"
+
 #include "realfn.h"
 
 using namespace muse;
@@ -35,12 +37,10 @@ static constexpr int AUDIO_CHANNELS_COUNT = 2;
 MuseSamplerWrapper::MuseSamplerWrapper(MuseSamplerLibHandlerPtr samplerLib,
                                        const InstrumentInfo& instrument,
                                        const AudioSourceParams& params,
-                                       async::Notification processOnlineSoundsRequested,
                                        const modularity::ContextPtr& iocCtx)
     : AbstractSynthesizer(params, iocCtx),
     m_samplerLib(samplerLib),
-    m_instrument(instrument),
-    m_processOnlineSoundsRequested(processOnlineSoundsRequested)
+    m_instrument(instrument)
 {
     if (!m_samplerLib || !m_samplerLib->isValid()) {
         return;
@@ -48,10 +48,6 @@ MuseSamplerWrapper::MuseSamplerWrapper(MuseSamplerLibHandlerPtr samplerLib,
 
     m_sequencer.setOnOffStreamFlushed([this]() {
         m_allNotesOffRequested = true;
-    });
-
-    config()->samplesToPreallocateChanged().onReceive(this, [this](const samples_t samples) {
-        initSampler(m_samplerSampleRate, samples);
     });
 }
 
@@ -61,28 +57,33 @@ MuseSamplerWrapper::~MuseSamplerWrapper()
         return;
     }
 
-    m_sequencer.deinit();
+    if (m_inputProcessingProgress.isStarted) {
+        m_inputProcessingProgress.finish((int)Ret::Code::Cancel);
+    }
+
     m_samplerLib->destroy(m_sampler);
 }
 
-void MuseSamplerWrapper::setSampleRate(unsigned int sampleRate)
+void MuseSamplerWrapper::setOutputSpec(const audio::OutputSpec& spec)
 {
     const bool isOffline = currentRenderMode() == RenderMode::OfflineMode;
-    const bool shouldUpdateSampleRate = m_samplerSampleRate != sampleRate && !isOffline;
+    const bool shouldReinitSampler = !m_sampler
+                                     || (m_outputSpec.sampleRate != spec.sampleRate && !isOffline)
+                                     || (m_outputSpec.samplesPerChannel != spec.samplesPerChannel && !isOffline);
 
-    if (!m_sampler || shouldUpdateSampleRate) {
-        if (!initSampler(sampleRate, config()->samplesToPreallocate())) {
+    if (shouldReinitSampler) {
+        if (!initSampler(spec.sampleRate, spec.samplesPerChannel)) {
             return;
         }
 
-        m_samplerSampleRate = sampleRate;
+        m_samplerSampleRate = spec.sampleRate;
     }
 
-    m_sampleRate = sampleRate;
+    m_outputSpec = spec;
 
     if (isOffline) {
-        LOGD() << "Start offline mode, sampleRate: " << m_sampleRate;
-        m_samplerLib->startOfflineMode(m_sampler, m_sampleRate);
+        LOGD() << "Start offline mode, sampleRate: " << spec.sampleRate;
+        m_samplerLib->startOfflineMode(m_sampler, spec.sampleRate);
         m_offlineModeStarted = true;
     }
 }
@@ -113,7 +114,7 @@ samples_t MuseSamplerWrapper::process(float* buffer, samples_t samplesPerChannel
     bool active = isActive();
 
     if (!active) {
-        msecs_t nextMicros = samplesToMsecs(samplesPerChannel, m_sampleRate);
+        msecs_t nextMicros = samplesToMsecs(samplesPerChannel, m_outputSpec.sampleRate);
         MuseSamplerSequencer::EventSequenceMap sequences = m_sequencer.movePlaybackForward(nextMicros);
 
         for (const auto& pair : sequences) {
@@ -190,7 +191,7 @@ void MuseSamplerWrapper::setupSound(const mpe::PlaybackSetupData& setupData)
 
     m_sequencer.init(m_samplerLib, m_sampler, this, resolveDefaultPresetCode(m_instrument));
 
-    if (m_instrument.isValid() && m_samplerLib->isOnlineInstrument(m_instrument.msInstrument)) {
+    if (m_instrument.isValid() && m_instrument.isOnline) {
         setupOnlineSound();
     }
 }
@@ -248,14 +249,14 @@ ms_Track MuseSamplerWrapper::addTrack()
 
 msecs_t MuseSamplerWrapper::playbackPosition() const
 {
-    return samplesToMsecs(m_currentPosition, m_sampleRate);
+    return samplesToMsecs(m_currentPosition, m_outputSpec.sampleRate);
 }
 
 void MuseSamplerWrapper::setPlaybackPosition(const msecs_t newPosition)
 {
     m_sequencer.setPlaybackPosition(newPosition);
 
-    setCurrentPosition(microSecsToSamples(newPosition, m_sampleRate));
+    setCurrentPosition(microSecsToSamples(newPosition, m_outputSpec.sampleRate));
 }
 
 bool MuseSamplerWrapper::isActive() const
@@ -271,6 +272,10 @@ void MuseSamplerWrapper::setIsActive(bool active)
 
     if (isActive() == active) {
         return;
+    }
+
+    if (active && m_pendingSetPosition) {
+        doCurrentSetPosition();
     }
 
     m_sequencer.setActive(active);
@@ -310,17 +315,120 @@ bool MuseSamplerWrapper::initSampler(const sample_rate_t sampleRate, const sampl
 
 void MuseSamplerWrapper::setupOnlineSound()
 {
-    m_sequencer.setUpdateMainStreamWhenInactive(true);
-    m_sequencer.setRenderingProgress(&m_inputProcessingProgress);
-    m_sequencer.setAutoRenderInterval(config()->autoProcessOnlineSoundsInBackground() ? 1.0 : -1.0); // interval < 0 -> no auto process
+    constexpr double AUTO_PROCESS_INTERVAL = 3.0;
+    constexpr double NO_AUTO_PROCESS = -1.0; // interval < 0 -> no auto process
+
+    const bool autoProcess = config()->autoProcessOnlineSoundsInBackground();
+
+    m_sequencer.setUpdateMainStreamWhenInactive(autoProcess);
+    m_samplerLib->setAutoRenderInterval(m_sampler, autoProcess ? AUTO_PROCESS_INTERVAL : NO_AUTO_PROCESS);
+
+    //! NOTE: update progress on the worker thread
+    m_renderingStateChanged.onReceive(this, [this](ms_RenderingRangeList list, int size) {
+        updateRenderingProgress(list, size);
+    });
+
+    m_samplerLib->setRenderingStateChangedCallback(m_sampler, [](void* data, ms_RenderingRangeList list, int size) {
+        //! NOTE: move call to the worker thread
+        RenderingStateChangedChannel* channel = reinterpret_cast<RenderingStateChangedChannel*>(data);
+        channel->send(list, size);
+    }, &m_renderingStateChanged);
 
     config()->autoProcessOnlineSoundsInBackgroundChanged().onReceive(this, [this](bool on) {
-        m_sequencer.setAutoRenderInterval(on ? 1.0 : -1.0);
+        m_sequencer.setUpdateMainStreamWhenInactive(on);
+        m_sequencer.updateMainStream();
+        m_samplerLib->setAutoRenderInterval(m_sampler, on ? AUTO_PROCESS_INTERVAL : NO_AUTO_PROCESS);
     });
+}
 
-    m_processOnlineSoundsRequested.onNotify(this, [this]() {
-        m_sequencer.triggerRender();
-    });
+void MuseSamplerWrapper::updateRenderingProgress(ms_RenderingRangeList list, int size)
+{
+    ONLY_AUDIO_WORKER_THREAD;
+
+    IF_ASSERT_FAILED(m_samplerLib && m_sampler) {
+        return;
+    }
+
+    const bool progressStarted = m_renderingInfo.maxChunksDurationUs > 0;
+
+    audio::InputProcessingProgress::ChunkInfoList chunks;
+    chunks.reserve(size);
+
+    long long chunksDurationUs = 0;
+    bool isRendering = false;
+
+    for (int i = 0; i < size; ++i) {
+        const ms_RenderRangeInfo info = m_samplerLib->getNextRenderProgressInfo(list);
+
+        switch (info._state) {
+        case ms_RenderingState_Rendering:
+            isRendering = true;
+            break;
+        case ms_RenderingState_ErrorNetwork:
+            m_renderingInfo.error = "Network error";
+            break;
+        case ms_RenderingState_ErrorRendering:
+            m_renderingInfo.error = "Rendering error";
+            break;
+        case ms_RenderingState_ErrorFileIO:
+            m_renderingInfo.error = "File IO error";
+            break;
+        case ms_RenderingState_ErrorTimeOut:
+            m_renderingInfo.error = "Timeout";
+            break;
+        }
+
+        // Failed regions remain in the list, but should be excluded when
+        // calculating the total remaining rendering duration
+        if (progressStarted && !m_renderingInfo.error.empty()) {
+            continue;
+        }
+
+        chunksDurationUs += info._end_us - info._start_us;
+        chunks.push_back({ audio::microsecsToSecs(info._start_us), audio::microsecsToSecs(info._end_us) });
+    }
+
+    // Start progress
+    if (!progressStarted) {
+        // Rendering has started on the sampler side, but it is not yet ready to report progress
+        if (chunksDurationUs <= 0 && isRendering) {
+            return;
+        }
+
+        if (!m_inputProcessingProgress.isStarted) {
+            m_inputProcessingProgress.start();
+        }
+    }
+
+    m_renderingInfo.maxChunksDurationUs = std::max(m_renderingInfo.maxChunksDurationUs, chunksDurationUs);
+
+    bool isChanged = false;
+    if (m_renderingInfo.lastReceivedChunks != chunks) {
+        m_renderingInfo.lastReceivedChunks = chunks;
+        isChanged = true;
+    }
+
+    // Update percentage
+    int64_t percentage = 0;
+    if (m_renderingInfo.maxChunksDurationUs != 0) {
+        percentage = std::lround(100.f - (float)chunksDurationUs / (float)m_renderingInfo.maxChunksDurationUs * 100.f);
+    }
+
+    if (percentage != m_renderingInfo.percentage) {
+        m_renderingInfo.percentage = percentage;
+        isChanged = true;
+    }
+
+    if (isChanged) {
+        m_inputProcessingProgress.process(chunks, std::lround(percentage), 100);
+    }
+
+    // Finish progress
+    if (chunksDurationUs <= 0) {
+        const int errcode = !m_renderingInfo.error.empty() ? (int)muse::audio::Err::OnlineSoundsProcessingError : 0;
+        m_inputProcessingProgress.finish(errcode, m_renderingInfo.error);
+        m_renderingInfo.clear();
+    }
 }
 
 InstrumentInfo MuseSamplerWrapper::resolveInstrument(const mpe::PlaybackSetupData& setupData) const
@@ -443,10 +551,18 @@ void MuseSamplerWrapper::setCurrentPosition(const samples_t samples)
     }
 
     m_currentPosition = samples;
+    m_pendingSetPosition = true;
 
     if (isActive()) {
-        m_samplerLib->setPosition(m_sampler, m_currentPosition);
+        doCurrentSetPosition();
     }
+}
+
+void MuseSamplerWrapper::doCurrentSetPosition()
+{
+    //! NOTE: very CPU-intensive operation; should be called as infrequently as possible
+    m_samplerLib->setPosition(m_sampler, m_currentPosition);
+    m_pendingSetPosition = false;
 }
 
 void MuseSamplerWrapper::extractOutputSamples(samples_t samples, float* output)
@@ -468,7 +584,7 @@ void MuseSamplerWrapper::prepareToPlay()
     }
 
     m_sequencer.updateMainStream();
-    m_samplerLib->setPosition(m_sampler, m_currentPosition);
+    doCurrentSetPosition();
 
     if (readyToPlay()) {
         return;
@@ -499,7 +615,23 @@ bool MuseSamplerWrapper::readyToPlay() const
     return m_samplerLib->readyToPlay(m_sampler);
 }
 
-void MuseSamplerWrapper::revokePlayingNotes()
+void MuseSamplerWrapper::processInput()
 {
-    m_allNotesOffRequested = true;
+    IF_ASSERT_FAILED(m_samplerLib && m_sampler) {
+        return;
+    }
+
+    m_sequencer.updateMainStream();
+    m_samplerLib->triggerRender(m_sampler);
+}
+
+void MuseSamplerWrapper::clearCache()
+{
+    IF_ASSERT_FAILED(m_samplerLib && m_sampler) {
+        return;
+    }
+
+    m_samplerLib->clearOnlineCache(m_sampler);
+    m_sequencer.updateMainStream();
+    m_samplerLib->triggerRender(m_sampler);
 }

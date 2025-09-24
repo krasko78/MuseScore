@@ -580,7 +580,16 @@ void TRead::readItemLink(EngravingItem* item, XmlReader& xml, ReadContext& ctx)
     DO_ASSERT(eid.isValid());
     EIDRegister* eidRegister = ctx.score()->masterScore()->eidRegister();
     EngravingObject* mainElement = eidRegister->itemFromEID(eid);
-    DO_ASSERT(mainElement && mainElement->type() == item->type());
+    IF_ASSERT_FAILED(mainElement) {
+        LOGE() << "Link failed: Main linked element not found for " << item->typeName() << " at " << ctx.tick().toString();
+        return;
+    }
+    IF_ASSERT_FAILED(mainElement->type() == item->type()) {
+        LOGE() << "Link failed: Main element type (" << mainElement->typeName() << ") does not match linked item type (" <<
+            item->typeName() << ") at " << ctx.tick().toString();
+        return;
+    }
+
     item->linkTo(mainElement);
 }
 
@@ -894,7 +903,15 @@ void TRead::read(SystemText* t, XmlReader& xml, ReadContext& ctx)
 
 void TRead::read(PlayCountText* t, XmlReader& xml, ReadContext& ctx)
 {
-    read(static_cast<TextBase*>(t), xml, ctx);
+    while (xml.readNextStartElement()) {
+        const AsciiStringView tag(xml.name());
+
+        if (TRead::readProperty(t, tag, xml, ctx, Pid::PLAY_COUNT_TEXT_SETTING)) {
+        } else if (TRead::readProperty(t, tag, xml, ctx, Pid::PLAY_COUNT_TEXT)) {
+        } else if (!readProperties(static_cast<TextBase*>(t), xml, ctx)) {
+            xml.unknown();
+        }
+    }
 }
 
 void TRead::read(PlayTechAnnotation* a, XmlReader& xml, ReadContext& ctx)
@@ -1706,7 +1723,6 @@ void TRead::read(Marker* m, XmlReader& e, ReadContext& ctx)
             m->setLabel(String::fromAscii(s.ascii()));
         } else if (readProperty(m, tag, e, ctx, Pid::MARKER_TYPE)) {
         } else if (readProperty(m, tag, e, ctx, Pid::MARKER_CENTER_ON_SYMBOL)) {
-        } else if (readProperty(m, tag, e, ctx, Pid::MARKER_SYMBOL_SIZE)) {
         } else if (!readProperties(static_cast<TextBase*>(m), e, ctx)) {
             e.unknown();
         }
@@ -2025,16 +2041,6 @@ void TRead::read(BarLine* b, XmlReader& e, ReadContext& ctx)
                 TRead::read(image, e, ctx);
                 b->add(image);
             }
-        } else if (readProperty(b, tag, e, ctx, Pid::PLAY_COUNT_TEXT_SETTING)) {
-        } else if (readProperty(b, tag, e, ctx, Pid::PLAY_COUNT_TEXT)) {
-        } else if (tag == "PlayCountText") {
-            PlayCountText* p = Factory::createPlayCountText(b);
-            TRead::read(p, e, ctx);
-            p->setParent(b);
-            p->setTrack(ctx.track());
-            b->add(p);
-        } else if (tag == "playCount") {
-            b->setPlayCount(e.readInt());
         } else if (!readItemProperties(b, e, ctx)) {
             e.unknown();
         }
@@ -2106,7 +2112,6 @@ void TRead::read(FBox* b, XmlReader& xml, ReadContext& ctx)
         } else if (readProperty(b, tag, xml, ctx, Pid::FRET_FRAME_ROW_GAP)) {
         } else if (readProperty(b, tag, xml, ctx, Pid::FRET_FRAME_CHORDS_PER_ROW)) {
         } else if (readProperty(b, tag, xml, ctx, Pid::FRET_FRAME_H_ALIGN)) {
-        } else if (readProperty(b, tag, xml, ctx, Pid::FRET_FRAME_DIAGRAMS_ORDER)) {
         } else if (TRead::readProperties(static_cast<Box*>(b), xml, ctx)) {
         } else {
             xml.unknown();
@@ -2967,6 +2972,7 @@ void TRead::read(Harmony* h, XmlReader& e, ReadContext& ctx)
         } else if (TRead::readProperty(h, tag, e, ctx, Pid::HARMONY_VOICE_LITERAL)) {
         } else if (TRead::readProperty(h, tag, e, ctx, Pid::HARMONY_VOICING)) {
         } else if (TRead::readProperty(h, tag, e, ctx, Pid::HARMONY_DURATION)) {
+        } else if (TRead::readProperty(h, tag, e, ctx, Pid::HARMONY_BASS_SCALE)) {
         } else if (TRead::readProperty(h, tag, e, ctx, Pid::HARMONY_DO_NOT_STACK_MODIFIERS)) {
         } else if (!readProperties(static_cast<TextBase*>(h), e, ctx)) {
             e.unknown();
@@ -4338,9 +4344,6 @@ bool TRead::readProperties(TextBase* t, XmlReader& e, ReadContext& ctx)
 {
     const AsciiStringView tag(e.name());
     for (Pid i : TextBasePropertyId) {
-        if (i == Pid::POSITION && tag == propertyName(i)) {
-            LOGI() << "read pos";
-        }
         if (TRead::readProperty(t, tag, e, ctx, i)) {
             return true;
         }
@@ -4394,6 +4397,7 @@ bool TRead::readProperties(TextBase* t, XmlReader& e, ReadContext& ctx)
     } else if (readProperty(t, tag, e, ctx, Pid::VOICE_ASSIGNMENT)) {
     } else if (readProperty(t, tag, e, ctx, Pid::DIRECTION)) {
     } else if (readProperty(t, tag, e, ctx, Pid::CENTER_BETWEEN_STAVES)) {
+    } else if (readProperty(t, tag, e, ctx, Pid::MUSIC_SYMBOL_SIZE)) {
     } else if (!readItemProperties(t, e, ctx)) {
         return false;
     }

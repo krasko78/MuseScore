@@ -39,6 +39,7 @@
 using namespace mu;
 using namespace muse;
 using namespace muse::io;
+using namespace muse::ui;
 using namespace mu::notation;
 using namespace muse::actions;
 using namespace mu::context;
@@ -682,16 +683,6 @@ muse::async::Notification NotationActionController::currentNotationStyleChanged(
     return currentNotationStyle() ? currentNotationStyle()->styleChanged() : muse::async::Notification();
 }
 
-INotationAccessibilityPtr NotationActionController::currentNotationAccessibility() const
-{
-    auto notation = currentNotation();
-    if (!notation) {
-        return nullptr;
-    }
-
-    return notation->accessibility();
-}
-
 void NotationActionController::resetState()
 {
     TRACEFUNC;
@@ -741,13 +732,11 @@ void NotationActionController::toggleNoteInput()
 
     if (noteInput->isNoteInputMode()) {
         noteInput->endNoteInput();
-    } else {
-        noteInput->startNoteInput(configuration()->defaultNoteInputMethod());
+        return;
     }
 
-    muse::ui::UiActionState state = actionRegister()->actionState("note-input");
-    std::string stateTitle = state.checked ? muse::trc("notation", "Note input mode") : muse::trc("notation", "Normal mode");
-    notifyAccessibilityAboutVoiceInfo(stateTitle);
+    // If the Braille panel or Note Input toolbar has focus, stay there.
+    noteInput->startNoteInput(configuration()->defaultNoteInputMethod(), /*focusNotation*/ false);
 }
 
 void NotationActionController::toggleNoteInputMethod(NoteInputMethod method)
@@ -825,7 +814,7 @@ void NotationActionController::handleNoteAction(const muse::actions::ActionData&
 
     noteInput->addNote(params, addingMode);
 
-    playSelectedElement();
+    seekAndPlaySelectedElement();
 }
 
 void NotationActionController::padNote(const Pad& pad)
@@ -861,7 +850,7 @@ void NotationActionController::padNote(const Pad& pad)
 
     if (noteInput->usingNoteInputMethod(NoteInputMethod::BY_DURATION)
         || noteInput->usingNoteInputMethod(NoteInputMethod::RHYTHM)) {
-        playSelectedElement();
+        seekAndPlaySelectedElement();
     }
 }
 
@@ -884,7 +873,7 @@ void NotationActionController::putNote(const ActionData& args)
 
     Ret ret = noteInput->putNote(pos, replace, insert);
     if (ret) {
-        playSelectedElement();
+        seekAndPlaySelectedElement();
     }
 }
 
@@ -931,7 +920,7 @@ void NotationActionController::toggleAccidental(AccidentalType type)
         noteInput->setAccidental(type);
     } else {
         interaction->toggleAccidentalForSelection(type);
-        playSelectedElement();
+        seekAndPlaySelectedElement();
     }
 }
 
@@ -1081,6 +1070,7 @@ void NotationActionController::moveSelection(MoveSelectionType type, MoveDirecti
     }
 
     interaction->moveSelection(direction, type);
+    seekSelectedElement();
 }
 
 void NotationActionController::move(MoveDirection direction, bool quickly)
@@ -1095,7 +1085,7 @@ void NotationActionController::move(MoveDirection direction, bool quickly)
     if (interaction->selection()->isNone() && previousSelectionExists) {
         // Try to restore the previous selection...
         interaction->moveSelection(direction, MoveSelectionType::EngravingItem);
-        playSelectedElement(true);
+        seekAndPlaySelectedElement(true);
         return;
     }
 
@@ -1183,7 +1173,7 @@ void NotationActionController::move(MoveDirection direction, bool quickly)
         break;
     }
 
-    playSelectedElement(playChord);
+    seekAndPlaySelectedElement(playChord);
 }
 
 void NotationActionController::moveInputNotes(bool up, PitchMode mode)
@@ -1216,7 +1206,7 @@ void NotationActionController::movePitchDiatonic(MoveDirection direction, bool)
     }
 
     interaction->movePitch(direction, PitchMode::DIATONIC);
-    playSelectedElement(PlayMode::PlayNote);
+    seekAndPlaySelectedElement(true);
 }
 
 void NotationActionController::moveWithinChord(MoveDirection direction)
@@ -1228,8 +1218,7 @@ void NotationActionController::moveWithinChord(MoveDirection direction)
     }
 
     interaction->moveChordNoteSelection(direction);
-
-    playSelectedElement(DONT_PLAY_CHORD);
+    seekAndPlaySelectedElement(DONT_PLAY_CHORD);
 }
 
 void NotationActionController::selectTopOrBottomOfChord(MoveDirection direction)
@@ -1241,8 +1230,7 @@ void NotationActionController::selectTopOrBottomOfChord(MoveDirection direction)
     }
 
     interaction->selectTopOrBottomOfChord(direction);
-
-    playSelectedElement(DONT_PLAY_CHORD);
+    seekAndPlaySelectedElement(DONT_PLAY_CHORD);
 }
 
 void NotationActionController::changeVoice(voice_idx_t voiceIndex)
@@ -1293,7 +1281,8 @@ void NotationActionController::repeatSelection()
     }
 
     Ret ret = interaction->repeatSelection();
-    playSelectedElement(true);
+
+    seekAndPlaySelectedElement(true);
 
     if (!ret && !ret.text().empty()) {
         interactive()->error("", ret.text());
@@ -1310,7 +1299,8 @@ void NotationActionController::pasteSelection(PastingType type)
 
     Fraction scale = resolvePastingScale(interaction, type);
     interaction->pasteSelection(scale);
-    playSelectedElement(DONT_PLAY_CHORD);
+
+    seekAndPlaySelectedElement(DONT_PLAY_CHORD);
 }
 
 Fraction NotationActionController::resolvePastingScale(const INotationInteractionPtr& interaction, PastingType type) const
@@ -1352,7 +1342,7 @@ void NotationActionController::addTie()
 
     if (noteInput->isNoteInputMode()) {
         noteInput->addTie();
-        playSelectedElement(true);
+        seekAndPlaySelectedElement(true);
     } else {
         interaction->addTieToSelection();
     }
@@ -1373,7 +1363,7 @@ void NotationActionController::chordTie()
 
     if (noteInput->isNoteInputMode()) {
         noteInput->addTie();
-        playSelectedElement(true);
+        seekAndPlaySelectedElement(true);
     } else {
         interaction->addTiedNoteToChord();
     }
@@ -1394,7 +1384,7 @@ void NotationActionController::addLaissezVib()
 
     if (noteInput->isNoteInputMode()) {
         noteInput->addLaissezVib();
-        playSelectedElement(true);
+        seekAndPlaySelectedElement(true);
     } else {
         interaction->addLaissezVibToSelection();
     }
@@ -1438,7 +1428,7 @@ void NotationActionController::addFret(int num)
     }
 
     interaction->addFret(num);
-    playSelectedElement(currentNotationScore()->playChord());
+    seekAndPlaySelectedElement(currentNotationScore()->playChord());
 }
 
 void NotationActionController::insertClef(mu::engraving::ClefType type)
@@ -2213,6 +2203,27 @@ void NotationActionController::toggleConcertPitch()
     currentNotationUndoStack()->commitChanges();
 }
 
+void NotationActionController::seekAndPlaySelectedElement(bool playChord)
+{
+    seekSelectedElement();
+    playSelectedElement(playChord);
+}
+
+void NotationActionController::seekSelectedElement()
+{
+    const IMasterNotationPtr master = currentMasterNotation();
+    if (!master || master->playback()->isLoopEnabled()) {
+        return;
+    }
+
+    const EngravingItem* element = selectedElement();
+    if (!element) {
+        return;
+    }
+
+    playbackController()->seekElement(element);
+}
+
 void NotationActionController::playSelectedElement(bool playChord)
 {
     TRACEFUNC;
@@ -2234,12 +2245,16 @@ void NotationActionController::playSelectedElement(bool playChord)
 
 bool NotationActionController::startNoteInputAllowed() const
 {
-    if (isEditingElement()) {
+    if (isEditingElement() || QGuiApplication::applicationState() != Qt::ApplicationActive) {
         return false;
     }
 
-    const muse::ui::UiContext ctx = uiContextResolver()->currentUiContext();
-    return ctx == muse::ui::UiCtxProjectFocused && QGuiApplication::applicationState() == Qt::ApplicationActive;
+    const UiContext ctx = uiContextResolver()->currentUiContext();
+    const INavigationControl* ctrl = navigationController()->activeControl();
+
+    return ctx == ui::UiCtxProjectFocused
+           || ctx == ui::UiCtxBrailleFocused
+           || (ctrl && ctrl->name().startsWith("note-input")); // Toolbar buttons.
 }
 
 void NotationActionController::startNoteInput()
@@ -2428,7 +2443,6 @@ void NotationActionController::registerPadNoteAction(const ActionCode& code, Pad
     registerAction(code, [this, padding, code]()
     {
         padNote(padding);
-        notifyAccessibilityAboutActionTriggered(code);
     });
 }
 
@@ -2437,7 +2451,6 @@ void NotationActionController::registerTabPadNoteAction(const ActionCode& code, 
     registerAction(code, [this, padding, code]()
     {
         padNote(padding);
-        notifyAccessibilityAboutActionTriggered(code);
     }, &NotationActionController::isTablatureStaff);
 }
 
@@ -2469,6 +2482,9 @@ void NotationActionController::registerAction(const ActionCode& code,
         INotationPtr notation = currentNotation();
         if (notation) {
             (notation->interaction().get()->*handler)();
+
+            seekSelectedElement();
+
             if (playMode != PlayMode::NoPlay) {
                 playSelectedElement(playMode == PlayMode::PlayChord);
             }
@@ -2531,6 +2547,9 @@ void NotationActionController::registerAction(const ActionCode& code, void (INot
         INotationPtr notation = currentNotation();
         if (notation) {
             (notation->interaction().get()->*handler)(param1);
+
+            seekSelectedElement();
+
             if (playMode != PlayMode::NoPlay) {
                 playSelectedElement(playMode == PlayMode::PlayChord);
             }
@@ -2555,25 +2574,12 @@ void NotationActionController::registerAction(const ActionCode& code, void (INot
         INotationPtr notation = currentNotation();
         if (notation) {
             (notation->interaction().get()->*handler)(param1, param2);
+
+            seekSelectedElement();
+
             if (playMode != PlayMode::NoPlay) {
                 playSelectedElement(playMode == PlayMode::PlayChord);
             }
         }
     }, enabler);
-}
-
-void NotationActionController::notifyAccessibilityAboutActionTriggered(const ActionCode& ActionCode)
-{
-    const muse::ui::UiAction& action = actionRegister()->action(ActionCode);
-    std::string titleStr = action.title.qTranslatedWithoutMnemonic().toStdString();
-
-    notifyAccessibilityAboutVoiceInfo(titleStr);
-}
-
-void NotationActionController::notifyAccessibilityAboutVoiceInfo(const std::string& info)
-{
-    auto notationAccessibility = currentNotationAccessibility();
-    if (notationAccessibility) {
-        notationAccessibility->setTriggeredCommand(info);
-    }
 }

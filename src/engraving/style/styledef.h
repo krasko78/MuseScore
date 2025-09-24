@@ -475,7 +475,7 @@ enum class Sid {
     showMeasureNumberOne,
     measureNumberInterval,
     measureNumberSystem,
-    measureNumberAllStaves,
+    measureNumberPlacementMode,
 
     smallNoteMag,
     scaleRythmicSpacingForSmallNotes,
@@ -514,7 +514,7 @@ enum class Sid {
     chordModifierMag,
     chordModifierAdjust,
     verticallyStackModifiers,
-    chordStackedModiferMag,
+    chordStackedModifierMag,
     chordBassNoteStagger,
     chordBassNoteScale,
     polychordDividerThickness,
@@ -774,7 +774,6 @@ enum class Sid {
     snapToDynamics,
     centerOnNotehead,
     dynamicsMinDistance,
-    autoplaceVerticalAlignRange,
 
     textLinePlacement,
     textLinePosAbove,
@@ -1245,6 +1244,7 @@ enum class Sid {
     measureNumberAlternateColor,
     measureNumberAlternateAlign,
     measureNumberAlternatePosAbove,
+    measureNumberAlternatePosBelow,
     measureNumberAlternateFrameType,
     measureNumberAlternateFramePadding,
     measureNumberAlternateFrameWidth,
@@ -1542,6 +1542,7 @@ enum class Sid {
     guitarBendArrowWidth,
     guitarBendArrowHeight,
     useCueSizeFretForGraceBends,
+    showFretOnFullBendRelease,
 
     headerFontFace,
     headerFontSize,
@@ -2020,14 +2021,6 @@ END_QT_REGISTERED_ENUM(Sid)
 using StyleIdSet = std::unordered_set<Sid>;
 
 //---------------------------------------------------------
-//   VerticalAlignRange
-//---------------------------------------------------------
-
-enum class VerticalAlignRange : unsigned char {
-    SEGMENT, MEASURE, SYSTEM
-};
-
-//---------------------------------------------------------
 //   StyledProperty
 ///   \cond PLUGIN_API \private \endcond
 //---------------------------------------------------------
@@ -2047,6 +2040,7 @@ struct StyleDef
 private:
 
     friend class MStyle;
+    friend class EngravingStyleModel;
 
     struct StyleValue {
         Sid _idx;

@@ -40,10 +40,10 @@ class MuseSamplerWrapper : public audio::synth::AbstractSynthesizer, public IMus
 {
 public:
     MuseSamplerWrapper(MuseSamplerLibHandlerPtr samplerLib, const InstrumentInfo& instrument, const muse::audio::AudioSourceParams& params,
-                       async::Notification processOnlineSoundsRequested, const modularity::ContextPtr& iocCtx);
+                       const modularity::ContextPtr& iocCtx);
     ~MuseSamplerWrapper() override;
 
-    void setSampleRate(unsigned int sampleRate) override;
+    void setOutputSpec(const audio::OutputSpec& spec) override;
     unsigned int audioChannelsCount() const override;
     async::Channel<unsigned int> audioChannelsCountChanged() const override;
     muse::audio::samples_t process(float* buffer, muse::audio::samples_t samplesPerChannel) override;
@@ -56,7 +56,8 @@ public:
     void prepareToPlay() override;
     bool readyToPlay() const override;
 
-    void revokePlayingNotes() override;
+    void processInput() override;
+    void clearCache() override;
 
 private:
     void setupSound(const mpe::PlaybackSetupData& setupData) override;
@@ -77,6 +78,7 @@ private:
     bool initSampler(const muse::audio::sample_rate_t sampleRate, const muse::audio::samples_t blockSize);
 
     void setupOnlineSound();
+    void updateRenderingProgress(ms_RenderingRangeList list, int size);
 
     InstrumentInfo resolveInstrument(const mpe::PlaybackSetupData& setupData) const;
     std::string resolveDefaultPresetCode(const InstrumentInfo& instrument) const;
@@ -84,7 +86,20 @@ private:
     void prepareOutputBuffer(const muse::audio::samples_t samples);
     void handleAuditionEvents(const MuseSamplerSequencer::EventType& event);
     void setCurrentPosition(const muse::audio::samples_t samples);
+    void doCurrentSetPosition();
     void extractOutputSamples(muse::audio::samples_t samples, float* output);
+
+    struct RenderingInfo {
+        long long maxChunksDurationUs = 0;
+        std::string error;
+        int64_t percentage = 0;
+        audio::InputProcessingProgress::ChunkInfoList lastReceivedChunks;
+
+        void clear()
+        {
+            *this = RenderingInfo();
+        }
+    };
 
     async::Channel<unsigned int> m_audioChannelsCountChanged;
 
@@ -94,10 +109,15 @@ private:
     TrackList m_tracks;
     ms_OutputBuffer m_bus;
 
-    async::Notification m_processOnlineSoundsRequested;
+    RenderingInfo m_renderingInfo;
+
+    using RenderingStateChangedChannel = async::Channel<ms_RenderingRangeList, int>;
+    RenderingStateChangedChannel m_renderingStateChanged;
 
     muse::audio::samples_t m_currentPosition = 0;
     muse::audio::sample_rate_t m_samplerSampleRate = 0;
+
+    audio::OutputSpec m_outputSpec;
 
     std::vector<float> m_leftChannel;
     std::vector<float> m_rightChannel;
@@ -106,6 +126,7 @@ private:
 
     bool m_offlineModeStarted = false;
     bool m_allNotesOffRequested = false;
+    bool m_pendingSetPosition = false;
 
     MuseSamplerSequencer m_sequencer;
 

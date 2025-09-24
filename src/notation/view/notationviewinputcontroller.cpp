@@ -21,6 +21,8 @@
  */
 #include "notationviewinputcontroller.h"
 
+#include <set>
+
 #include <QApplication>
 #include <QMimeData>
 #include <QQuickItem>
@@ -148,7 +150,7 @@ void NotationViewInputController::onNotationChanged()
         m_view->hideElementPopup();
 
         if (AbstractElementPopupModel::hasElementEditPopup(selectedItem)) {
-            m_view->showElementPopup(type, selectedItem->canvasBoundingRect());
+            m_view->showElementPopup(type);
         }
     });
 
@@ -159,13 +161,29 @@ void NotationViewInputController::onNotationChanged()
         }
 
         m_view->hideContextMenu();
-        m_view->hideElementPopup();
 
         const TextBase* item = notation->interaction()->editedText();
-        if (AbstractElementPopupModel::hasTextStylePopup(item)
-            && (!item->isLyrics() || !item->empty())) {
-            m_view->showElementPopup(item->type(), item->canvasBoundingRect());
+        if (AbstractElementPopupModel::hasTextStylePopup(item)) {
+            static const std::set<ElementType> TYPES_NEEDING_STAFF {
+                ElementType::LYRICS,
+                ElementType::FINGERING,
+                ElementType::STICKING,
+                ElementType::HARMONY,
+                ElementType::FIGURED_BASS
+            };
+            const bool needToSeeStaffWhileEnteringText = muse::contains(TYPES_NEEDING_STAFF, item->type());
+            if (!needToSeeStaffWhileEnteringText || !item->empty()) {
+                m_view->showElementPopup(item->type());
+                return;
+            }
         }
+
+        if (item->isDynamic()) {
+            m_view->showElementPopup(item->type());
+            return;
+        }
+
+        m_view->hideElementPopup();
     });
 
     currNotation->interaction()->textEditingChanged().onNotify(this, [this] {
@@ -180,7 +198,7 @@ void NotationViewInputController::onNotationChanged()
 
         const TextBase* item = notation->interaction()->editedText();
         if (AbstractElementPopupModel::hasTextStylePopup(item) && item->cursor()->hasSelection()) {
-            m_view->showElementPopup(item->type(), item->canvasBoundingRect());
+            m_view->showElementPopup(item->type());
         }
     });
 
@@ -955,7 +973,7 @@ void NotationViewInputController::updateTextCursorPosition()
         const TextBase* item = viewInteraction()->editedText();
         if (AbstractElementPopupModel::hasTextStylePopup(item)
             && (!item->isLyrics() || !item->empty())) {
-            m_view->showElementPopup(item->type(), item->canvasBoundingRect());
+            m_view->showElementPopup(item->type());
         }
     }
 }
@@ -1352,6 +1370,7 @@ void NotationViewInputController::keyPressEvent(QKeyEvent* event)
     } else if (key == Qt::Key_Shift) {
         viewInteraction()->updateTimeTickAnchors(event);
         updateShadowNotePopupVisibility();
+        return;
     } else if (isAnchorEditingEvent(event)) {
         viewInteraction()->moveElementAnchors(event);
     }
@@ -1625,7 +1644,7 @@ void NotationViewInputController::togglePopupForItemIfSupports(const EngravingIt
     ElementType type = item->type();
 
     if (AbstractElementPopupModel::hasElementEditPopup(item)) {
-        m_view->toggleElementPopup(type, item->canvasBoundingRect());
+        m_view->toggleElementPopup(type);
     }
 }
 
@@ -1637,9 +1656,7 @@ void NotationViewInputController::updateShadowNotePopupVisibility(bool forceHide
         return;
     }
 
-    RectF noteHeadRect = shadowNote->symBbox(shadowNote->noteheadSymbol());
-    noteHeadRect.translate(shadowNote->canvasPos().x(), shadowNote->canvasPos().y());
-    m_view->showElementPopup(ElementType::SHADOW_NOTE, noteHeadRect);
+    m_view->showElementPopup(ElementType::SHADOW_NOTE);
 }
 
 EngravingItem* NotationViewInputController::resolveStartPlayableElement() const
@@ -1649,14 +1666,16 @@ EngravingItem* NotationViewInputController::resolveStartPlayableElement() const
         return seekAllowed(hitElement) ? hitElement : nullptr;
     }
 
-    INotationSelectionPtr selection = viewInteraction()->selection();
-    if (!selection->isRange()) {
-        return selection->element();
+    const INotationSelectionPtr selection = viewInteraction()->selection();
+    const std::vector<EngravingItem*>& elements = selection->elements();
+
+    if (!selection->isRange() && !elements.empty()) {
+        return elements.back();
     }
 
     EngravingItem* playbackStartElement = hitElementContext().element;
 
-    for (EngravingItem* element: selection->elements()) {
+    for (EngravingItem* element: elements) {
         if (!element || element == playbackStartElement) {
             continue;
         }

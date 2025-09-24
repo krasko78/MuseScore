@@ -18,22 +18,40 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+include(GetPlatformInfo)
+
 set(AUDIO_MAIN_SRC
     ${CMAKE_CURRENT_LIST_DIR}/audiomodule.cpp
     ${CMAKE_CURRENT_LIST_DIR}/audiomodule.h
     ${CMAKE_CURRENT_LIST_DIR}/iaudioconfiguration.h
+    ${CMAKE_CURRENT_LIST_DIR}/istartaudiocontroller.h
     ${CMAKE_CURRENT_LIST_DIR}/iplayback.h
     ${CMAKE_CURRENT_LIST_DIR}/iplayer.h
     ${CMAKE_CURRENT_LIST_DIR}/isoundfontcontroller.h
 
     ${CMAKE_CURRENT_LIST_DIR}/internal/audioconfiguration.cpp
     ${CMAKE_CURRENT_LIST_DIR}/internal/audioconfiguration.h
+    ${CMAKE_CURRENT_LIST_DIR}/internal/startaudiocontroller.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/internal/startaudiocontroller.h
     ${CMAKE_CURRENT_LIST_DIR}/internal/playback.cpp
     ${CMAKE_CURRENT_LIST_DIR}/internal/playback.h
     ${CMAKE_CURRENT_LIST_DIR}/internal/player.cpp
     ${CMAKE_CURRENT_LIST_DIR}/internal/player.h
-    ${CMAKE_CURRENT_LIST_DIR}/internal/soundfontcontroller.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/internal/soundfontcontroller.h
     ${CMAKE_CURRENT_LIST_DIR}/internal/audiooutputdevicecontroller.cpp
     ${CMAKE_CURRENT_LIST_DIR}/internal/audiooutputdevicecontroller.h
+    ${CMAKE_CURRENT_LIST_DIR}/internal/audiodrivercontroller.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/internal/audiodrivercontroller.h
 )
+
+
+if (OS_IS_WASM)
+    set(AUDIO_MAIN_SRC ${AUDIO_MAIN_SRC}
+        ${CMAKE_CURRENT_LIST_DIR}/platform/web/websoundfontcontroller.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/platform/web/websoundfontcontroller.h
+    )
+else()
+    set(AUDIO_MAIN_SRC ${AUDIO_MAIN_SRC}
+        ${CMAKE_CURRENT_LIST_DIR}/platform/general/generalsoundfontcontroller.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/platform/general/generalsoundfontcontroller.h
+    )
+endif()

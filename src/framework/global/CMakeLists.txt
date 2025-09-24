@@ -27,7 +27,6 @@ include(${CMAKE_CURRENT_LIST_DIR}/thirdparty/kors_profiler/profiler/profiler.cma
 include(${CMAKE_CURRENT_LIST_DIR}/thirdparty/kors_modularity/modularity/modularity.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/thirdparty/utfcpp/utfcpp.cmake)
 
-find_package(TinyXml REQUIRED)
 set(MODULE_SRC
     ${MODULARITY_SRC}
     ${ASYNC_SRC}
@@ -55,7 +54,6 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/translation.cpp
     ${CMAKE_CURRENT_LIST_DIR}/translation.h
     ${CMAKE_CURRENT_LIST_DIR}/timer.h
-    ${CMAKE_CURRENT_LIST_DIR}/threadutils.h
     ${CMAKE_CURRENT_LIST_DIR}/progress.h
     ${CMAKE_CURRENT_LIST_DIR}/utils.cpp
     ${CMAKE_CURRENT_LIST_DIR}/utils.h
@@ -118,6 +116,8 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/io/iodevice.h
     ${CMAKE_CURRENT_LIST_DIR}/io/file.cpp
     ${CMAKE_CURRENT_LIST_DIR}/io/file.h
+    ${CMAKE_CURRENT_LIST_DIR}/io/filewatcher.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/io/filewatcher.h
     ${CMAKE_CURRENT_LIST_DIR}/io/buffer.cpp
     ${CMAKE_CURRENT_LIST_DIR}/io/buffer.h
     ${CMAKE_CURRENT_LIST_DIR}/io/ifilesystem.h
@@ -130,33 +130,38 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/io/devtools/allzerosfilecorruptor.cpp
     ${CMAKE_CURRENT_LIST_DIR}/io/devtools/allzerosfilecorruptor.h
 
-    ${CMAKE_CURRENT_LIST_DIR}/serialization/xmlstreamreader.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/serialization/xmlstreamreader.h
-    ${CMAKE_CURRENT_LIST_DIR}/serialization/xmlstreamwriter.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/serialization/xmlstreamwriter.h
-    ${TINYXML_MODULE_SRC}
     ${CMAKE_CURRENT_LIST_DIR}/serialization/zipreader.cpp
     ${CMAKE_CURRENT_LIST_DIR}/serialization/zipreader.h
     ${CMAKE_CURRENT_LIST_DIR}/serialization/zipwriter.cpp
     ${CMAKE_CURRENT_LIST_DIR}/serialization/zipwriter.h
-
     ${CMAKE_CURRENT_LIST_DIR}/serialization/internal/zipcontainer.cpp
     ${CMAKE_CURRENT_LIST_DIR}/serialization/internal/zipcontainer.h
+
     ${CMAKE_CURRENT_LIST_DIR}/serialization/textstream.cpp
     ${CMAKE_CURRENT_LIST_DIR}/serialization/textstream.h
     ${CMAKE_CURRENT_LIST_DIR}/serialization/json.cpp
     ${CMAKE_CURRENT_LIST_DIR}/serialization/json.h
-    ${CMAKE_CURRENT_LIST_DIR}/serialization/xmldom.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/serialization/xmldom.h
     ${CMAKE_CURRENT_LIST_DIR}/serialization/msgpack.h
     ${CMAKE_CURRENT_LIST_DIR}/serialization/msgpack_forward.h
-    
+
+    ${CMAKE_CURRENT_LIST_DIR}/serialization/xmlstreamreader.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/serialization/xmlstreamreader.h
+    ${CMAKE_CURRENT_LIST_DIR}/serialization/xmlstreamwriter.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/serialization/xmlstreamwriter.h
+    ${CMAKE_CURRENT_LIST_DIR}/serialization/xmldom.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/serialization/xmldom.h
+
     ${CMAKE_CURRENT_LIST_DIR}/thirdparty/pugixml/pugixml.hpp
     ${CMAKE_CURRENT_LIST_DIR}/thirdparty/pugixml/pugixml.cpp
-
-    ${CMAKE_CURRENT_LIST_DIR}/concurrency/taskscheduler.h
-    ${CMAKE_CURRENT_LIST_DIR}/concurrency/concurrent.h
 )
+
+if (MUSE_THREADS_SUPPORT)
+    set(MODULE_SRC ${MODULE_SRC}
+        ${CMAKE_CURRENT_LIST_DIR}/concurrency/taskscheduler.h
+        ${CMAKE_CURRENT_LIST_DIR}/concurrency/concurrent.h
+        ${CMAKE_CURRENT_LIST_DIR}/concurrency/threadutils.h
+    )
+endif()
 
 if (GLOBAL_NO_INTERNAL)
     set(MODULE_DEF ${MODULE_DEF} -DGLOBAL_NO_INTERNAL)
@@ -199,9 +204,6 @@ else()
         ${CMAKE_CURRENT_LIST_DIR}/internal/systeminfo.cpp
         ${CMAKE_CURRENT_LIST_DIR}/internal/systeminfo.h
 
-        ${CMAKE_CURRENT_LIST_DIR}/io/internal/filesystem.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/io/internal/filesystem.h
-
         ${CMAKE_CURRENT_LIST_DIR}/deprecated/xmlreader.cpp
         ${CMAKE_CURRENT_LIST_DIR}/deprecated/xmlreader.h
         ${CMAKE_CURRENT_LIST_DIR}/deprecated/xmlwriter.cpp
@@ -219,6 +221,18 @@ else()
     endif()
 
     include(GetPlatformInfo)
+
+    if (OS_IS_WASM)
+        set(MODULE_SRC ${MODULE_SRC}
+            ${CMAKE_CURRENT_LIST_DIR}/io/internal/memfilesystem.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/io/internal/memfilesystem.h
+        )
+    else()
+        set(MODULE_SRC ${MODULE_SRC}
+            ${CMAKE_CURRENT_LIST_DIR}/io/internal/filesystem.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/io/internal/filesystem.h
+        )
+    endif()
 
     if (OS_IS_MAC)
         set(MODULE_SRC ${MODULE_SRC}
@@ -265,9 +279,6 @@ list(APPEND MODULE_INCLUDE_PRIVATE
 list(APPEND MODULE_INCLUDE_PRIVATE ${Z_INCLUDE})
 list(APPEND MODULE_LINK ${Z_LIB})
 
-list(APPEND MODULE_LINK ${TINYXML_MODULE_LINK})
-set(MODULE_DEF ${TINYXML_MODULE_DEF})
-
 if (QT_SUPPORT)
     # These are needed by so many modules, that we make them public here,
     # so that other modules get them transitively.
@@ -290,11 +301,6 @@ endif()
 
 if (MUSE_MODULE_GLOBAL_MULTI_IOC)
     set(MODULE_DEF ${MODULE_DEF} -DMUSE_MODULE_GLOBAL_MULTI_IOC)
-
-target_sources(muse_global
-  PRIVATE
-    types/secs.h
-)
 endif()
 
 setup_module()

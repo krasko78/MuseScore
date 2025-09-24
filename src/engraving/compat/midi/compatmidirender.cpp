@@ -235,9 +235,6 @@ std::vector<NoteEventList> CompatMidiRender::renderChord(const CompatMidiRendere
         CompatMidiRender::renderChordArticulation(context, chord, ell, gateTime, (double)ontime / NoteEvent::NOTE_LENGTH, tremolo);
     }
 
-    bool chordHasHammer
-        = (context.instrumentsHaveEffects && muse::contains(context.chordsWithHammerOnPullOff, const_cast<const Chord*>(chord)));
-
     // Check each note and apply gateTime
     for (size_t i : getNotesIndexesToRender(chord)) {
         mu::engraving::Note* note = chord->notes()[i];
@@ -260,10 +257,6 @@ std::vector<NoteEventList> CompatMidiRender::renderChord(const CompatMidiRendere
         }
 
         CompatMidiRender::createSlideInNotePlayEvents(note, prevChord, el);
-
-        if (chordHasHammer && el->size() == 1) {
-            el->front().setHammerPull(true);
-        }
 
         for (NoteEvent& e : *el) {
             e.setLen(e.len() * gateTime / 100);
@@ -1021,10 +1014,9 @@ Chord* CompatMidiRender::getChordFromSegment(Segment* segment, track_idx_t track
 
 Trill* CompatMidiRender::findFirstTrill(Chord* chord)
 {
-    auto spanners = chord->score()->spannerMap().findOverlapping(1 + chord->tick().ticks(),
-                                                                 chord->tick().ticks() + chord->actualTicks().ticks() - 1);
+    auto spanners = chord->score()->spannerMap().findOverlapping(1 + chord->tick().ticks(), chord->endTick().ticks() - 1);
     for (auto i : spanners) {
-        if (i.value->type() != ElementType::TRILL) {
+        if (!i.value->isTrill()) {
             continue;
         }
         if (i.value->track() != chord->track()) {

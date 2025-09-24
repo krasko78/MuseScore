@@ -44,6 +44,7 @@ static void callJsWithBytes(const char* fnname, const uint8_t* data, size_t size
 }
 
 #else
+
 static void callJsWithBytes(const char*, const uint8_t*, size_t)
 {
     NOT_SUPPORTED;
@@ -54,6 +55,7 @@ static void callJsWithBytes(const char*, const uint8_t*, size_t)
 WebApi* WebApi::instance()
 {
     static WebApi a;
+
     return &a;
 }
 
@@ -85,12 +87,6 @@ void WebApi::deinit()
     }
 }
 
-void WebApi::onclickTest1(int num)
-{
-    LOGI() << "num: " << num;
-    interactive()->info("onclickTest1", "Hey!");
-}
-
 void WebApi::load(const void* source, unsigned int len)
 {
     LOGI() << source << ", len: " << len;
@@ -104,6 +100,16 @@ void WebApi::load(const void* source, unsigned int len)
     io::File::writeFile(tempFilePath, data);
 
     dispatcher()->dispatch("file-open", actions::ActionData::make_arg1(QUrl::fromLocalFile(tempFilePath.toQString())));
+}
+
+void WebApi::addSoundFont(const std::string& uri)
+{
+    soundFontController()->addSoundFont(Uri(uri));
+}
+
+void WebApi::startAudioProcessing()
+{
+    startAudioController()->startAudioProcessing(IApplication::RunMode::GuiApp);
 }
 
 void WebApi::onProjectSaved(const muse::io::path_t& path, mu::project::SaveMode)

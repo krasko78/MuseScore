@@ -283,8 +283,6 @@ void NotationParts::setPartVisible(const ID& partId, bool visible)
 
     if (visible) {
         score()->removeSystemLocksContainingMMRests();
-    } else if (score()->visibleStavesCount() == 0) {
-        score()->undoRemoveAllLocks();
     }
 
     apply();
@@ -358,21 +356,10 @@ void NotationParts::listenUndoStackChanges()
 
 void NotationParts::updatePartsAndSystemObjectStaves(const mu::engraving::ScoreChanges& changes)
 {
-    const auto systemObjectStavesWithTopStaff = [this]() {
-        std::vector<Staff*> result;
-        if (Staff* topStaff = score()->staff(0)) {
-            result.push_back(topStaff);
-        }
-
-        muse::join(result, score()->systemObjectStaves());
-
-        return result;
-    };
-
     const bool partsChanged = m_parts != score()->parts();
     m_parts = score()->parts();
 
-    std::vector<Staff*> newSystemObjectStaves = systemObjectStavesWithTopStaff();
+    std::vector<Staff*> newSystemObjectStaves = score()->systemObjectStavesWithTopStaff();
     const bool systemObjectStavesChanged = m_systemObjectStaves != newSystemObjectStaves;
     m_systemObjectStaves = std::move(newSystemObjectStaves);
 
@@ -387,8 +374,15 @@ void NotationParts::updatePartsAndSystemObjectStaves(const mu::engraving::ScoreC
     std::vector<Staff*> removedStaves;
     std::vector<Staff*> addedStaves;
 
-    for (auto& pair : changes.changedItems) {
-        if (!pair.first || !pair.first->isStaff()) {
+    bool stavesSorted = false;
+
+    for (auto& pair : changes.changedObjects) {
+        if (muse::contains(pair.second, CommandType::SortStaves)) {
+            stavesSorted = true;
+            break;
+        }
+
+        if (!pair.first->isStaff()) {
             continue;
         }
 
@@ -399,6 +393,11 @@ void NotationParts::updatePartsAndSystemObjectStaves(const mu::engraving::ScoreC
         } else if (muse::contains(pair.second, CommandType::InsertStaff)) {
             addedStaves.push_back(staff);
         }
+    }
+
+    if (stavesSorted && !partsChanged) {
+        m_partChangedNotifier.changed();
+        return;
     }
 
     for (Staff* staff : removedStaves) {
@@ -536,8 +535,6 @@ void NotationParts::setStaffVisible(const ID& staffId, bool visible)
 
     if (visible) {
         score()->removeSystemLocksContainingMMRests();
-    } else if (score()->visibleStavesCount() == 0) {
-        score()->undoRemoveAllLocks();
     }
 
     apply();
@@ -607,6 +604,29 @@ bool NotationParts::appendStaff(Staff* staff, const ID& destinationPartId)
     startEdit(TranslatableString("undoableAction", "Add staff"));
     doAppendStaff(staff, destinationPart);
     apply();
+
+    return true;
+}
+
+bool NotationParts::appendStaffLinkedToMaster(Staff* staff, Staff* masterSourceStaff, const muse::ID& destinationPartId)
+{
+    TRACEFUNC;
+
+    IF_ASSERT_FAILED(staff && masterSourceStaff) {
+        return false;
+    }
+
+    Part* destinationPart = partModifiable(destinationPartId);
+    if (!destinationPart) {
+        return false;
+    }
+
+    startEdit(TranslatableString("undoableAction", "Add staff"));
+
+    doAppendStaff(staff, destinationPart, /*createRests*/ false);
+    score()->undo(new mu::engraving::Link(staff, masterSourceStaff));
+
+    mu::engraving::Excerpt::cloneStaff2(masterSourceStaff, staff, Fraction(0, 1), score()->endTick());
 
     return true;
 }
@@ -788,13 +808,8 @@ void NotationParts::addSystemObjects(const muse::IDList& stavesIds)
                 obj->triggerLayout();
                 continue;
             }
-            bool shouldLink = !obj->isPlayCountText();
-            EngravingItem* copy = shouldLink ? obj->linkedClone() : obj->clone();
+            EngravingItem* copy = obj->linkedClone();
             copy->setStaffIdx(staffIdx);
-
-            if (!obj->parent()->isSegment() && !obj->parent()->isMeasure()) {
-                copy->setParent(engraving::findNewSystemMarkingParent(obj, staff));
-            }
 
             score->undoAddElement(copy, false /*addToLinkedStaves*/);
         }
@@ -860,6 +875,12 @@ void NotationParts::moveSystemObjects(const ID& sourceStaffId, const ID& destina
         score()->undoChangeStyleVal(Sid::systemObjectsBelowBottomStaff, false);
     }
 
+    AutoOnOff showMeasNumOnSrcStaff = srcStaff->getProperty(Pid::SHOW_MEASURE_NUMBERS).value<AutoOnOff>();
+    if (showMeasNumOnSrcStaff != AutoOnOff::AUTO) {
+        dstStaff->undoChangeProperty(Pid::SHOW_MEASURE_NUMBERS, showMeasNumOnSrcStaff);
+        srcStaff->undoResetProperty(Pid::SHOW_MEASURE_NUMBERS);
+    }
+
     // Remove items first
     for (EngravingItem* item : systemObjects) {
         if (item->isTimeSig()) {
@@ -881,10 +902,6 @@ void NotationParts::moveSystemObjects(const ID& sourceStaffId, const ID& destina
         }
 
         if (item->staff() == srcStaff) {
-            if (!item->parent()->isSegment() && !item->parent()->isMeasure()) {
-                score()->undoChangeParent(item, engraving::findNewSystemMarkingParent(item, dstStaff), dstStaffIdx);
-                item->triggerLayout();
-            }
             item->undoChangeProperty(Pid::TRACK, staff2track(dstStaffIdx, item->voice()));
         }
     }
@@ -1048,10 +1065,8 @@ void NotationParts::doInsertPart(Part* part, size_t index)
         part->setInstrument(new Instrument(*it->second), it->first);
     }
 
-    const MeasureBase* firstMeasure = score()->firstMeasure();
-    mu::engraving::Fraction startTick = firstMeasure->tick();
-    const MeasureBase* lastMeasure = score()->lastMeasure();
-    mu::engraving::Fraction endTick = lastMeasure->tick() + lastMeasure->ticks();
+    mu::engraving::Fraction startTick = score()->firstMeasure()->tick();
+    mu::engraving::Fraction endTick = score()->lastMeasure()->endTick();
 
     for (size_t staffIndex = 0; staffIndex < stavesCopy.size(); ++staffIndex) {
         Staff* staff = stavesCopy[staffIndex];

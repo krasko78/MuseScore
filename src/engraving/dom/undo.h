@@ -159,7 +159,7 @@ enum class CommandType : signed char {
     FretMarker,
     FretBarre,
     FretClear,
-    FretLinkHarmony,
+    RemoveFretDiagramFromFretBox,
 
     // Harmony
     TransposeHarmony,
@@ -283,12 +283,15 @@ public:
 
     const InputState& undoInputState() const;
     const InputState& redoInputState() const;
+
     const SelectionInfo& undoSelectionInfo() const;
     const SelectionInfo& redoSelectionInfo() const;
 
+    void excludeElementFromSelectionInfo(EngravingItem* element);
+
     struct ChangesInfo {
         ElementTypeSet changedObjectTypes;
-        std::map<EngravingItem*, std::unordered_set<CommandType> > changedItems;
+        std::map<EngravingObject*, std::unordered_set<CommandType> > changedObjects;
         StyleIdSet changedStyleIdSet;
         PropertyIdSet changedPropertyIdSet;
         bool isTextEditing = false;
@@ -851,8 +854,9 @@ public:
 
     bool isFiltered(UndoCommand::Filter f, const EngravingItem* target) const override;
 
+    std::vector<EngravingObject*> objectItems() const override;
+
     UNDO_TYPE(CommandType::RemoveElement)
-    UNDO_CHANGED_OBJECTS({ element })
 };
 
 class AddSystemLock : public UndoCommand
@@ -1801,22 +1805,39 @@ public:
     UNDO_CHANGED_OBJECTS({ diagram })
 };
 
-class FretLinkHarmony : public UndoCommand
+class RemoveFretDiagramFromFretBox : public UndoCommand
 {
-    OBJECT_ALLOCATOR(engraving, FretLinkHarmony)
+    OBJECT_ALLOCATOR(engraving, RemoveFretDiagramFromFretBox)
 
     FretDiagram* m_fretDiagram = nullptr;
-    Harmony* m_harmony = nullptr;
-    bool m_unlink = false;
+    size_t m_idx = muse::nidx;
 
-    void undo(EditData*) override;
     void redo(EditData*) override;
+    void undo(EditData*) override;
 
 public:
-    FretLinkHarmony(FretDiagram*, Harmony*, bool unlink = false);
+    RemoveFretDiagramFromFretBox(FretDiagram* f);
 
-    UNDO_TYPE(CommandType::FretLinkHarmony)
-    UNDO_NAME("FretLinkHarmony")
+    UNDO_TYPE(CommandType::RemoveFretDiagramFromFretBox)
+    UNDO_NAME("RemoveFretDiagramFromFretBox")
+    UNDO_CHANGED_OBJECTS({ m_fretDiagram })
+};
+
+class AddFretDiagramToFretBox : public UndoCommand
+{
+    OBJECT_ALLOCATOR(engraving, RemoveFretDiagramFromFretBox)
+
+    FretDiagram* m_fretDiagram = nullptr;
+    size_t m_idx = muse::nidx;
+
+    void redo(EditData*) override;
+    void undo(EditData*) override;
+
+public:
+    AddFretDiagramToFretBox(FretDiagram* f, size_t idx);
+
+    UNDO_TYPE(CommandType::RemoveFretDiagramFromFretBox)
+    UNDO_NAME("RemoveFretDiagramFromFretBox")
     UNDO_CHANGED_OBJECTS({ m_fretDiagram })
 };
 

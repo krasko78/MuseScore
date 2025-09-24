@@ -161,6 +161,8 @@ void ThemeApi::initThemeValues()
     m_sizeForBaseVelocity = 700;
     m_contentSizeFactor = 100;
     m_viewSizeFactor = (m_baseFlickVelocity - m_minFlickVelocity) / m_sizeForBaseVelocity;
+
+    m_extra = configuration()->currentTheme().extra;
 }
 
 void ThemeApi::update()
@@ -556,6 +558,11 @@ void ThemeApi::setupWidgetTheme()
 void ThemeApi::notifyAboutThemeChanged()
 {
     emit themeChanged();
+}
+
+QVariantMap ThemeApi::extra() const
+{
+    return m_extra;
 }
 
 // ====================================================

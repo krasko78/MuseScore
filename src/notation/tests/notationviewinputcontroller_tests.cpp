@@ -42,6 +42,7 @@ using namespace mu::notation;
 using namespace muse;
 
 static const String TEST_SCORE_PATH(u"data/test.mscx");
+static constexpr bool FLUSH_SOUND = true;
 
 class NotationViewInputControllerTests : public ::testing::Test
 {
@@ -322,7 +323,7 @@ TEST_F(NotationViewInputControllerTests, Mouse_Press_Range_Start_Drag_From_Selec
     .WillByDefault(Return(false));
 
     //! [THEN] We will seek and play selected note, but no select again
-    EXPECT_CALL(*m_playbackController, seekElement(newContext.element))
+    EXPECT_CALL(*m_playbackController, seekElement(newContext.element, FLUSH_SOUND))
     .Times(1);
 
     std::vector<const EngravingItem*> elements = { newContext.element };
@@ -342,7 +343,7 @@ TEST_F(NotationViewInputControllerTests, Mouse_Press_Range_Start_Drag_From_Selec
  * @details User pressed left mouse button on already selected text element
  *          We should change text cursor position
  */
-TEST_F(NotationViewInputControllerTests, DISABLED_Mouse_Press_On_Selected_Text_Element)
+TEST_F(NotationViewInputControllerTests, Mouse_Press_On_Selected_Text_Element)
 {
     //! [GIVEN] There is a test score
     engraving::MasterScore* score = engraving::ScoreRW::readScore(TEST_SCORE_PATH);
@@ -368,11 +369,6 @@ TEST_F(NotationViewInputControllerTests, DISABLED_Mouse_Press_On_Selected_Text_E
     EXPECT_CALL(*m_interaction, setHitElementContext(newContext))
     .Times(1);
 
-    EXPECT_CALL(*m_interaction, hitElementContext())
-    .Times(2)
-    .WillOnce(ReturnRef(oldContext))
-    .WillOnce(ReturnRef(newContext));
-
     //! [GIVEN] There isn't a range selection
     ON_CALL(*m_selection, isRange())
     .WillByDefault(Return(false));
@@ -384,11 +380,11 @@ TEST_F(NotationViewInputControllerTests, DISABLED_Mouse_Press_On_Selected_Text_E
     EXPECT_CALL(m_view, isNoteEnterMode())
     .WillOnce(Return(false));
 
-    EXPECT_CALL(*m_playbackController, isPlaying())
-    .WillOnce(Return(false));
+    ON_CALL(*m_playbackController, isPlaying())
+    .WillByDefault(Return(false));
 
     //! [THEN] We will seek and play selected dynamic, but no select again
-    EXPECT_CALL(*m_playbackController, seekElement(newContext.element))
+    EXPECT_CALL(*m_playbackController, seekElement(newContext.element, FLUSH_SOUND))
     .Times(1);
 
     std::vector<const EngravingItem*> elements = { newContext.element };
@@ -451,9 +447,6 @@ TEST_F(NotationViewInputControllerTests, Mouse_Press_On_Selected_Non_Text_Elemen
     ON_CALL(*m_selection, elements())
     .WillByDefault(ReturnRef(selectedElements));
 
-    ON_CALL(*m_selection, element())
-    .WillByDefault(Return(selectedElements.front()));
-
     //! [GIVEN] No note enter mode, no playing
     EXPECT_CALL(m_view, isNoteEnterMode())
     .WillOnce(Return(false));
@@ -462,7 +455,7 @@ TEST_F(NotationViewInputControllerTests, Mouse_Press_On_Selected_Non_Text_Elemen
     .WillByDefault(Return(false));
 
     //! [THEN] We will seek and play selected hairpin, but no select again
-    EXPECT_CALL(*m_playbackController, seekElement(newContext.element))
+    EXPECT_CALL(*m_playbackController, seekElement(newContext.element, FLUSH_SOUND))
     .Times(1);
 
     std::vector<const EngravingItem*> elements = { newContext.element };
@@ -537,7 +530,7 @@ TEST_F(NotationViewInputControllerTests, Mouse_Press_Range_Start_Play_From_First
     EXPECT_CALL(*m_playbackController, playElements(playElements, m_playParams, false))
     .Times(1);
 
-    EXPECT_CALL(*m_playbackController, seekElement(newContext.element))
+    EXPECT_CALL(*m_playbackController, seekElement(newContext.element, FLUSH_SOUND))
     .Times(0);
 
     //! [GIVEN] There is a range selection with two notes
@@ -549,7 +542,7 @@ TEST_F(NotationViewInputControllerTests, Mouse_Press_Range_Start_Play_From_First
     .WillOnce(ReturnRef(selectElements));
 
     //! [THEN] We will seek first note in the range
-    EXPECT_CALL(*m_playbackController, seekElement(oldContext.element))
+    EXPECT_CALL(*m_playbackController, seekElement(oldContext.element, FLUSH_SOUND))
     .Times(1);
 
     //! [WHEN] User pressed left mouse button with ShiftModifier on the new note
@@ -594,7 +587,7 @@ TEST_F(NotationViewInputControllerTests, Mouse_Press_On_Already_Selected_Range)
     .WillOnce(ReturnRef(selectElements));
 
     //! [THEN] We should seek measure from the range
-    EXPECT_CALL(*m_playbackController, seekElement(context.element))
+    EXPECT_CALL(*m_playbackController, seekElement(context.element, FLUSH_SOUND))
     .Times(1);
 
     //! [THEN] No selection change
@@ -639,7 +632,7 @@ TEST_F(NotationViewInputControllerTests, Mouse_Press_Shift_On_Already_Selected_R
     .WillByDefault(Return(true));
 
     //! [THEN] We should seek measure from the range
-    EXPECT_CALL(*m_playbackController, seekElement(context.element))
+    EXPECT_CALL(*m_playbackController, seekElement(context.element, FLUSH_SOUND))
     .Times(1);
 
     //! [THEN] Selection is extended/diminished
@@ -680,9 +673,6 @@ TEST_F(NotationViewInputControllerTests, Mouse_Press_On_Already_Selected_Element
     EXPECT_CALL(*m_interaction, setHitElementContext(newContext))
     .Times(1);
 
-    ON_CALL(*m_selection, element())
-    .WillByDefault(Return(oldContext.element));
-
     std::vector<EngravingItem*> selectedElements = { oldContext.element };
     ON_CALL(*m_selection, elements())
     .WillByDefault(ReturnRef(selectedElements));
@@ -702,7 +692,7 @@ TEST_F(NotationViewInputControllerTests, Mouse_Press_On_Already_Selected_Element
     EXPECT_CALL(*m_playbackController, playElements(playElements, m_playParams, false))
     .Times(1);
 
-    EXPECT_CALL(*m_playbackController, seekElement(newContext.element))
+    EXPECT_CALL(*m_playbackController, seekElement(newContext.element, FLUSH_SOUND))
     .Times(1);
 
     //! [GIVEN] There is no a range selection
@@ -765,7 +755,7 @@ TEST_F(NotationViewInputControllerTests, Mouse_Press_On_Range)
     .Times(0);
 
     //! [THEN] Because it's a range selection, we should start playing from first measure in the range
-    EXPECT_CALL(*m_playbackController, seekElement(oldContext.element))
+    EXPECT_CALL(*m_playbackController, seekElement(oldContext.element, FLUSH_SOUND))
     .Times(1);
 
     selectElements.push_back(oldContext.element);
@@ -840,7 +830,7 @@ TEST_F(NotationViewInputControllerTests, Mouse_Press_On_Range_Context_Menu)
     EXPECT_CALL(*m_playbackController, playElements(playElements, m_playParams, false))
     .Times(0);
 
-    EXPECT_CALL(*m_playbackController, seekElement(selectMeasureContext.element))
+    EXPECT_CALL(*m_playbackController, seekElement(selectMeasureContext.element, FLUSH_SOUND))
     .WillOnce(Return())
     //! right button click
     .WillOnce(Return());
@@ -935,10 +925,10 @@ TEST_F(NotationViewInputControllerTests, Mouse_Press_On_Range_Context_Menu_New_S
     .Times(0);
 
     //! [THEN] We will seek each measures
-    EXPECT_CALL(*m_playbackController, seekElement(selectMeasureContext.element))
+    EXPECT_CALL(*m_playbackController, seekElement(selectMeasureContext.element, FLUSH_SOUND))
     .WillOnce(Return());
 
-    EXPECT_CALL(*m_playbackController, seekElement(contextMenuOnMeasureContext.element))
+    EXPECT_CALL(*m_playbackController, seekElement(contextMenuOnMeasureContext.element, FLUSH_SOUND))
     .WillOnce(Return());
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)

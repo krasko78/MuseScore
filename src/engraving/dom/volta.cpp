@@ -278,8 +278,8 @@ void Volta::setChannel() const
             return;
         }
 
-        Fraction startTick = startMeasure->tick() - Fraction::fromTicks(1);
-        Fraction endTick  = endMeasure->endTick() - Fraction::fromTicks(1);
+        Fraction startTick = startMeasure->tick() - Fraction::eps();
+        Fraction endTick  = endMeasure->endTick() - Fraction::eps();
         Staff* st = staff();
         for (voice_idx_t voice = 0; voice < VOICES; ++voice) {
             int channel = st->channel(startTick, voice);
@@ -301,8 +301,8 @@ void Volta::setTempo() const
         if (!endMeasure->repeatEnd()) {
             return;
         }
-        Fraction startTick = startMeasure->tick() - Fraction::fromTicks(1);
-        Fraction endTick  = endMeasure->endTick() - Fraction::fromTicks(1);
+        Fraction startTick = startMeasure->tick() - Fraction::eps();
+        Fraction endTick  = endMeasure->endTick() - Fraction::eps();
         BeatsPerSecond tempoBeforeVolta = score()->tempomap()->tempo(startTick.ticks());
         score()->setTempo(endTick, tempoBeforeVolta);
     }
@@ -331,12 +331,15 @@ PointF Volta::linePos(Grip grip, System** system) const
     bool isAtSystemStart = segment->rtick().isZero() && measure && measure->system() && measure->isFirstInSystem();
     bool searchForPrevBarline = start ? segment->rtick().isZero() && (measure->repeatStart() || !isAtSystemStart) : true;
 
+    SegmentType barlineType = start ? (SegmentType::StartRepeatBarLine | SegmentType::EndBarLine) : SegmentType::EndBarLine;
+
     if (searchForPrevBarline) {
         Segment* prev = segment;
-        while (prev && !prev->isType(SegmentType::BarLineType) && prev->tick() == segment->tick()) {
+        while (prev && !prev->isType(barlineType) && prev->tick() == segment->tick()) {
             prev = prev->prev1MMenabled();
         }
-        if (prev && prev->isType(SegmentType::BarLineType)) {
+
+        if (prev && prev->isType(barlineType)) {
             segment = prev;
         }
     }

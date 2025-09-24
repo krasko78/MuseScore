@@ -45,6 +45,8 @@ public:
     void init() override;
     void reload() override;
 
+    muse::async::Channel<InstrumentTrackIdSet> tracksDataChanged() const override;
+
     const engraving::InstrumentTrackId& metronomeTrackId() const override;
     engraving::InstrumentTrackId chordSymbolsTrackId(const muse::ID& partId) const override;
     bool isChordSymbolsTrack(const engraving::InstrumentTrackId& trackId) const override;
@@ -72,6 +74,7 @@ public:
 
     void addLoopBoundary(LoopBoundaryType boundaryType, muse::midi::tick_t tick) override;
     void setLoopBoundariesEnabled(bool enabled) override;
+    bool isLoopEnabled() const override;
     const LoopBoundaries& loopBoundaries() const override;
     muse::async::Notification loopBoundariesChanged() const override;
 

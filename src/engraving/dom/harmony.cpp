@@ -168,6 +168,11 @@ ParsedChord* HarmonyInfo::getParsedChord()
     return m_parsedChord;
 }
 
+bool HarmonyInfo::hasModifiers() const
+{
+    return m_parsedChord ? m_parsedChord->modifiers().size() > 0 : false;
+}
+
 //---------------------------------------------------------
 //   harmonyName
 //---------------------------------------------------------
@@ -325,6 +330,10 @@ Harmony::Harmony(const Harmony& h)
         HarmonyInfo* newInfo = new HarmonyInfo(*hi);
         m_chords.push_back(newInfo);
     }
+
+    m_fontFamily = h.m_fontFamily;
+    m_fontStyle  = h.m_fontStyle;
+    m_fontSize   = h.m_fontSize;
 }
 
 //---------------------------------------------------------
@@ -414,6 +423,17 @@ void Harmony::afterRead()
 
     // render chord from description (or _textName)
     setPlainText(harmonyName());
+}
+
+bool Harmony::hasModifiers() const
+{
+    for (const HarmonyInfo* info : m_chords) {
+        if (info->hasModifiers()) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 //---------------------------------------------------------
@@ -777,22 +797,6 @@ void Harmony::endEdit(EditData& ed)
 
     TextBase::endEdit(ed);
 
-    TextEditData* ted = dynamic_cast<TextEditData*>(ed.getData(this).get());
-    bool textChanged = ted != nullptr && ted->oldXmlText != harmonyName();
-
-    if (textChanged) {
-        FretDiagram* fretDiagram = explicitParent()->isFretDiagram() ? toFretDiagram(explicitParent()) : nullptr;
-        bool isFretDiagramCustom = fretDiagram ? fretDiagram->isCustom(ted->oldXmlText) : false;
-        if (fretDiagram && configuration()->autoUpdateFretboardDiagrams()) {
-            if (!isFretDiagramCustom) {
-                UndoStack* undo = score()->undoStack();
-                undo->reopen();
-                score()->undo(new FretDataChange(fretDiagram, s));
-                score()->endCmd();
-            }
-        }
-    }
-
     if (links()) {
         for (EngravingObject* e : *links()) {
             if (e == this) {
@@ -1125,6 +1129,17 @@ Color Harmony::curColor() const
     return EngravingItem::curColor();
 }
 
+void Harmony::setColor(const Color& color)
+{
+    EngravingItem::setColor(color);
+
+    for (HarmonyRenderItem* item : ldata()->renderItemList()) {
+        if (ChordSymbolParen* paren = dynamic_cast<ChordSymbolParen*>(item)) {
+            paren->parenItem->setColor(color);
+        }
+    }
+}
+
 //---------------------------------------------------------
 //   width
 //---------------------------------------------------------
@@ -1427,6 +1442,15 @@ EngravingItem* Harmony::drop(EditData& data)
     return e;
 }
 
+void Harmony::undoChangeProperty(Pid id, const PropertyValue& v, PropertyFlags ps)
+{
+    if (id == Pid::FONT_STYLE || id == Pid::FONT_FACE || id == Pid::FONT_SIZE) {
+        EngravingItem::undoChangeProperty(id, v, ps);
+    }
+
+    TextBase::undoChangeProperty(id, v, ps);
+}
+
 //---------------------------------------------------------
 //   getProperty
 //---------------------------------------------------------
@@ -1448,6 +1472,12 @@ PropertyValue Harmony::getProperty(Pid pid) const
         return int(m_realizedHarmony.duration());
     case Pid::HARMONY_DO_NOT_STACK_MODIFIERS:
         return m_doNotStackModifiers;
+    case Pid::FONT_SIZE:
+        return m_fontSize;
+    case Pid::FONT_STYLE:
+        return static_cast<int>(m_fontStyle);
+    case Pid::FONT_FACE:
+        return m_fontFamily;
     default:
         return TextBase::getProperty(pid);
     }
@@ -1485,22 +1515,41 @@ bool Harmony::setProperty(Pid pid, const PropertyValue& v)
         if (fd && fd->excludeVerticalAlign() != val) {
             fd->setExcludeVerticalAlign(val);
         }
+        Segment* parentSeg = getParentSeg();
+        if (!parentSeg) {
+            break;
+        }
+        for (EngravingItem* item : parentSeg->annotations()) {
+            if (!item->isFretDiagram() || !item->isHarmony() || item == this || track2staff(item->track()) != staffIdx()) {
+                continue;
+            }
+
+            if (item->excludeVerticalAlign() != val) {
+                item->setProperty(Pid::EXCLUDE_VERTICAL_ALIGN, val);
+            }
+        }
         break;
     }
     case Pid::HARMONY_DO_NOT_STACK_MODIFIERS:
         m_doNotStackModifiers = v.toBool();
         break;
-    default:
-        if (TextBase::setProperty(pid, v)) {
-            if (pid == Pid::TEXT) {
-                setHarmony(v.value<String>());
-
-                //! After each changes we rebuild the fret box
-                score()->rebuildFretBox();
+    case Pid::TEXT:
+    {
+        String curText = xmlText();
+        TextBase::setProperty(pid, v);
+        setHarmony(v.value<String>());
+        String newText = xmlText();
+        if (newText != curText) {
+            FretDiagram* fretDiagram = explicitParent()->isFretDiagram() ? toFretDiagram(explicitParent()) : nullptr;
+            if (fretDiagram && !fretDiagram->isCustom(curText) && configuration()->autoUpdateFretboardDiagrams()) {
+                fretDiagram->updateDiagram(plainText());
             }
-            break;
+            score()->rebuildFretBox();
         }
-        return false;
+        break;
+    }
+    default:
+        return TextBase::setProperty(pid, v);
     }
     triggerLayout();
     return true;

@@ -37,6 +37,16 @@ using CallId = uint64_t;
 enum class Method {
     Undefined = 0,
 
+    // Init
+    WorkerStarted, // notification
+    WorkerInit,
+
+    // Config
+    WorkerConfigChanged,
+
+    // AudioEngine
+    SetOutputSpec,
+
     // Sequences
     AddSequence,
     RemoveSequence,
@@ -63,6 +73,9 @@ enum class Method {
     // notification
     InputParamsChanged,
 
+    ProcessInput,
+
+    ClearCache,
     ClearSources,
 
     // Play
@@ -101,16 +114,23 @@ enum class Method {
     // SoundFont
     LoadSoundFonts,
     AddSoundFont,
-
-    // AudioEngine
-    SetReadBufferSize,
-    SetSampleRate,
+    AddSoundFontData,
 };
 
 inline std::string to_string(Method m)
 {
     switch (m) {
     case Method::Undefined: return "Undefined";
+
+    // Init
+    case Method::WorkerStarted: return "WorkerStarted";
+    case Method::WorkerInit: return "WorkerInit";
+
+    // Config
+    case Method::WorkerConfigChanged: return "WorkerConfigChanged";
+
+    // AudioEngine
+    case Method::SetOutputSpec: return "SetOutputSpec";
 
     // Sequences
     case Method::AddSequence: return "AddSequence";
@@ -136,6 +156,9 @@ inline std::string to_string(Method m)
     case Method::GetInputProcessingProgress: return "GetInputProcessingProgress";
     case Method::InputParamsChanged: return "InputParamsChanged";
 
+    case Method::ProcessInput: return "ProcessInput";
+
+    case Method::ClearCache: return "ClearCache";
     case Method::ClearSources: return "ClearSources";
 
     // Play
@@ -173,10 +196,7 @@ inline std::string to_string(Method m)
     // SoundFont
     case Method::LoadSoundFonts: return "LoadSoundFonts";
     case Method::AddSoundFont: return "AddSoundFont";
-
-    // AudioEngine
-    case Method::SetReadBufferSize: return "SetReadBufferSize";
-    case Method::SetSampleRate: return "SetSampleRate";
+    case Method::AddSoundFontData: return "AddSoundFontData";
     }
 
     assert(false && "unknown enum value");
@@ -248,11 +268,22 @@ inline std::string to_string(StreamName n)
 }
 
 using StreamId = uint32_t;
+
+inline StreamId& last_stream_id()
+{
+    static StreamId lastStreamId = 0;
+    return lastStreamId;
+}
+
+inline void set_last_stream_id(StreamId id)
+{
+    last_stream_id() = id;
+}
+
 inline StreamId new_stream_id()
 {
-    static StreamId lastId = 0;
-    ++lastId;
-    return lastId;
+    ++last_stream_id();
+    return last_stream_id();
 }
 
 struct StreamMsg {
@@ -286,11 +317,17 @@ public:
     RpcStream(IRpcChannel* rpc, StreamName name, StreamId id, StreamType type, const async::Channel<Types...>& ch)
         : m_rpc(rpc), m_name(name), m_streamId(id), m_type(type), m_ch(ch) {}
 
+    ~RpcStream()
+    {
+        deinit();
+    }
+
     StreamName name() const { return m_name; }
     StreamId streamId() const override { return m_streamId; }
     StreamType type() const override { return m_type; }
     void init() override;
     bool inited() const override { return m_inited; }
+    void deinit();
 
 private:
     IRpcChannel* m_rpc = nullptr;
@@ -306,6 +343,9 @@ class IRpcChannel : MODULE_EXPORT_INTERFACE
     INTERFACE_ID(IRpcChannel)
 public:
     virtual ~IRpcChannel() = default;
+
+    virtual void setupOnMain() = 0;
+    virtual void setupOnWorker() = 0;
 
     virtual void process() = 0;
 
@@ -369,6 +409,27 @@ void RpcStream<Types...>::init()
     }
 
     m_inited = true;
+}
+
+template<typename ... Types>
+void RpcStream<Types...>::deinit()
+{
+    if (!m_inited) {
+        return;
+    }
+
+    switch (m_type) {
+    case StreamType::Send: {
+        m_ch.resetOnReceive(this);
+    } break;
+    case StreamType::Receive: {
+        m_rpc->onStream(m_streamId, nullptr);
+    } break;
+    case StreamType::Undefined: {
+    } break;
+    }
+
+    m_inited = false;
 }
 
 // msgs

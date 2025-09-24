@@ -20,8 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef MU_ENGRAVING_BOX_H
-#define MU_ENGRAVING_BOX_H
+#pragma once
 
 #include "measurebase.h"
 #include "property.h"
@@ -43,8 +42,8 @@ public:
 
     virtual bool isEditAllowed(EditData&) const override;
     virtual bool edit(EditData&) override;
-    virtual void startEditDrag(EditData&) override;
-    virtual void editDrag(EditData&) override;
+    virtual void startDragGrip(EditData&) override;
+    virtual void dragGrip(EditData&) override;
 
     virtual bool acceptDrop(EditData&) const override;
     virtual EngravingItem* drop(EditData&) override;
@@ -160,7 +159,7 @@ public:
     PropertyValue propertyDefault(Pid) const override;
     bool setProperty(Pid propertyId, const PropertyValue&) override;
 
-    void startEditDrag(EditData&) override;
+    void startDragGrip(EditData&) override;
 
     std::vector<PointF> gripsPositions(const EditData&) const override;
 
@@ -189,6 +188,7 @@ public:
     void init();
 
     void add(EngravingItem*) override;
+    void addAtIdx(FretDiagram* fretDiagram, size_t idx);
 
     double textScale() const { return m_textScale; }
     double diagramScale() const { return m_diagramScale; }
@@ -206,21 +206,31 @@ public:
     Grip defaultGrip() const override;
     std::vector<PointF> gripsPositions(const EditData&) const override;
 
-    void undoReorderElements(const StringList& newOrder);
-    StringList diagramsOrder() const { return m_diagramsOrder; }
+    bool needStartEditingAfterSelecting() const override { return false; }
 
-    ElementList orderedElements() const;
+    void undoReorderElements(const StringList& newOrder);
+    void reorderElements(const StringList& newOrder);
+    StringList diagramsOrder() const;
+
+    bool needsRebuild() const { return m_needsRebuild; }
+    void setNeedsRebuild(bool v) { m_needsRebuild = v; }
 
 private:
+
+    void updateInvisibleDiagrams(const StringList& currentDiagrams);
+    size_t computeInsertionIdx(const String& nameOfDiagramBeforeThis);
+
     double m_textScale = 0.0;
     double m_diagramScale = 0.0;
     Spatium m_columnGap;
     Spatium m_rowGap;
     int m_chordsPerRow = 0;
 
+    bool m_needsRebuild = false;
+
     AlignH m_contentAlignmentH = AlignH::HCENTER;
 
-    StringList /*harmonyNames*/ m_diagramsOrder;
+    StringList m_diagramsOrderInScore;
 };
 
 //---------------------------------------------------------
@@ -266,5 +276,4 @@ public:
 private:
     Text* m_text = nullptr;
 };
-} // namespace mu::engraving
-#endif
+}

@@ -324,28 +324,6 @@ Segment* Segment::next1(SegmentType types) const
     return 0;
 }
 
-Segment* Segment::next1ChordRestOrTimeTick() const
-{
-    Segment* nextSeg = next1(CHORD_REST_OR_TIME_TICK_TYPE);
-    while (nextSeg && nextSeg->tick() == tick()) {
-        nextSeg = nextSeg->next1(CHORD_REST_OR_TIME_TICK_TYPE);
-    }
-    if (!nextSeg) {
-        return nullptr;
-    }
-
-    Segment* nextNextSeg = nextSeg->next1(CHORD_REST_OR_TIME_TICK_TYPE);
-    if (!nextNextSeg) {
-        return nextSeg;
-    }
-
-    if (nextSeg->tick() == nextNextSeg->tick()) {
-        return nextSeg->isChordRestType() ? nextSeg : nextNextSeg;
-    }
-
-    return nextSeg;
-}
-
 Segment* Segment::next1WithElemsOnStaff(staff_idx_t staffIdx, SegmentType segType) const
 {
     Segment* next = next1(segType);
@@ -459,28 +437,6 @@ Segment* Segment::prev1() const
     }
     Measure* m = measure()->prevMeasure();
     return m ? m->last() : 0;
-}
-
-Segment* Segment::prev1ChordRestOrTimeTick() const
-{
-    Segment* prevSeg = prev1(CHORD_REST_OR_TIME_TICK_TYPE);
-    while (prevSeg && prevSeg->tick() == tick()) {
-        prevSeg = prevSeg->prev1(CHORD_REST_OR_TIME_TICK_TYPE);
-    }
-    if (!prevSeg) {
-        return nullptr;
-    }
-
-    Segment* prevPrevSeg = prevSeg->prev1(CHORD_REST_OR_TIME_TICK_TYPE);
-    if (!prevPrevSeg) {
-        return prevSeg;
-    }
-
-    if (prevSeg->tick() == prevPrevSeg->tick()) {
-        return prevSeg->isChordRestType() ? prevSeg : prevPrevSeg;
-    }
-
-    return prevSeg;
 }
 
 Segment* Segment::prev1WithElemsOnStaff(staff_idx_t staffIdx, SegmentType segType) const
@@ -733,12 +689,14 @@ void Segment::add(EngravingItem* el)
         setEmpty(false);
         break;
 
+    case ElementType::HARMONY:
+    case ElementType::FRET_DIAGRAM:
+        score()->rebuildFretBox();
+    //fallthrough
     case ElementType::TEMPO_TEXT:
     case ElementType::DYNAMIC:
     case ElementType::EXPRESSION:
-    case ElementType::HARMONY:
     case ElementType::SYMBOL:
-    case ElementType::FRET_DIAGRAM:
     case ElementType::STAFF_TEXT:
     case ElementType::SYSTEM_TEXT:
     case ElementType::TRIPLET_FEEL:
@@ -761,6 +719,11 @@ void Segment::add(EngravingItem* el)
         el->part()->addStringTunings(toStringTunings(el));
         break;
     }
+
+    case ElementType::PLAY_COUNT_TEXT:
+        assert(isType(SegmentType::BarLineType));
+        m_annotations.push_back(el);
+        break;
 
     case ElementType::STAFF_STATE:
         if (toStaffState(el)->staffStateType() == StaffStateType::INSTRUMENT) {
@@ -925,11 +888,13 @@ void Segment::remove(EngravingItem* el)
         m_elist[track] = 0;
         break;
 
+    case ElementType::HARMONY:
+    case ElementType::FRET_DIAGRAM:
+        score()->rebuildFretBox();
+    //fallthrough
     case ElementType::DYNAMIC:
     case ElementType::EXPRESSION:
     case ElementType::FIGURED_BASS:
-    case ElementType::FRET_DIAGRAM:
-    case ElementType::HARMONY:
     case ElementType::IMAGE:
     case ElementType::MARKER:
     case ElementType::REHEARSAL_MARK:
@@ -945,6 +910,7 @@ void Segment::remove(EngravingItem* el)
     case ElementType::TREMOLOBAR:
     case ElementType::FERMATA:
     case ElementType::STICKING:
+    case ElementType::PLAY_COUNT_TEXT:
         removeAnnotation(el);
         break;
 
@@ -2733,7 +2699,8 @@ void Segment::createShape(staff_idx_t staffIdx)
                    && !e->isHarpPedalDiagram()
                    && !e->isPlayTechAnnotation()
                    && !e->isCapo()
-                   && !e->isStringTunings()) {
+                   && !e->isStringTunings()
+                   && !e->isPlayCountText()) {
             // annotations added here are candidates for collision detection
             s.add(e->shape().translate(e->pos() + e->staffOffset()));
         }

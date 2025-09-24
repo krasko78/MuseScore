@@ -130,7 +130,7 @@ struct TextSegment : HarmonyRenderItem {
     double leftPadding() const override { return 0.0; }
     double rightPadding() const override { return 0.0; }
 
-    double height() const override { return boundingRect().height(); }
+    double height() const override { return tightBoundingRect().height(); }
 
     HarmonyRenderItemType type() const override { return HarmonyRenderItemType::TEXT; }
 
@@ -189,6 +189,8 @@ public:
     void setParsedChord(ParsedChord* v) { m_parsedChord = v; }
     ParsedChord* parsedChord() const { return m_parsedChord; }
     ParsedChord* getParsedChord();
+
+    bool hasModifiers() const;
 
 private:
     int m_id = -1;                          // >0 = id of matched chord from chord list, if applicable
@@ -267,6 +269,8 @@ public:
     const std::vector<HarmonyInfo*> chords() const { return m_chords; }
     void addChord(HarmonyInfo* info) { m_chords.push_back(info); }
 
+    bool hasModifiers() const;
+
     String harmonyName() const;
 
     double baseLine() const override;
@@ -282,6 +286,8 @@ public:
     bool acceptDrop(EditData&) const override;
     EngravingItem* drop(EditData&) override;
 
+    void undoChangeProperty(Pid id, const PropertyValue& v, PropertyFlags ps) override;
+    using EngravingObject::undoChangeProperty;
     PropertyValue getProperty(Pid propertyId) const override;
     bool setProperty(Pid propertyId, const PropertyValue& v) override;
     PropertyValue propertyDefault(Pid id) const override;
@@ -292,11 +298,20 @@ public:
     void setBassScale(double v) { m_bassScale = v; }
 
     Color curColor() const override;
+    void setColor(const Color& color) override;
 
     bool doNotStackModifiers() const { return m_doNotStackModifiers; }
 
     NoteCaseType rootRenderCase(HarmonyInfo* info) const;
     NoteCaseType bassRenderCase() const;
+
+    FontStyle fontStyle() const override { return m_fontStyle; }
+    String family() const override { return m_fontFamily; }
+    double size() const override { return m_fontSize; }
+
+    void setFontStyle(const FontStyle& val) override { m_fontStyle = val; }
+    void setFamily(const String& val) override { m_fontFamily = val; }
+    void setSize(const double& val) override { m_fontSize = val; }
 
     struct LayoutData : public TextBase::LayoutData {
         ld_field<double> harmonyHeight = { "[Harmony] harmonyHeight", 0.0 };    // used for calculating the height is frame while editing.
@@ -332,5 +347,10 @@ private:
     NoteCaseType m_bassCase = NoteCaseType::AUTO;        // case as typed
 
     double m_bassScale = 1.0;
+
+    // Overridden textbase properties to apply to whole item
+    double m_fontSize = 10.0;
+    String m_fontFamily = u"";
+    FontStyle m_fontStyle;
 };
 } // namespace mu::engraving

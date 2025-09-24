@@ -93,6 +93,9 @@ DockPage {
     readonly property int horizontalPanelMinHeight: 100
     readonly property int horizontalPanelMaxHeight: 520
 
+    readonly property int panelMinDimension: 10
+    readonly property int panelMaxDimension: 7500 //! NOTE: Value found experimentally - see issue #27770
+
     readonly property string verticalPanelsGroup: "VERTICAL_PANELS"
     readonly property string horizontalPanelsGroup: "HORIZONTAL_PANELS"
 
@@ -254,6 +257,9 @@ DockPage {
             minimumWidth: root.verticalPanelDefaultWidth
             maximumWidth: root.verticalPanelDefaultWidth
 
+            minimumHeight: root.panelMinDimension
+            maximumHeight: root.panelMaxDimension
+
             groupName: root.verticalPanelsGroup
 
             dropDestinations: root.verticalPanelDropDestinations
@@ -279,6 +285,9 @@ DockPage {
             width: root.verticalPanelDefaultWidth
             minimumWidth: root.verticalPanelDefaultWidth
             maximumWidth: root.verticalPanelDefaultWidth
+
+            minimumHeight: root.panelMinDimension
+            maximumHeight: root.panelMaxDimension
 
             groupName: root.verticalPanelsGroup
 
@@ -306,6 +315,9 @@ DockPage {
             minimumWidth: root.verticalPanelDefaultWidth
             maximumWidth: root.verticalPanelDefaultWidth
 
+            minimumHeight: root.panelMinDimension
+            maximumHeight: root.panelMaxDimension
+
             groupName: root.verticalPanelsGroup
 
             dropDestinations: root.verticalPanelDropDestinations
@@ -328,6 +340,9 @@ DockPage {
             width: root.verticalPanelDefaultWidth
             minimumWidth: root.verticalPanelDefaultWidth
             maximumWidth: root.verticalPanelDefaultWidth
+
+            minimumHeight: root.panelMinDimension
+            maximumHeight: root.panelMaxDimension
 
             groupName: root.verticalPanelsGroup
 
@@ -353,6 +368,9 @@ DockPage {
             width: root.verticalPanelDefaultWidth
             minimumWidth: root.verticalPanelDefaultWidth
             maximumWidth: root.verticalPanelDefaultWidth
+
+            minimumHeight: root.panelMinDimension
+            maximumHeight: root.panelMaxDimension
 
             groupName: root.verticalPanelsGroup
             location: Location.Right
@@ -381,6 +399,9 @@ DockPage {
             height: 368
             minimumHeight: root.horizontalPanelMinHeight
             maximumHeight: root.horizontalPanelMaxHeight
+
+            minimumWidth: root.panelMinDimension
+            maximumWidth: root.panelMaxDimension
 
             groupName: root.horizontalPanelsGroup
 
@@ -432,6 +453,9 @@ DockPage {
             minimumHeight: root.horizontalPanelMinHeight
             maximumHeight: root.horizontalPanelMaxHeight
 
+            minimumWidth: root.panelMinDimension
+            maximumWidth: root.panelMaxDimension
+
             groupName: root.horizontalPanelsGroup
 
             //! NOTE: hidden by default
@@ -462,6 +486,9 @@ DockPage {
             height: 200
             minimumHeight: root.horizontalPanelMinHeight
             maximumHeight: root.horizontalPanelMaxHeight
+
+            minimumWidth: root.panelMinDimension
+            maximumWidth: root.panelMaxDimension
 
             groupName: root.horizontalPanelsGroup
 
@@ -515,6 +542,9 @@ DockPage {
             height: 200
             minimumHeight: root.horizontalPanelMinHeight
             maximumHeight: root.horizontalPanelMaxHeight
+
+            minimumWidth: root.panelMinDimension
+            maximumWidth: root.panelMaxDimension
 
             groupName: root.horizontalPanelsGroup
 
@@ -586,20 +616,6 @@ DockPage {
 
     tours: [
         {
-            "eventCode": "project_opened",
-            "tour": {
-                "id": "input-by-duration",
-                "steps": [
-                    {
-                        "title": qsTrc("notation", "Note input modes"),
-                        "description": qsTrc("notation", "Discover different ways to input notes in MuseScore Studio."),
-                        "controlUri": "control://NoteInputSection/NoteInputBar/note-input-by-duration",
-                        "videoExplanationUrl": "https://youtu.be/xm1-XkS9VzA?utm_source=mss-yt&utm_medium=enter-by-duration&utm_campaign=mss-yt-enter-by-duration"
-                    }
-                ]
-            }
-        },
-        {
             "eventCode": "online_sounds_added",
             "tour": {
                 "id": "online-sounds-first-use",
@@ -615,7 +631,7 @@ DockPage {
             }
         },
         {
-            "eventCode": "online_sounds_auto_process_disabled",
+            "eventCode": "online_sounds_manual_processing_allowed",
             "tour": {
                 "id": "online-sounds-manual-process",
                 "steps": [

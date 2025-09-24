@@ -19,6 +19,7 @@
 #include "engraving/dom/fingering.h"
 #include "engraving/dom/fret.h"
 #include "engraving/dom/glissando.h"
+#include "engraving/dom/guitarbend.h"
 #include "engraving/dom/gradualtempochange.h"
 #include "engraving/dom/hammeronpulloff.h"
 #include "engraving/dom/harmony.h"
@@ -834,7 +835,7 @@ void GPConverter::doAddVolta(const GPMasterBar* mB, Measure* measure)
     }
 
     volta->endings().clear();
-    volta->setTick2(measure->tick() + measure->ticks());
+    volta->setTick2(measure->endTick());
 
     String str;
     for (const auto& end : mB->alternateEnding()) {
@@ -1327,6 +1328,31 @@ void GPConverter::addContinuousSlideHammerOn()
             continue;
         }
 
+        Note* currentStart = nullptr;
+        if (startNote->bendFor()) {
+            Note* bendNote = startNote;
+            GuitarBend* bend = bendNote->bendFor();
+
+            while (bend) {
+                bendNote = bend->endNote();
+                IF_ASSERT_FAILED(bendNote) {
+                    LOGE() << "glissando start note may be incorrect";
+                    break;
+                }
+
+                if (!bendNote->chord()->isGraceAfter()) {
+                    break;
+                }
+
+                currentStart = bendNote;
+                bend = bendNote->bendFor();
+            }
+
+            if (currentStart) {
+                startNote = currentStart;
+            }
+        }
+
         Fraction startTick = startNote->chord()->tick();
         Fraction endTick = endNote->chord()->tick();
         track_idx_t track = startNote->track();
@@ -1344,6 +1370,7 @@ void GPConverter::addContinuousSlideHammerOn()
             gl->setText(u"");
             gl->setGlissandoType(GlissandoType::STRAIGHT);
             gl->setGlissandoShift(slide.second == SlideHammerOn::Slide);
+            gl->setGlissandoStyle(startNote->part()->instrument(startTick)->glissandoStyle());
             _score->addElement(gl);
         }
 
@@ -1690,12 +1717,7 @@ void GPConverter::addClef(const GPBar* bar, int curTrack)
 
 Measure* GPConverter::addMeasure(const GPMasterBar* mB)
 {
-    Fraction tick{ 0, 1 };
-    auto lastMeasure = _score->measures()->last();
-    if (lastMeasure) {
-        tick = lastMeasure->tick() + lastMeasure->ticks();
-    }
-
+    Fraction tick = _score->measures()->last() ? _score->measures()->last()->endTick() : Fraction(0, 1);
     Measure* measure = Factory::createMeasure(_score->dummy()->system());
     measure->setTick(tick);
     GPMasterBar::TimeSig sig = mB->timeSig();

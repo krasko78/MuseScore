@@ -116,8 +116,12 @@ static ScoreChanges buildScoreChanges(const CmdState& cmdState, const UndoMacro:
     int startTick = cmdState.startTick().ticks();
     int endTick = cmdState.endTick().ticks();
 
-    for (const auto& pair : changes.changedItems) {
-        int tick = pair.first->tick().ticks();
+    for (const auto& pair : changes.changedObjects) {
+        if (!pair.first->isEngravingItem()) {
+            continue;
+        }
+
+        int tick = toEngravingItem(pair.first)->tick().ticks();
 
         if (startTick > tick) {
             startTick = tick;
@@ -131,7 +135,7 @@ static ScoreChanges buildScoreChanges(const CmdState& cmdState, const UndoMacro:
     return { startTick, endTick,
              cmdState.startStaff(), cmdState.endStaff(),
              changes.isTextEditing,
-             std::move(changes.changedItems),
+             std::move(changes.changedObjects),
              std::move(changes.changedObjectTypes),
              std::move(changes.changedPropertyIdSet),
              std::move(changes.changedStyleIdSet) };
@@ -567,8 +571,7 @@ void Score::cmdAddSpanner(Spanner* spanner, const PointF& pos, bool systemStaves
 
     if (spanner->anchor() == Spanner::Anchor::SEGMENT) {
         spanner->setTick(segment->tick());
-        Fraction lastTick = lastMeasure()->tick() + lastMeasure()->ticks();
-        Fraction tick2 = std::min(segment->measure()->tick() + segment->measure()->ticks(), lastTick);
+        Fraction tick2 = std::min(segment->measure()->endTick(), lastMeasure()->endTick());
         spanner->setTick2(tick2);
     } else {      // Anchor::MEASURE, Anchor::CHORD, Anchor::NOTE
         Measure* m = toMeasure(mb);
@@ -643,7 +646,7 @@ void Score::expandVoice(Segment* s, track_idx_t track)
     }
     if (ps) {
         ChordRest* cr = toChordRest(ps->element(track));
-        Fraction tick = cr->tick() + cr->actualTicks();
+        Fraction tick = cr->endTick();
         if (tick > s->tick()) {
             // previous cr extends past current segment
             LOGD("expandVoice: cannot insert element here");
@@ -704,91 +707,93 @@ void Score::addInterval(int val, const std::vector<Note*>& nl)
     std::vector<Note*> _nl = nl;
     bool selIsList = selection().isList();
     bool selIsSingle = selIsList && _nl.size() == 1;
-    bool shouldSelectFirstNote = selIsSingle && _nl[0]->tieFor();
+    bool shouldSelectFirstNote = selIsSingle && _nl.front()->tieFor();
 
     std::sort(_nl.begin(), _nl.end(), [](const Note* a, const Note* b) -> bool {
         return a->tick() < b->tick();
     });
 
-    for (auto n : _nl) {
-        if (std::find(tmpnl.begin(), tmpnl.end(), n) != tmpnl.end()) {
-            continue;
-        }
-        tmpnl.push_back(n);
-        if (n->tieFor() && n->tieFor()->endNote() && std::find(tmpnl.begin(), tmpnl.end(), n->tieFor()->endNote()) == tmpnl.end()) {
-            Note* currNote = n->tieFor()->endNote();
-            do {
-                tmpnl.push_back(currNote);
-                currNote = currNote->tieFor() ? currNote->tieFor()->endNote() : nullptr;
-            }while (currNote);
-        }
-        if (selIsList && n->selected()) {
-            deselect(n);
+    for (Note* currNote : _nl) {
+        for (Note* n = currNote; n && !muse::contains(tmpnl, n); n = n->tieFor() ? n->tieFor()->endNote() : nullptr) {
+            if (selIsList && n->selected()) {
+                deselect(n);
+            }
+            tmpnl.emplace_back(n);
         }
     }
 
     Note* prevTied = nullptr;
     std::vector<EngravingItem*> notesToSelect;
+    int deltaLine = val < 0 ? val + 1 : val - 1;
+    bool accidental = m_is.noteEntryMode() && m_is.accidentalType() != AccidentalType::NONE;
+    bool useOctaveRule = std::abs(deltaLine) == 7 && !accidental;
+
     for (Note* on : tmpnl) {
         Chord* chord = on->chord();
-        int valTmp = val < 0 ? val + 1 : val - 1;
-
-        int npitch;
-        int ntpc1;
-        int ntpc2;
-        bool accidental = m_is.noteEntryMode() && m_is.accidentalType() != AccidentalType::NONE;
+        Fraction tick = chord->tick();
+        NoteVal nval;
         bool forceAccidental = false;
-        if (std::abs(valTmp) != 7 || accidental) {
-            int line      = on->line() - valTmp;
-            Fraction tick = chord->tick();
-            Staff* estaff = staff(chord->vStaffIdx());
-            ClefType clef = estaff->clef(tick);
-            Key key       = estaff->key(tick);
-            int ntpc;
-            if (accidental) {
-                AccidentalVal acci = Accidental::subtype2value(m_is.accidentalType());
-                int step = absStep(line, clef);
-                int octave = step / 7;
-                npitch = step2pitch(step) + octave * 12 + int(acci);
-                forceAccidental = (npitch == line2pitch(line, clef, key));
-                ntpc = step2tpc(step % 7, acci);
+        bool noteValid = false;
+        if (on->staff() && on->staff()->isDrumStaff(tick)) {
+            // For drum staves: Don't calculate the new note based on pitch, but choose one using lines
+            const Drumset* ds = on->staff()->part()->instrument(tick)->drumset();
+            nval.pitch = ds->defaultPitchForLine(on->line() - deltaLine);
+            nval.headGroup = ds->noteHead(nval.pitch);
+            noteValid = ds->isValid(nval.pitch) && nval.headGroup != NoteHeadGroup::HEAD_INVALID;
+        } else {
+            if (useOctaveRule) {
+                Interval interval(7, 12);
+                if (val < 0) {
+                    interval.flip();
+                }
+                transposeInterval(on->pitch(), on->tpc(), &nval.pitch, &nval.tpc1, interval, false);
+                nval.tpc1 = on->tpc1();
+                nval.tpc2 = on->tpc2();
             } else {
-                npitch = line2pitch(line, clef, key);
-                ntpc = pitch2tpc(npitch, key, Prefer::NEAREST);
-            }
-
-            Interval v = estaff->transpose(tick);
-            if (v.isZero()) {
-                ntpc1 = ntpc2 = ntpc;
-            } else {
-                if (style().styleB(Sid::concertPitch)) {
-                    v.flip();
-                    ntpc1 = ntpc;
-                    ntpc2 = mu::engraving::transposeTpc(ntpc, v, true);
+                int line      = on->line() - deltaLine;
+                Staff* estaff = staff(chord->vStaffIdx());
+                ClefType clef = estaff->clef(tick);
+                Key key       = estaff->key(tick);
+                int ntpc;
+                if (accidental) {
+                    AccidentalVal acci = Accidental::subtype2value(m_is.accidentalType());
+                    int step = absStep(line, clef);
+                    int octave = step / 7;
+                    nval.pitch = step2pitch(step) + octave * 12 + int(acci);
+                    forceAccidental = (nval.pitch == line2pitch(line, clef, key));
+                    ntpc = step2tpc(step % 7, acci);
                 } else {
-                    npitch += v.chromatic;
-                    ntpc2 = ntpc;
-                    ntpc1 = mu::engraving::transposeTpc(ntpc, v, true);
+                    nval.pitch = line2pitch(line, clef, key);
+                    ntpc = pitch2tpc(nval.pitch, key, Prefer::NEAREST);
+                }
+
+                Interval v = estaff->transpose(tick);
+                if (v.isZero()) {
+                    nval.tpc1 = nval.tpc2 = ntpc;
+                } else {
+                    if (style().styleB(Sid::concertPitch)) {
+                        v.flip();
+                        nval.tpc1 = ntpc;
+                        nval.tpc2 = transposeTpc(ntpc, v, true);
+                    } else {
+                        nval.pitch += v.chromatic;
+                        nval.tpc2 = ntpc;
+                        nval.tpc1 = transposeTpc(ntpc, v, true);
+                    }
                 }
             }
-        } else {   //special case for octave
-            Interval interval(7, 12);
-            if (val < 0) {
-                interval.flip();
-            }
-            transposeInterval(on->pitch(), on->tpc(), &npitch, &ntpc1, interval, false);
-            ntpc1 = on->tpc1();
-            ntpc2 = on->tpc2();
+            noteValid = pitchIsValid(nval.pitch);
         }
-        if (npitch < 0 || npitch > 127) {
-            notesToSelect.push_back(dynamic_cast<EngravingItem*>(on));
+
+        if (!noteValid) {
+            notesToSelect.push_back(toEngravingItem(on));
             continue;
         }
 
         Note* note = Factory::createNote(chord);
         note->setParent(chord);
         note->setTrack(chord->track());
-        note->setPitch(npitch, ntpc1, ntpc2);
+        note->setNval(nval, tick);
         undoAddElement(note);
 
         if (forceAccidental) {
@@ -819,7 +824,7 @@ void Score::addInterval(int val, const std::vector<Note*>& nl)
 
         setPlayNote(true);
         if (selIsList && note) {
-            notesToSelect.push_back(dynamic_cast<EngravingItem*>(note));
+            notesToSelect.push_back(toEngravingItem(note));
         }
     }
     if (m_is.noteEntryMode()) {
@@ -833,7 +838,7 @@ void Score::addInterval(int val, const std::vector<Note*>& nl)
     } else {
         select(notesToSelect, SelectType::ADD, 0);
     }
-    if (m_is.cr() == toChordRest(_nl[0]->chord()) && selIsSingle) {
+    if (m_is.cr() == toChordRest(_nl.front()->chord()) && selIsSingle) {
         m_is.moveToNextInputPos();
     }
 }
@@ -862,19 +867,12 @@ Note* Score::setGraceNote(Chord* ch, int pitch, NoteType type, int len)
     chord->setParent(ch);
     chord->add(note);
 
-    note->setPitch(pitch);
     // find corresponding note within chord and use its tpc information
-    for (Note* n : ch->notes()) {
-        if (n->pitch() == pitch) {
-            note->setTpc1(n->tpc1());
-            note->setTpc2(n->tpc2());
-            note->setString(n->string());
-            note->setFret(n->fret());
-            break;
-        }
-    }
-    // note with same pitch not found, derive tpc from pitch / key
-    if (!tpcIsValid(note->tpc1()) || !tpcIsValid(note->tpc2())) {
+    // if no note with same pitch found, derive tpc from pitch / key
+    if (Note* n = ch->findNote(pitch)) {
+        note->setNval(n->noteVal(), ch->tick());
+    } else {
+        note->setPitch(pitch);
         note->setTpcFromPitch();
     }
 
@@ -1127,6 +1125,12 @@ Segment* Score::setNoteRest(Segment* segment, track_idx_t track, NoteVal nval, F
                 chord->setTicks(d.fraction());
                 chord->setStemDirection(stemDirection);
                 chord->add(note);
+                if (cr && cr->isChord()) {
+                    std::vector<Chord*> graceNotes = toChord(cr)->graceNotes();
+                    for (Chord* grace : graceNotes) {
+                        undoChangeParent(grace, chord, chord->staffIdx());
+                    }
+                }
                 note->setNval(nval, tick);
                 if (forceAccidental) {
                     int tpc = style().styleB(Sid::concertPitch) ? nval.tpc1 : nval.tpc2;
@@ -1277,7 +1281,7 @@ Fraction Score::makeGap(Segment* segment, track_idx_t track, const Fraction& _sd
                 continue;
             }
             Segment* seg1 = seg->next(SegmentType::ChordRest);
-            Fraction tick2 = seg1 ? seg1->tick() : seg->measure()->tick() + seg->measure()->ticks();
+            Fraction tick2 = seg1 ? seg1->tick() : seg->measure()->endTick();
             Fraction td(tick2 - seg->tick());
             if (td > sd) {
                 td = sd;
@@ -1399,7 +1403,7 @@ Fraction Score::makeGap(Segment* segment, track_idx_t track, const Fraction& _sd
             break;
         }
     }
-//      Fraction ticks = measure->tick() + measure->ticks() - segment->tick();
+//      Fraction ticks = measure->endTick() - segment->tick();
 //      Fraction td = Fraction::fromTicks(ticks);
 // NEEDS REVIEW !!
 // once the statement below is removed, these two lines do nothing
@@ -1507,9 +1511,9 @@ bool Score::makeGapVoice(Segment* seg, track_idx_t track, Fraction len, const Fr
         size_t n = dList.size();
         undoChangeChordRestLen(cr1, TDuration(dList[0]));
         if (n > 1) {
-            Fraction crtick = cr1->tick() + cr1->actualTicks();
+            Fraction crtick = cr1->endTick();
             Measure* measure = tick2measure(crtick);
-            if (cr1->type() == ElementType::CHORD) {
+            if (cr1->isChord()) {
                 // split Chord
                 Chord* c = toChord(cr1);
                 for (size_t i = 1; i < n; ++i) {
@@ -1706,7 +1710,7 @@ void Score::changeCRlen(ChordRest* cr, const Fraction& dstF, bool fillWithRest)
             setRest(tick2, track, d.fraction(), (d.dots() > 0), tuplet);
         }
         if (fillWithRest) {
-            setRest(cr->tick() + cr->actualTicks(), track, srcF - dstF, false, tuplet);
+            setRest(cr->endTick(), track, srcF - dstF, false, tuplet);
         }
 
         if (selElement) {
@@ -2152,8 +2156,10 @@ void Score::toggleOrnament(SymId attr)
 
 void Score::toggleAccidental(AccidentalType at)
 {
-    if (m_is.accidentalType() == at) {
-        at = AccidentalType::NONE;
+    bool applyNaturalToInputNotes = false;
+    if (m_is.accidentalType() == at && at != AccidentalType::NONE) {
+        at = AccidentalType::NONE; // NONE also means "search for previous accidental and use it if found"
+        applyNaturalToInputNotes = true;
     }
 
     if (noteEntryMode()) {
@@ -2161,7 +2167,7 @@ void Score::toggleAccidental(AccidentalType at)
         m_is.setRest(false);
 
         if (!m_is.notes().empty()) {
-            applyAccidentalToInputNotes(at);
+            applyAccidentalToInputNotes(applyNaturalToInputNotes ? AccidentalType::NATURAL : at);
         }
     } else {
         if (selection().isNone()) {
@@ -2177,6 +2183,7 @@ void Score::toggleAccidental(AccidentalType at)
 void Score::applyAccidentalToInputNotes(AccidentalType accidentalType)
 {
     NoteValList notes;
+    notes.reserve(m_is.notes().size());
 
     Position pos;
     pos.segment = m_is.segment();
@@ -2595,7 +2602,7 @@ void Score::cmdResetToDefaultLayout()
         Sid::showMeasureNumberOne,
         Sid::measureNumberInterval,
         Sid::measureNumberSystem,
-        Sid::measureNumberAllStaves,
+        Sid::measureNumberPlacementMode,
         Sid::genClef,
         Sid::hideTabClefAfterFirst,
         Sid::genKeysig,
@@ -3936,7 +3943,7 @@ void Score::cmdSlashFill()
         endSegment = endSegment->measure()->mmRestLast()->last();
     }
 
-    Fraction endTick = endSegment ? endSegment->tick() : lastSegment()->tick() + Fraction::fromTicks(1);
+    Fraction endTick = endSegment ? endSegment->tick() : lastSegment()->tick() + Fraction::eps();
     Chord* firstSlash = 0;
     Chord* lastSlash = 0;
 
@@ -5001,7 +5008,7 @@ bool Score::resolveNoteInputParams(int note, bool addFlag, NoteInputParams& out)
                     if (p && p->isClef()) {
                         Clef* clef = toClef(p);
                         // check if it's an actual change or just a courtesy
-                        ClefType ctb = staff->clef(clef->tick() - Fraction::fromTicks(1));
+                        ClefType ctb = staff->clef(clef->tick() - Fraction::eps());
                         if (ctb != clef->clefType() || clef->tick().isZero()) {
                             curPitch = line2pitch(4, clef->clefType(), Key::C);                     // C 72 for treble clef
                             break;
@@ -5072,7 +5079,11 @@ void Score::cmdAddPitch(int step, bool addFlag, bool insert)
                 NoteVal nval2 = noteValForPosition(pos, AccidentalType::NONE, error);
                 forceAccidental = (nval.pitch == nval2.pitch);
             }
-            addNote(chord, nval, forceAccidental, m_is.articulationIds());
+            if (inputState().usingNoteEntryMethod(NoteEntryMethod::REPITCH)) {
+                addPitchToChord(nval, chord, /* externalInputState */ nullptr, forceAccidental);
+            } else {
+                addNote(chord, nval, forceAccidental, m_is.articulationIds());
+            }
             m_is.setAccidentalType(AccidentalType::NONE);
             return;
         }

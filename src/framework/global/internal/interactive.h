@@ -81,7 +81,8 @@ public:
     // files
     async::Promise<io::path_t> selectOpeningFile(const std::string& title, const io::path_t& dir,
                                                  const std::vector<std::string>& filter) override;
-    io::path_t selectOpeningFileSync(const std::string& title, const io::path_t& dir, const std::vector<std::string>& filter) override;
+    io::path_t selectOpeningFileSync(const std::string& title, const io::path_t& dir, const std::vector<std::string>& filter,
+                                     const int options) override;
     io::path_t selectSavingFileSync(const std::string& title, const io::path_t& path, const std::vector<std::string>& filter,
                                     bool confirmOverwrite = true) override;
 
@@ -114,8 +115,8 @@ public:
     Ret openUrl(const QUrl& url) const override;
 
     Ret isAppExists(const std::string& appIdentifier) const override;
-    Ret canOpenApp(const Uri& uri) const override;
-    async::Promise<Ret> openApp(const Uri& uri) const override;
+    Ret canOpenApp(const UriQuery& uri) const override;
+    async::Promise<Ret> openApp(const UriQuery& uri) const override;
 
     Ret revealInFileBrowser(const io::path_t& filePath) const override;
 

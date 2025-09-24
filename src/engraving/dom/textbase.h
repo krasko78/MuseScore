@@ -100,7 +100,7 @@ public:
     double fontSize() const { return m_fontSize; }
     String fontFamily() const { return m_fontFamily; }
     void setValign(VerticalAlignment val) { m_valign = val; }
-    void setFontSize(double val) { m_fontSize = muse::RealIsEqualOrLess(val, 0.0) ? 1.0 : val; } // Font Size 0 will cause a crash
+    void setFontSize(double val) { m_fontSize = val; }
     void setFontFamily(const String& val) { m_fontFamily = val; }
 
     FormatValue formatValue(FormatId) const;
@@ -306,8 +306,6 @@ public:
 
     ~TextBase();
 
-    virtual bool mousePress(EditData&) override;
-
     Text& operator=(const Text&) = delete;
 
     Align align() const { return m_align; }
@@ -335,13 +333,13 @@ public:
     bool empty() const { return xmlText().isEmpty(); }
     void clear() { setXmlText(String()); }
 
-    FontStyle fontStyle() const;
-    String family() const;
-    double size() const;
+    virtual FontStyle fontStyle() const;
+    virtual String family() const;
+    virtual double size() const;
 
-    void setFontStyle(const FontStyle& val);
-    void setFamily(const String& val);
-    void setSize(const double& val);
+    virtual void setFontStyle(const FontStyle& val);
+    virtual void setFamily(const String& val);
+    virtual void setSize(const double& val);
 
     bool anchorToEndOfPrevious() const { return m_anchorToEndOfPrevious; }
     void setAnchorToEndOfPrevious(bool v) { m_anchorToEndOfPrevious = v; }
@@ -358,6 +356,9 @@ public:
     virtual void endDrag(EditData&) override;
     void movePosition(EditData&, TextCursor::MoveOperation);
 
+    bool mousePress(EditData& ed);
+    void dragTo(EditData& ed);
+
     bool deleteSelectedText(EditData&);
 
     void selectAll(TextCursor*);
@@ -370,8 +371,6 @@ public:
     RectF pageRectangle() const;
 
     const Shape& highResShape() const { return ldata()->highResShape.value(); }
-
-    void dragTo(EditData&);
 
     std::vector<LineF> dragAnchorLines() const override;
 
@@ -501,6 +500,10 @@ public:
     AutoOnOff centerBetweenStaves() const { return m_centerBetweenStaves; }
     void genText();
 
+    double symbolSize() const { return m_symbolSize; }
+    void setSymbolSize(double v) { m_symbolSize = v; }
+    inline bool hasSymbolSize() const { return isMarker() || isTempoText() || isSystemText() || isStaffText(); }
+
 protected:
     TextBase(const ElementType& type, EngravingItem* parent = 0, TextStyleType tid = TextStyleType::DEFAULT,
              ElementFlags = ElementFlag::NOTHING);
@@ -560,6 +563,8 @@ private:
 
     int m_hexState = -1;
     bool m_primed = 0;
+
+    double m_symbolSize = 18.0;
 
     TextCursor* m_cursor = nullptr;
 

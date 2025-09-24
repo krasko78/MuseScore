@@ -55,6 +55,27 @@ static constexpr void KNOWN_FIELDS(const T&, const Fields&...)
     static_assert(sizeof(T) == sum_sizeof<Fields...>());
 }
 
+TEST_F(Audio_RpcPackerTests, OutputSpec)
+{
+    OutputSpec origin;
+    origin.sampleRate = 44000;
+    origin.samplesPerChannel = 256;
+    origin.audioChannelCount = 2;
+
+    KNOWN_FIELDS(origin,
+                 origin.sampleRate,
+                 origin.samplesPerChannel,
+                 origin.audioChannelCount);
+
+    ByteArray data = rpc::RpcPacker::pack(origin);
+
+    OutputSpec unpacked;
+    bool ok = rpc::RpcPacker::unpack(data, unpacked);
+
+    EXPECT_TRUE(ok);
+    EXPECT_TRUE(origin == unpacked);
+}
+
 TEST_F(Audio_RpcPackerTests, AudioResourceMeta)
 {
     AudioResourceMeta origin;
@@ -233,16 +254,14 @@ TEST_F(Audio_RpcPackerTests, SoundTrackFormat)
 {
     SoundTrackFormat origin;
     origin.type = SoundTrackType::OGG;
-    origin.sampleRate = 44000;
-    origin.samplesPerChannel = 256;
-    origin.audioChannelsNumber = 2;
+    origin.outputSpec.sampleRate = 44000;
+    origin.outputSpec.samplesPerChannel = 256;
+    origin.outputSpec.audioChannelCount = 2;
     origin.bitRate = 196;
 
     KNOWN_FIELDS(origin,
                  origin.type,
-                 origin.sampleRate,
-                 origin.samplesPerChannel,
-                 origin.audioChannelsNumber,
+                 origin.outputSpec,
                  origin.bitRate);
 
     ByteArray data = rpc::RpcPacker::pack(origin);
@@ -635,25 +654,6 @@ TEST_F(Audio_RpcPackerTests, MPE_PlaybackEvent)
         EXPECT_TRUE(origin == unpacked);
     }
 
-    // RestEvent
-    {
-        muse::mpe::ArrangementContext arrCtx = makeArrangementContext();
-        mpe::RestEvent event = muse::mpe::RestEvent(std::move(arrCtx));
-
-        KNOWN_FIELDS(event,
-                     event.arrangementCtx());
-
-        mpe::PlaybackEvent origin = event;
-
-        ByteArray data = rpc::RpcPacker::pack(origin);
-
-        mpe::PlaybackEvent unpacked;
-        bool ok = rpc::RpcPacker::unpack(data, unpacked);
-
-        EXPECT_TRUE(ok);
-        EXPECT_TRUE(origin == unpacked);
-    }
-
     // TextArticulationEvent
     {
         mpe::TextArticulationEvent event;
@@ -747,7 +747,6 @@ TEST_F(Audio_RpcPackerTests, MPE_PlaybackEvent)
     {
         using KnownPlaybackEvent = std::variant<std::monostate,
                                                 mpe::NoteEvent,
-                                                mpe::RestEvent,
                                                 mpe::TextArticulationEvent,
                                                 mpe::SoundPresetChangeEvent,
                                                 mpe::SyllableEvent,

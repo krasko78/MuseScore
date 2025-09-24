@@ -688,8 +688,11 @@ TEST_F(MusicXml_Tests, harpPedals) {
 TEST_F(MusicXml_Tests, hairpinDynamics) {
     musicXmlMscxExportTestRef("testHairpinDynamics");
 }
-TEST_F(MusicXml_Tests, handbells) {
-    musicXmlIoTest("testHandbells");
+TEST_F(MusicXml_Tests, handbells1) {
+    musicXmlIoTest("testHandbells1");
+}
+TEST_F(MusicXml_Tests, handbells2) {
+    musicXmlIoTest("testHandbells2");
 }
 TEST_F(MusicXml_Tests, harmony1) {
     musicXmlIoTest("testHarmony1");
@@ -748,7 +751,9 @@ TEST_F(MusicXml_Tests, incompleteTuplet) {
 TEST_F(MusicXml_Tests, incorrectMidiProgram) {
     musicXmlIoTestRef("testIncorrectMidiProgram");
 }
-
+TEST_F(MusicXml_Tests, invisibleNotations) {
+    musicXmlIoTest("testInvisibleNotations");
+}
 TEST_F(MusicXml_Tests, incorrectStaffNumber1) {
     musicXmlIoTestRef("testIncorrectStaffNumber1");
 }
@@ -1075,6 +1080,9 @@ TEST_F(MusicXml_Tests, sound2) {
 }
 TEST_F(MusicXml_Tests, specialCharacters) {
     musicXmlIoTest("testSpecialCharacters");
+}
+TEST_F(MusicXml_Tests, stackedHarm) {
+    musicXmlMscxExportTestRef("testStackedHarm");
 }
 TEST_F(MusicXml_Tests, staffEmptiness) {
     musicXmlImportTestRef("testStaffEmptiness");

@@ -196,9 +196,6 @@ static const std::array ELEMENT_TYPES {
     Item{ ElementType::SCORE, "Score",
           TranslatableString("engraving", "score(s)", nullptr, 1),
           TranslatableString("engraving", "Score(s)", nullptr, 1) },
-    Item{ ElementType::SYMBOL, "Symbol",
-          TranslatableString("engraving", "symbol(s)", nullptr, 1),
-          TranslatableString("engraving", "Symbol(s)", nullptr, 1) },
     Item{ ElementType::TEXT, "Text",
           TranslatableString("engraving", "text", nullptr, 1),
           TranslatableString("engraving", "Text", nullptr, 1) },
@@ -274,6 +271,9 @@ static const std::array ELEMENT_TYPES {
     Item{ ElementType::DEAD_SLAPPED, "DeadSlapped",
           TranslatableString("engraving", "dead slapped", nullptr, 1),
           TranslatableString("engraving", "Dead slapped", nullptr, 1) },
+    Item{ ElementType::SYMBOL, "Symbol",
+          TranslatableString("engraving", "symbol(s)", nullptr, 1),
+          TranslatableString("engraving", "Symbol(s)", nullptr, 1) },
     Item{ ElementType::BREATH, "Breath",
           TranslatableString("engraving", "breath(s)", nullptr, 1),
           TranslatableString("engraving", "Breath(s)", nullptr, 1) },
@@ -3210,7 +3210,7 @@ const std::array<ArticulationTextTypeItem, 9> ARTICULATIONTEXT_TYPES = { {
     { ArticulationTextType::RT,     "RT",   String(u"RT"),   muse::TranslatableString("engraving/sym", "Ring touch") },
     { ArticulationTextType::PL,     "PL",   String(u"Pl"),   muse::TranslatableString("engraving/sym", "Pluck") },
     { ArticulationTextType::SB,     "SB",   String(u"SB"),   muse::TranslatableString("engraving/sym", "Singing bell") },
-    { ArticulationTextType::VIB,    "VIB",  String(u"vib."), muse::TranslatableString("engraving/sym", "Vibrate") },
+    { ArticulationTextType::VIB,    "VIB",  String(u"vib."), muse::TranslatableString("engraving/sym", "Vibrato") },
 } };
 
 const muse::TranslatableString& TConv::userName(ArticulationTextType v)
@@ -3334,4 +3334,21 @@ const muse::TranslatableString& TConv::userName(Key v, bool isAtonal, bool isCus
 String TConv::translatedUserName(Key v, bool isAtonal, bool isCustom)
 {
     return userName(v, isAtonal, isCustom).translated();
+}
+
+const std::array<Item<MeasureNumberPlacement>, 4> MEASURE_NUMBER_MODES = { {
+    { MeasureNumberPlacement::ABOVE_SYSTEM,   "above-system" },
+    { MeasureNumberPlacement::BELOW_SYSTEM,   "below-system" },
+    { MeasureNumberPlacement::ON_SYSTEM_OBJECT_STAVES,   "on-so-staves" },
+    { MeasureNumberPlacement::ON_ALL_STAVES,   "on-all-staves" },
+} };
+
+AsciiStringView TConv::toXml(MeasureNumberPlacement v)
+{
+    return findXmlTagByType<MeasureNumberPlacement>(MEASURE_NUMBER_MODES, v);
+}
+
+MeasureNumberPlacement TConv::fromXml(const AsciiStringView& tag, MeasureNumberPlacement def)
+{
+    return findTypeByXmlTag<MeasureNumberPlacement>(MEASURE_NUMBER_MODES, tag, def);
 }

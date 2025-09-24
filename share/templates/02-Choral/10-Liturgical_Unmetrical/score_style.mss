@@ -198,7 +198,7 @@
     <pedalLineWidth>0.11</pedalLineWidth>
     <pedalListStyle>1</pedalListStyle>
     <pedalBeginTextOffset x="0" y="0.15"/>
-    <pedalHookHeight>-1.2</pedalHookHeight>
+    <pedalHookHeight>1.2</pedalHookHeight>
     <pedalFontFace>Edwin</pedalFontFace>
     <pedalFontSize>10</pedalFontSize>
     <pedalLineSpacing>1</pedalLineSpacing>
@@ -512,7 +512,6 @@
     <dynamicsPosAbove x="0" y="-1.0"/>
     <dynamicsPosBelow x="0" y="2.0"/>
     <dynamicsMinDistance>0.5</dynamicsMinDistance>
-    <autoplaceVerticalAlignRange>2</autoplaceVerticalAlignRange>
     <textLinePlacement>0</textLinePlacement>
     <textLinePosAbove x="0" y="-1"/>
     <textLinePosBelow x="0" y="1"/>

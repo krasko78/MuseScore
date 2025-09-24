@@ -118,8 +118,35 @@ void WorkerChannelController::init(std::shared_ptr<IWorkerPlayback> playback)
         channel()->addReceiveStream(StreamName::PlaybackDataMainStream, mainStreamId, playbackData.mainStream);
         channel()->addReceiveStream(StreamName::PlaybackDataOffStream, offStreamId, playbackData.offStream);
 
-        RetVal2<TrackId, AudioParams> ret = m_playback->addTrack(seqId, trackName, playbackData, params);
-        channel()->send(rpc::make_response(msg, RpcPacker::pack(ret)));
+        auto addTrackAndSendResponce = [this](const Msg& msg, const TrackSequenceId& seqId, const TrackName& trackName,
+                                              const mpe::PlaybackData& playbackData, const AudioParams& params) {
+            RetVal2<TrackId, AudioParams> ret = m_playback->addTrack(seqId, trackName, playbackData, params);
+            channel()->send(rpc::make_response(msg, RpcPacker::pack(ret)));
+        };
+
+        AudioResourceType resourceType = params.in.resourceMeta.type;
+        // Not Fluid
+        if (resourceType != AudioResourceType::FluidSoundfont) {
+            addTrackAndSendResponce(msg, seqId, trackName, playbackData, params);
+        }
+        // Fluid
+        else {
+            AudioResourceId sfname = params.in.resourceMeta.id;
+            if (soundFontRepository()->isSoundFontLoaded(sfname)) {
+                addTrackAndSendResponce(msg, seqId, trackName, playbackData, params);
+            }
+            // Waiting for SF to load
+            else {
+                soundFontRepository()->soundFontsChanged().onNotify(this,
+                                                                    [this, sfname, addTrackAndSendResponce,
+                                                                     msg, seqId, trackName, playbackData, params]() {
+                    if (soundFontRepository()->isSoundFontLoaded(sfname)) {
+                        addTrackAndSendResponce(msg, seqId, trackName, playbackData, params);
+                        soundFontRepository()->soundFontsChanged().resetOnNotify(this);
+                    }
+                });
+            }
+        }
     });
 
     channel()->onMethod(Method::AddTrackWithIODevice, [this](const Msg& msg) {
@@ -209,6 +236,17 @@ void WorkerChannelController::init(std::shared_ptr<IWorkerPlayback> playback)
         m_playback->setInputParams(seqId, trackId, params);
     });
 
+    channel()->onMethod(Method::ProcessInput, [this](const Msg& msg) {
+        ONLY_AUDIO_WORKER_THREAD;
+        TrackSequenceId seqId = 0;
+        TrackId trackId = 0;
+        IF_ASSERT_FAILED(RpcPacker::unpack(msg.data, seqId, trackId)) {
+            return;
+        }
+
+        m_playback->processInput(seqId, trackId);
+    });
+
     channel()->onMethod(Method::GetInputProcessingProgress, [this](const Msg& msg) {
         ONLY_AUDIO_WORKER_THREAD;
         TrackSequenceId seqId = 0;
@@ -224,6 +262,17 @@ void WorkerChannelController::init(std::shared_ptr<IWorkerPlayback> playback)
         }
 
         channel()->send(rpc::make_response(msg, RpcPacker::pack(ret.ret, ret.val.isStarted, streamId)));
+    });
+
+    channel()->onMethod(Method::ClearCache, [this](const Msg& msg) {
+        ONLY_AUDIO_WORKER_THREAD;
+        TrackSequenceId seqId = 0;
+        TrackId trackId = 0;
+        IF_ASSERT_FAILED(RpcPacker::unpack(msg.data, seqId, trackId)) {
+            return;
+        }
+
+        m_playback->clearCache(seqId, trackId);
     });
 
     channel()->onMethod(Method::ClearSources, [this](const Msg&) {
@@ -246,10 +295,11 @@ void WorkerChannelController::init(std::shared_ptr<IWorkerPlayback> playback)
         ONLY_AUDIO_WORKER_THREAD;
         TrackSequenceId seqId = 0;
         secs_t newPosition = 0;
-        IF_ASSERT_FAILED(RpcPacker::unpack(msg.data, seqId, newPosition)) {
+        bool flushSound = false;
+        IF_ASSERT_FAILED(RpcPacker::unpack(msg.data, seqId, newPosition, flushSound)) {
             return;
         }
-        m_playback->seek(seqId, newPosition);
+        m_playback->seek(seqId, newPosition, flushSound);
     });
 
     channel()->onMethod(Method::Stop, [this](const Msg& msg) {

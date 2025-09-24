@@ -82,7 +82,7 @@ void NotationPlayback::init()
     m_playbackModel.load(score());
 
     updateTotalPlayTime();
-    m_playbackModel.dataChanged().onNotify(this, [this]() {
+    m_playbackModel.tracksDataChanged().onReceive(this, [this](const InstrumentTrackIdSet&) {
         updateTotalPlayTime();
     });
 
@@ -124,6 +124,11 @@ void NotationPlayback::init()
 void NotationPlayback::reload()
 {
     m_playbackModel.reload();
+}
+
+muse::async::Channel<InstrumentTrackIdSet> NotationPlayback::tracksDataChanged() const
+{
+    return m_playbackModel.tracksDataChanged();
 }
 
 const engraving::InstrumentTrackId& NotationPlayback::metronomeTrackId() const
@@ -357,6 +362,11 @@ void NotationPlayback::setLoopBoundariesEnabled(bool enabled)
 
     m_loopBoundaries.enabled = enabled;
     m_loopBoundariesChanged.notify();
+}
+
+bool NotationPlayback::isLoopEnabled() const
+{
+    return !m_loopBoundaries.isNull() && m_loopBoundaries.enabled;
 }
 
 const LoopBoundaries& NotationPlayback::loopBoundaries() const

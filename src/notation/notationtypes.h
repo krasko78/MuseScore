@@ -136,7 +136,7 @@ using InstrumentTrait = mu::engraving::Trait;
 using ScoreOrder = mu::engraving::ScoreOrder;
 using InstrumentGenre = mu::engraving::InstrumentGenre;
 using InstrumentGroup = mu::engraving::InstrumentGroup;
-using PageList = std::vector<const Page*>;
+using PageList = std::vector<Page*>;
 using PartList = std::vector<const Part*>;
 using InstrumentTemplateList = std::vector<const InstrumentTemplate*>;
 using InstrumentGenreList = std::vector<const InstrumentGenre*>;
@@ -540,16 +540,15 @@ struct ScoreCreateOptions
     bool withTempo = false;
     Tempo tempo;
 
-    int timesigNumerator = 0;
-    int timesigDenominator = 1;
+    Fraction globalTimesig;
     TimeSigType timesigType = TimeSigType::NORMAL;
 
     Key key = Key::C;
 
+    int totalMeasures = 0;
+
     bool withPickupMeasure = false;
-    int measures = 0;
-    int measureTimesigNumerator = 0;
-    int measureTimesigDenominator = 0;
+    Fraction pickupTimesig;
 
     PartInstrumentList parts;
     ScoreOrder order;
@@ -564,8 +563,8 @@ inline const ScoreOrder& customOrder()
     return order;
 }
 
-static constexpr int MIN_NOTES_INTERVAL = -9;
-static constexpr int MAX_NOTES_INTERVAL = 9;
+static constexpr int MIN_NOTES_INTERVAL = -10;
+static constexpr int MAX_NOTES_INTERVAL = 10;
 
 static constexpr int MAX_FRET = 14;
 

@@ -68,6 +68,8 @@ TempoText::TempoText(Segment* parent)
     m_followText     = false;
     m_relative       = 1.0;
     m_isRelative     = false;
+
+    setSymbolSize(styleValue(Pid::FONT_SIZE, Sid::tempoFontSize).toDouble() * TempoText::DEFAULT_SYM_SIZE_RATIO);
 }
 
 void TempoText::setTempoTextType(TempoTextType ttt)
@@ -231,7 +233,7 @@ void TempoText::updateScore()
 
 void TempoText::updateRelative()
 {
-    BeatsPerSecond tempoBefore = score()->tempo(tick() - Fraction::fromTicks(1));
+    BeatsPerSecond tempoBefore = score()->tempo(tick() - Fraction::eps());
     setTempo(tempoBefore * m_relative);
 }
 
@@ -397,6 +399,8 @@ PropertyValue TempoText::propertyDefault(Pid id) const
         return false;
     case Pid::TEMPO_ALIGN_RIGHT_OF_REHEARSAL_MARK:
         return true;
+    case Pid::MUSIC_SYMBOL_SIZE:
+        return size() * DEFAULT_SYM_SIZE_RATIO;
     default:
         return TextBase::propertyDefault(id);
     }

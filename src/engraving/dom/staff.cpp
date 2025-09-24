@@ -106,7 +106,7 @@ staff_idx_t Staff::idx() const
 
 void Staff::triggerLayout() const
 {
-    score()->setLayoutAll(idx());
+    score()->setLayoutAll(idx(), this);
 }
 
 void Staff::triggerLayout(const Fraction& tick)
@@ -230,21 +230,28 @@ void Staff::undoSetShowMeasureNumbers(bool show)
 
 bool Staff::shouldShowMeasureNumbers() const
 {
-    if (style().styleB(Sid::measureNumberAllStaves)) {
-        return true;
+    MeasureNumberPlacement placementMode = style().styleV(Sid::measureNumberPlacementMode).value<MeasureNumberPlacement>();
+    switch (placementMode) {
+    case MeasureNumberPlacement::ABOVE_SYSTEM:
+        return score()->staves().front() == this;
+    case MeasureNumberPlacement::BELOW_SYSTEM:
+        return score()->staves().back() == this;
+    case MeasureNumberPlacement::ON_SYSTEM_OBJECT_STAVES:
+    {
+        bool isTopStave = score()->staves().front() == this;
+        bool isSystemObjectStaff = muse::contains(score()->systemObjectStaves(), const_cast<Staff*>(this));
+        return (isTopStave && m_showMeasureNumbers != AutoOnOff::OFF) || (isSystemObjectStaff && m_showMeasureNumbers == AutoOnOff::ON);
+    }
+    case MeasureNumberPlacement::ON_ALL_STAVES:
+        return show();
     }
 
-    bool isTopStave = score()->staves().front() == this;
-    bool isSystemObjectStaff = muse::contains(score()->systemObjectStaves(), const_cast<Staff*>(this));
-    return (isTopStave && m_showMeasureNumbers != AutoOnOff::OFF) || (isSystemObjectStaff && m_showMeasureNumbers == AutoOnOff::ON);
+    return false;
 }
 
-bool Staff::shouldShowPlayCount() const
+bool Staff::isLastOfScore() const
 {
-    bool isTopStave = score()->staves().front() == this;
-    bool isSystemObjectStaff = muse::contains(score()->systemObjectStaves(), const_cast<Staff*>(this));
-
-    return isTopStave || isSystemObjectStaff;
+    return score()->staves().empty() ? false : score()->staves().back() == this;
 }
 
 bool Staff::isSystemObjectStaff() const
@@ -254,7 +261,7 @@ bool Staff::isSystemObjectStaff() const
 
 bool Staff::hasSystemObjectsBelowBottomStaff() const
 {
-    return isSystemObjectStaff() && score()->staves().back() == this && style().styleB(Sid::systemObjectsBelowBottomStaff);
+    return isSystemObjectStaff() && isLastOfScore() && style().styleB(Sid::systemObjectsBelowBottomStaff);
 }
 
 //---------------------------------------------------------

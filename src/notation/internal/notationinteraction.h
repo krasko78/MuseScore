@@ -458,8 +458,6 @@ private:
     bool needEndTextEditing(const std::vector<EngravingItem*>& newSelectedElements) const;
     bool needEndElementEditing(const std::vector<EngravingItem*>& newSelectedElements) const;
 
-    void excludeElementsFromSelectionBeforeDelete();
-
     void resetGripEdit();
     void resetHitElementContext();
 
