@@ -111,8 +111,3 @@ void DockTabBar::setDraggableMouseArea(QQuickItem* mouseArea)
     m_draggableMouseArea = mouseArea;
     redirectMouseEvents(mouseArea);
 }
-
-int DockTabBar::currentIndexChangedOnMouseDown() const
-{
-    return m_currentIndexChangedOnMouseDown;
-}

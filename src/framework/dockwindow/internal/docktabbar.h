@@ -32,8 +32,6 @@ class DockTabBar : public KDDockWidgets::TabBarQuick
 {
     Q_OBJECT
 
-    Q_PROPERTY(bool currentIndexChangedOnMouseDown READ currentIndexChangedOnMouseDown CONSTANT)
-
 public:
     explicit DockTabBar(KDDockWidgets::TabWidget* parent = nullptr);
 
@@ -46,8 +44,6 @@ public:
     bool tabChangedOnClick() const { return m_tabChangedOnClick; }
 
 private:
-    bool m_currentIndexChangedOnMouseDown;
-
     bool event(QEvent* event) override;
     void onMousePressRelease(const QMouseEvent* mouseEvent);
     bool isPositionDraggable(QPoint localPos) const override;

@@ -149,6 +149,7 @@ Rectangle {
         height: root.height - bottomSeparator.height
 
         hoverEnabled: false
+        propagateComposedEvents: true
         enabled: root.visible && root.draggingTabsAllowed
         cursorShape: Qt.SizeAllCursor
 
