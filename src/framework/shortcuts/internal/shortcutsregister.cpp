@@ -293,7 +293,7 @@ Shortcut ShortcutsRegister::readShortcut(deprecated::XmlReader& reader) const
 
     auto action = uiactionsRegister()->action(shortcut.action);
     if (!action.isValid()) {
-        //LOGW() << "ignoring shortcut for invalid action: " << shortcut.action;  // krasko
+        LOGW() << "ignoring shortcut for invalid action: " << shortcut.action;
         return Shortcut();
     }
 
