@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2024 MuseScore BVBA and others
+ * Copyright (C) 2024 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -51,8 +51,5 @@ public:
     virtual void setLastShownMuseSoundsReleaseVersion(const std::string& version) = 0;
 
     virtual bool museSoundsCheckForUpdateTestMode() const = 0;
-
-    virtual bool museSamplerUpdateAvailable() const = 0;
-    virtual void setMuseSamplerUpdateAvailable(bool value) = 0;
 };
 }

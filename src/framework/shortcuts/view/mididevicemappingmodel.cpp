@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore BVBA and others
+ * Copyright (C) 2021 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -55,7 +55,7 @@ inline ActionCodeList allMidiActions()
         "pad-note-16",
         "pad-note-32",
         "pad-note-64",
-        "undo",
+        "action://notation/undo",
         "rest",
         "pad-rest",
         "tie",

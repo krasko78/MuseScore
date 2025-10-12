@@ -24,7 +24,7 @@
 #include "io/buffer.h"
 
 #include "compat/writescorehook.h"
-
+#include "editing/editmeasures.h"
 #include "rw/mscloader.h"
 #include "rw/xmlreader.h"
 #include "rw/rwregister.h"
@@ -37,13 +37,17 @@
 #include "excerpt.h"
 #include "factory.h"
 #include "box.h"
+#include "clef.h"
+#include "key.h"
+#include "keysig.h"
 #include "linkedobjects.h"
+#include "part.h"
 #include "repeatlist.h"
 #include "rest.h"
 #include "sig.h"
+#include "staff.h"
 #include "tempo.h"
 #include "timesig.h"
-#include "undo.h"
 
 #include "log.h"
 
@@ -325,7 +329,7 @@ void MasterScore::setUpdateAll()
 void MasterScore::setLayoutAll(staff_idx_t staff, const EngravingItem* e)
 {
     m_cmdState.setTick(Fraction(0, 1));
-    m_cmdState.setTick(measures()->last() ? measures()->last()->endTick() : Fraction(0, 1));
+    m_cmdState.setTick(Fraction::max());
 
     if (e && e->score() == this) {
         // TODO: map staff number properly
@@ -572,7 +576,7 @@ MeasureBase* MasterScore::insertMeasure(MeasureBase* beforeMeasure, const Insert
         std::vector<KeySig*> keySigList;
         std::vector<Clef*> initClefList;
         std::vector<Clef*> previousClefList;
-        std::list<Clef*> specialCaseClefs;
+        std::vector<Clef*> specialCaseClefs;
         std::vector<Clef*> afterBarlineClefs;
         std::vector<BarLine*> previousBarLinesList;
 

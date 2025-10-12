@@ -22,32 +22,23 @@
 #include <cfloat>
 
 #include "chordlayout.h"
-#include "accidentalslayout.h"
-#include "horizontalspacing.h"
-#include "beamtremololayout.h"
 
 #include "containers.h"
 
-#include "dom/factory.h"
-
 #include "dom/accidental.h"
 #include "dom/arpeggio.h"
-
 #include "dom/beam.h"
 #include "dom/chord.h"
+#include "dom/factory.h"
 #include "dom/fingering.h"
 #include "dom/glissando.h"
 #include "dom/guitarbend.h"
 #include "dom/hook.h"
-
 #include "dom/ledgerline.h"
 #include "dom/lyrics.h"
-
 #include "dom/measure.h"
-
 #include "dom/navigate.h"
 #include "dom/note.h"
-
 #include "dom/ornament.h"
 #include "dom/page.h"
 #include "dom/parenthesis.h"
@@ -55,29 +46,30 @@
 #include "dom/rest.h"
 #include "dom/score.h"
 #include "dom/segment.h"
+#include "dom/slur.h"
 #include "dom/staff.h"
 #include "dom/stem.h"
 #include "dom/stemslash.h"
 #include "dom/system.h"
 #include "dom/tie.h"
-#include "dom/slur.h"
-
 #include "dom/tremolosinglechord.h"
 #include "dom/tremolotwochord.h"
-
-#include "dom/undo.h"
 #include "dom/utils.h"
+#include "editing/undo.h"
 
+#include "accidentalslayout.h"
 #include "arpeggiolayout.h"
-#include "rendering/score/parenthesislayout.h"
-#include "tlayout.h"
-#include "slurtielayout.h"
-#include "systemlayout.h"
-#include "beamlayout.h"
-#include "tremololayout.h"
 #include "autoplace.h"
-#include "stemlayout.h"
+#include "beamlayout.h"
+#include "beamtremololayout.h"
+#include "horizontalspacing.h"
+#include "parenthesislayout.h"
 #include "restlayout.h"
+#include "slurtielayout.h"
+#include "stemlayout.h"
+#include "systemlayout.h"
+#include "tlayout.h"
+#include "tremololayout.h"
 
 using namespace muse;
 using namespace mu::engraving;
@@ -3013,7 +3005,7 @@ void ChordLayout::updateLineAttachPoints(Chord* chord, bool isFirstInMeasure, La
 void ChordLayout::layoutChordBaseFingering(Chord* chord, System* system, LayoutContext&)
 {
     std::set<staff_idx_t> shapesToRecreate;
-    std::list<Note*> notes;
+    std::vector<Note*> notes;
     Segment* segment = chord->segment();
     for (auto gc : chord->graceNotes()) {
         for (auto n : gc->notes()) {
@@ -3023,7 +3015,7 @@ void ChordLayout::layoutChordBaseFingering(Chord* chord, System* system, LayoutC
     for (auto n : chord->notes()) {
         notes.push_back(n);
     }
-    std::list<Fingering*> fingerings;
+    std::vector<Fingering*> fingerings;
     for (Note* note : notes) {
         for (EngravingItem* el : note->el()) {
             if (el->isFingering()) {
@@ -3033,7 +3025,7 @@ void ChordLayout::layoutChordBaseFingering(Chord* chord, System* system, LayoutC
                     if (f->placeAbove()) {
                         fingerings.push_back(f);
                     } else {
-                        fingerings.push_front(f);
+                        fingerings.insert(fingerings.begin(), f);
                     }
                 }
             }

@@ -11,7 +11,7 @@ permissions:
   actions: write
 
 env:
-  CURRENT_RELEASE_BRANCH: 4.6.0
+  CURRENT_RELEASE_BRANCH: 4.6.3
   IS_CURRENT_RELEASE_BRANCH: ${{ github.event.schedule == '0 4 * * *' && 'true' || 'false' }}
 
 jobs:
@@ -48,7 +48,6 @@ jobs:
                 platforms: 'linux_arm32 linux_arm64 linux_x64 macos windows_x64 windows_portable',
                 build_mode: 'nightly',
                 publish: 'on',
-                sentry_project: 'sandbox',
-                use_qt69: 'on'
+                sentry_project: 'sandbox'
               }
             })

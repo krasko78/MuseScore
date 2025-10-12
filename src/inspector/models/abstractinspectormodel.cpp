@@ -20,7 +20,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "abstractinspectormodel.h"
-#include "dom/barline.h"
+
+#include "engraving/dom/barline.h"
 #include "engraving/dom/dynamic.h"
 #include "engraving/dom/property.h"
 
@@ -146,8 +147,8 @@ static const QMap<mu::engraving::TempoTextType, InspectorModelType> TEMPO_TEXT_E
 
 QString AbstractInspectorModel::shortcutsForActionCode(std::string code) const
 {
-    const muse::ui::UiAction& action = uiActionsRegister()->action(code);
-    return muse::shortcuts::sequencesToNativeText(action.shortcuts);
+    std::vector<std::string> shortcuts = shortcutsRegister()->shortcut(code).sequences;
+    return muse::shortcuts::sequencesToNativeText(shortcuts);
 }
 
 AbstractInspectorModel::AbstractInspectorModel(QObject* parent, IElementRepositoryService* repository,

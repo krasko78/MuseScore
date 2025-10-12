@@ -21,10 +21,11 @@
  */
 #include "layoutcontext.h"
 
-#include "dom/undo.h"
+#include "editing/addremoveelement.h"
+#include "editing/editsystemlocks.h"
+#include "editing/mscoreview.h"
 #include "style/defaultstyle.h"
 
-#include "dom/mscoreview.h"
 #include "dom/score.h"
 #include "dom/spanner.h"
 
@@ -453,7 +454,7 @@ void DomAccessor::updateSystemLocksOnCreateMMRest(Measure* first, Measure* last)
     IF_ASSERT_FAILED(score()) {
         return;
     }
-    score()->updateSystemLocksOnCreateMMRests(first, last);
+    EditSystemLocks::updateSystemLocksOnCreateMMRests(score(), first, last);
 }
 
 void DomAccessor::addUnmanagedSpanner(Spanner* s)
@@ -595,22 +596,6 @@ const LayoutState& LayoutContext::state() const
 LayoutState& LayoutContext::mutState()
 {
     return m_state;
-}
-
-void LayoutContext::setLayout(const Fraction& tick1, const Fraction& tick2, staff_idx_t staff1, staff_idx_t staff2, const EngravingItem* e)
-{
-    IF_ASSERT_FAILED(m_score) {
-        return;
-    }
-    m_score->setLayout(tick1, tick2, staff1, staff2, e);
-}
-
-void LayoutContext::addRefresh(const RectF& r)
-{
-    IF_ASSERT_FAILED(m_score) {
-        return;
-    }
-    m_score->addRefresh(r);
 }
 
 const Selection& LayoutContext::selection() const

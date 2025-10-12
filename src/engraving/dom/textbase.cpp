@@ -49,8 +49,9 @@
 #include "mscore.h"
 #include "page.h"
 #include "score.h"
-#include "textedit.h"
-#include "undo.h"
+
+#include "../editing/textedit.h"
+#include "../editing/undo.h"
 
 #include "log.h"
 
@@ -1806,9 +1807,9 @@ TextBase::~TextBase()
 //   textColor
 //---------------------------------------------------------
 
-Color TextBase::textColor() const
+Color TextBase::textColor(const rendering::PaintOptions& opt) const
 {
-    return curColor();
+    return curColor(opt);
 }
 
 //---------------------------------------------------------
@@ -2977,7 +2978,7 @@ PropertyValue TextBase::propertyDefault(Pid id) const
     case Pid::VOICE_ASSIGNMENT:
         return VoiceAssignment::ALL_VOICE_IN_INSTRUMENT;
     case Pid::MUSIC_SYMBOL_SIZE:
-        return 18.0;
+        return styleValue(Pid::FONT_SIZE, getPropertyStyle(Pid::FONT_SIZE));
     default:
         for (const auto& p : *textStyle(TextStyleType::DEFAULT)) {
             if (p.pid == id) {
@@ -3274,6 +3275,8 @@ void TextBase::initTextStyleType(TextStyleType tid)
     for (const auto& p : *textStyle(tid)) {
         setProperty(p.pid, styleValue(p.pid, p.sid));
     }
+
+    resetProperty(Pid::MUSIC_SYMBOL_SIZE);
 }
 
 RectF TextBase::drag(EditData& ed)

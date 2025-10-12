@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore BVBA and others
+ * Copyright (C) 2021 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -42,6 +42,7 @@ public:
     Ret load() override;
 
     std::vector<AudioPluginInfo> pluginInfoList(PluginInfoAccepted accepted = PluginInfoAccepted()) const override;
+    muse::async::Notification pluginInfoListChanged() const override;
     const io::path_t& pluginPath(const audio::AudioResourceId& resourceId) const override;
 
     bool exists(const io::path_t& pluginPath) const override;
@@ -52,7 +53,7 @@ public:
 
 private:
     Ret writePluginsInfo();
-
+    async::Notification m_pluginInfoListChanged;
     bool m_loaded = false;
     std::multimap<audio::AudioResourceId, AudioPluginInfo> m_pluginInfoMap;
     std::set<io::path_t> m_pluginPaths;

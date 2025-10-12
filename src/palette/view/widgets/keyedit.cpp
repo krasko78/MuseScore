@@ -31,17 +31,16 @@
 #include "commonscene/commonscenetypes.h"
 #include "translation.h"
 
-#include "engraving/rw/rwregister.h"
+#include "engraving/compat/dummyelement.h"
 #include "engraving/dom/accidental.h"
 #include "engraving/dom/clef.h"
+#include "engraving/dom/factory.h"
 #include "engraving/dom/keysig.h"
 #include "engraving/dom/masterscore.h"
 #include "engraving/dom/mscore.h"
-#include "engraving/dom/factory.h"
+#include "engraving/rw/rwregister.h"
 #include "engraving/style/defaultstyle.h"
-#include "engraving/compat/dummyelement.h"
-
-#include "types/symnames.h"
+#include "engraving/types/symnames.h"
 
 #include "keycanvas.h"
 #include "palettewidget.h"
@@ -135,6 +134,9 @@ void KeyCanvas::paintEvent(QPaintEvent*)
     pen.setWidthF(engraving::DefaultStyle::defaultStyle().styleS(Sid::staffLineWidth).val() * gpaletteScore->style().spatium());
     painter.setPen(pen);
 
+    rendering::PaintOptions opt;
+    opt.invertColors = engravingConfiguration()->scoreInversionEnabled();
+
     for (int i = 0; i < 5; ++i) {
         qreal yy = r.y() + i * gpaletteScore->style().spatium();
         painter.drawLine(LineF(r.x(), yy, r.x() + r.width(), yy));
@@ -142,13 +144,13 @@ void KeyCanvas::paintEvent(QPaintEvent*)
     if (dragElement) {
         painter.save();
         painter.translate(dragElement->pagePos());
-        gpaletteScore->renderer()->drawItem(dragElement, &painter);
+        gpaletteScore->renderer()->drawItem(dragElement, &painter, opt);
         painter.restore();
     }
     foreach (Accidental* a, accidentals) {
         painter.save();
         painter.translate(a->pagePos());
-        gpaletteScore->renderer()->drawItem(a, &painter);
+        gpaletteScore->renderer()->drawItem(a, &painter, opt);
         painter.restore();
     }
     clef->setPos(0.0, 0.0);
@@ -156,7 +158,7 @@ void KeyCanvas::paintEvent(QPaintEvent*)
     engravingRender()->layoutItem(clef);
 
     painter.translate(clef->pagePos());
-    gpaletteScore->renderer()->drawItem(clef, &painter);
+    gpaletteScore->renderer()->drawItem(clef, &painter, opt);
 }
 
 //---------------------------------------------------------

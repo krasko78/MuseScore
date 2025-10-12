@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2025 MuseScore BVBA and others
+ * Copyright (C) 2025 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -41,11 +41,6 @@ void MuseSamplerCheckUpdateScenario::checkAndShowUpdateIfNeed()
 
     if (service()->incompatibleLocalVersion()) {
         showCriticalUpdateNotification();
-        return;
-    }
-
-    if (configuration()->museSamplerUpdateAvailable()) {
-        showNewVersionNotification();
         return;
     }
 
@@ -114,10 +109,7 @@ void MuseSamplerCheckUpdateScenario::showNewVersionNotification()
     interactive()->info(muse::trc("musesounds", "An update for MuseSounds is available"), msg,
                         { notNowBtn, launchBtn }, launchBtn.btn, muse::IInteractive::Option::WithIcon)
     .onResolve(this, [this, launchBtn](const muse::IInteractive::Result& res) {
-        const bool agreesToUpdate = res.isButton(launchBtn.btn);
-        configuration()->setMuseSamplerUpdateAvailable(!agreesToUpdate);
-
-        if (agreesToUpdate) {
+        if (res.isButton(launchBtn.btn)) {
             openMuseHubAndQuit();
         }
     });

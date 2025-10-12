@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore BVBA and others
+ * Copyright (C) 2021 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -40,8 +40,17 @@ void AbstractNavigation::classBegin()
 {
 }
 
+bool AbstractNavigation::isComponentCompleted() const
+{
+    return m_isComponentCompleted;
+}
+
 void AbstractNavigation::componentComplete()
 {
+    if (isComponentCompleted()) {
+        return;
+    }
+
     if (m_accessible) {
         m_accessible->setState(IAccessible::State::Enabled, enabled());
         m_accessible->setState(IAccessible::State::Active, active());
@@ -51,6 +60,8 @@ void AbstractNavigation::componentComplete()
     navigationController()->highlightChanged().onNotify(this, [this](){
         emit highlightChanged();
     });
+
+    m_isComponentCompleted = true;
 }
 
 void AbstractNavigation::setName(QString name)
@@ -276,9 +287,7 @@ void AbstractNavigation::setAccessible(AccessibleItem* accessible)
 
 void AbstractNavigation::setAccessibleParent(AccessibleItem* p)
 {
-    if (m_accessible) {
-        m_accessible->setAccessibleParent(p);
-    }
+    accessible()->setAccessibleParent(p);
 }
 
 bool AbstractNavigation::highlight() const

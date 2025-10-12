@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2025 MuseScore BVBA and others
+ * Copyright (C) 2025 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -32,13 +32,13 @@ using namespace muse::audio;
 using namespace muse::audio::rpc;
 using namespace muse::audio::synth;
 
-void GeneralSoundFontController::init()
+void GeneralSoundFontController::loadSoundFonts()
 {
     configuration()->soundFontDirectoriesChanged().onReceive(this, [this](const io::paths_t&) {
-        loadSoundFonts();
+        doLoadSoundFonts();
     });
 
-    loadSoundFonts();
+    doLoadSoundFonts();
 }
 
 void GeneralSoundFontController::addSoundFont(const SoundFontUri& uri)
@@ -118,7 +118,7 @@ RetVal<io::path_t> GeneralSoundFontController::resolveInstallationPath(const io:
     return RetVal<io::path_t>(make_ret(Ret::Code::UnknownError));
 }
 
-void GeneralSoundFontController::loadSoundFonts()
+void GeneralSoundFontController::doLoadSoundFonts()
 {
     TRACEFUNC;
 

@@ -49,6 +49,11 @@
 #include "accessibility/accessibleroot.h"
 #endif
 
+#include "../editing/addremoveelement.h"
+#include "../editing/editdata.h"
+#include "../editing/editproperty.h"
+#include "../editing/elementeditdata.h"
+
 #include "chord.h"
 #include "factory.h"
 #include "linkedobjects.h"
@@ -58,6 +63,7 @@
 #include "note.h"
 #include "page.h"
 #include "parenthesis.h"
+#include "part.h"
 #include "score.h"
 #include "segment.h"
 #include "shape.h"
@@ -66,7 +72,6 @@
 #include "stafflines.h"
 #include "stafftype.h"
 #include "system.h"
-#include "undo.h"
 
 #include "log.h"
 #define LOG_PROP() if (0) LOGD()
@@ -78,11 +83,6 @@ using namespace mu::engraving;
 using namespace mu::engraving::rendering::score;
 
 namespace mu::engraving {
-EngravingItem* EngravingItemList::at(size_t i) const
-{
-    return *std::next(begin(), i);
-}
-
 EngravingItem::EngravingItem(const ElementType& type, EngravingObject* parent, ElementFlags f)
     : EngravingObject(type, parent)
 {
@@ -486,6 +486,19 @@ staff_idx_t EngravingItem::effectiveStaffIdx() const
         return muse::nidx;
     }
 
+    const Measure* m = findMeasure();
+
+    // TODO - make more system markings ignore empty cutaway measures
+    auto cutawayMeasureNo =[&](staff_idx_t staffIdx) {
+        if (!m) {
+            return false;
+        }
+        bool measureNo = isMeasureNumber();
+        bool staffVisible = m->mstaves()[staffIdx]->visible();
+        bool cutaway = score()->staff(staffIdx)->cutaway() && m->isEmpty(staffIdx);
+        return (cutaway || !staffVisible) && measureNo;
+    };
+
     const std::vector<Staff*>& systemObjectStaves = m_score->systemObjectStaves(); // CAUTION: may not be ordered
     if (originalStaffIdx > 0) {
         staff_idx_t prevSysObjStaffIdx = 0;
@@ -498,7 +511,7 @@ staff_idx_t EngravingItem::effectiveStaffIdx() const
 
         bool omitObject = true;
         for (staff_idx_t stfIdx = prevSysObjStaffIdx; stfIdx < originalStaffIdx; ++stfIdx) {
-            if (m_score->staff(stfIdx)->show() && system->staff(stfIdx)->show()) {
+            if (m_score->staff(stfIdx)->show() && system->staff(stfIdx)->show() && !cutawayMeasureNo(stfIdx)) {
                 omitObject = false;
                 break;
             }
@@ -511,7 +524,7 @@ staff_idx_t EngravingItem::effectiveStaffIdx() const
         }
     }
 
-    if (m_score->staff(originalStaffIdx)->show() && system->staff(originalStaffIdx)->show()) {
+    if (m_score->staff(originalStaffIdx)->show() && system->staff(originalStaffIdx)->show() && !cutawayMeasureNo(originalStaffIdx)) {
         return originalStaffIdx;
     }
 
@@ -613,24 +626,24 @@ Color EngravingItem::color() const
 //   curColor
 //---------------------------------------------------------
 
-Color EngravingItem::curColor() const
+Color EngravingItem::curColor(const rendering::PaintOptions& opt) const
 {
-    return curColor(getProperty(Pid::VISIBLE).toBool());
+    return curColor(getProperty(Pid::VISIBLE).toBool(), opt);
 }
 
 //---------------------------------------------------------
 //   curColor
 //---------------------------------------------------------
 
-Color EngravingItem::curColor(bool isVisible) const
+Color EngravingItem::curColor(bool isVisible, const rendering::PaintOptions& opt) const
 {
-    return curColor(isVisible, color());
+    return curColor(isVisible, color(), opt);
 }
 
-Color EngravingItem::curColor(bool isVisible, Color normalColor) const
+Color EngravingItem::curColor(bool isVisible, Color normalColor, const rendering::PaintOptions& opt) const
 {
     // the default element color is always interpreted as black in printing
-    if (score() && score()->printing()) {
+    if (opt.isPrinting) {
         return (normalColor == configuration()->defaultColor()) ? Color::BLACK : normalColor;
     }
 
@@ -658,7 +671,7 @@ Color EngravingItem::curColor(bool isVisible, Color normalColor) const
         return configuration()->invisibleColor();
     }
 
-    if (m_colorsInversionEnabled && configuration()->scoreInversionEnabled()) {
+    if (opt.invertColors) {
         return normalColor.inverted();
     }
 
@@ -2183,13 +2196,10 @@ void EngravingItem::endDrag(EditData& ed)
     if (!eed) {
         return;
     }
-    for (const PropertyData& pd : eed->propertyData) {
-        setPropertyFlags(pd.id, pd.f);     // reset initial property flags state
-        PropertyFlags f = pd.f;
-        if (f == PropertyFlags::STYLED) {
-            f = PropertyFlags::UNSTYLED;
-        }
-        score()->undoPropertyChanged(this, pd.id, pd.data, f);
+    for (const auto& [id, v, f] : eed->propertyData) {
+        setPropertyFlags(id, f);     // reset initial property flags state
+        score()->undoPropertyChanged(this, id, v,
+                                     f == PropertyFlags::STYLED ? PropertyFlags::UNSTYLED : f);
         setGenerated(false);
     }
     score()->hideAnchors();
@@ -2320,13 +2330,13 @@ void EngravingItem::endDragGrip(EditData& ed)
     ElementEditDataPtr eed = ed.getData(this);
     bool changed = false;
     if (eed) {
-        for (const PropertyData& pd : eed->propertyData) {
-            setPropertyFlags(pd.id, pd.f);       // reset initial property flags state
-            PropertyFlags f = pd.f;
+        for (const auto& [id, data, flags] : eed->propertyData) {
+            setPropertyFlags(id, flags);       // reset initial property flags state
+            PropertyFlags f = flags;
             if (f == PropertyFlags::STYLED) {
                 f = PropertyFlags::UNSTYLED;
             }
-            if (score()->undoPropertyChanged(this, pd.id, pd.data, f)) {
+            if (score()->undoPropertyChanged(this, id, data, f)) {
                 changed = true;
             }
         }
@@ -2354,16 +2364,6 @@ void EngravingItem::endEdit(EditData&)
 double EngravingItem::styleP(Sid idx) const
 {
     return style().styleMM(idx);
-}
-
-bool EngravingItem::colorsInversionEnabled() const
-{
-    return m_colorsInversionEnabled;
-}
-
-void EngravingItem::setColorsInversionEnabled(bool enabled)
-{
-    m_colorsInversionEnabled = enabled;
 }
 
 void EngravingItem::setParenthesesMode(const ParenthesesMode& v, bool addToLinked, bool generated)
@@ -2563,12 +2563,12 @@ void EngravingItem::doInitAccessible()
     EngravingItemList parents;
     auto parent = parentItem(false /*not explicit*/);
     while (parent) {
-        parents.push_front(parent);
+        parents.push_back(parent);
         parent = parent->parentItem(false /*not explicit*/);
     }
 
-    for (EngravingItem* parent2 : parents) {
-        parent2->setupAccessible();
+    for (auto it = parents.rbegin(); it != parents.rend(); ++it) {
+        (*it)->setupAccessible();
     }
 
     setupAccessible();

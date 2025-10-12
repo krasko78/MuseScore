@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2025 MuseScore BVBA and others
+ * Copyright (C) 2025 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -669,7 +669,7 @@ StyledFlickable {
                         Layout.preferredWidth: 120
                         horizontalAlignment: Text.AlignLeft
                         wrapMode: Text.WordWrap
-                        text: qsTrc("notation", "Minimum space from fretboard diagram:")
+                        text: qsTrc("notation", "Min. space to fretboard diagram:")
                     }
 
                     Item {
@@ -681,7 +681,7 @@ StyledFlickable {
                             currentValue: chordSymbolsModel.harmonyFretDist.value
                             minValue: 0
                             maxValue: 99
-                            step: 0.1
+                            step: 0.05
                             decimals: 2
 
                             measureUnitsSymbol: qsTrc("global", "sp")
@@ -708,7 +708,7 @@ StyledFlickable {
                         Layout.preferredWidth: 120
                         horizontalAlignment: Text.AlignLeft
                         wrapMode: Text.WordWrap
-                        text: qsTrc("notation", "Minimum space between chord symbols:")
+                        text: qsTrc("notation", "Min. space to other notation:")
                     }
 
                     IncrementalPropertyControl {
@@ -717,13 +717,41 @@ StyledFlickable {
                         currentValue: chordSymbolsModel.minHarmonyDist.value
                         minValue: 0
                         maxValue: 99
-                        step: 0.1
+                        step: 0.05
                         decimals: 2
 
                         measureUnitsSymbol: qsTrc("global", "sp")
 
                         onValueEdited: function(newValue) {
                             chordSymbolsModel.minHarmonyDist.value = newValue
+                        }
+                    }
+                }
+
+                RowLayout {
+                    spacing: 6
+                    Layout.fillWidth: true
+
+                    StyledTextLabel {
+                        Layout.preferredWidth: 120
+                        horizontalAlignment: Text.AlignLeft
+                        wrapMode: Text.WordWrap
+                        text: qsTrc("notation", "Min. space between chord symbols:")
+                    }
+
+                    IncrementalPropertyControl {
+                        Layout.preferredWidth: 80
+
+                        currentValue: chordSymbolsModel.harmonyHarmonyDist.value
+                        minValue: 0
+                        maxValue: 99
+                        step: 0.05
+                        decimals: 2
+
+                        measureUnitsSymbol: qsTrc("global", "sp")
+
+                        onValueEdited: function(newValue) {
+                            chordSymbolsModel.harmonyHarmonyDist.value = newValue
                         }
                     }
                 }

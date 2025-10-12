@@ -4,7 +4,7 @@
 # MuseScore
 # Music Composition & Notation
 #
-# Copyright (C) 2021 MuseScore BVBA and others
+# Copyright (C) 2021 MuseScore Limited and others
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 3 as
@@ -226,6 +226,8 @@ else()
         set(MODULE_SRC ${MODULE_SRC}
             ${CMAKE_CURRENT_LIST_DIR}/io/internal/memfilesystem.cpp
             ${CMAKE_CURRENT_LIST_DIR}/io/internal/memfilesystem.h
+            ${CMAKE_CURRENT_LIST_DIR}/internal/platform/web/webinteractive.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/internal/platform/web/webinteractive.h
         )
     else()
         set(MODULE_SRC ${MODULE_SRC}

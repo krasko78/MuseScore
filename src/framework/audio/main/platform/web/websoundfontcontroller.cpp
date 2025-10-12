@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2025 MuseScore BVBA and others
+ * Copyright (C) 2025 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -23,14 +23,14 @@
 
 #include "audio/common/rpc/rpcpacker.h"
 
-#include "audio/worker/platform/web/networksfloader.h"
+#include "audio/engine/platform/web/networksfloader.h"
 
 #include "log.h"
 
 using namespace muse::audio;
 using namespace muse::audio::rpc;
 
-void WebSoundFontController::init()
+void WebSoundFontController::loadSoundFonts()
 {
     // noop
 }

@@ -62,10 +62,10 @@ Instrument::Instrument(String id)
     a->setName(String::fromUtf8(InstrChannel::DEFAULT_NAME));
     m_channel.push_back(a);
 
-    m_minPitchA   = 0;
-    m_maxPitchA   = 127;
-    m_minPitchP   = 0;
-    m_maxPitchP   = 127;
+    m_minPitchA   = MIN_PITCH;
+    m_maxPitchA   = MAX_PITCH;
+    m_minPitchP   = MIN_PITCH;
+    m_maxPitchP   = MAX_PITCH;
     m_useDrumset  = false;
     m_drumset     = 0;
     m_singleNoteDynamics = true;
@@ -161,11 +161,16 @@ String Instrument::recognizeMusicXmlId() const
     static const String defaultMusicXmlId(u"keyboard.piano");
     static const String defaultMusicXmlPercussionId(u"drum.group"); // our General MIDI Percussion
 
-    std::list<String> nameList;
+    std::vector<String> nameList;
+    nameList.reserve(1 + m_longNames.size() + m_shortNames.size());
 
     nameList.push_back(m_trackName);
-    muse::join(nameList, m_longNames.toStringList());
-    muse::join(nameList, m_shortNames.toStringList());
+    for (const StaffName& name : m_longNames) {
+        nameList.push_back(name.toString());
+    }
+    for (const StaffName& name : m_shortNames) {
+        nameList.push_back(name.toString());
+    }
 
     const InstrumentTemplate* tmplByName = mu::engraving::searchTemplateForInstrNameList(nameList, m_useDrumset);
 
@@ -1281,16 +1286,5 @@ bool Instrument::getSingleNoteDynamicsFromTemplate() const
 void Instrument::setSingleNoteDynamicsFromTemplate()
 {
     setSingleNoteDynamics(getSingleNoteDynamicsFromTemplate());
-}
-
-std::list<String> StaffNameList::toStringList() const
-{
-    std::list<String> result;
-
-    for (const StaffName& name : *this) {
-        result.push_back(name.toString());
-    }
-
-    return result;
 }
 }

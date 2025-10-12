@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore BVBA and others
+ * Copyright (C) 2021 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -27,6 +27,7 @@ using namespace mu::notation;
 FretboardsPageModel::FretboardsPageModel(QObject* parent)
     : AbstractStyleDialogModel(parent, {
     StyleId::fretY,
+    StyleId::fretMinDistance,
     StyleId::fretMag,
     StyleId::fretOrientation,
     StyleId::fretNutThickness,
@@ -45,6 +46,7 @@ FretboardsPageModel::FretboardsPageModel(QObject* parent)
 }
 
 StyleItem* FretboardsPageModel::fretY() const { return styleItem(StyleId::fretY); }
+StyleItem* FretboardsPageModel::fretMinDistance() const { return styleItem(StyleId::fretMinDistance); }
 StyleItem* FretboardsPageModel::fretMag() const { return styleItem(StyleId::fretMag); }
 StyleItem* FretboardsPageModel::fretOrientation() const { return styleItem(StyleId::fretOrientation); }
 StyleItem* FretboardsPageModel::fretNutThickness() const { return styleItem(StyleId::fretNutThickness); }

@@ -46,6 +46,7 @@
 // TODO: Don't include from engraving/internal
 #include "engraving/internal/qmimedataadapter.h"
 
+#include "engraving/compat/dummyelement.h"
 #include "engraving/dom/accidental.h"
 #include "engraving/dom/actionicon.h"
 #include "engraving/dom/anchors.h"
@@ -59,11 +60,12 @@
 #include "engraving/dom/elementgroup.h"
 #include "engraving/dom/factory.h"
 #include "engraving/dom/figuredbass.h"
+#include "engraving/dom/fret.h"
+#include "engraving/dom/gradualtempochange.h"
 #include "engraving/dom/guitarbend.h"
 #include "engraving/dom/hammeronpulloff.h"
 #include "engraving/dom/image.h"
 #include "engraving/dom/instrchange.h"
-#include "engraving/dom/gradualtempochange.h"
 #include "engraving/dom/keysig.h"
 #include "engraving/dom/lasso.h"
 #include "engraving/dom/layoutbreak.h"
@@ -78,20 +80,21 @@
 #include "engraving/dom/rest.h"
 #include "engraving/dom/shadownote.h"
 #include "engraving/dom/slur.h"
+#include "engraving/dom/soundflag.h"
 #include "engraving/dom/staff.h"
 #include "engraving/dom/stafflines.h"
 #include "engraving/dom/stafftype.h"
 #include "engraving/dom/stafftypechange.h"
 #include "engraving/dom/system.h"
-#include "engraving/dom/textedit.h"
 #include "engraving/dom/tuplet.h"
-#include "engraving/dom/undo.h"
 #include "engraving/dom/utils.h"
-#include "engraving/compat/dummyelement.h"
-#include "engraving/dom/utils.h"
-
-#include "engraving/rw/xmlreader.h"
+#include "engraving/editing/editchord.h"
+#include "engraving/editing/editpart.h"
+#include "engraving/editing/editsystemlocks.h"
+#include "engraving/editing/splitjoinmeasure.h"
+#include "engraving/editing/textedit.h"
 #include "engraving/rw/rwregister.h"
+#include "engraving/rw/xmlreader.h"
 
 #include "mscoreerrorscontroller.h"
 #include "notationerrors.h"
@@ -397,19 +400,19 @@ void NotationInteraction::notifyAboutNoteInputStateChanged()
     m_noteInput->stateChanged().notify();
 }
 
-void NotationInteraction::paint(Painter* painter)
+void NotationInteraction::paint(Painter* painter, const engraving::rendering::PaintOptions& opt)
 {
     if (shouldDrawInputPreview()) {
-        drawInputPreview(painter);
+        drawInputPreview(painter, opt);
     }
 
-    score()->renderer()->drawItem(score()->shadowNote(), painter);
+    score()->renderer()->drawItem(score()->shadowNote(), painter, opt);
 
     drawAnchorLines(painter);
-    drawTextEditMode(painter);
+    drawTextEditMode(painter, opt);
     drawSelectionRange(painter);
-    drawGripPoints(painter);
-    drawLasso(painter);
+    drawGripPoints(painter, opt);
+    drawLasso(painter, opt);
     drawDrop(painter);
 }
 
@@ -1437,7 +1440,10 @@ void NotationInteraction::startOutgoingDragElement(const EngravingItem* element,
     mu::engraving::MScore::pixelRatio = mu::engraving::DPI / dpi;
     p.translate(qAbs(bbox.x() * adjustedRatio), qAbs(bbox.y() * adjustedRatio));
     p.scale(adjustedRatio, adjustedRatio);
-    engravingRenderer()->drawItem(element, &p);
+
+    mu::engraving::rendering::PaintOptions opt;
+    opt.invertColors = engravingConfiguration()->scoreInversionEnabled();
+    engravingRenderer()->drawItem(element, &p, opt);
 
     m_outgoingDrag->setPixmap(pixmap);
 
@@ -2318,6 +2324,7 @@ bool NotationInteraction::applyPaletteElement(mu::engraving::EngravingItem* elem
     switch (element->type()) {
     case ElementType::MARKER:
     case ElementType::JUMP:
+    case ElementType::MEASURE_NUMBER:
     case ElementType::SPACER:
     case ElementType::VBOX:
     case ElementType::HBOX:
@@ -2449,7 +2456,7 @@ void NotationInteraction::applyPaletteElementToList(EngravingItem* element, bool
     }
 
     if (element->isActionIcon() && toActionIcon(element)->actionType() == ActionIconType::SYSTEM_LOCK) {
-        score->cmdApplyLockToSelection();
+        EditSystemLocks::applyLockToSelection(score);
         return;
     }
 
@@ -2521,11 +2528,11 @@ void NotationInteraction::applyPaletteElementToList(EngravingItem* element, bool
     }
 
     if (isMeasureAnchoredElement) {
-        // we add the following measure-based items to each measure containing selected items
-        std::vector<Measure*> measuresWithSelectedContent;
+        // find the MeasureBase of each selected item - apply the drop there...
+        std::vector<MeasureBase*> measuresWithSelectedContent;
         for (EngravingItem* e : sel.elements()) {
-            Measure* m = e->findMeasure();
-            if (!m) {
+            MeasureBase* mb = e->findMeasureBase();
+            if (!mb) {
                 continue;
             }
             if (elementType == ElementType::MARKER && e->isBarLine()
@@ -2533,15 +2540,13 @@ void NotationInteraction::applyPaletteElementToList(EngravingItem* element, bool
                 && toBarLine(e)->segment()->segmentType() != SegmentType::StartRepeatBarLine) {
                 // exception: markers are anchored to the start of a measure,
                 // so when the user selects an end barline we take the next measure
-                m = m->nextMeasureMM() ? m->nextMeasureMM() : m;
+                mb = mb->nextMeasureMM() ? mb->nextMeasureMM() : mb;
             }
-            if (muse::contains(measuresWithSelectedContent, m)) {
+            if (muse::contains(measuresWithSelectedContent, mb)) {
                 continue;
             }
-            measuresWithSelectedContent.push_back(m);
-            const RectF r = m->staffPageBoundingRect(e->staff()->idx());
-            const PointF pt = r.center() + m->system()->page()->pos();
-            applyDropPaletteElement(score, m, element, modifiers, pt);
+            measuresWithSelectedContent.push_back(mb);
+            applyDropPaletteElement(score, mb, element, modifiers);
             if (elementType == ElementType::BRACKET) {
                 break;
             }
@@ -2562,9 +2567,7 @@ void NotationInteraction::applyPaletteElementToRange(EngravingItem* element, boo
     if (elementType == ElementType::BAR_LINE || isMeasureAnchoredElement) {
         Measure* last = sel.endSegment() ? sel.endSegment()->measure() : nullptr;
         for (Measure* m = sel.startSegment()->measure(); m; m = m->nextMeasureMM()) {
-            const RectF r = m->staffPageBoundingRect(sel.staffStart());
-            const PointF pt = r.center() + m->system()->page()->pos();
-            applyDropPaletteElement(score, m, element, modifiers, pt);
+            applyDropPaletteElement(score, m, element, modifiers);
             if (m == last || elementType == ElementType::BRACKET) {
                 break;
             }
@@ -2732,7 +2735,7 @@ void NotationInteraction::applyPaletteElementToRange(EngravingItem* element, boo
         const ActionIconType actionType = toActionIcon(element)->actionType();
         switch (actionType) {
         case ActionIconType::SYSTEM_LOCK: {
-            score->cmdApplyLockToSelection();
+            EditSystemLocks::applyLockToSelection(score);
             return;
         }
         case ActionIconType::STANDARD_BEND:
@@ -3516,7 +3519,7 @@ bool NotationInteraction::shouldDrawInputPreview() const
     return m_noteInput->isNoteInputMode() && m_noteInput->usingNoteInputMethod(NoteInputMethod::BY_DURATION);
 }
 
-void NotationInteraction::drawInputPreview(Painter* painter)
+void NotationInteraction::drawInputPreview(Painter* painter, const engraving::rendering::PaintOptions& opt)
 {
     std::vector<ShadowNoteParams> paramsList = previewNotes();
     if (paramsList.empty()) {
@@ -3566,12 +3569,12 @@ void NotationInteraction::drawInputPreview(Painter* painter)
     if (isUp) {
         for (auto it = previewList.rbegin(); it != previewList.rend(); ++it) {
             correctNotePositionIfNeed(*it);
-            score()->renderer()->drawItem(*it, painter);
+            score()->renderer()->drawItem(*it, painter, opt);
         }
     } else {
         for (auto it = previewList.begin(); it != previewList.end(); ++it) {
             correctNotePositionIfNeed(*it);
-            score()->renderer()->drawItem(*it, painter);
+            score()->renderer()->drawItem(*it, painter, opt);
         }
     }
 
@@ -3603,13 +3606,13 @@ void NotationInteraction::drawAnchorLines(Painter* painter)
     }
 }
 
-void NotationInteraction::drawTextEditMode(muse::draw::Painter* painter)
+void NotationInteraction::drawTextEditMode(muse::draw::Painter* painter, const engraving::rendering::PaintOptions& opt)
 {
     if (!isTextEditingStarted()) {
         return;
     }
 
-    editModeRenderer()->drawItem(m_editData.element, painter, m_editData, currentScaling(painter));
+    editModeRenderer()->drawItem(m_editData.element, painter, m_editData, currentScaling(painter), opt);
 }
 
 void NotationInteraction::drawSelectionRange(muse::draw::Painter* painter)
@@ -3644,7 +3647,7 @@ void NotationInteraction::drawSelectionRange(muse::draw::Painter* painter)
     }
 }
 
-void NotationInteraction::drawGripPoints(muse::draw::Painter* painter)
+void NotationInteraction::drawGripPoints(muse::draw::Painter* painter, const engraving::rendering::PaintOptions& opt)
 {
     if (isDragStarted() && !isGripEditStarted()) {
         return;
@@ -3684,16 +3687,16 @@ void NotationInteraction::drawGripPoints(muse::draw::Painter* painter)
     }
 
     editedElement->updateGrips(m_editData);
-    editModeRenderer()->drawItem(editedElement, painter, m_editData, scaling);
+    editModeRenderer()->drawItem(editedElement, painter, m_editData, scaling, opt);
 }
 
-void NotationInteraction::drawLasso(muse::draw::Painter* painter)
+void NotationInteraction::drawLasso(muse::draw::Painter* painter, const engraving::rendering::PaintOptions& opt)
 {
     if (!m_lasso || m_lasso->isEmpty()) {
         return;
     }
 
-    score()->renderer()->drawItem(m_lasso, painter);
+    score()->renderer()->drawItem(m_lasso, painter, opt);
 }
 
 void NotationInteraction::drawDrop(muse::draw::Painter* painter)
@@ -4955,7 +4958,7 @@ void NotationInteraction::splitSelectedMeasure()
     ChordRest* chordRest = dynamic_cast<ChordRest*>(selectedElement);
 
     startEdit(TranslatableString("undoableAction", "Split measure"));
-    score()->cmdSplitMeasure(chordRest);
+    SplitJoinMeasure::splitMeasure(score()->masterScore(), chordRest->tick());
     apply();
 
     MScoreErrorsController(iocContext()).checkAndShowMScoreError();
@@ -4970,7 +4973,7 @@ void NotationInteraction::joinSelectedMeasures()
     INotationSelectionRange::MeasureRange measureRange = m_selection->range()->measureRange();
 
     startEdit(TranslatableString("undoableAction", "Join measures"));
-    score()->cmdJoinMeasure(measureRange.startMeasure, measureRange.endMeasure);
+    SplitJoinMeasure::joinMeasures(score()->masterScore(), measureRange.startMeasure->tick(), measureRange.endMeasure->tick());
     apply();
 
     MScoreErrorsController(iocContext()).checkAndShowMScoreError();
@@ -5835,43 +5838,57 @@ void NotationInteraction::toggleLayoutBreak(LayoutBreakType breakType)
 
 void NotationInteraction::moveMeasureToPrevSystem()
 {
+    MeasureBase* m = score()->selection().endMeasureBase();
+    if (!m) {
+        return;
+    }
     startEdit(TranslatableString("undoableAction", "Move measure to previous system"));
-    score()->cmdMoveMeasureToPrevSystem();
+    EditSystemLocks::moveMeasureToPrevSystem(score(), m);
     apply();
 }
 
 void NotationInteraction::moveMeasureToNextSystem()
 {
+    MeasureBase* m = score()->selection().startMeasureBase();
+    if (!m) {
+        return;
+    }
     startEdit(TranslatableString("undoableAction", "Move measure to next system"));
-    score()->cmdMoveMeasureToNextSystem();
+    EditSystemLocks::moveMeasureToNextSystem(score(), m);
     apply();
 }
 
 void NotationInteraction::toggleSystemLock()
 {
     startEdit(TranslatableString("undoableAction", "Lock/unlock selected system(s)"));
-    score()->cmdToggleSystemLock();
+    EditSystemLocks::toggleSystemLock(score(), selection()->selectedSystems());
     apply();
 }
 
 void NotationInteraction::toggleScoreLock()
 {
     startEdit(TranslatableString("undoableAction", "Lock/unlock all systems"));
-    score()->cmdToggleScoreLock();
+    EditSystemLocks::toggleScoreLock(score());
     apply();
 }
 
 void NotationInteraction::makeIntoSystem()
 {
+    MeasureBase* first = score()->selection().startMeasureBase();
+    MeasureBase* last = score()->selection().endMeasureBase();
+    if (!first || !last) {
+        return;
+    }
+
     startEdit(TranslatableString("undoableAction", "Create system from selection"));
-    score()->cmdMakeIntoSystem();
+    EditSystemLocks::makeIntoSystem(score(), first, last);
     apply();
 }
 
 void NotationInteraction::applySystemLock()
 {
     startEdit(TranslatableString("undoableAction", "Apply system lock to selection"));
-    score()->cmdApplyLockToSelection();
+    EditSystemLocks::applyLockToSelection(score());
     apply();
 }
 
@@ -5881,7 +5898,7 @@ void NotationInteraction::addRemoveSystemLocks(AddRemoveSystemLockType intervalT
     bool afterEachSystem = intervalType == AddRemoveSystemLockType::AfterEachSystem;
 
     startEdit(TranslatableString("undoableAction", "Measures per system"));
-    score()->addRemoveSystemLocks(interval, afterEachSystem);
+    EditSystemLocks::addRemoveSystemLocks(score(), interval, afterEachSystem);
     apply();
 }
 
@@ -7104,6 +7121,8 @@ void NotationInteraction::navigateToHarmonyInNearMeasure(MoveDirection direction
 
     track_idx_t track = harmony->track();
 
+    doEndEditElement();
+
     mu::engraving::Harmony* nextHarmony = findHarmonyInSegment(segment, track, harmony->textStyleType());
     if (!nextHarmony) {
         nextHarmony = createHarmony(segment, track, harmony->harmonyType());
@@ -7148,6 +7167,8 @@ void NotationInteraction::navigateToHarmony(const Fraction& ticks)
     while (segment && segment->tick() < newTick) {
         segment = segment->next1(mu::engraving::SegmentType::ChordRest);
     }
+
+    doEndEditElement();
 
     startEdit(TranslatableString("undoableAction", "Navigate to chord symbol"));
 
@@ -7200,6 +7221,8 @@ void NotationInteraction::navigateToNearFiguredBass(MoveDirection direction)
         return;
     }
 
+    doEndEditElement();
+
     bool bNew = false;
     // add a (new) FB element, using chord duration as default duration
     mu::engraving::FiguredBass* fbNew = mu::engraving::FiguredBass::addFiguredBassToSegment(nextSegm, track, Fraction(0, 1), &bNew);
@@ -7244,6 +7267,8 @@ void NotationInteraction::navigateToFiguredBassInNearMeasure(MoveDirection direc
         return;
     }
 
+    doEndEditElement();
+
     bool bNew = false;
     // add a (new) FB element, using chord duration as default duration
     mu::engraving::FiguredBass* fbNew = mu::engraving::FiguredBass::addFiguredBassToSegment(nextSegm, fb->track(), Fraction(0, 1), &bNew);
@@ -7280,8 +7305,6 @@ void NotationInteraction::navigateToFiguredBass(const Fraction& ticks)
         }
     }
 
-    doEndEditElement();
-
     // look for a segment at this tick; if none, create one
     mu::engraving::Segment* nextSegm = segm;
     while (nextSegm && nextSegm->tick() < nextSegTick) {
@@ -7295,6 +7318,8 @@ void NotationInteraction::navigateToFiguredBass(const Fraction& ticks)
             return;
         }
     }
+
+    doEndEditElement();
 
     startEdit(TranslatableString("undoableAction", "Navigate to figured bass"));
 
@@ -7496,6 +7521,8 @@ void NotationInteraction::navigateToNearText(MoveDirection direction)
             }
         }
     }
+
+    doEndEditElement();
 
     if (textEl) {
         // edit existing text
@@ -7718,6 +7745,9 @@ void NotationInteraction::addMelisma()
         prevPartialLyricsLine->undoMoveEnd(tickDiff);
         prevPartialLyricsLine->triggerLayout();
     }
+    score()->endCmd();
+
+    score()->startCmd(TranslatableString("undoableAction", "Enter lyrics extension line"));
     if (newLyrics) {
         score()->undoAddElement(toLyrics);
     }

@@ -23,8 +23,6 @@
 
 #include "measurelayout.h"
 
-#include "infrastructure/rtti.h"
-
 #include "dom/ambitus.h"
 #include "dom/barline.h"
 #include "dom/beam.h"
@@ -38,7 +36,6 @@
 #include "dom/measurerepeat.h"
 #include "dom/mmrest.h"
 #include "dom/mmrestrange.h"
-#include "dom/ornament.h"
 #include "dom/part.h"
 #include "dom/parenthesis.h"
 #include "dom/spacer.h"
@@ -49,12 +46,14 @@
 #include "dom/timesig.h"
 #include "dom/tremolosinglechord.h"
 #include "dom/tremolotwochord.h"
-#include "dom/trill.h"
-#include "dom/undo.h"
 #include "dom/utils.h"
+
+#include "editing/addremoveelement.h"
+#include "editing/editkeysig.h"
+#include "editing/editmeasures.h"
+#include "editing/editproperty.h"
 #include "types/typesconv.h"
 
-#include "autoplace.h"
 #include "tlayout.h"
 #include "layoutcontext.h"
 #include "arpeggiolayout.h"
@@ -1297,7 +1296,6 @@ void MeasureLayout::layoutPlayCountText(Measure* m, LayoutContext& ctx)
 
 void MeasureLayout::layoutMeasureNumber(Measure* m, LayoutContext& ctx)
 {
-    bool showMeasureNumber = m->showsMeasureNumber();
     MeasureNumberPlacement placementMode = ctx.conf().styleV(Sid::measureNumberPlacementMode).value<MeasureNumberPlacement>();
 
     String stringNum = String::number(m->no() + 1);
@@ -1311,11 +1309,8 @@ void MeasureLayout::layoutMeasureNumber(Measure* m, LayoutContext& ctx)
             break;
         }
 
-        Staff* staff = score->staff(staffIdx);
-        const MStaff* measureStaff = measureStaves[staffIdx];
-        MeasureNumber* measureNumber = measureStaff->measureNumber();
-
-        if (showMeasureNumber && staff->shouldShowMeasureNumbers()) {
+        if (m->showMeasureNumberOnStaff(staffIdx)) {
+            MeasureNumber* measureNumber = measureStaves[staffIdx]->measureNumber();
             if (!measureNumber) {
                 measureNumber = new MeasureNumber(m);
                 measureNumber->setTrack(staff2track(staffIdx));
@@ -1327,9 +1322,6 @@ void MeasureLayout::layoutMeasureNumber(Measure* m, LayoutContext& ctx)
             measureNumber->setXmlText(stringNum);
             measureNumber->setSystemFlag(placementMode != MeasureNumberPlacement::ON_ALL_STAVES);
             TLayout::layoutMeasureNumber(measureNumber, measureNumber->mutldata(), ctx);
-        } else if (measureNumber) {
-            measureNumber->setTrack(staff2track(staffIdx));
-            ctx.mutDom().doUndoRemoveElement(measureNumber);
         }
     }
 }
@@ -2532,9 +2524,9 @@ Segment* MeasureLayout::addHeaderClef(Measure* m, bool isFirstClef, const Staff*
     if (staff->staffTypeForElement(m)->genClef() && (isFirstClef || !hideClef)) {
         if (!cSegment) {
             cSegment = Factory::createSegment(m, SegmentType::HeaderClef, Fraction(0, 1));
-            cSegment->setHeader(true);
             m->add(cSegment);
         }
+        cSegment->setHeader(true);
         if (!clef) {
             //
             // create missing clef
@@ -2602,9 +2594,9 @@ Segment* MeasureLayout::addHeaderKeySig(Measure* m, bool isFirstKeysig, const St
     if ((isFirstKeysig || ctx.conf().styleB(Sid::genKeysig)) && isPitchedStaff) {
         if (!kSegment) {
             kSegment = Factory::createSegment(m, SegmentType::KeySig, Fraction(0, 1));
-            kSegment->setHeader(true);
             m->add(kSegment);
         }
+        kSegment->setHeader(true);
         if (!keysig) {
             //
             // create missing key signature
@@ -2727,14 +2719,16 @@ void MeasureLayout::removeSystemHeader(Measure* m)
                     break;
                 }
             }
-            if (!keySigChangeHappensHere || seg->header()) {
+            if (seg->header() && !keySigChangeHappensHere) {
                 seg->setEnabled(false);
             }
         }
         if (!seg->header()) {
             break;
         }
-        seg->setEnabled(false);
+        if (!seg->isKeySigType()) {
+            seg->setEnabled(false);
+        }
     }
     m->setHeader(false);
 }

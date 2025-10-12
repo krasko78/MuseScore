@@ -5,7 +5,7 @@
  * MuseScore Studio
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore Limited
+ * Copyright (C) 2025 MuseScore Limited
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -245,12 +245,11 @@ PlaybackData& PlaybackModel::resolveTrackPlaybackData(const ID& partId, const St
 
 void PlaybackModel::triggerEventsForItems(const std::vector<const EngravingItem*>& items, muse::mpe::duration_t duration, bool flushSound)
 {
-    std::vector<const EngravingItem*> playableItems = filterPlayableItems(items);
-    if (playableItems.empty()) {
+    if (items.empty()) {
         return;
     }
 
-    InstrumentTrackId trackId = idKey(playableItems);
+    InstrumentTrackId trackId = idKey(items);
     if (!trackId.isValid()) {
         return;
     }
@@ -268,8 +267,8 @@ void PlaybackModel::triggerEventsForItems(const std::vector<const EngravingItem*
     }
 
     const RepeatList& repeats = repeatList();
-    const int firstItemUtick = repeats.tick2utick(playableItems.front()->tick().ticks());
-    const track_idx_t firstItemTrackIdx = playableItems.front()->track();
+    const int firstItemUtick = repeats.tick2utick(items.front()->tick().ticks());
+    const track_idx_t firstItemTrackIdx = items.front()->track();
     const PlaybackContextPtr ctx = playbackCtx(trackId);
     constexpr timestamp_t timestamp = 0;
 
@@ -295,7 +294,7 @@ void PlaybackModel::triggerEventsForItems(const std::vector<const EngravingItem*
 
     dynamic_level_t dynamicLevel = dynamicLevelFromType(muse::mpe::DynamicType::Natural);
 
-    for (const EngravingItem* item : playableItems) {
+    for (const EngravingItem* item : items) {
         const int utick = repeats.tick2utick(item->tick().ticks());
 
         if (m_useScoreDynamicsForOffstreamPlayback) {
@@ -313,7 +312,7 @@ void PlaybackModel::triggerEventsForItems(const std::vector<const EngravingItem*
         m_renderer.render(item, timestamp, duration, dynamicLevel, ctx, profile, result);
     }
 
-    trackPlaybackData.offStream.send(std::move(result), std::move(dynamics), flushSound);
+    trackPlaybackData.offStream.send(result, dynamics, flushSound);
 }
 
 void PlaybackModel::triggerMetronome(int tick)
@@ -327,7 +326,7 @@ void PlaybackModel::triggerMetronome(int tick)
 
     PlaybackEventsMap result;
     m_renderer.renderMetronome(m_score, tick, 0, profile, result);
-    trackPlaybackData->second.offStream.send(std::move(result), {}, true /*flushOffstream*/);
+    trackPlaybackData->second.offStream.send(result, {}, true /*flushOffstream*/);
 }
 
 void PlaybackModel::triggerCountIn(int tick, muse::mpe::duration_t& countInDuration)
@@ -341,12 +340,13 @@ void PlaybackModel::triggerCountIn(int tick, muse::mpe::duration_t& countInDurat
 
     PlaybackEventsMap result;
     m_renderer.renderCountIn(m_score, tick, 0, profile, result, countInDuration);
-    trackPlaybackData->second.offStream.send(std::move(result), {}, true /*flushOffstream*/);
+    trackPlaybackData->second.offStream.send(result, {}, true /*flushOffstream*/);
 }
 
 InstrumentTrackIdSet PlaybackModel::existingTrackIdSet() const
 {
     InstrumentTrackIdSet result;
+    result.reserve(m_playbackDataMap.size());
 
     for (const auto& pair : m_playbackDataMap) {
         result.insert(pair.first);
@@ -432,13 +432,17 @@ void PlaybackModel::updateContext(const InstrumentTrackId& trackId)
     PlaybackData& trackData = m_playbackDataMap[trackId];
     trackData.dynamics = ctx->dynamicLevelLayers(m_score);
 
-    const auto appendEvents = [&trackData](auto&& events) {
+    std::set<timestamp_t> newEventTimestamps;
+
+    const auto appendEvents = [&trackData, &newEventTimestamps](auto&& events) {
         for (auto& pair : events) {
             PlaybackEventList& list = trackData.originEvents[pair.first];
 
             //! NOTE: this assumes that the list has already been cleared in clearExpiredEvents
-            if (list.empty()) {
+            //! Necessary to prevent event duplication (unchanged lists should not be modified)
+            if (list.empty() || muse::contains(newEventTimestamps, pair.first)) {
                 list.insert(list.end(), std::make_move_iterator(pair.second.begin()), std::make_move_iterator(pair.second.end()));
+                newEventTimestamps.insert(pair.first);
             }
         }
     };
@@ -457,7 +461,7 @@ void PlaybackModel::processSegment(const int tickPositionOffset, const Segment* 
         }
 
         const Harmony* chordSymbol = findChordSymbol(item);
-        if (!chordSymbol || !chordSymbol->play()) {
+        if (!chordSymbol) {
             continue;
         }
 
@@ -474,10 +478,11 @@ void PlaybackModel::processSegment(const int tickPositionOffset, const Segment* 
             continue;
         }
 
-        const PlaybackContextPtr ctx = playbackCtx(trackId);
-
-        m_renderer.renderChordSymbol(chordSymbol, tickPositionOffset, profile, ctx,
-                                     m_playbackDataMap[trackId].originEvents);
+        if (chordSymbol->play()) {
+            const PlaybackContextPtr ctx = playbackCtx(trackId);
+            m_renderer.renderChordSymbol(chordSymbol, tickPositionOffset, profile, ctx,
+                                         m_playbackDataMap[trackId].originEvents);
+        }
 
         collectChangesTracks(trackId, trackChanges);
     }
@@ -533,7 +538,7 @@ void PlaybackModel::processSegment(const int tickPositionOffset, const Segment* 
         }
 
         const PlaybackContextPtr ctx = playbackCtx(trackId);
-        m_renderer.render(item, tickPositionOffset, std::move(profile), ctx, m_playbackDataMap[trackId].originEvents);
+        m_renderer.render(item, tickPositionOffset, profile, ctx, m_playbackDataMap[trackId].originEvents);
 
         collectChangesTracks(trackId, trackChanges);
     }
@@ -919,7 +924,7 @@ void PlaybackModel::removeTrackEvents(const InstrumentTrackId& trackId, const mu
         return;
     }
 
-    PlaybackEventsMap::const_iterator lowerBound;
+    PlaybackEventsMap::iterator lowerBound;
 
     if (timestampFrom == 0) {
         //!Note Some events might be started RIGHT before the "official" start of the track
@@ -1056,25 +1061,6 @@ const RepeatList& PlaybackModel::repeatList() const
     m_score->masterScore()->setExpandRepeats(m_expandRepeats);
 
     return m_score->repeatList();
-}
-
-std::vector<const EngravingItem*> PlaybackModel::filterPlayableItems(const std::vector<const EngravingItem*>& items) const
-{
-    std::vector<const EngravingItem*> result;
-
-    for (const EngravingItem* item : items) {
-        IF_ASSERT_FAILED(item) {
-            continue;
-        }
-
-        if (!item->isPlayable()) {
-            continue;
-        }
-
-        result.push_back(item);
-    }
-
-    return result;
 }
 
 InstrumentTrackId PlaybackModel::idKey(const EngravingItem* item) const

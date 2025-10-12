@@ -24,8 +24,8 @@
 
 #include "io/file.h"
 
+#include "../editing/undo.h"
 #include "rw/xmlreader.h"
-
 #include "style/textstyle.h"
 
 #include "chord.h"
@@ -36,7 +36,6 @@
 #include "rest.h"
 #include "score.h"
 #include "segment.h"
-#include "undo.h"
 
 #include "log.h"
 
@@ -1169,9 +1168,9 @@ bool FiguredBass::readConfigFile(const String& fileName)
 //    the index of a name in the list can be used to retrieve the font data with fontData()
 //---------------------------------------------------------
 
-std::list<String> FiguredBass::fontNames()
+std::vector<String> FiguredBass::fontNames()
 {
-    std::list<String> names;
+    std::vector<String> names;
     for (const FiguredBassFont& f : g_FBFonts) {
         names.push_back(f.displayName);
     }

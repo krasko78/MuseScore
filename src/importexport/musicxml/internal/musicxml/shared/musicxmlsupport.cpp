@@ -28,14 +28,12 @@
 #include "global/serialization/xmlstreamreader.h"
 
 #include "translation.h"
-#include "engraving/dom/articulation.h"
-#include "engraving/dom/chord.h"
 #include "engraving/dom/chordlist.h"
 #include "engraving/dom/harmony.h"
 #include "engraving/dom/score.h"
 #include "engraving/dom/staff.h"
 #include "engraving/types/symnames.h"
-#include "types/types.h"
+#include "engraving/types/types.h"
 
 using namespace muse;
 using namespace mu::engraving;
@@ -709,7 +707,7 @@ StringList harmonyXmlDegrees(const engraving::HarmonyInfo* h)
 
 const ChordDescription* harmonyFromXml(engraving::HarmonyInfo* info, engraving::Score* score, const muse::String& kind,
                                        const muse::String& kindText, const muse::String& symbols, const muse::String& parens,
-                                       const std::list<engraving::HDegree>& dl)
+                                       const std::vector<engraving::HDegree>& dl)
 {
     if (!info) {
         return nullptr;

@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore BVBA and others
+ * Copyright (C) 2021 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -34,6 +34,7 @@ Item {
 
     property alias isIndeterminate: textInputField.isIndeterminate
     property real currentValue: 0.0
+    property alias currentText: textInputField.currentText
 
     property real step: 0.5
     property int decimals: 2

@@ -27,6 +27,9 @@
 
 #include "containers.h"
 
+#include "../editing/addremoveelement.h"
+#include "../editing/editchord.h"
+
 #include "accidental.h"
 #include "arpeggio.h"
 #include "articulation.h"
@@ -61,7 +64,6 @@
 #include "tremolotwochord.h"
 #include "trill.h"
 #include "tuplet.h"
-#include "undo.h"
 
 #ifndef ENGRAVING_NO_ACCESSIBILITY
 #include "accessibility/accessibleitem.h"
@@ -95,11 +97,14 @@ Note* Chord::upNote() const
             }
         }
     } else if (st->isTabStaff()) {
-        int line = st->lines() - 1;          // start at bottom line
+        int line = st->lines();          // start at bottom line
         int noteLine;
         // scan each note: if TAB strings are not in sequential order,
         // visual order of notes might not correspond to pitch order
         for (Note* n : m_notes) {
+            if (n->shouldHideFret()) {
+                continue;
+            }
             noteLine = st->physStringToVisual(n->string());
             if (noteLine < line) {
                 line   = noteLine;
@@ -137,6 +142,9 @@ Note* Chord::downNote() const
         // scan each note: if TAB strings are not in sequential order,
         // visual order of notes might not correspond to pitch order
         for (Note* n : m_notes) {
+            if (n->shouldHideFret()) {
+                continue;
+            }
             noteLine = st->physStringToVisual(n->string());
             if (noteLine > line) {
                 line = noteLine;

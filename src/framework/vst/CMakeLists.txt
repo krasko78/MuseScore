@@ -4,7 +4,7 @@
 # MuseScore
 # Music Composition & Notation
 #
-# Copyright (C) 2021 MuseScore BVBA and others
+# Copyright (C) 2021 MuseScore Limited and others
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 3 as
@@ -103,13 +103,6 @@ set(MODULE_INCLUDE
 set(MODULE_LINK
     vst_sdk_3
     )
-
-if (OS_IS_LIN)
-    set(MODULE_LINK
-        ${MODULE_LINK}
-        stdc++fs
-        )
-endif()
 
 if (QT_SUPPORT)
     list(APPEND MODULE_LINK Qt::Qml Qt::Widgets)

@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore BVBA and others
+ * Copyright (C) 2021 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -32,6 +32,7 @@ public:
     MOCK_METHOD(Ret, load, (), (override));
 
     MOCK_METHOD(std::vector<AudioPluginInfo>, pluginInfoList, (PluginInfoAccepted), (const, override));
+    MOCK_METHOD(async::Notification, pluginInfoListChanged, (), (const, override));
     MOCK_METHOD(const io::path_t&, pluginPath, (const audio::AudioResourceId&), (const, override));
 
     MOCK_METHOD(bool, exists, (const io::path_t&), (const, override));

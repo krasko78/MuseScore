@@ -23,6 +23,7 @@
 #include <cmath>
 #include <memory>
 #include <utility>
+#include <vector>
 
 #include "containers.h"
 
@@ -67,6 +68,7 @@
 #include "engraving/dom/ottava.h"
 #include "engraving/dom/part.h"
 #include "engraving/dom/pedal.h"
+#include "engraving/dom/pitchspelling.h"
 #include "engraving/dom/rehearsalmark.h"
 #include "engraving/dom/rest.h"
 #include "engraving/dom/score.h"
@@ -254,10 +256,7 @@ static int MusicXmlStepAltOct2Pitch(int step, int alter, int octave)
     }
     int pitch = table[step] + alter + (octave + 1) * 12;
 
-    if (pitch < 0) {
-        pitch = -1;
-    }
-    if (pitch > 127) {
+    if (!pitchIsValid(pitch)) {
         pitch = -1;
     }
 
@@ -1882,6 +1881,11 @@ static void cleanupUnterminatedTie(Tie* tie, const Score* score, bool fixForCros
     // Delete unterminated ties pending fully featured l.v. ties & ties over repeats
     unterminatedTieNote->remove(tie);
     delete tie;
+
+    // Add Laissez Vibrer instead
+    LaissezVib* lvTie = Factory::createLaissezVib(unterminatedTieNote);
+    lvTie->setParent(unterminatedTieNote);
+    unterminatedTieNote->score()->undoAddElement(lvTie);
 }
 
 //---------------------------------------------------------
@@ -2023,7 +2027,7 @@ Err MusicXmlParserPass2::parse()
  */
 
 static std::unique_ptr<BarLine> createBarline(const Score* score, const track_idx_t track, const BarLineType type, const bool visible,
-                                              const String& barStyle, int spanStaff)
+                                              const String& barStyle, const bool spanStaff)
 {
     std::unique_ptr<BarLine> barline(Factory::createBarLine(score->dummy()->segment()));
     barline->setTrack(track);
@@ -3980,7 +3984,7 @@ void MusicXmlParserDirection::directionType(std::vector<MusicXmlSpannerDesc>& st
     while (m_e.readNextStartElement()) {
         m_defaultY = m_e.asciiAttribute("default-y").toDouble(&m_hasDefaultY) * -0.1;
         m_relativeX = m_e.doubleAttribute("relative-x") / 10 * m_score->style().spatium();
-        m_visible = m_e.asciiAttribute("print-object") != "no";
+        m_visible = m_e.asciiAttribute("print-object") != "no"; // only available for "metronome" and "other-direction"
         const String number = m_e.attribute("number");
         int n = 0;
         if (!number.empty()) {
@@ -5742,7 +5746,7 @@ void MusicXmlParserPass2::barline(const String& partId, Measure* measure, const 
                 staff_idx_t nstaves = part->nstaves();
                 for (staff_idx_t i = 0; i < nstaves; ++i) {
                     const Staff* staff = part->staff(i);
-                    bool spanStaff = nstaves > 1 ? i < nstaves - 1 : staff->barLineSpan();
+                    const bool spanStaff = nstaves > 1 ? i < nstaves - 1 : staff->barLineSpan();
                     track_idx_t currentTrack = track + (i * VOICES);
                     auto b = createBarline(measure->score(), currentTrack, type, visible, barStyle, spanStaff);
                     colorItem(b.get(), barlineColor);
@@ -6887,6 +6891,7 @@ Note* MusicXmlParserPass2::note(const String& partId,
     int velocity = round(m_e.doubleAttribute("dynamics") * 0.9);
     bool graceSlash = false;
     bool printObject = m_e.asciiAttribute("print-object") != "no";
+    bool printLyric = (printObject && m_e.asciiAttribute("print-lyric") != "no") || m_e.asciiAttribute("print-lyric") == "yes";
     bool isSingleDrumset = false;
     BeamMode bm;
     std::map<int, String> beamTypes;
@@ -6927,7 +6932,7 @@ Note* MusicXmlParserPass2::note(const String& partId,
         } else if (m_e.name() == "lyric") {
             // lyrics on grace notes not (yet) supported by MuseScore
             // add to main note instead
-            lyric.parse();
+            lyric.parse(printLyric);
         } else if (m_e.name() == "notations") {
             notations.parse();
             addError(notations.errors());
@@ -7713,7 +7718,7 @@ void MusicXmlParserPass2::harmony(const String& partId, Measure* measure, const 
     const bool printObject = m_e.asciiAttribute("print-object") != "no";
 
     String kind, kindText, functionText, inversionText, symbols, parens;
-    std::list<HDegree> degreeList;
+    std::vector<HDegree> degreeList;
 
     FretDiagram* fd = nullptr;
     Harmony* ha = Factory::createHarmony(m_score->dummy()->segment());
@@ -7726,6 +7731,14 @@ void MusicXmlParserPass2::harmony(const String& partId, Measure* measure, const 
     }
     while (m_e.readNextStartElement()) {
         if (m_e.name() == "root") {
+            if (info->rootTpc() != Tpc::TPC_INVALID) {
+                const ChordDescription* d = harmonyFromXml(info, m_score, kind, kindText, symbols, parens, degreeList);
+                info->setId(d->id);
+                info->setTextName(d->names.front());
+                ha->addChord(info);
+                degreeList.clear();
+                info = new HarmonyInfo(m_score);
+            }
             String step;
             int alter = 0;
             bool invalidRoot = false;
@@ -7847,11 +7860,11 @@ void MusicXmlParserPass2::harmony(const String& partId, Measure* measure, const 
                                    .arg(degreeValue).arg(degreeAlter).arg(degreeType), &m_e);
             } else {
                 if (degreeType == "add") {
-                    degreeList.push_back(HDegree(degreeValue, degreeAlter, HDegreeType::ADD));
+                    degreeList.emplace_back(degreeValue, degreeAlter, HDegreeType::ADD);
                 } else if (degreeType == "alter") {
-                    degreeList.push_back(HDegree(degreeValue, degreeAlter, HDegreeType::ALTER));
+                    degreeList.emplace_back(degreeValue, degreeAlter, HDegreeType::ALTER);
                 } else if (degreeType == "subtract") {
-                    degreeList.push_back(HDegree(degreeValue, degreeAlter, HDegreeType::SUBTRACT));
+                    degreeList.emplace_back(degreeValue, degreeAlter, HDegreeType::SUBTRACT);
                 }
             }
         } else if (m_e.name() == "frame") {
@@ -8029,12 +8042,12 @@ void MusicXmlParserLyric::readElision(String& formattedText)
 //   parse
 //---------------------------------------------------------
 
-void MusicXmlParserLyric::parse()
+void MusicXmlParserLyric::parse(bool visibility)
 {
     bool hasExtend = false;
     const String lyricNumber = m_e.attribute("number");
     const Color lyricColor = Color::fromString(m_e.asciiAttribute("color").ascii());
-    const bool printLyric = m_e.asciiAttribute("print-object") != "no";
+    const bool printLyric = visibility ? m_e.asciiAttribute("print-object") != "no" : m_e.asciiAttribute("print-object") == "yes";
     m_placement = m_e.attribute("placement");
     double relX = m_e.doubleAttribute("relative-x") * 0.1 * DPMM;
     m_relativeY = m_e.doubleAttribute("relative-y") * -0.1 * DPMM;

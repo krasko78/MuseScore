@@ -29,6 +29,7 @@
 #include "engraving/dom/arpeggio.h"
 #include "engraving/dom/barline.h"
 #include "engraving/dom/beam.h"
+#include "engraving/dom/bracketItem.h"
 #include "engraving/dom/chord.h"
 #include "engraving/dom/hook.h"
 #include "engraving/dom/lyrics.h"
@@ -50,7 +51,8 @@
 #include "engraving/dom/tuplet.h"
 #include "engraving/dom/tie.h"
 #include "engraving/dom/accidental.h"
-#include "engraving/dom/undo.h"
+
+#include "engraving/editing/undo.h"
 
 #include "playevent.h"
 
@@ -1495,10 +1497,10 @@ class Chord : public ChordRest
     Q_PROPERTY(apiv1::EngravingItem * spanArpeggio READ spanArpeggio)
     /// The single-chord tremolo for this chord, if it exists.
     /// \since MuseScore 4.6
-    Q_PROPERTY(apiv1::EngravingItem * tremoloSingleChord READ tremoloTwoChord)
+    Q_PROPERTY(apiv1::EngravingItem * tremoloSingleChord READ tremoloSingleChord)
     /// The two-chord tremolo for this chord, if it exists.
     /// \since MuseScore 4.6
-    Q_PROPERTY(apiv1::EngravingItem * tremoloTwoChord READ tremoloSingleChord)
+    Q_PROPERTY(apiv1::EngravingItem * tremoloTwoChord READ tremoloTwoChord)
 
 public:
     /// \cond MS_INTERNAL
@@ -1786,7 +1788,7 @@ public:
     mu::engraving::Measure* measure() { return toMeasure(e); }
     const mu::engraving::Measure* measure() const { return toMeasure(e); }
 
-    bool showsMeasureNumberInAutoMode() { return measure()->showsMeasureNumberInAutoMode(); }
+    bool showsMeasureNumberInAutoMode() { return measure()->showMeasureNumberInAutoMode(); }
 
     Segment* firstSegment() { return wrap<Segment>(measure()->firstEnabled(), Ownership::SCORE); }
     Segment* lastSegment() { return wrap<Segment>(measure()->last(), Ownership::SCORE); }

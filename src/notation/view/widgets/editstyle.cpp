@@ -956,7 +956,7 @@ EditStyle::EditStyle(QWidget* parent)
     // Figured Bass
     // ====================================================
 
-    std::list<String> fbFontNames = FiguredBass::fontNames();
+    const std::vector<String> fbFontNames = FiguredBass::fontNames();
     for (const String& family : fbFontNames) {
         comboFBFont->addItem(family);
     }
@@ -1389,12 +1389,12 @@ void EditStyle::setHeaderFooterMacroInfoText()
     if (!score->isMaster()) {
         for (const auto& tag : score->masterScore()->metaTags()) {
             toolTipHeaderFooter += "<tr><td>%1</td><td width=\"12\"/><td><i>%2</i></td></tr>"_L1
-                                   .arg(tag.first, tag.second.empty() ? QAnyStringView { "-" } : QAnyStringView { tag.second });
+                                   .arg(tag.first, tag.second.empty() ? u"-"_s : tag.second.toQString());
         }
     }
     for (const auto& tag : score->metaTags()) {
         toolTipHeaderFooter += "<tr><td>%1</td><td width=\"12\"/><td><i>%2</i></td></tr>"_L1
-                               .arg(tag.first, tag.second.empty() ? QAnyStringView { "-" } : QAnyStringView { tag.second });
+                               .arg(tag.first, tag.second.empty() ? u"-"_s : tag.second.toQString());
     }
 
     toolTipHeaderFooter += "</table></body></html>"_L1;
@@ -2414,12 +2414,12 @@ void EditStyle::setSwingParams(bool checked)
     setStyleQVariantValue(StyleId::swingUnit, val);
 }
 
-PropertyValue EditStyle::styleValue(StyleId id) const
+const PropertyValue& EditStyle::styleValue(StyleId id) const
 {
     return globalContext()->currentNotation()->style()->styleValue(id);
 }
 
-PropertyValue EditStyle::defaultStyleValue(StyleId id) const
+const PropertyValue& EditStyle::defaultStyleValue(StyleId id) const
 {
     return globalContext()->currentNotation()->style()->defaultStyleValue(id);
 }

@@ -239,8 +239,7 @@ bool Staff::shouldShowMeasureNumbers() const
     case MeasureNumberPlacement::ON_SYSTEM_OBJECT_STAVES:
     {
         bool isTopStave = score()->staves().front() == this;
-        bool isSystemObjectStaff = muse::contains(score()->systemObjectStaves(), const_cast<Staff*>(this));
-        return (isTopStave && m_showMeasureNumbers != AutoOnOff::OFF) || (isSystemObjectStaff && m_showMeasureNumbers == AutoOnOff::ON);
+        return (isTopStave && m_showMeasureNumbers != AutoOnOff::OFF) || (isSystemObjectStaff() && m_showMeasureNumbers == AutoOnOff::ON);
     }
     case MeasureNumberPlacement::ON_ALL_STAVES:
         return show();
@@ -1444,8 +1443,12 @@ void Staff::insertTime(const Fraction& tick, const Fraction& len)
     for (auto i = m_keys.lower_bound(tick.ticks()); i != m_keys.end();) {
         KeySigEvent kse = i->second;
         Fraction t = Fraction::fromTicks(i->first);
-        m_keys.erase(i++);
-        kl2[(t + len).ticks()] = kse;
+        if (t + len < score()->endTick()) {
+            m_keys.erase(i++);
+            kl2[(t + len).ticks()] = kse;
+        } else {
+            ++i;
+        }
     }
     m_keys.insert(kl2.begin(), kl2.end());
 
@@ -1491,14 +1494,13 @@ void Staff::insertTime(const Fraction& tick, const Fraction& len)
 //    return list of linked staves
 //---------------------------------------------------------
 
-std::list<Staff*> Staff::staffList() const
+std::vector<Staff*> Staff::staffList() const
 {
-    std::list<Staff*> staffList;
+    std::vector<Staff*> staffList;
     if (m_links) {
         for (EngravingObject* e : *m_links) {
             staffList.push_back(toStaff(e));
         }
-//            staffList = _linkedStaves->staves();
     } else {
         staffList.push_back(const_cast<Staff*>(this));
     }
@@ -1627,7 +1629,7 @@ bool Staff::setProperty(Pid id, const PropertyValue& v)
         setPlaybackVoice(3, v.toBool());
         break;
     case Pid::STAFF_BARLINE_SPAN: {
-        setBarLineSpan(v.toInt());
+        setBarLineSpan(v.toBool());
         // update non-generated barlines
         track_idx_t track = idx() * VOICES;
         std::vector<EngravingItem*> blList;
@@ -1645,7 +1647,7 @@ bool Staff::setProperty(Pid id, const PropertyValue& v)
         }
         for (EngravingItem* e : blList) {
             if (e && e->isBarLine() && !e->generated()) {
-                toBarLine(e)->setSpanStaff(v.toInt());
+                toBarLine(e)->setSpanStaff(barLineSpan());
             }
         }
     }

@@ -32,6 +32,10 @@
 
 #include "containers.h"
 
+#include "editing/addremoveelement.h"
+#include "editing/mscoreview.h"
+#include "editing/splitjoinmeasure.h"
+
 #include "style/style.h"
 #include "style/defaultstyle.h"
 #include "compat/dummyelement.h"
@@ -67,7 +71,6 @@
 #include "masterscore.h"
 #include "measure.h"
 #include "mscore.h"
-#include "mscoreview.h"
 #include "note.h"
 #include "ottava.h"
 #include "page.h"
@@ -96,7 +99,6 @@
 #include "tiemap.h"
 #include "timesig.h"
 #include "tuplet.h"
-#include "undo.h"
 #include "utils.h"
 #include "volta.h"
 
@@ -1161,7 +1163,7 @@ static Segment* getNextValidInputSegment(Segment* segment, track_idx_t track, vo
         }
     }
 
-    for (segment; segment; segment = segment->next(SegmentType::ChordRest)) {
+    for (; segment; segment = segment->next(SegmentType::ChordRest)) {
         if (segment->element(track + voice) || (voice && segment->tick() == nextTick)) {
             break;
         }
@@ -1326,10 +1328,10 @@ bool Score::getPosition(Position* pos, const PointF& p, voice_idx_t voice) const
             pos->line = s->lines(tick) - 1;
         }
     } else {
-        int minLine   = absStep(0);
+        int minLine   = absStep(MIN_PITCH);
         ClefType clef = s->clef(pos->segment->tick());
         minLine       = relStep(minLine, clef);
-        int maxLine   = absStep(127);
+        int maxLine   = absStep(MAX_PITCH);
         maxLine       = relStep(maxLine, clef);
 
         if (pos->line > minLine || pos->line < maxLine) {
@@ -2269,7 +2271,7 @@ bool Score::appendMeasuresFromScore(Score* score, const Fraction& startTick, con
     // check if section starts with a pick-up measure to be merged with end of previous section
     Measure* cm = firstAppendedMeasure, * pm = cm->prevMeasure();
     if (pm->timesig() == cm->timesig() && pm->ticks() + cm->ticks() == cm->timesig()) {
-        cmdJoinMeasure(pm, cm);
+        SplitJoinMeasure::joinMeasures(m_masterScore, pm->tick(), cm->tick());
     }
 
     // clone the spanners (only in the range currently copied)
@@ -3231,7 +3233,7 @@ void Score::padToggle(Pad p, bool toggleForSelectionOnly)
     }
 
     std::vector<ChordRest*> crs;
-    std::list<EngravingItem*> elementsToSelect;
+    std::vector<EngravingItem*> elementsToSelect;
 
     if (selection().isSingle()) {
         EngravingItem* e = selection().element();
@@ -4050,9 +4052,7 @@ void Score::updateBracesAndBarlines(Part* part, size_t newIndex)
     auto updateBracketSpan = [this, part](size_t modIndex, size_t refIndex) {
         Staff* modStaff = staff(part->staves()[modIndex]->idx());
         Staff* refStaff = staff(part->staves()[refIndex]->idx());
-        if (modStaff->getProperty(Pid::STAFF_BARLINE_SPAN) != refStaff->getProperty(Pid::STAFF_BARLINE_SPAN)) {
-            modStaff->undoChangeProperty(Pid::STAFF_BARLINE_SPAN, refStaff->getProperty(Pid::STAFF_BARLINE_SPAN));
-        }
+        modStaff->undoChangeProperty(Pid::STAFF_BARLINE_SPAN, refStaff->getProperty(Pid::STAFF_BARLINE_SPAN));
     };
 
     if (newIndex >= 2) {
@@ -4062,8 +4062,9 @@ void Score::updateBracesAndBarlines(Part* part, size_t newIndex)
     if (part->nstaves() == 2) {
         const InstrumentTemplate* tp = searchTemplate(part->instrumentId());
         if (tp) {
-            if (tp->barlineSpan[0] > 0) {
-                staff(part->staves()[0]->idx())->undoChangeProperty(Pid::STAFF_BARLINE_SPAN, tp->barlineSpan[0]);
+            const bool firstStaffBarLineSpan = tp->barlineSpan[0];
+            if (firstStaffBarLineSpan) {
+                staff(part->staff(0)->idx())->undoChangeProperty(Pid::STAFF_BARLINE_SPAN, firstStaffBarLineSpan);
             }
             if (noBracesFound && (tp->bracket[0] != BracketType::NO_BRACKET)) {
                 undoAddBracket(part->staves()[0], 0, tp->bracket[0], part->nstaves());
@@ -4152,8 +4153,8 @@ void Score::remapBracketsAndBarlines()
         // Look in the masterScore for all the staves spanned by a common barline.
         // If at least one of them is also in this score, then connect it through.
         bool extendBarline = false;
-        int span = masterStaff->barLineSpan();
-        while (!extendBarline && span > 0 && masterStaff->idx() + 1 < master->nstaves()) {
+        bool span = masterStaff->barLineSpan();
+        while (!extendBarline && span && masterStaff->idx() + 1 < master->nstaves()) {
             masterStaff = masterScore()->staff(masterStaff->idx() + 1);
             span = masterStaff->barLineSpan();
             if (masterStaff->findLinkedInScore(this)) {
@@ -4162,7 +4163,7 @@ void Score::remapBracketsAndBarlines()
             }
         }
         if (extendBarline) {
-            staff->setBarLineSpan(1);
+            staff->setBarLineSpan(true);
         }
     }
 }
@@ -4586,9 +4587,9 @@ void Score::removeUnmanagedSpanner(Spanner* s)
 //   uniqueStaves
 //---------------------------------------------------------
 
-std::list<staff_idx_t> Score::uniqueStaves() const
+std::vector<staff_idx_t> Score::uniqueStaves() const
 {
-    std::list<staff_idx_t> sl;
+    std::vector<staff_idx_t> sl;
 
     for (size_t staffIdx = 0; staffIdx < nstaves(); ++staffIdx) {
         Staff* s = staff(staffIdx);

@@ -1023,6 +1023,7 @@ void SystemLayout::layoutHarmonies(const std::vector<Harmony*> harmonies, System
             continue;
         }
 
+        TLayout::layoutHarmony(h, h->mutldata(), ctx);
         autoplaceHarmony(h);
         harmonyItemsAlign.push_back(h);
         harmonyPositions.insert({ h->tick(), h->staffIdx() });
@@ -1037,21 +1038,6 @@ void SystemLayout::layoutHarmonies(const std::vector<Harmony*> harmonies, System
 
 void SystemLayout::layoutFretDiagrams(const ElementsToLayout& elements, System* system, LayoutContext& ctx)
 {
-    auto addFretHarmonyToSkyline = [system](std::vector<EngravingItem*> fretDiagramsOrHarmony) -> void {
-        for (EngravingItem* item : fretDiagramsOrHarmony) {
-            if (!item->isFretDiagram()) {
-                continue;
-            }
-            FretDiagram* fretDiag = toFretDiagram(item);
-            if (Harmony* harmony = fretDiag->harmony()) {
-                SkylineLine& skl = system->staff(fretDiag->staffIdx())->skyline().north();
-                Segment* s = fretDiag->segment();
-                Shape harmShape = harmony->ldata()->shape().translated(harmony->pos() + fretDiag->pos() + s->pos() + s->measure()->pos());
-                skl.add(harmShape);
-            }
-        }
-    };
-
     if (!ctx.conf().styleB(Sid::verticallyAlignChordSymbols)) {
         for (FretDiagram* fretDiag : elements.fretDiagrams) {
             Autoplace::autoplaceSegmentElement(fretDiag, fretDiag->mutldata());
@@ -1089,6 +1075,7 @@ void SystemLayout::layoutFretDiagrams(const ElementsToLayout& elements, System* 
             continue;
         }
 
+        TLayout::layoutFretDiagram(fd, fd->mutldata(), ctx);
         Autoplace::autoplaceSegmentElement(fd, fd->mutldata());
         fretItemsAlign.push_back(fd);
         fretHarmonyPositions.insert({ fd->tick(), fd->staffIdx() });
@@ -1114,8 +1101,6 @@ void SystemLayout::layoutFretDiagrams(const ElementsToLayout& elements, System* 
 
     layoutHarmonies(harmonyItemsAlign, system, ctx);
 
-    addFretHarmonyToSkyline(fretItemsAlign);
-
     // autoplace everything else
     for (EngravingItem* item : fretOrHarmonyItemsNoAlign) {
         if (item->isFretDiagram()) {
@@ -1128,8 +1113,6 @@ void SystemLayout::layoutFretDiagrams(const ElementsToLayout& elements, System* 
             autoplaceHarmony(item);
         }
     }
-
-    addFretHarmonyToSkyline(fretOrHarmonyItemsNoAlign);
 }
 
 void SystemLayout::layoutSystemElements(System* system, LayoutContext& ctx)
@@ -1244,6 +1227,9 @@ void SystemLayout::layoutSystemElements(System* system, LayoutContext& ctx)
     processLines(system, ctx, elementsToLayout.allOtherSpanners);
 
     for (MeasureNumber* mno : elementsToLayout.measureNumbers) {
+        if (!mno->visible()) {
+            continue;
+        }
         Autoplace::autoplaceMeasureElement(mno, mno->mutldata());
         system->staff(mno->staffIdx())->skyline().add(mno->ldata()->bbox().translated(mno->measure()->pos() + mno->pos()
                                                                                       + mno->staffOffset()), mno);
@@ -1337,9 +1323,10 @@ void SystemLayout::collectElementsToLayout(Measure* measure, ElementsToLayout& e
 
     System* system = elements.system;
     for (size_t staffIdx = 0; staffIdx < ctx.dom().nstaves(); ++staffIdx) {
-        MeasureNumber* mno = measure->measureNumber(staffIdx);
-        if (mno) {
-            elements.measureNumbers.push_back(mno);
+        if (measure->showMeasureNumberOnStaff(staffIdx)) {
+            if (MeasureNumber* mno = measure->measureNumber(staffIdx)) {
+                elements.measureNumbers.push_back(mno);
+            }
         }
 
         if (!system->staff(staffIdx)->show()) {
@@ -2030,6 +2017,14 @@ void SystemLayout::restoreOldSystemLayout(System* system, LayoutContext& ctx)
 
     layoutTiesAndBends(elements, ctx);
 
+    // Remove stale items from the skyline
+    for (EngravingItem* i : elements.fretDiagrams) {
+        removeElementFromSkyline(i, system);
+    }
+    for (EngravingItem* i : elements.harmonies) {
+        removeElementFromSkyline(i, system);
+    }
+
     bool hasFretDiagram = elements.fretDiagrams.size() > 0;
     if (hasFretDiagram) {
         layoutFretDiagrams(elements, system, ctx);
@@ -2435,7 +2430,7 @@ void SystemLayout::layout2(System* system, LayoutContext& ctx)
     }
 
     system->setPos(0.0, 0.0);
-    std::list<std::pair<size_t, SysStaff*> > visibleStaves;
+    std::vector<std::pair<size_t, SysStaff*> > visibleStaves;
 
     for (size_t i = 0; i < system->staves().size(); ++i) {
         const Staff* s  = ctx.dom().staff(i);
@@ -2828,7 +2823,7 @@ void SystemLayout::setInstrumentNames(System* system, LayoutContext& ctx, bool l
             continue;
         }
 
-        const std::list<StaffName>& names = longName ? part->longNames(tick) : part->shortNames(tick);
+        const StaffNameList& names = longName ? part->longNames(tick) : part->shortNames(tick);
 
         size_t idx = 0;
         for (const StaffName& sn : names) {
@@ -2947,6 +2942,17 @@ double SystemLayout::minDistance(const System* top, const System* bottom, const 
         dist = std::max(dist, sld);
     }
     return dist;
+}
+
+void SystemLayout::removeElementFromSkyline(EngravingItem* element, const System* system)
+{
+    Skyline& skyline = system->staff(element->staffIdx())->skyline();
+    bool isAbove = element->isArticulationFamily() ? toArticulation(element)->up() : element->placeAbove();
+    SkylineLine& skylineLine = isAbove ? skyline.north() : skyline.south();
+
+    skylineLine.remove_if([element](ShapeElement& shapeEl) {
+        return element == shapeEl.item();
+    });
 }
 
 void SystemLayout::updateSkylineForElement(EngravingItem* element, const System* system, double yMove)

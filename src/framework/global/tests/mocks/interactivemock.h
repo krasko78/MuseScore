@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore BVBA and others
+ * Copyright (C) 2021 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -54,7 +54,7 @@ public:
     MOCK_METHOD(async::Promise<Result>, error, (const std::string&, const Text&, const ButtonDatas&, int, const Options&,
                                                 const std::string&), (override));
 
-    MOCK_METHOD(void, showProgress, (const std::string&, Progress*), (override));
+    MOCK_METHOD(void, showProgress, (const std::string&, Progress), (override));
 
     MOCK_METHOD(async::Promise<io::path_t>, selectOpeningFile, (const std::string& title, const io::path_t& dir,
                                                                 const std::vector<std::string>& filter), (override));

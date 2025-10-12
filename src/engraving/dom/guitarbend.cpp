@@ -20,9 +20,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "../editing/editdata.h"
+#include "../editing/elementeditdata.h"
+
 #include "accidental.h"
 #include "chord.h"
-#include "editdata.h"
 #include "guitarbend.h"
 #include "note.h"
 #include "part.h"
@@ -627,22 +629,19 @@ bool GuitarBendSegment::isUserModified() const
     return modified || LineSegment::isUserModified();
 }
 
-Color GuitarBend::uiColor() const
+Color GuitarBend::curColor(const rendering::PaintOptions& opt) const
 {
-    if (score()->printing() || !MScore::warnGuitarBends) {
-        return curColor();
+    if (!opt.isPrinting && MScore::warnGuitarBends) {
+        if (m_isInvalid) {
+            return selected() ? configuration()->criticalSelectedColor() : configuration()->criticalColor();
+        }
+
+        if (m_isBorderlineUnplayable) {
+            return selected() ? configuration()->warningSelectedColor() : configuration()->warningColor();
+        }
     }
 
-    auto engravingConfig = configuration();
-    if (m_isInvalid) {
-        return selected() ? engravingConfig->criticalSelectedColor() : engravingConfig->criticalColor();
-    }
-
-    if (m_isBorderlineUnplayable) {
-        return selected() ? engravingConfig->warningSelectedColor() : engravingConfig->warningColor();
-    }
-
-    return curColor();
+    return EngravingItem::curColor(opt);
 }
 
 void GuitarBend::adaptBendsFromTabToStandardStaff(const Staff* staff)

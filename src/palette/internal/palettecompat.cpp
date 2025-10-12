@@ -146,6 +146,18 @@ void PaletteCompat::migrateOldPaletteCellIfNeeded(PaletteCell* cell, Score* pale
         return;
     }
 
+    if (item->isMarker()) {
+        Marker* marker = toMarker(item);
+        Marker* newMarker = marker->clone();
+
+        std::string label = newMarker->label().toStdString();
+        MarkerType mt = TConv::fromXml(label, MarkerType::USER);
+        newMarker->setMarkerType(mt);
+
+        cell->element.reset(newMarker);
+        return;
+    }
+
     if (item->isFretDiagram()) {
         FretDiagram* oldFretDiagram = toFretDiagram(item);
         String oldFretDiagramPattern = FretDiagram::patternFromDiagram(oldFretDiagram);

@@ -27,6 +27,12 @@
 
 #include "measure.h"
 
+#include "../editing/mscoreview.h"
+#include "../editing/editmeasures.h"
+#include "../editing/editstaff.h"
+#include "../editing/editsystemlocks.h"
+#include "../editing/inserttime.h"
+
 #include "accidental.h"
 #include "actionicon.h"
 #include "anchors.h"
@@ -49,7 +55,6 @@
 #include "measurenumber.h"
 #include "measurerepeat.h"
 #include "mmrestrange.h"
-#include "mscoreview.h"
 #include "note.h"
 #include "page.h"
 #include "part.h"
@@ -74,7 +79,6 @@
 #include "tremolotwochord.h"
 #include "tuplet.h"
 #include "tupletmap.h"
-#include "undo.h"
 #include "utils.h"
 
 #ifndef ENGRAVING_NO_ACCESSIBILITY
@@ -186,7 +190,7 @@ Measure::Measure(System* parent)
         m_mstaves.push_back(ms);
     }
     setIrregular(false);
-    m_noMode                = MeasureNumberMode::AUTO;
+    m_measureNumberMode                = MeasureNumberMode::AUTO;
     m_userStretch           = 1.0;
     m_breakMultiMeasureRest = false;
     m_mmRest                = nullptr;
@@ -205,7 +209,7 @@ Measure::Measure(const Measure& m)
     m_timesig     = m.m_timesig;
     m_len          = m.m_len;
     m_repeatCount = m.m_repeatCount;
-    m_noMode      = m.m_noMode;
+    m_measureNumberMode      = m.m_measureNumberMode;
     m_userStretch = m.m_userStretch;
 
     m_mstaves.reserve(m.m_mstaves.size());
@@ -553,7 +557,7 @@ double Measure::tick2pos(Fraction tck) const
 ///    Whether the measure will show measure number(s) when MeasureNumberMode is set to AUTO
 //---------------------------------------------------------
 
-bool Measure::showsMeasureNumberInAutoMode()
+bool Measure::showMeasureNumberInAutoMode()
 {
     // Check whether any measure number should be shown
     if (!style().styleB(Sid::showMeasureNumber)) {
@@ -594,19 +598,29 @@ bool Measure::showsMeasureNumberInAutoMode()
     }
 }
 
+bool Measure::showMeasureNumberOnStaff(staff_idx_t staffIdx)
+{
+    IF_ASSERT_FAILED(staffIdx < score()->nstaves()) {
+        return false;
+    }
+
+    return showMeasureNumber() && score()->staff(staffIdx)->shouldShowMeasureNumbers();
+}
+
 //---------------------------------------------------------
 //   showsMeasureNumber
 ///     Whether the Measure shows a MeasureNumber
 //---------------------------------------------------------
 
-bool Measure::showsMeasureNumber()
+bool Measure::showMeasureNumber()
 {
-    if (m_noMode == MeasureNumberMode::SHOW) {
+    switch (m_measureNumberMode) {
+    case MeasureNumberMode::AUTO:
+        return showMeasureNumberInAutoMode();
+    case MeasureNumberMode::SHOW:
         return true;
-    } else if (m_noMode == MeasureNumberMode::HIDE) {
+    case MeasureNumberMode::HIDE:
         return false;
-    } else {
-        return showsMeasureNumberInAutoMode();
     }
 }
 
@@ -1221,9 +1235,9 @@ void Measure::cmdAddStaves(staff_idx_t sStaff, staff_idx_t eStaff, bool createRe
         return;
     }
 
-    // create list of unique staves (only one instance for linked staves):
+    // collect unique staves (only one instance for linked staves):
 
-    std::list<staff_idx_t> sl;
+    std::vector<staff_idx_t> sl;
     for (staff_idx_t staffIdx = sStaff; staffIdx < eStaff; ++staffIdx) {
         Staff* s = score()->staff(staffIdx);
         if (s->links()) {
@@ -1786,7 +1800,7 @@ EngravingItem* Measure::drop(EditData& data)
             break;
         }
         case ActionIconType::SYSTEM_LOCK:
-            score()->makeIntoSystem(system()->first(), this);
+            EditSystemLocks::makeIntoSystem(score(), system()->first(), this);
             break;
         default:
             break;
@@ -1843,7 +1857,7 @@ void Measure::adjustToLen(Fraction nf, bool appendRestsIfNecessary)
     }
     Score* s      = score()->masterScore();
     Measure* m    = s->tick2measure(tick());
-    std::list<staff_idx_t> sl = s->uniqueStaves();
+    std::vector<staff_idx_t> sl = s->uniqueStaves();
 
     for (staff_idx_t staffIdx : sl) {
         int rests  = 0;
@@ -2120,7 +2134,7 @@ void Measure::scanElements(void* data, void (* func)(void*, EngravingItem*), boo
 
     for (staff_idx_t staffIdx = 0; staffIdx < nstaves; ++staffIdx) {
         MStaff* ms = m_mstaves[staffIdx];
-        if (ms->measureNumber()) {
+        if (ms->measureNumber() && showMeasureNumberOnStaff(staffIdx)) {
             func(data, ms->measureNumber());
         }
 
@@ -3529,7 +3543,9 @@ void Measure::setEndBarLineType(BarLineType val, track_idx_t track, bool visible
     bl->setGenerated(false);
     bl->setBarLineType(val);
     bl->setVisible(visible);
-    bl->setColor(color.isValid() ? color : curColor());
+    if (color.isValid()) {
+        bl->setColor(color);
+    }
 }
 
 //---------------------------------------------------------

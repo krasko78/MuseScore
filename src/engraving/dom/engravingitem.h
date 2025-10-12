@@ -28,6 +28,7 @@
 #include "modularity/ioc.h"
 #include "../iengravingconfiguration.h"
 #include "../rendering/iscorerenderer.h"
+#include "../rendering/paintoptions.h"
 
 #include "../infrastructure/ld_access.h"
 #include "../infrastructure/shape.h"
@@ -39,7 +40,8 @@
 
 #include "engravingobject.h"
 #include "elementgroup.h"
-#include "editdata.h"
+
+#include "../editing/editdata.h"
 
 namespace muse::draw {
 class Painter;
@@ -138,13 +140,7 @@ enum class KerningType : unsigned char
     ALLOW_COLLISION,
 };
 
-class EngravingItemList : public std::list<EngravingItem*>
-{
-    OBJECT_ALLOCATOR(engraving, EngravingItemList)
-public:
-
-    EngravingItem* at(size_t i) const;
-};
+using EngravingItemList = std::vector<EngravingItem*>;
 
 //-------------------------------------------------------------------
 //    @@ EngravingItem
@@ -357,9 +353,9 @@ public:
 
     virtual void setColor(const Color& c);
     virtual Color color() const;
-    virtual Color curColor() const;
-    Color curColor(bool isVisible) const;
-    Color curColor(bool isVisible, Color normalColor) const;
+    virtual Color curColor(const rendering::PaintOptions& opt) const;
+    Color curColor(bool isVisible, const rendering::PaintOptions& opt) const;
+    Color curColor(bool isVisible, Color normalColor, const rendering::PaintOptions& opt) const;
 
     void undoSetColor(const Color& c);
     void undoSetVisible(bool v);
@@ -485,9 +481,6 @@ public:
     virtual void triggerLayoutToEnd() const;
 
     double styleP(Sid idx) const;
-
-    bool colorsInversionEnabled() const;
-    void setColorsInversionEnabled(bool enabled);
 
     virtual void setParenthesesMode(const ParenthesesMode& v, bool addToLinked = true, bool generated = false);
     ParenthesesMode parenthesesMode() const;
@@ -743,8 +736,6 @@ private:
     Spatium m_minDistance;              // autoplace min distance
     mutable ElementFlags m_flags;
 
-    bool m_colorsInversionEnabled = true;
-
     bool m_excludeVerticalAlign = false;
 
     mutable LayoutData* m_layoutData = nullptr;
@@ -756,45 +747,6 @@ private:
 };
 
 using ElementPtr = std::shared_ptr<EngravingItem>;
-
-//-----------------------------------------------------------------------------
-//   ElementEditData
-//    holds element specific data during element editing:
-//
-//    startDragGrip(EditData&)    creates data and attaches it to EditData
-//         dragGrip(EditData&)
-//      endDragGrip(EditData&)    use data to create undo records
-//-----------------------------------------------------------------------------
-
-enum class EditDataType : signed char {
-    ElementEditData,
-    TextEditData,
-    BarLineEditData,
-    BeamEditData,
-    NoteEditData,
-};
-
-struct PropertyData {
-    Pid id;
-    PropertyValue data;
-    PropertyFlags f;
-};
-
-class ElementEditData
-{
-    OBJECT_ALLOCATOR(engraving, ElementEditData)
-public:
-    EngravingItem* e = nullptr;
-    std::vector<PropertyData> propertyData;
-
-    virtual ~ElementEditData() = default;
-    void pushProperty(Pid pid)
-    {
-        propertyData.emplace_back(PropertyData { pid, e->getProperty(pid), e->propertyFlags(pid) });
-    }
-
-    virtual EditDataType type() { return EditDataType::ElementEditData; }
-};
 
 //---------------------------------------------------------
 //   ElementList

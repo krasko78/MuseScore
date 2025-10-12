@@ -21,6 +21,7 @@
  */
 #include "abstractnotationpaintview.h"
 
+#include <QCursor>
 #include <QPainter>
 #include <QMimeData>
 
@@ -242,6 +243,7 @@ void AbstractNotationPaintView::onLoadNotation(INotationPtr)
     }
 
     m_notation->notationChanged().onNotify(this, [this]() {
+        updateLoopMarkers();
         updateShadowNoteVisibility();
         scheduleRedraw();
     });
@@ -295,7 +297,6 @@ void AbstractNotationPaintView::onLoadNotation(INotationPtr)
     });
 
     m_notation->viewModeChanged().onNotify(this, [this]() {
-        updateLoopMarkers();
         ensureViewportInsideScrollableArea();
     });
 
@@ -419,11 +420,13 @@ void AbstractNotationPaintView::updateLoopMarkers()
 
     const LoopBoundaries& loop = notationPlayback()->loopBoundaries();
 
-    m_loopInMarker->move(loop.loopInTick);
-    m_loopOutMarker->move(loop.loopOutTick);
-
     m_loopInMarker->setVisible(loop.enabled);
     m_loopOutMarker->setVisible(loop.enabled);
+
+    if (loop.enabled) {
+        m_loopInMarker->updatePosition(loop.loopInTick);
+        m_loopOutMarker->updatePosition(loop.loopOutTick);
+    }
 
     scheduleRedraw();
 }
@@ -499,6 +502,7 @@ void AbstractNotationPaintView::onNoteInputStateChanged()
     TRACEFUNC;
 
     setAcceptHoverEvents(isNoteEnterMode());
+    updateLoopMarkers();
     updateShadowNoteVisibility();
     scheduleRedraw();
 }
@@ -601,14 +605,20 @@ void AbstractNotationPaintView::hideElementPopup(const ElementType& elementType)
 {
     TRACEFUNC;
 
+    hideElementPopup(AbstractElementPopupModel::modelTypeFromElement(elementType));
+}
+
+void AbstractNotationPaintView::hideElementPopup(PopupModelType modelType)
+{
+    TRACEFUNC;
+
     if (m_currentElementPopupType == PopupModelType::TYPE_UNDEFINED) {
         // Popup is already hidden...
         return;
     }
 
-    const PopupModelType modelType = AbstractElementPopupModel::modelTypeFromElement(elementType);
-    // Hide the popup if the model type matches the currently open model type, or if no element type was specified...
-    if (modelType == m_currentElementPopupType || elementType == ElementType::INVALID) {
+    // Hide the popup if the model type matches the currently open model type, or if no element type was specified
+    if (modelType == m_currentElementPopupType || modelType == PopupModelType::TYPE_UNDEFINED) {
         m_currentElementPopupType = PopupModelType::TYPE_UNDEFINED;
         emit hideElementPopupRequested();
     }
@@ -677,7 +687,10 @@ void AbstractNotationPaintView::paint(QPainter* qp)
         nvCtx.yOffset = m_matrix.dy();
         nvCtx.scaling = currentScaling();
         nvCtx.fromLogical = [this](const PointF& pos) -> PointF { return fromLogical(pos); };
-        m_continuousPanel->paint(*painter, nvCtx);
+
+        engraving::rendering::PaintOptions opt;
+        opt.invertColors = engravingConfiguration()->scoreInversionEnabled();
+        m_continuousPanel->paint(*painter, nvCtx, opt);
     }
 }
 
@@ -1265,10 +1278,15 @@ bool AbstractNotationPaintView::event(QEvent* event)
 
     if (isContextMenuEvent) {
         QContextMenuEvent* contextMenuEvent = dynamic_cast<QContextMenuEvent*>(event);
+        if (contextMenuEvent && contextMenuEvent->reason() == QContextMenuEvent::Mouse
+            && m_inputController->ignoreNextMouseContextMenuEvent()) {
+            return true;
+        }
         QPointF pos = contextMenuEvent && !contextMenuEvent->pos().isNull()
                       ? mapFromGlobal(contextMenuEvent->globalPos())
                       : fromLogical(m_inputController->selectionElementPos()).toQPointF();
         showContextMenu(m_inputController->selectionType(), pos);
+        return true;
     } else if (eventType == QEvent::Type::ShortcutOverride) {
         bool shouldOverrideShortcut = shortcutOverride(keyEvent);
 

@@ -1893,6 +1893,7 @@ void TRead::read(BagpipeEmbellishment* b, XmlReader& e, ReadContext&)
 
 void TRead::read(BarLine* b, XmlReader& e, ReadContext& ctx)
 {
+    // initialize span properties with staff values
     b->resetProperty(Pid::BARLINE_SPAN);
     b->resetProperty(Pid::BARLINE_SPAN_FROM);
     b->resetProperty(Pid::BARLINE_SPAN_TO);
@@ -3065,7 +3066,7 @@ bool TRead::readProperties(Note* n, XmlReader& e, ReadContext& ctx)
     const AsciiStringView tag(e.name());
 
     if (tag == "pitch") {
-        n->setPitch(std::clamp(e.readInt(), 0, 127), false);
+        n->setPitch(clampPitch(e.readInt()), false);
     } else if (tag == "tpc") {
         int tcp = e.readInt();
         n->setTpc1(tcp);
@@ -3572,20 +3573,13 @@ bool TRead::readProperties(SLine* l, XmlReader& e, ReadContext& ctx)
         ls->setVisible(l->visible());
     } else if (tag == "length") {
         l->setLen(e.readDouble());
-    } else if (tag == "diagonal") {
-        l->setDiagonal(e.readInt());
-    } else if (tag == "anchor") {
-        l->setAnchor(SLine::Anchor(e.readInt()));
-    } else if (tag == "lineWidth") {
-        l->setLineWidth(Spatium(e.readDouble()));
+    } else if (TRead::readProperty(l, tag, e, ctx, Pid::DIAGONAL)) {
+    } else if (TRead::readProperty(l, tag, e, ctx, Pid::ANCHOR)) {
+    } else if (TRead::readProperty(l, tag, e, ctx, Pid::LINE_WIDTH)) {
     } else if (TRead::readProperty(l, tag, e, ctx, Pid::LINE_STYLE)) {
-    } else if (tag == "dashLineLength") {
-        l->setDashLineLen(e.readDouble());
-    } else if (tag == "dashGapLength") {
-        l->setDashGapLen(e.readDouble());
-    } else if (tag == "lineColor") {
-        l->setLineColor(e.readColor());
-    } else if (tag == "color") {
+    } else if (TRead::readProperty(l, tag, e, ctx, Pid::DASH_LINE_LEN)) {
+    } else if (TRead::readProperty(l, tag, e, ctx, Pid::DASH_GAP_LEN)) {
+    } else if (tag == "lineColor" || tag == "color") {
         l->setLineColor(e.readColor());
     } else if (!readProperties(static_cast<Spanner*>(l), e, ctx)) {
         return false;
@@ -3857,7 +3851,16 @@ bool TRead::readProperties(Staff* s, XmlReader& e, ReadContext& ctx, StaffHideMo
         s->setBracketVisible(col, static_cast<bool>(e.intAttribute("visible", 1)));
         e.readNext();
     } else if (tag == "barLineSpan") {
-        s->setBarLineSpan(e.readInt());
+        const int barLineSpan = e.readInt();
+        if (barLineSpan < 0) {
+            LOGW() << "barLineSpan is negative: " << barLineSpan;
+            s->setBarLineSpan(false);
+        } else if (barLineSpan > 1) {
+            LOGW() << "barLineSpan is > 1: " << barLineSpan;
+            s->setBarLineSpan(true);
+        } else {
+            s->setBarLineSpan(static_cast<bool>(barLineSpan));
+        }
     } else if (tag == "barLineSpanFrom") {
         s->setBarLineFrom(e.readInt());
     } else if (tag == "barLineSpanTo") {

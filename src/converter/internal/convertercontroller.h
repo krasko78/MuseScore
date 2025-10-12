@@ -21,7 +21,7 @@
  */
 #pragma once
 
-#include <list>
+#include <vector>
 
 #include "../iconvertercontroller.h"
 
@@ -69,7 +69,7 @@ public:
     muse::Ret exportScoreElements(const muse::io::path_t& in, const muse::io::path_t& out, const std::string& optionsJson,
                                   const OpenParams& openParams = {}) override;
 
-    muse::Ret exportScoreVideo(const muse::io::path_t& in, const muse::io::path_t& out) override;
+    muse::Ret exportScoreVideo(const muse::io::path_t& in, const muse::io::path_t& out, const OpenParams& openParams = {}) override;
 
     muse::Ret updateSource(const muse::io::path_t& in, const std::string& newSource, bool forceMode = false) override;
 
@@ -82,7 +82,7 @@ private:
         std::optional<size_t> pageNum;
     };
 
-    using BatchJob = std::list<Job>;
+    using BatchJob = std::vector<Job>;
 
     muse::RetVal<BatchJob> parseBatchJob(const muse::io::path_t& batchJobFile) const;
 

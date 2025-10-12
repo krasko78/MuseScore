@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore BVBA and others
+ * Copyright (C) 2021 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -38,7 +38,18 @@ NavigationControl::~NavigationControl()
 {
     if (m_panel) {
         m_panel->removeControl(this);
-        setAccessibleParent(nullptr);
+    }
+}
+
+void NavigationControl::componentComplete()
+{
+    if (isComponentCompleted()) {
+        return;
+    }
+
+    if (m_panel) {
+        m_panel->componentComplete();
+        AbstractNavigation::componentComplete();
     }
 }
 
@@ -148,14 +159,18 @@ void NavigationControl::setPanel(NavigationPanel* panel)
 
     m_panel = panel;
 
+    setAccessibleParent(m_panel ? m_panel->accessible() : nullptr);
+
     if (m_panel) {
         m_panel->addControl(this);
         connect(m_panel, &NavigationPanel::destroyed, this, &NavigationControl::onPanelDestroyed);
+
+        if (!isComponentCompleted()) {
+            AbstractNavigation::componentComplete();
+        }
     }
 
     emit panelChanged(m_panel);
-
-    setAccessibleParent(m_panel ? m_panel->accessible() : nullptr);
 }
 
 void NavigationControl::onPanelDestroyed()

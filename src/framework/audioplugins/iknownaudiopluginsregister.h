@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore BVBA and others
+ * Copyright (C) 2021 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -23,6 +23,7 @@
 
 #include "modularity/imoduleinterface.h"
 
+#include "global/async/notification.h"
 #include "global/types/ret.h"
 #include "global/io/path.h"
 
@@ -41,6 +42,7 @@ public:
     using PluginInfoAccepted = std::function<bool (const AudioPluginInfo& info)>;
 
     virtual std::vector<AudioPluginInfo> pluginInfoList(PluginInfoAccepted accepted = PluginInfoAccepted()) const = 0;
+    virtual muse::async::Notification pluginInfoListChanged() const = 0;
     virtual const io::path_t& pluginPath(const audio::AudioResourceId& resourceId) const = 0;
 
     virtual bool exists(const io::path_t& pluginPath) const = 0;

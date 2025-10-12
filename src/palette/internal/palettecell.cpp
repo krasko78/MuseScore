@@ -115,9 +115,6 @@ const char* PaletteCell::translationContext() const
     case ElementType::DYNAMIC:
         return "engraving/dynamictype";
     case ElementType::HAIRPIN:
-        if (name == u"Dynamic + hairpin") {
-            return "palette";
-        }
         return "engraving/hairpintype";
     case ElementType::LAYOUT_BREAK:
         return "engraving/layoutbreaktype";
@@ -136,6 +133,8 @@ const char* PaletteCell::translationContext() const
     case ElementType::ORNAMENT:
     case ElementType::SYMBOL:
         return "engraving/sym";
+    case ElementType::PLAYTECH_ANNOTATION:
+        return "engraving/playtechtype";
     case ElementType::TIMESIG:
         return "engraving/timesig";
     case ElementType::TREMOLO_SINGLECHORD:

@@ -24,15 +24,16 @@
 
 #include "containers.h"
 #include "translation.h"
-#include "types/translatablestring.h"
 
 #include "draw/fontmetrics.h"
 #include "draw/types/brush.h"
 #include "draw/types/pen.h"
 
+#include "../editing/textedit.h"
+#include "../editing/undo.h"
+
 #include "chordlist.h"
 #include "fret.h"
-#include "line.h"
 #include "linkedobjects.h"
 #include "measure.h"
 #include "mscore.h"
@@ -44,11 +45,9 @@
 #include "segment.h"
 #include "staff.h"
 #include "textbase.h"
-#include "textedit.h"
 #include "utils.h"
 
 #include "log.h"
-#include "undo.h"
 
 using namespace mu;
 using namespace muse::draw;
@@ -1120,13 +1119,13 @@ const ParsedChord* Harmony::parsedForm()const
     return m_chords.front()->getParsedChord();
 }
 
-Color Harmony::curColor() const
+Color Harmony::curColor(const rendering::PaintOptions& opt) const
 {
-    if (m_isMisspelled) {
+    if (!opt.isPrinting && m_isMisspelled) {
         return configuration()->criticalColor();
     }
 
-    return EngravingItem::curColor();
+    return EngravingItem::curColor(opt);
 }
 
 void Harmony::setColor(const Color& color)

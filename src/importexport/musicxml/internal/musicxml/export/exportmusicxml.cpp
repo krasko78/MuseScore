@@ -24,10 +24,6 @@
  MusicXML export.
  */
 
-// TODO: trill lines need to be handled the same way as slurs
-// in MuseScore they are measure level elements, while in MusicXML
-// they are attached to notes (as ornaments)
-
 //=========================================================
 //  LVI FIXME
 //
@@ -76,8 +72,8 @@
 #include "engraving/dom/glissando.h"
 #include "engraving/dom/gradualtempochange.h"
 #include "engraving/dom/guitarbend.h"
-#include "engraving/dom/hammeronpulloff.h"
 #include "engraving/dom/hairpin.h"
+#include "engraving/dom/hammeronpulloff.h"
 #include "engraving/dom/harmonicmark.h"
 #include "engraving/dom/harmony.h"
 #include "engraving/dom/harppedaldiagram.h"
@@ -125,10 +121,10 @@
 #include "engraving/dom/tremolotwochord.h"
 #include "engraving/dom/trill.h"
 #include "engraving/dom/tuplet.h"
-#include "engraving/dom/undo.h"
 #include "engraving/dom/utils.h"
 #include "engraving/dom/volta.h"
 #include "engraving/dom/whammybar.h"
+#include "engraving/editing/undo.h"
 
 #include "../shared/musicxmlfonthandler.h"
 #include "../shared/musicxmlsupport.h"
@@ -8883,45 +8879,43 @@ void ExportMusicXml::harmony(Harmony const* const h, FretDiagram const* const fd
                 }
 
                 StringList l = harmonyXmlDegrees(info);
-                if (!l.empty()) {
-                    for (const String& tag : l) {
-                        String degreeText;
-                        if (xmlKind.startsWith(u"suspended")
-                            && tag.startsWith(u"add") && tag.at(3).isDigit()
-                            && !kindText.isEmpty() && kindText.at(0).isDigit()) {
-                            // hack to correct text for suspended chords whose kind text has degree information baked in
-                            // (required by some other applications)
-                            int tagDegree = tag.mid(3).toInt();
-                            String kindTextExtension;
-                            for (size_t i = 0; i < kindText.size() && kindText.at(i).isDigit(); ++i) {
-                                kindTextExtension[i] = kindText[i];
-                            }
-                            int kindExtension = kindTextExtension.toInt();
-                            if (tagDegree <= kindExtension && (tagDegree & 1) && (kindExtension & 1)) {
-                                degreeText = u" text=\"\"";
-                            }
+                for (const String& tag : l) {
+                    String degreeText;
+                    if (xmlKind.startsWith(u"suspended")
+                        && tag.startsWith(u"add") && tag.at(3).isDigit()
+                        && !kindText.isEmpty() && kindText.at(0).isDigit()) {
+                        // hack to correct text for suspended chords whose kind text has degree information baked in
+                        // (required by some other applications)
+                        int tagDegree = tag.mid(3).toInt();
+                        String kindTextExtension;
+                        for (size_t i = 0; i < kindText.size() && kindText.at(i).isDigit(); ++i) {
+                            kindTextExtension[i] = kindText[i];
                         }
-                        m_xml.startElement("degree");
-                        alter = 0;
-                        int idx = 3;
-                        if (tag[idx] == '#') {
-                            alter = 1;
-                            ++idx;
-                        } else if (tag[idx] == 'b') {
-                            alter = -1;
-                            ++idx;
+                        int kindExtension = kindTextExtension.toInt();
+                        if (tagDegree <= kindExtension && (tagDegree & 1) && (kindExtension & 1)) {
+                            degreeText = u" text=\"\"";
                         }
-                        m_xml.tagRaw(String(u"degree-value%1").arg(degreeText), tag.mid(idx));
-                        m_xml.tag("degree-alter", alter);               // finale insists on this even if 0
-                        if (tag.startsWith(u"add")) {
-                            m_xml.tagRaw(String(u"degree-type%1").arg(degreeText), "add");
-                        } else if (tag.startsWith(u"sub")) {
-                            m_xml.tag("degree-type", "subtract");
-                        } else if (tag.startsWith(u"alt")) {
-                            m_xml.tag("degree-type", "alter");
-                        }
-                        m_xml.endElement();
                     }
+                    m_xml.startElement("degree");
+                    alter = 0;
+                    int idx = 3;
+                    if (tag[idx] == '#') {
+                        alter = 1;
+                        ++idx;
+                    } else if (tag[idx] == 'b') {
+                        alter = -1;
+                        ++idx;
+                    }
+                    m_xml.tagRaw(String(u"degree-value%1").arg(degreeText), tag.mid(idx));
+                    m_xml.tag("degree-alter", alter);               // finale insists on this even if 0
+                    if (tag.startsWith(u"add")) {
+                        m_xml.tagRaw(String(u"degree-type%1").arg(degreeText), "add");
+                    } else if (tag.startsWith(u"sub")) {
+                        m_xml.tag("degree-type", "subtract");
+                    } else if (tag.startsWith(u"alt")) {
+                        m_xml.tag("degree-type", "alter");
+                    }
+                    m_xml.endElement();
                 }
             } else {
                 if (info->textName().empty()) {

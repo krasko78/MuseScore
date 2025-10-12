@@ -379,6 +379,13 @@ void TWrite::writeItems(const ElementList& items, XmlWriter& xml, WriteContext& 
     }
 }
 
+//-----------------------------------------------------------------------------
+//   writeProperty
+//
+//    - styled properties are never written
+//    - other properties are written if forced or if different from default value
+//-----------------------------------------------------------------------------
+
 void TWrite::writeProperty(const EngravingItem* item, XmlWriter& xml, Pid pid, bool force)
 {
     if (item->isStyled(pid)) {
@@ -389,8 +396,7 @@ void TWrite::writeProperty(const EngravingItem* item, XmlWriter& xml, Pid pid, b
         LOGD("%s invalid property %d <%s>", item->typeName(), int(pid), propertyName(pid));
         return;
     }
-    PropertyFlags f = item->propertyFlags(pid);
-    PropertyValue d = !force && (f != PropertyFlags::STYLED) ? item->propertyDefault(pid) : PropertyValue();
+    PropertyValue d = force ? PropertyValue() : item->propertyDefault(pid);
 
     if (pid == Pid::FONT_STYLE) {
         FontStyle ds = FontStyle(d.isValid() ? d.toInt() : 0);
@@ -1951,20 +1957,20 @@ void TWrite::write(const Instrument* item, XmlWriter& xml, WriteContext&, const 
         xml.tag("soundId", item->soundId());
     }
 
-    write(&item->longNames(), xml, "longName");
-    write(&item->shortNames(), xml, "shortName");
+    write(item->longNames(), xml, "longName");
+    write(item->shortNames(), xml, "shortName");
 //      if (!_trackName.empty())
     xml.tag("trackName", item->trackName());
-    if (item->minPitchP() > 0) {
+    if (item->minPitchP() > MIN_PITCH) {
         xml.tag("minPitchP", item->minPitchP());
     }
-    if (item->maxPitchP() < 127) {
+    if (item->maxPitchP() < MAX_PITCH) {
         xml.tag("maxPitchP", item->maxPitchP());
     }
-    if (item->minPitchA() > 0) {
+    if (item->minPitchA() > MIN_PITCH) {
         xml.tag("minPitchA", item->minPitchA());
     }
-    if (item->maxPitchA() < 127) {
+    if (item->maxPitchA() < MAX_PITCH) {
         xml.tag("maxPitchA", item->maxPitchA());
     }
     if (item->transpose().diatonic) {
@@ -2129,21 +2135,21 @@ void TWrite::write(const MidiArticulation* item, XmlWriter& xml)
     xml.endElement();
 }
 
-void TWrite::write(const StaffName* item, XmlWriter& xml, const char* tag)
+void TWrite::write(const StaffName& item, XmlWriter& xml, const char* tag)
 {
-    if (!item->name().isEmpty()) {
-        if (item->pos() == 0) {
-            xml.writeXml(String::fromUtf8(tag), item->name());
+    if (!item.name().isEmpty()) {
+        if (item.pos() == 0) {
+            xml.writeXml(String::fromUtf8(tag), item.name());
         } else {
-            xml.writeXml(String(u"%1 pos=\"%2\"").arg(String::fromUtf8(tag)).arg(item->pos()), item->name());
+            xml.writeXml(String(u"%1 pos=\"%2\"").arg(String::fromUtf8(tag)).arg(item.pos()), item.name());
         }
     }
 }
 
-void TWrite::write(const StaffNameList* item, XmlWriter& xml, const char* name)
+void TWrite::write(const StaffNameList& item, XmlWriter& xml, const char* name)
 {
-    for (const StaffName& sn : *item) {
-        write(&sn, xml, name);
+    for (const StaffName& sn : item) {
+        write(sn, xml, name);
     }
 }
 
@@ -2805,11 +2811,19 @@ void TWrite::write(const Staff* item, XmlWriter& xml, WriteContext& ctx)
     for (const BracketItem* i : item->brackets()) {
         BracketType a = i->bracketType();
         size_t b = i->bracketSpan();
-        size_t c = i->column();
-        bool v = i->visible();
-        if (a != BracketType::NO_BRACKET || b > 0) {
-            xml.tag("bracket", { { "type", static_cast<int>(a) }, { "span", b }, { "col", c }, { "visible", v } });
+        if (a == BracketType::NO_BRACKET || b == 0) {
+            continue;
         }
+        XmlWriter::Attributes attrs = {
+            { "type", static_cast<int>(a) },
+            { "span", b },
+            { "col", i->column() },
+            { "visible", i->visible() }
+        };
+        if (i->color() != ctx.configuration()->defaultColor()) {
+            attrs.push_back({ "color", String::fromStdString(i->color().toString()) });
+        }
+        xml.tag("bracket", attrs);
     }
 
     writeProperty(item, xml, Pid::STAFF_BARLINE_SPAN);
@@ -3449,7 +3463,7 @@ void TWrite::writeSegments(XmlWriter& xml, WriteContext& ctx, track_idx_t strack
         }
     }
 
-    std::list<Spanner*> spanners;
+    std::vector<Spanner*> spanners;
     auto sl = score->spannerMap().findOverlapping(sseg->tick().ticks(), endTick.ticks());
     for (auto i : sl) {
         Spanner* s = i.value;

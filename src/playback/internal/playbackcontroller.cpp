@@ -5,7 +5,7 @@
  * MuseScore Studio
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore Limited
+ * Copyright (C) 2025 MuseScore Limited
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -32,7 +32,6 @@
 
 #include "containers.h"
 #include "defer.h"
-#include "async/async.h"
 #include "log.h"
 
 using namespace muse;
@@ -168,7 +167,7 @@ void PlaybackController::updateCurrentTempo()
 
 bool PlaybackController::isPlayAllowed() const
 {
-    bool allowed = m_notation != nullptr && m_notation->hasVisibleParts() && isLoaded();
+    bool allowed = m_currentSequenceId != -1 && m_notation != nullptr && m_notation->hasVisibleParts() && isLoaded();
     return allowed;
 }
 
@@ -299,13 +298,12 @@ Promise<SoundPresetList> PlaybackController::availableSoundPresets(const Instrum
     return playback()->availableSoundPresets(params.resourceMeta);
 }
 
-mu::notation::INotationSoloMuteState::SoloMuteState PlaybackController::trackSoloMuteState(const InstrumentTrackId& trackId) const
+const PlaybackController::SoloMuteState& PlaybackController::trackSoloMuteState(const InstrumentTrackId& trackId) const
 {
     return m_notation->soloMuteState()->trackSoloMuteState(trackId);
 }
 
-void PlaybackController::setTrackSoloMuteState(const InstrumentTrackId& trackId,
-                                               const notation::INotationSoloMuteState::SoloMuteState& state)
+void PlaybackController::setTrackSoloMuteState(const InstrumentTrackId& trackId, const SoloMuteState& state)
 {
     if (trackId == notationPlayback()->metronomeTrackId()) {
         if (state.mute != notationConfiguration()->isMetronomeEnabled()) {
@@ -334,12 +332,17 @@ void PlaybackController::playElements(const std::vector<const notation::Engravin
     }
 
     std::vector<const notation::EngravingItem*> elementsForPlaying;
+    elementsForPlaying.reserve(elements.size());
 
     bool playChordWhenEditing = configuration()->playChordWhenEditing();
     bool playHarmonyWhenEditing = configuration()->playHarmonyWhenEditing();
 
     for (const EngravingItem* element : elements) {
         IF_ASSERT_FAILED(element) {
+            continue;
+        }
+
+        if (!element->isPlayable()) {
             continue;
         }
 
@@ -367,6 +370,7 @@ void PlaybackController::playNotes(const NoteValList& notes, staff_idx_t staffId
     chord->setParent(seg);
 
     std::vector<const EngravingItem*> elements;
+    elements.reserve(notes.size());
 
     for (const NoteVal& nval : notes) {
         Note* note = engraving::Factory::createNote(chord);
@@ -717,7 +721,7 @@ secs_t PlaybackController::playbackStartSecs() const
     const LoopBoundaries& loop = notationPlayback()->loopBoundaries();
     if (loop.enabled) {
         // Convert from raw ticks (visual tick != playback tick due to repeats etc)
-        RetVal<tick_t> startTick = notationPlayback()->playPositionTickByRawTick(loop.loopInTick);
+        RetVal<tick_t> startTick = notationPlayback()->playPositionTickByRawTick(loop.loopInTick.ticks());
         if (!startTick.ret) {
             return 0;
         }
@@ -903,8 +907,8 @@ void PlaybackController::updateLoop()
     }
 
     // Convert from raw ticks (visual tick != playback tick due to repeats etc)
-    RetVal<tick_t> playbackTickFrom = notationPlayback()->playPositionTickByRawTick(boundaries.loopInTick);
-    RetVal<tick_t> playbackTickTo = notationPlayback()->playPositionTickByRawTick(boundaries.loopOutTick);
+    RetVal<tick_t> playbackTickFrom = notationPlayback()->playPositionTickByRawTick(boundaries.loopInTick.ticks());
+    RetVal<tick_t> playbackTickTo = notationPlayback()->playPositionTickByRawTick(boundaries.loopOutTick.ticks());
     if (!playbackTickFrom.ret || !playbackTickTo.ret) {
         return;
     }
@@ -1068,8 +1072,8 @@ void PlaybackController::doAddTrack(const InstrumentTrackId& instrumentTrackId, 
     uint64_t playbackKey = notationPlaybackKey();
 
     playback()->addTrack(m_currentSequenceId, title, std::move(playbackData), { std::move(inParams), std::move(outParams) })
-    .onResolve(this, [this, instrumentTrackId, playbackKey, onFinished, originMeta](const TrackId trackId,
-                                                                                    const AudioParams& appliedParams) {
+    .onResolve(this, [this, title, instrumentTrackId, playbackKey, onFinished, originMeta](const TrackId trackId,
+                                                                                           const AudioParams& appliedParams) {
         //! NOTE It may be that while we were adding a track, the notation was already closed (or opened another)
         //! This situation can be if the notation was opened and immediately closed.
         if (notationPlaybackKey() != playbackKey) {
@@ -1597,7 +1601,7 @@ void PlaybackController::updateSoloMuteStates()
         }
 
         // 1. Recall the solo-mute state for this notation
-        auto soloMuteState = m_notation->soloMuteState()->trackSoloMuteState(instrumentTrackId);
+        const auto& soloMuteState = m_notation->soloMuteState()->trackSoloMuteState(instrumentTrackId);
 
         // 2. Evaluate "force mute" (disabling the mute button)
         bool shouldForceMute = hasSolo && !soloMuteState.solo;

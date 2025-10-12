@@ -24,8 +24,9 @@
 
 #include <climits>
 
-#include "undo.h"
+#include "../editing/editsoundflag.h"
 #include "linkedobjects.h"
+#include "score.h"
 
 using namespace muse::draw;
 using namespace mu::engraving;
@@ -235,7 +236,7 @@ void SoundFlag::setIconFontSize(double size)
 
 Color SoundFlag::iconBackgroundColor() const
 {
-    Color color = curColor(true);
+    Color color = curColor(true, {});
     if (!selected()) {
         color = Color("#CFD5DD");
         color.setAlpha(128);

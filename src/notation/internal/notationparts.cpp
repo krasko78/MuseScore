@@ -21,14 +21,21 @@
  */
 #include "notationparts.h"
 
-#include "dom/barline.h"
 #include "translation.h"
 
-#include "engraving/dom/factory.h"
-#include "engraving/dom/undo.h"
+#include "engraving/dom/barline.h"
 #include "engraving/dom/excerpt.h"
+#include "engraving/dom/factory.h"
+#include "engraving/dom/instrchange.h"
+#include "engraving/dom/instrument.h"
 #include "engraving/dom/page.h"
 #include "engraving/dom/utils.h"
+#include "engraving/editing/addremoveelement.h"
+#include "engraving/editing/editexcerpt.h"
+#include "engraving/editing/editpart.h"
+#include "engraving/editing/editscoreproperties.h"
+#include "engraving/editing/editstaff.h"
+#include "engraving/editing/editsystemlocks.h"
 
 #include "igetscore.h"
 
@@ -282,7 +289,7 @@ void NotationParts::setPartVisible(const ID& partId, bool visible)
     part->undoChangeProperty(mu::engraving::Pid::VISIBLE, visible);
 
     if (visible) {
-        score()->removeSystemLocksContainingMMRests();
+        EditSystemLocks::removeSystemLocksContainingMMRests(score());
     }
 
     apply();
@@ -430,7 +437,7 @@ void NotationParts::setInstrumentName(const InstrumentKey& instrumentKey, const 
         return;
     }
 
-    std::list<StaffName> newNames { StaffName(name, 0) };
+    StaffNameList newNames { StaffName(name, 0) };
     if (instrument->longNames() == newNames) {
         return;
     }
@@ -534,7 +541,7 @@ void NotationParts::setStaffVisible(const ID& staffId, bool visible)
     doSetStaffConfig(staff, config);
 
     if (visible) {
-        score()->removeSystemLocksContainingMMRests();
+        EditSystemLocks::removeSystemLocksContainingMMRests(score());
     }
 
     apply();
@@ -668,7 +675,7 @@ void NotationParts::insertPart(Part* part, size_t index)
 
     startEdit(TranslatableString("undoableAction", "Add instrument"));
 
-    score()->removeSystemLocksContainingMMRests();
+    EditSystemLocks::removeSystemLocksContainingMMRests(score());
 
     doInsertPart(part, index);
 
@@ -1300,8 +1307,8 @@ void NotationParts::insertNewParts(const PartInstrumentList& parts, const mu::en
         }
 
         Instrument instrument = Instrument::fromTemplate(&pi.instrumentTemplate);
-        const std::list<StaffName>& longNames = instrument.longNames();
-        const std::list<StaffName>& shortNames = instrument.shortNames();
+        const StaffNameList& longNames = instrument.longNames();
+        const StaffNameList& shortNames = instrument.shortNames();
 
         Part* part = new Part(score());
         part->setSoloist(pi.isSoloist);

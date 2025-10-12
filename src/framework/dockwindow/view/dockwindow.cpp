@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore BVBA and others
+ * Copyright (C) 2021 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -251,12 +251,10 @@ void DockWindow::loadPage(const QString& uri, const QVariantMap& params)
     if (isFirstOpening) {
         async::Async::call(this, [this, notifyAboutPageLoaded]() {
             if (!m_hasGeometryBeenRestored
-                || (m_mainWindow->windowHandle()->windowStates() & QWindow::FullScreen)) {
+                || (m_mainWindow->windowHandle()->windowStates() & Qt::WindowFullScreen)) {
                 //! NOTE: show window as maximized if no geometry has been restored
                 //! or if the user had closed app in FullScreen mode
                 m_mainWindow->windowHandle()->showMaximized();
-            } else {
-                m_mainWindow->windowHandle()->setVisible(true);
             }
 
             notifyAboutPageLoaded();
@@ -483,7 +481,7 @@ void DockWindow::addPanelAsTab(DockPanelView* panel, DockPanelView* destinationP
 {
     registerDock(panel);
 
-    if (panel->isVisible()) {
+    if (panel->defaultVisibility()) {
         destinationPanel->addPanelAsTab(panel);
         destinationPanel->setCurrentTabIndex(0);
     }

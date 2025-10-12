@@ -83,6 +83,8 @@ void CommandLineParser::init()
 
     m_parser.addOption(QCommandLineOption("session-type", "Startup with given session type", "type")); // see StartupScenario::sessionTypeTromString
 
+    m_parser.addOption(QCommandLineOption("unroll-repeats", "Unroll repeats"));
+
     // Converter mode
     m_parser.addOption(QCommandLineOption({ "r", "image-resolution" }, "Set output resolution for image export", "DPI"));
     m_parser.addOption(QCommandLineOption({ "o", "export-to" }, "Export to 'file'. Format depends on file's extension", "file"));
@@ -133,7 +135,7 @@ void CommandLineParser::init()
                                           "Infer text type based on content where possible"));
 
     // Video export
-#ifdef MUE_BUILD_VIDEOEXPORT_MODULE
+#ifdef MUE_BUILD_IMPEXP_VIDEOEXPORT_MODULE
     m_parser.addOption(QCommandLineOption("score-video", "Generate video for the given score and export it to file"));
 // not implemented
 //    m_parser.addOption(QCommandLineOption("view-mode",
@@ -398,7 +400,7 @@ void CommandLineParser::parse(int argc, char** argv)
     }
 
     // Video
-#ifdef MUE_BUILD_VIDEOEXPORT_MODULE
+#ifdef MUE_BUILD_IMPEXP_VIDEOEXPORT_MODULE
     if (m_parser.isSet("score-video")) {
         m_options.runMode = IApplication::RunMode::ConsoleApp;
         m_options.converterTask.type = ConvertType::ExportScoreVideo;
@@ -441,6 +443,10 @@ void CommandLineParser::parse(int argc, char** argv)
 
     if (m_parser.isSet("f")) {
         m_options.converterTask.params[CmdOptions::ParamKey::ForceMode] = true;
+    }
+
+    if (m_parser.isSet("unroll-repeats")) {
+        m_options.converterTask.params[CmdOptions::ParamKey::UnrollRepeats] = true;
     }
 
     if (m_parser.isSet("S")) {
@@ -547,26 +553,6 @@ IApplication::RunMode CommandLineParser::runMode() const
 const CmdOptions& CommandLineParser::options() const
 {
     return m_options;
-}
-
-CmdOptions::ConverterTask CommandLineParser::converterTask() const
-{
-    return m_options.converterTask;
-}
-
-CmdOptions::Diagnostic CommandLineParser::diagnostic() const
-{
-    return m_options.diagnostic;
-}
-
-CmdOptions::Autobot CommandLineParser::autobot() const
-{
-    return m_options.autobot;
-}
-
-CmdOptions::AudioPluginRegistration CommandLineParser::audioPluginRegistration() const
-{
-    return m_options.audioPluginRegistration;
 }
 
 void CommandLineParser::printLongVersion() const

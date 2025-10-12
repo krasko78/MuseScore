@@ -27,6 +27,7 @@
 #include "modularity/ioc.h"
 #include "async/asyncable.h"
 #include "iinteractive.h"
+#include "engraving/iengravingconfiguration.h"
 #include "engraving/rendering/isinglerenderer.h"
 #include "engraving/rendering/ieditmoderenderer.h"
 
@@ -37,6 +38,7 @@
 
 #include "engraving/dom/engravingitem.h"
 #include "engraving/dom/elementgroup.h"
+#include "engraving/rendering/paintoptions.h"
 #include "engraving/types/symid.h"
 #include "scorecallbacks.h"
 
@@ -57,6 +59,7 @@ class NotationInteraction : public INotationInteraction, public muse::Injectable
     muse::Inject<INotationConfiguration> configuration = { this };
     muse::Inject<ISelectInstrumentsScenario> selectInstrumentScenario = { this };
     muse::Inject<muse::IInteractive> interactive = { this };
+    muse::Inject<engraving::IEngravingConfiguration> engravingConfiguration = { this };
     muse::Inject<engraving::rendering::ISingleRenderer> engravingRenderer = { this };
     muse::Inject<engraving::rendering::IEditModeRenderer> editModeRenderer = { this };
     muse::Inject<appshell::IAppShellConfiguration> appshellConfiguration = { this }; // krasko
@@ -64,7 +67,7 @@ class NotationInteraction : public INotationInteraction, public muse::Injectable
 public:
     NotationInteraction(Notation* notation, INotationUndoStackPtr undoStack);
 
-    void paint(muse::draw::Painter* painter);
+    void paint(muse::draw::Painter* painter, const engraving::rendering::PaintOptions& opt);
 
     // Put notes
     INotationNoteInputPtr noteInput() const override;
@@ -90,6 +93,7 @@ public:
     void moveChordNoteSelection(MoveDirection d) override;
     void select(const std::vector<EngravingItem*>& elements, SelectType type = SelectType::REPLACE,
                 engraving::staff_idx_t staffIndex = 0) override;
+    void selectAndStartEditIfNeeded(EngravingItem* element) override;
     void selectAll() override;
     void selectSection() override;
     void selectFirstElement(bool frame = false) override;
@@ -374,7 +378,6 @@ private:
 
     void doSelect(const std::vector<EngravingItem*>& elements, SelectType type, engraving::staff_idx_t staffIndex = 0);
     void selectElementsWithSameTypeOnSegment(mu::engraving::ElementType elementType, mu::engraving::Segment* segment);
-    void selectAndStartEditIfNeeded(EngravingItem* element);
 
     void notifyAboutDragChanged();
     void notifyAboutDropChanged();
@@ -420,13 +423,13 @@ private:
     std::vector<ShadowNoteParams> previewNotes() const;
 
     bool shouldDrawInputPreview() const;
-    void drawInputPreview(muse::draw::Painter* painter);
+    void drawInputPreview(muse::draw::Painter* painter, const engraving::rendering::PaintOptions& opt);
 
     void drawAnchorLines(muse::draw::Painter* painter);
-    void drawTextEditMode(muse::draw::Painter* painter);
+    void drawTextEditMode(muse::draw::Painter* painter, const engraving::rendering::PaintOptions& opt);
     void drawSelectionRange(muse::draw::Painter* painter);
-    void drawGripPoints(muse::draw::Painter* painter);
-    void drawLasso(muse::draw::Painter* painter);
+    void drawGripPoints(muse::draw::Painter* painter, const engraving::rendering::PaintOptions& opt);
+    void drawLasso(muse::draw::Painter* painter, const engraving::rendering::PaintOptions& opt);
     void drawDrop(muse::draw::Painter* painter);
 
     void moveElementSelection(MoveDirection d);

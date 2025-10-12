@@ -34,6 +34,7 @@
 #include "notation/inotationinteraction.h"
 #include "notation/inotationplayback.h"
 #include "notation/inotationconfiguration.h"
+#include "notation/view/abstractelementpopupmodel.h"
 
 #include "playback/iplaybackcontroller.h"
 
@@ -75,7 +76,8 @@ public:
     virtual void hideContextMenu() = 0;
 
     virtual void showElementPopup(const ElementType& elementType) = 0;
-    virtual void hideElementPopup(const ElementType& elementType = ElementType::INVALID) = 0;
+    virtual void hideElementPopup(const ElementType& elementType) = 0;
+    virtual void hideElementPopup(PopupModelType modelType = PopupModelType::TYPE_UNDEFINED) = 0;
     virtual void toggleElementPopup(const ElementType& elementType) = 0;
 
     virtual bool elementPopupIsOpen(const ElementType& elementType) const = 0;
@@ -131,6 +133,8 @@ public:
 
     bool canHandleInputMethodQuery(Qt::InputMethodQuery query) const;
     QVariant inputMethodQuery(Qt::InputMethodQuery query) const;
+
+    bool ignoreNextMouseContextMenuEvent() const { return m_ignoreNextMouseContextMenuEvent; }
 
     void dragEnterEvent(QDragEnterEvent* event);
     void dragLeaveEvent(QDragLeaveEvent* event);
@@ -230,13 +234,19 @@ private:
         Qt::DropAction dropAction = Qt::DropAction::CopyAction;
         QObject* source = nullptr;
     };
+
     bool dropEvent(const DragMoveEvent& event, const QMimeData* mimeData = nullptr);
+
+    std::vector<int> pitchesBeingDragged() const;
+
     DragMoveEvent m_lastDragMoveEvent;
 
     const mu::engraving::EngravingItem* m_prevSelectedElement = nullptr;
+    std::vector<const mu::engraving::EngravingItem*> m_notesBeingDragged;
 
     bool m_hitElementWasAlreadySingleSelected = false;
     bool m_shouldSelectOnLeftClickRelease = false;
     bool m_shouldStartEditOnLeftClickRelease = false;
+    bool m_ignoreNextMouseContextMenuEvent = false;
 };
 }

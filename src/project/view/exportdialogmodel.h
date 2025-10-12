@@ -72,9 +72,12 @@ class ExportDialogModel : public QAbstractListModel, public muse::async::Asyncab
     Q_PROPERTY(
         bool pdfTransparentBackground READ pdfTransparentBackground WRITE setPdfTransparentBackground NOTIFY pdfTransparentBackgroundChanged)
 
+    Q_PROPERTY(bool pdfGrayscale READ pdfGrayscale WRITE setPdfGrayscale NOTIFY pdfGrayscaleChanged)
+
     Q_PROPERTY(int pngResolution READ pngResolution WRITE setPngResolution NOTIFY pngResolutionChanged)
     Q_PROPERTY(
         bool pngTransparentBackground READ pngTransparentBackground WRITE setPngTransparentBackground NOTIFY pngTransparentBackgroundChanged)
+    Q_PROPERTY(bool pngGrayscale READ pngGrayscale WRITE setPngGrayscale NOTIFY pngGrayscaleChanged)
 
     Q_PROPERTY(
         bool svgTransparentBackground READ svgTransparentBackground WRITE setSvgTransparentBackground NOTIFY svgTransparentBackgroundChanged)
@@ -96,7 +99,7 @@ class ExportDialogModel : public QAbstractListModel, public muse::async::Asyncab
 
 public:
     explicit ExportDialogModel(QObject* parent = nullptr);
-    ~ExportDialogModel();
+    ~ExportDialogModel() override;
 
     QVariant data(const QModelIndex& index, int role) const override;
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -127,11 +130,17 @@ public:
     bool pdfTransparentBackground() const;
     void setPdfTransparentBackground(const bool& transparent);
 
+    bool pdfGrayscale() const;
+    void setPdfGrayscale(const bool& grayscale);
+
     int pngResolution() const;
     void setPngResolution(const int& resolution);
 
     bool pngTransparentBackground() const;
     void setPngTransparentBackground(const bool& transparent);
+
+    bool pngGrayscale() const;
+    void setPngGrayscale(const bool& grayscale);
 
     bool svgTransparentBackground() const;
     void setSvgTransparentBackground(const bool& transparent);
@@ -184,9 +193,11 @@ signals:
 
     void pdfResolutionChanged(int resolution);
     void pdfTransparentBackgroundChanged(bool transparent);
+    void pdfGrayscaleChanged(bool grayscale);
 
     void pngResolutionChanged(int resolution);
     void pngTransparentBackgroundChanged(bool transparent);
+    void pngGrayscaleChanged(bool grayscale);
 
     void svgTransparentBackgroundChanged(bool transparent);
     void svgIllustratorCompatChanged(bool compat);

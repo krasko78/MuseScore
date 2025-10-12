@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore BVBA and others
+ * Copyright (C) 2021 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -257,8 +257,7 @@ MenuView {
             root.subMenuLoader.hasSiblingMenus = root.hasSiblingMenus
 
             root.subMenuLoader.handleMenuItem.connect(function(itemId) {
-                Qt.callLater(root.handleMenuItem, itemId)
-                root.subMenuLoader.close()
+                root.handleMenuItem(itemId)
             })
 
             root.subMenuLoader.opened.connect(function(itemId) {

@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore BVBA and others
+ * Copyright (C) 2021 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -137,6 +137,7 @@ void AbstractMenuModel::setItems(const MenuItemList& items)
 
     beginResetModel();
     m_items = items;
+    updateShortcutsAll();
     endResetModel();
 
     emit itemsChanged();
@@ -392,9 +393,8 @@ void AbstractMenuModel::updateShortcutsAll()
 
 void AbstractMenuModel::updateShortcuts(MenuItem* item)
 {
-    UiAction action = item->action();
-    action.shortcuts = shortcutsRegister()->shortcut(action.code).sequences;
-    item->setAction(action);
+    std::vector<std::string> shortcuts = shortcutsRegister()->shortcut(item->action().code).sequences;
+    item->setShortcuts(shortcuts);
 
     for (MenuItem* subItem : item->subitems()) {
         if (!subItem) {

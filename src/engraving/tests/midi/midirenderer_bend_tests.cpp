@@ -26,8 +26,8 @@
 #include "engraving/compat/midi/compatmidirender.h"
 #include "engraving/rw/mscloader.h"
 
-using namespace mu;
 using namespace mu::engraving;
+
 class MidiRendererBend_Tests : public ::testing::Test
 {
 };
@@ -822,7 +822,6 @@ TEST_F(MidiRendererBend_Tests, bendOnHiddenStaff)
 TEST_F(MidiRendererBend_Tests, bendAndVibrato)
 {
     constexpr int defVol = 80; // mf
-    constexpr int pwReset = 8192;
 
     EventsHolder events = renderMidiEvents(u"bend_and_vibrato.mscx");
 

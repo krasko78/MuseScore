@@ -556,7 +556,7 @@ double HorizontalSpacing::spaceLyricsAgainstBarlines(Segment* firstSeg, Segment*
         }
 
         BarLine* barline = toBarLine(barlineSegment->element(staff2track(staffIdx)));
-        if (!barline || barline->spanStaff() == 0) {
+        if (!barline || !barline->spanStaff()) {
             continue;
         }
 
@@ -639,7 +639,7 @@ void HorizontalSpacing::moveRightAlignedSegments(std::vector<SegmentPosition>& p
             }
 
             Segment* followingSeg = segPos.segment;
-            if (followingSeg->isRightAligned() || followingSeg->hasTimeSigAboveStaves()) {
+            if (followingSeg->hasTimeSigAboveStaves()) {
                 continue;
             }
             if (followingSeg->measure() != segment->measure() && followingSeg->rtick().isNotZero()) {
@@ -647,6 +647,11 @@ void HorizontalSpacing::moveRightAlignedSegments(std::vector<SegmentPosition>& p
             }
             double followingSegX = segPos.xPosInSystemCoords;
             double minDist = minHorizontalDistance(segment, followingSeg, ctx.squeezeFactor);
+
+            if (followingSeg->isRightAligned() && muse::RealIsNull(minDist)) {
+                continue;
+            }
+
             x = std::min(x, followingSegX - minDist);
         }
 
