@@ -5,7 +5,7 @@
  * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore Limited and others
+ * Copyright (C) 2025 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -19,40 +19,34 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef MUSE_GLOBAL_INVOKER_H
-#define MUSE_GLOBAL_INVOKER_H
+#pragma once
 
-#include <QObject>
-#include <thread>
 #include <functional>
 
+#include "modularity/ioc.h"
+#include "itickerprovider.h"
+
 namespace muse {
-class Invoker : public QObject
+class Ticker
 {
-    Q_OBJECT
+    GlobalInject<ITickerProvider> tickerProvider;
+
 public:
-    Invoker() = default;
 
-    using Call = std::function<void ()>;
+    using Callback = std::function<void ()>;
 
-    static void setup();
-
-    void invoke(const Call& func = nullptr, bool isAlwaysQueued = false);
-    void invokeQueuedCalls();
-
-public slots:
-    void doInvoke(void* ptr);
-
-private:
-
-    struct Functor {
-        Call call;
-        Functor(const Call& c)
-            : call(c) {}
+    enum class Mode {
+        Single,
+        Repeat
     };
 
-    static std::thread::id m_mainThreadId;
+    Ticker() = default;
+    ~Ticker();
+
+    void start(uint32_t interval, const Callback& callback, Mode mode);
+    void stop();
+
+private:
+    uint32_t m_taskId = 0;
 };
 }
-
-#endif // MUSE_GLOBAL_INVOKER_H

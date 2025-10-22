@@ -1,11 +1,11 @@
 /*
  * SPDX-License-Identifier: GPL-3.0-only
- * MuseScore-Studio-CLA-applies
+ * MuseScore-CLA-applies
  *
- * MuseScore Studio
+ * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore Limited
+ * Copyright (C) 2025 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -19,20 +19,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef MU_APPSHELL_MACOSSCROLLINGHOOK_H
-#define MU_APPSHELL_MACOSSCROLLINGHOOK_H
+#pragma once
 
-#include <QObject>
+#include <functional>
+#include "modularity/imoduleinterface.h"
 
-namespace mu::appshell {
-class MacOSScrollingHook : public QObject
+namespace muse {
+class ITickerProvider : MODULE_EXPORT_INTERFACE
 {
+    INTERFACE_ID(ITickerProvider)
 public:
-    void init();
 
-private:
-    bool eventFilter(QObject* watched, QEvent* event) override;
+    virtual ~ITickerProvider() = default;
+
+    struct Task {
+        uint32_t interval = 0;
+        bool repeat = true;
+        std::function<void()> call;
+    };
+
+    virtual void start() = 0;
+    virtual void stop() = 0;
+
+    virtual uint32_t /*id*/ addTask(const Task& task) = 0;
+    virtual void removeTask(const uint32_t& taskId) = 0;
 };
 }
-
-#endif // MU_APPSHELL_MACOSSCROLLINGHOOK_H

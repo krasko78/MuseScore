@@ -1,11 +1,11 @@
 /*
  * SPDX-License-Identifier: GPL-3.0-only
- * MuseScore-Studio-CLA-applies
+ * MuseScore-CLA-applies
  *
- * MuseScore Studio
+ * MuseScore
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore Limited
+ * Copyright (C) 2025 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -19,29 +19,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include "ticker.h"
 
-#include "macosscrollinghook.h"
+using namespace muse;
 
-#include <QApplication>
-#include <QWheelEvent>
-
-using namespace mu::appshell;
-
-void MacOSScrollingHook::init()
+Ticker::~Ticker()
 {
-    qApp->installEventFilter(this);
+    stop();
 }
 
-bool MacOSScrollingHook::eventFilter(QObject*, QEvent* event)
+void Ticker::start(uint32_t interval, const Callback& callback, Mode mode)
 {
-    if (event->type() != QEvent::Wheel) {
-        return false;
-    }
+    ITickerProvider::Task task;
+    task.interval = interval;
+    task.repeat = (mode == Mode::Repeat);
+    task.call = callback;
 
-    QWheelEvent* wheelEvent = dynamic_cast<QWheelEvent*>(event);
-    if (wheelEvent->phase() == Qt::ScrollEnd) {
-        return true;
-    }
+    m_taskId = tickerProvider()->addTask(task);
+}
 
-    return false;
+void Ticker::stop()
+{
+    if (m_taskId != 0) {
+        tickerProvider()->removeTask(m_taskId);
+        m_taskId = 0;
+    }
 }
