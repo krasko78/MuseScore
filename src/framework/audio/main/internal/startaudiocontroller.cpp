@@ -117,6 +117,13 @@ void StartAudioController::init()
             once = true;
         }
 
+        static const std::thread::id thisThId = std::this_thread::get_id();
+
+        //! NOTE MixerChannels can process in the thread pool
+        //! and send messages about the audio signal,
+        //! to receive them, we need to call async::processMessages here
+        async::processMessages(thisThId);
+
         m_rpcChannel->process();
         m_engineController->process();
     });
@@ -143,7 +150,9 @@ void StartAudioController::init()
             once = true;
         }
 
-        async::processEvents();
+        static const std::thread::id thisThId = std::this_thread::get_id();
+
+        async::processMessages(thisThId);
         m_rpcChannel->process();
     });
 #endif

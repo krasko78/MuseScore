@@ -1456,7 +1456,6 @@ bool Score::makeGap1(const Fraction& baseTick, staff_idx_t staffIdx, const Fract
         return false;
     }
 
-    Segment* seg = m->undoGetSegment(SegmentType::ChordRest, baseTick);
     track_idx_t strack = staffIdx * VOICES;
     for (track_idx_t track = strack; track < strack + VOICES; track++) {
         if (voiceOffset[track - strack] == -1) {
@@ -1482,7 +1481,7 @@ bool Score::makeGap1(const Fraction& baseTick, staff_idx_t staffIdx, const Fract
             deleteOrShortenOutSpannersFromRange(tick, endTick, track, track + 1, filter);
         }
 
-        seg = tm->undoGetSegment(SegmentType::ChordRest, tick);
+        Segment* seg = tm->undoGetSegment(SegmentType::ChordRest, tick);
         bool result = makeGapVoice(seg, track, newLen, tick);
         if (track == strack && !result) {   // makeGap failed for first voice
             return false;
@@ -4489,6 +4488,15 @@ void Score::cmdPadNoteIncreaseTAB()
         break;
     case DurationType::V_128TH:
         padToggle(Pad::NOTE64);
+        break;
+    case DurationType::V_256TH:
+        padToggle(Pad::NOTE128);
+        break;
+    case DurationType::V_512TH:
+        padToggle(Pad::NOTE256);
+        break;
+    case DurationType::V_1024TH:
+        padToggle(Pad::NOTE512);
         break;
     default:
         break;

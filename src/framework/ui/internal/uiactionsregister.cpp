@@ -64,7 +64,7 @@ void UiActionsRegister::reg(const IUiActionsModulePtr& module)
 
     module->actionsChanged().onReceive(this, [this](const UiActionList& actions) {
         updateActions(actions);
-    });
+    }, async::Asyncable::Mode::SetReplace); // see IUiActionsModule::actionsChanged()
 
     module->actionEnabledChanged().onReceive(this, [this](const ActionCodeList& codes) {
         updateEnabled(codes);
@@ -75,6 +75,21 @@ void UiActionsRegister::reg(const IUiActionsModulePtr& module)
         updateChecked(codes);
         m_actionStateChanged.send(codes);
     });
+}
+
+void UiActionsRegister::unreg(const IUiActionsModulePtr& module)
+{
+    for (auto it = m_actions.begin(); it != m_actions.end();) {
+        if (it->second.module == module) {
+            it = m_actions.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    module->actionsChanged().disconnect(this);
+    module->actionEnabledChanged().disconnect(this);
+    module->actionCheckedChanged().disconnect(this);
 }
 
 UiActionsRegister::Info& UiActionsRegister::info(const ActionCode& code)

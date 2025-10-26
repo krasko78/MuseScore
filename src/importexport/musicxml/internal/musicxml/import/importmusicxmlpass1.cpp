@@ -1017,9 +1017,9 @@ static void resizeTitleBox(VBox* vbox)
         }
     }
 
-    double heightInSp = calculatedVBoxHeight / vbox->spatium();
-    if (heightInSp > vbox->propertyDefault(Pid::BOX_HEIGHT).toDouble()) {
-        vbox->undoChangeProperty(Pid::BOX_HEIGHT, heightInSp);
+    const auto height = Spatium::fromMM(calculatedVBoxHeight, vbox->spatium());
+    if (height > vbox->propertyDefault(Pid::BOX_HEIGHT).value<Spatium>()) {
+        vbox->undoChangeProperty(Pid::BOX_HEIGHT, height);
     }
 }
 
@@ -3127,7 +3127,7 @@ void MusicXmlParserPass1::transpose(const String& partId, const Fraction& tick)
 
     if (m_parts[partId]._intervals.count(tick) == 0) {
         if (!interval.diatonic && interval.chromatic) {
-            interval.diatonic = chromatic2diatonic(interval.chromatic);
+            interval.diatonic = Interval::chromatic2diatonic(interval.chromatic);
         }
         m_parts[partId]._intervals[tick] = interval;
     } else {

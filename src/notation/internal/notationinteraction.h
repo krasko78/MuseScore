@@ -74,10 +74,11 @@ public:
 
     // Shadow note
     mu::engraving::ShadowNote* shadowNote() const override;
-    bool showShadowNote(const muse::PointF& pos) override;
+    void showShadowNoteForPosition(const muse::PointF& pos) override;
+    void showShadowNoteForMidiPitch(const uint8_t pitch) override;
     void hideShadowNote() override;
     muse::RectF shadowNoteRect() const override;
-    muse::async::Notification shadowNoteChanged() const override;
+    muse::async::Channel</*visible*/ bool> shadowNoteChanged() const override;
 
     // Visibility
     void toggleVisible() override;
@@ -341,6 +342,8 @@ public:
 
     void setGetViewRectFunc(const std::function<muse::RectF()>& func) override;
 
+    void toggleDebugShowGapRests() override;
+
 private:
     mu::engraving::Score* score() const;
     void onScoreInited();
@@ -357,7 +360,7 @@ private:
         mu::engraving::Position position;
     };
 
-    bool showShadowNote(mu::engraving::ShadowNote& note, ShadowNoteParams& params);
+    bool doShowShadowNote(mu::engraving::ShadowNote& note, ShadowNoteParams& params);
 
     bool needStartEditGrip(QKeyEvent* event) const;
     bool handleKeyPress(QKeyEvent* event);
@@ -520,7 +523,7 @@ private:
 
     INotationNoteInputPtr m_noteInput = nullptr;
 
-    muse::async::Notification m_shadowNoteChanged;
+    muse::async::Channel</*visible*/ bool> m_shadowNoteChanged;
 
     std::shared_ptr<NotationSelection> m_selection = nullptr;
     muse::async::Notification m_selectionChanged;
