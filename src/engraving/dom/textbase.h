@@ -28,7 +28,6 @@
 
 #include "modularity/ioc.h"
 #include "../iengravingfontsprovider.h"
-#include "appshell/iappshellconfiguration.h" // krasko
 
 #include "engravingitem.h"
 #include "property.h"
@@ -249,8 +248,6 @@ public:
 
 class TextBlock
 {
-    INJECT_STATIC(appshell::IAppShellConfiguration, appshellConfiguration) // krasko
-
 public:
     TextBlock() = default;
 

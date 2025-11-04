@@ -349,7 +349,12 @@ void TextLayout::layoutTextBlock(TextBlock* item, const TextBase* t)
             double yOffset = musicSymbolBaseLineAdjust(item, t, f, fi);
             f.pos.ry() -= yOffset;
 
-            RectF textBRect = fm.tightBoundingRect(f.text).translated(f.pos);
+            bool useBoundingRect = appshellConfiguration()->isValueInCsvList( // krasko
+                textStyleNames[(int)t->textStyleType()],
+                appshellConfiguration()->textStylesToUseFullFontHeight());
+
+            RectF textBRect = (useBoundingRect ? fm.boundingRect(f.text) : fm.tightBoundingRect(f.text)) // krasko
+                .translated(f.pos);
             bool useDynamicSymShape = fragmentFont.type() == Font::Type::MusicSymbol && t->isDynamic();
             if (useDynamicSymShape) {
                 const Dynamic* dyn = toDynamic(t);

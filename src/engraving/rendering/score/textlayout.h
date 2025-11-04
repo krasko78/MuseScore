@@ -24,10 +24,13 @@
 
 #include "layoutcontext.h"
 #include "dom/textbase.h"
+#include "appshell/iappshellconfiguration.h" // krasko
 
 namespace mu::engraving::rendering::score {
 class TextLayout
 {
+    INJECT_STATIC(appshell::IAppShellConfiguration, appshellConfiguration) // krasko
+
 public:
     static void layoutBaseTextBase(const TextBase* item, TextBase::LayoutData* data);
     static void layoutBaseTextBase(TextBase* item, LayoutContext& ctx);
