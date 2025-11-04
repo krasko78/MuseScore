@@ -27,6 +27,8 @@
 #include <QStringList>
 #include <QDir>
 #include <QQmlContext>
+#include <QEventLoop>
+#include <QTimer>
 
 #include "global/types/color.h"
 #include "graphicsapiprovider.h"
@@ -267,4 +269,13 @@ GraphicsApi UiEngine::graphicsApi() const
 QString UiEngine::graphicsApiName() const
 {
     return GraphicsApiProvider::graphicsApiName();
+}
+
+void UiEngine::sleep(int msec)
+{
+    QEventLoop loop;
+    QTimer::singleShot(msec, [&loop]() {
+        loop.quit();
+    });
+    loop.exec();
 }

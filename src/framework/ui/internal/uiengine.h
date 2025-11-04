@@ -97,6 +97,9 @@ public:
     bool isEffectsAllowed() const;
     bool isSystemDragSupported() const;
 
+    // dev
+    Q_INVOKABLE void sleep(int msec);
+
 public slots:
     void setRootItem(QQuickItem* rootItem);
 

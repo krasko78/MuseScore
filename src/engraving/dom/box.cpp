@@ -250,12 +250,12 @@ PropertyValue Box::propertyDefault(Pid id) const
     switch (id) {
     case Pid::BOX_HEIGHT:
     case Pid::BOX_WIDTH:
-        return Spatium(0.0);
+        return 0.0_sp;
 
     case Pid::TOP_GAP:
-        return isHBox() ? Spatium(0.0) : style().styleS(Sid::systemFrameDistance);
+        return isHBox() ? 0.0_sp : style().styleS(Sid::systemFrameDistance);
     case Pid::BOTTOM_GAP:
-        return isHBox() ? Spatium(0.0) : style().styleS(Sid::frameSystemDistance);
+        return isHBox() ? 0.0_sp : style().styleS(Sid::frameSystemDistance);
 
     case Pid::LEFT_MARGIN:
     case Pid::RIGHT_MARGIN:
@@ -597,7 +597,7 @@ PropertyValue HBox::propertyDefault(Pid id) const
     case Pid::CREATE_SYSTEM_HEADER:
         return true;
     case Pid::BOX_WIDTH:
-        return Spatium(5.0);
+        return 5.0_sp;
     default:
         return Box::propertyDefault(id);
     }
@@ -624,12 +624,12 @@ VBox::VBox(System* parent)
 
 double VBox::minHeight() const
 {
-    return absoluteFromSpatium(Spatium(10));
+    return absoluteFromSpatium(10_sp);
 }
 
 double VBox::maxHeight() const
 {
-    return absoluteFromSpatium(Spatium(30));
+    return absoluteFromSpatium(30_sp);
 }
 
 PropertyValue VBox::getProperty(Pid propertyId) const
@@ -654,7 +654,7 @@ PropertyValue VBox::propertyDefault(Pid id) const
 {
     switch (id) {
     case Pid::BOX_HEIGHT:
-        return Spatium(10.0);
+        return 10.0_sp;
     default:
         return Box::propertyDefault(id);
     }
@@ -724,7 +724,7 @@ void FBox::init()
     for (EngravingItem* element : el()) {
         FretDiagram* diagram = toFretDiagram(element);
         oldDiagrams.push_back(diagram);
-        oldDiagramsNames.push_back(diagram->harmonyText().toLower());
+        oldDiagramsNames.push_back(diagram->harmonyDisplayText());
     }
 
     StringList diagramsNamesInScore;
@@ -744,8 +744,8 @@ void FBox::init()
                 continue;
             }
 
-            String harmonyName = item->isHarmony() ? toHarmony(item)->plainText().toLower()
-                                 : item->isFretDiagram() ? toFretDiagram(item)->harmonyText().toLower()
+            String harmonyName = item->isHarmony() ? toHarmony(item)->displayText()
+                                 : item->isFretDiagram() ? toFretDiagram(item)->harmonyDisplayText()
                                  : String();
             if (harmonyName.empty() || muse::contains(diagramsNamesInScore, harmonyName)) {
                 continue;
@@ -816,7 +816,7 @@ size_t FBox::computeInsertionIdx(const String& nameOfDiagramBeforeThis)
 
     for (size_t i = 0; i < m_el.size(); ++i) {
         FretDiagram* fretDiagram = toFretDiagram(m_el[i]);
-        if (fretDiagram->harmonyText().toLower() == nameOfDiagramBeforeThis.toLower()) {
+        if (fretDiagram->harmonyPlainText().toLower() == nameOfDiagramBeforeThis.toLower()) {
             return i + 1;
         }
     }
@@ -892,7 +892,7 @@ PropertyValue FBox::propertyDefault(Pid propertyId) const
         return 1.0;
     case Pid::FRET_FRAME_COLUMN_GAP:
     case Pid::FRET_FRAME_ROW_GAP:
-        return Spatium(3.0);
+        return 3.0_sp;
     case Pid::FRET_FRAME_CHORDS_PER_ROW:
         return 8;
     case Pid::FRET_FRAME_H_ALIGN:
@@ -943,8 +943,8 @@ void FBox::undoReorderElements(const StringList& newOrder)
 void FBox::reorderElements(const StringList& newOrder)
 {
     std::sort(m_el.begin(), m_el.end(), [&](EngravingItem* a, EngravingItem* b) {
-        String nameA = toFretDiagram(a)->harmonyText().toLower();
-        String nameB = toFretDiagram(b)->harmonyText().toLower();
+        String nameA = toFretDiagram(a)->harmonyPlainText().toLower();
+        String nameB = toFretDiagram(b)->harmonyPlainText().toLower();
         auto iterA = std::find(newOrder.begin(), newOrder.end(), nameA);
         auto iterB = std::find(newOrder.begin(), newOrder.end(), nameB);
         return iterA < iterB;
@@ -955,7 +955,7 @@ StringList FBox::diagramsOrder() const
 {
     StringList result;
     for (EngravingItem* item : m_el) {
-        result.push_back(toFretDiagram(item)->harmonyText().toLower());
+        result.push_back(toFretDiagram(item)->harmonyPlainText().toLower());
     }
 
     return result;
@@ -1057,7 +1057,7 @@ PropertyValue TBox::propertyDefault(Pid id) const
 {
     switch (id) {
     case Pid::BOX_HEIGHT:
-        return Spatium(1);
+        return 1_sp;
     default:
         return VBox::propertyDefault(id);
     }

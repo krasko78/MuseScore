@@ -23,6 +23,7 @@
 #include "harmonylayout.h"
 #include "rendering/score/parenthesislayout.h"
 #include "tlayout.h"
+#include "textlayout.h"
 
 #include "dom/fret.h"
 #include "dom/harmony.h"
@@ -87,7 +88,7 @@ PointF HarmonyLayout::calculateBoundingRect(const Harmony* item, Harmony::Layout
     double newPosY = 0.0;
 
     if (item->ldata()->renderItemList().empty()) {
-        TLayout::layoutBaseTextBase1(item, ldata);
+        TextLayout::layoutBaseTextBase1(item, ldata);
 
         if (alignToFretDiagram) {
             newPosY = ldata->pos().y();
@@ -111,6 +112,7 @@ PointF HarmonyLayout::calculateBoundingRect(const Harmony* item, Harmony::Layout
         if (alignToFretDiagram) {
             switch (ctx.conf().styleV(Sid::chordAlignmentToFretboard).value<AlignH>()) {
             case AlignH::LEFT:
+            case AlignH::JUSTIFY:
                 xx = -hAlignBox.left();
                 break;
             case AlignH::HCENTER:
@@ -123,6 +125,7 @@ PointF HarmonyLayout::calculateBoundingRect(const Harmony* item, Harmony::Layout
         } else {
             switch (item->position()) {
             case AlignH::LEFT:
+            case AlignH::JUSTIFY:
                 xx = -hAlignBox.left();
                 break;
             case AlignH::HCENTER:
@@ -163,6 +166,7 @@ PointF HarmonyLayout::calculateBoundingRect(const Harmony* item, Harmony::Layout
     if (alignToFretDiagram) {
         switch (ctx.conf().styleV(Sid::chordAlignmentToFretboard).value<AlignH>()) {
         case AlignH::LEFT:
+        case AlignH::JUSTIFY:
             newPosX = 0.0;
             break;
         case AlignH::HCENTER:
@@ -175,6 +179,7 @@ PointF HarmonyLayout::calculateBoundingRect(const Harmony* item, Harmony::Layout
     } else {
         switch (item->position()) {
         case AlignH::LEFT:
+        case AlignH::JUSTIFY:
             newPosX = 0.0;
             break;
         case AlignH::HCENTER:
@@ -805,7 +810,6 @@ void HarmonyLayout::renderActionAcc(Harmony* item, Harmony::LayoutData* ldata, H
     String text = cs.isValid() ? cs.value : c;
     muse::draw::Font font = cs.isValid() ? ldata->fontList.value()[cs.fontIdx] : ldata->fontList.value().front();
     font.setPointSizeF(font.pointSizeF() * harmonyCtx.scale);
-    font.setNoFontMerging(true);
 
     TextSegment* ts = new TextSegment(text, font, harmonyCtx.x(), harmonyCtx.y(), harmonyCtx.hAlign);
     harmonyCtx.renderItemList.push_back(ts);
@@ -916,7 +920,6 @@ void HarmonyLayout::renderActionSet(Harmony* item, Harmony::LayoutData* ldata, c
 
 void HarmonyLayout::renderActionMove(Harmony* item, const RenderActionMovePtr& a, HarmonyRenderCtx& harmonyCtx)
 {
-    const FontMetrics fm = FontMetrics(item->font());
     const double scale = (a->scaled() ? harmonyCtx.scale : 1.0) * item->mag();
     harmonyCtx.pos = harmonyCtx.pos + a->vec() * FontMetrics::capHeight(item->font()) * scale;
 }

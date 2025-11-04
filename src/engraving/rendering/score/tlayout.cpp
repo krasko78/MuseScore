@@ -157,6 +157,7 @@
 #include "accidentalslayout.h"
 #include "autoplace.h"
 #include "beamlayout.h"
+#include "boxlayout.h"
 #include "chordlayout.h"
 #include "dynamicslayout.h"
 #include "guitarbendlayout.h"
@@ -173,6 +174,7 @@
 #include "measurenumberlayout.h"
 #include "parenthesislayout.h"
 #include "restlayout.h"
+#include "textlayout.h"
 
 using namespace muse;
 using namespace muse::draw;
@@ -335,7 +337,7 @@ void TLayout::layoutItem(EngravingItem* item, LayoutContext& ctx)
     case ElementType::PARTIAL_LYRICSLINE_SEGMENT: layoutLyricsLineSegment(item_cast<LyricsLineSegment*>(item), ctx);
         break;
     case ElementType::MARKER:
-        layoutMarker(item_cast<const Marker*>(item), static_cast<Marker::LayoutData*>(ldata), ctx);
+        layoutMarker(item_cast<Marker*>(item), static_cast<Marker::LayoutData*>(ldata), ctx);
         break;
     case ElementType::MEASURE_NUMBER:
         layoutMeasureNumber(item_cast<MeasureNumber*>(item), static_cast<MeasureNumber::LayoutData*>(ldata), ctx);
@@ -952,7 +954,7 @@ void TLayout::layoutArticulation(Articulation* item, Articulation::LayoutData* l
         text->setParent(item);
         text->setSelected(item->selected());
 
-        layoutBaseTextBase(item->text(), item->text()->mutldata());
+        TextLayout::layoutBaseTextBase(item->text(), item->text()->mutldata());
     }
 
     fillArticulationShape(item, ldata);
@@ -1358,311 +1360,29 @@ void TLayout::layoutBend(const Bend* item, Bend::LayoutData* ldata)
     ldata->setPos(PointF());
 }
 
-void TLayout::layoutBox(const Box* item, Box::LayoutData* ldata, const LayoutContext& ctx)
-{
-    LAYOUT_CALL_ITEM(item);
-    switch (item->type()) {
-    case ElementType::HBOX:
-        TLayout::layoutHBox(static_cast<const HBox*>(item), static_cast<HBox::LayoutData*>(ldata), ctx);
-        break;
-    case ElementType::VBOX:
-        TLayout::layoutVBox(static_cast<const VBox*>(item), static_cast<VBox::LayoutData*>(ldata), ctx);
-        break;
-    case ElementType::FBOX:
-        TLayout::layoutFBox(static_cast<const FBox*>(item), static_cast<FBox::LayoutData*>(ldata), ctx);
-        break;
-    case ElementType::TBOX:
-        TLayout::layoutTBox(static_cast<const TBox*>(item), static_cast<TBox::LayoutData*>(ldata), ctx);
-        break;
-    default:
-        UNREACHABLE;
-        break;
-    }
-}
-
-void TLayout::layoutBaseBox(const Box* item, Box::LayoutData* ldata, const LayoutContext& ctx)
-{
-    LAYOUT_CALL_ITEM(item);
-    layoutBaseMeasureBase(item, ldata, ctx);
-}
-
 void TLayout::layoutHBox(const HBox* item, HBox::LayoutData* ldata, const LayoutContext& ctx)
 {
     LAYOUT_CALL_ITEM(item);
-    if (item->explicitParent() && item->explicitParent()->isVBox()) {
-        const VBox* parentVBox = toVBox(item->explicitParent());
-
-        LD_CONDITION(parentVBox->ldata()->isSetBbox());
-
-        double x = parentVBox->leftMargin() * DPMM;
-        double y = parentVBox->topMargin() * DPMM;
-        double w = item->absoluteFromSpatium(item->boxWidth());
-        double h = parentVBox->ldata()->bbox().height() - (parentVBox->topMargin() + parentVBox->bottomMargin()) * DPMM;
-        ldata->setPos(x, y);
-        ldata->setBbox(0.0, 0.0, w, h);
-    } else if (item->system()) {
-        const System* parentSystem = item->system();
-
-        LD_CONDITION(parentSystem->ldata()->isSetBbox());
-
-        if (!ldata->isSetPos()) {
-            ldata->setPos(PointF());
-        }
-        ldata->setBbox(item->absoluteFromSpatium(item->topGap()), 0.0, item->absoluteFromSpatium(item->boxWidth()),
-                       parentSystem->ldata()->bbox().height());
-    } else {
-        ldata->setPos(PointF());
-        ldata->setBbox(0.0, 0.0, 50, 50);
-    }
-    layoutBaseBox(item, ldata, ctx);
-}
-
-void TLayout::layoutHBox2(HBox* item, const LayoutContext& ctx)
-{
-    LAYOUT_CALL_ITEM(item);
-    layoutBaseBox(item, item->mutldata(), ctx);
+    BoxLayout::layoutHBox(item, ldata, ctx);
 }
 
 void TLayout::layoutVBox(const VBox* item, VBox::LayoutData* ldata, const LayoutContext& ctx)
 {
     LAYOUT_CALL_ITEM(item);
-    ldata->setPos(PointF());
-
-    if (item->system()) {
-        const System* parentSystem = item->system();
-
-        LD_CONDITION(parentSystem->ldata()->isSetBbox());
-
-        ldata->setBbox(0.0, 0.0, parentSystem->ldata()->bbox().width(), item->absoluteFromSpatium(item->boxHeight()));
-    } else {
-        ldata->setBbox(0.0, 0.0, 50, 50);
-    }
-
-    for (EngravingItem* e : item->el()) {
-        layoutItem(e, const_cast<LayoutContext&>(ctx));
-    }
-    bool boxAutoSize = item->getProperty(Pid::BOX_AUTOSIZE).toBool();
-    bool heightChanged = false;
-    if (boxAutoSize) {
-        double contentHeight = item->contentRect().height();
-
-        if (contentHeight < item->minHeight()) {
-            contentHeight = item->minHeight();
-        }
-
-        ldata->setHeight(contentHeight);
-        heightChanged = true;
-    }
-
-    if (boxAutoSize && MScore::noImages) {
-        // adjustLayoutWithoutImages
-        double calculatedVBoxHeight = 0;
-        const int padding = item->sizeIsSpatiumDependent() ? ctx.conf().spatium() : ctx.conf().style().defaultSpatium();
-        ElementList elist = item->el();
-        for (EngravingItem* e : elist) {
-            if (e->isText()) {
-                Text* txt = toText(e);
-                Text::LayoutData* txtLD = txt->mutldata();
-
-                LD_CONDITION(txtLD->isSetBbox());
-
-                RectF bbox = txtLD->bbox();
-                bbox.moveTop(0.0);
-                txtLD->setBbox(bbox);
-                calculatedVBoxHeight += txtLD->bbox().height() + padding;
-            }
-        }
-
-        ldata->setHeight(calculatedVBoxHeight);
-        heightChanged = true;
-    }
-    if (heightChanged) {
-        for (EngravingItem* e : item->el()) {
-            layoutItem(e, const_cast<LayoutContext&>(ctx));
-        }
-    }
+    BoxLayout::layoutVBox(item, ldata, ctx);
 }
 
 void TLayout::layoutFBox(const FBox* item, FBox::LayoutData* ldata, const LayoutContext& ctx)
 {
     LAYOUT_CALL_ITEM(item);
 
-    if (item->needsRebuild()) {
-        const_cast<FBox*>(item)->init();
-        const_cast<FBox*>(item)->setNeedsRebuild(false);
-    }
-
-    const System* parentSystem = item->system();
-    LD_CONDITION(parentSystem->ldata()->isSetBbox());
-
-    ldata->setPos(PointF());
-
-    std::vector<FretDiagram*> fretDiagrams;
-    for (EngravingItem* element : item->el()) {
-        if (!element || !element->isFretDiagram() || !element->visible()) {
-            continue;
-        }
-
-        FretDiagram* diagram = toFretDiagram(element);
-        if (!diagram->visible()) {
-            //! NOTE: We need to layout the diagrams to get the harmony names to show in the UI
-            layoutItem(diagram, const_cast<LayoutContext&>(ctx));
-
-            //! but we don't need to draw them, so let's add a skip
-            diagram->mutldata()->setIsSkipDraw(true);
-            diagram->harmony()->mutldata()->setIsSkipDraw(true);
-            continue;
-        }
-
-        fretDiagrams.emplace_back(diagram);
-    }
-
-    //! NOTE: layout fret diagrams and calculate sizes
-
-    const size_t totalDiagrams = fretDiagrams.size();
-    double maxFretDiagramWidth = 0.0;
-
-    for (size_t i = 0; i < totalDiagrams; ++i) {
-        FretDiagram* fretDiagram = fretDiagrams[i];
-        fretDiagram->setUserMag(item->diagramScale());
-
-        Harmony* harmony = fretDiagram->harmony();
-        harmony->mutldata()->setMag(item->textScale());
-
-        layoutItem(fretDiagram, const_cast<LayoutContext&>(ctx));
-
-        //! reset the skip wich was added above
-        fretDiagram->mutldata()->setIsSkipDraw(false);
-        harmony->mutldata()->setIsSkipDraw(false);
-
-        double width = fretDiagram->ldata()->bbox().width();
-        maxFretDiagramWidth = std::max(maxFretDiagramWidth, width);
-    }
-
-    //! NOTE: table view layout
-
-    const double spatium = item->spatium();
-    const size_t chordsPerRow = item->chordsPerRow();
-    const double rowGap = item->rowGap().val() * spatium;
-    const double columnGap = item->columnGap().val() * spatium;
-
-    //! The height of each row is determined by the height of the tallest cell in that row
-    std::vector<double> rowHeights;
-    std::vector<double> harmonyHeights;
-    std::vector<double> harmonyBaselines;
-    for (size_t i = 0; i < totalDiagrams; i += chordsPerRow) {
-        size_t itemsInRow = std::min(chordsPerRow, totalDiagrams - i);
-        double maxRowHeight = 0.0;
-        double maxHarmonyHeight = 0.0;
-        double harmonyBaseline = 0.0;
-
-        for (size_t j = 0; j < itemsInRow; ++j) {
-            FretDiagram* fretDiagram = fretDiagrams[i + j];
-
-            RectF fretRect = fretDiagram->ldata()->bbox();
-
-            const Harmony::LayoutData* harmonyLdata = fretDiagram->harmony()->ldata();
-            RectF harmonyRect = harmonyLdata->bbox().translated(harmonyLdata->pos());
-
-            double height = fretRect.united(harmonyRect).height();
-            maxRowHeight = std::max(maxRowHeight, height);
-            maxHarmonyHeight = std::max(maxHarmonyHeight, -harmonyRect.top());
-            harmonyBaseline = std::min(harmonyBaseline, harmonyLdata->pos().y());
-        }
-
-        rowHeights.push_back(maxRowHeight);
-        harmonyHeights.push_back(maxHarmonyHeight);
-        harmonyBaselines.push_back(harmonyBaseline);
-    }
-
-    const double cellWidth = maxFretDiagramWidth;
-    const size_t columns = std::min(totalDiagrams, chordsPerRow);
-
-    const double totalTableWidth = cellWidth * columns + (columns - 1) * columnGap;
-
-    AlignH alignH = item->contentHorizontalAlignment();
-    const double leftMargin = item->getProperty(Pid::LEFT_MARGIN).toDouble() * spatium;
-    const double rightMargin = item->getProperty(Pid::RIGHT_MARGIN).toDouble() * spatium;
-    const double topMargin = item->getProperty(Pid::TOP_MARGIN).toDouble() * spatium;
-    const double bottomMargin = item->getProperty(Pid::BOTTOM_MARGIN).toDouble() * spatium;
-
-    const double width = item->system()->width();
-
-    const double startX = alignH == AlignH::HCENTER
-                          ? (width - totalTableWidth) / 2
-                          : alignH == AlignH::RIGHT ? width - totalTableWidth : 0.0;
-    const double startY = topMargin;
-
-    double bottomY = 0.0;
-
-    for (size_t i = 0; i < totalDiagrams; ++i) {
-        FretDiagram* fretDiagram = fretDiagrams[i];
-        Harmony* harmony = fretDiagram->harmony();
-
-        size_t row = i / chordsPerRow;
-        size_t col = i % chordsPerRow;
-
-        size_t itemsInRow = std::min(chordsPerRow, totalDiagrams - row * chordsPerRow);
-        double rowOffsetX = alignH == AlignH::HCENTER
-                            ? (totalTableWidth - (itemsInRow * cellWidth + (itemsInRow - 1) * columnGap)) / 2
-                            : alignH == AlignH::RIGHT
-                            ? totalTableWidth - (itemsInRow * cellWidth + (itemsInRow - 1) * columnGap) - rightMargin + spatium
-                            : leftMargin + spatium;
-
-        double x = startX + rowOffsetX + col * (cellWidth + columnGap);
-
-        double y = startY;
-        for (size_t r = 0; r < row; ++r) {
-            y += rowHeights[r] + rowGap;
-        }
-
-        double commonBaseline = harmonyBaselines[row];
-        double thisBaseline = harmony->ldata()->pos().y();
-        double baselineOff = commonBaseline - thisBaseline;
-        harmony->mutldata()->moveY(baselineOff);
-
-        double fretDiagramX = x;
-        double fretDiagramY = y + harmonyHeights[row];
-
-        fretDiagram->mutldata()->setPos(PointF(fretDiagramX, fretDiagramY));
-
-        bottomY = std::max(bottomY, fretDiagram->mutldata()->bbox().translated(fretDiagram->mutldata()->pos()).bottom());
-    }
-
-    double height = bottomY + bottomMargin;
-    if (RealIsNull(height)) {
-        height = item->minHeight();
-    }
-
-    ldata->setBbox(0.0, 0.0, width, height);
+    BoxLayout::layoutFBox(item, ldata, ctx);
 }
 
 void TLayout::layoutTBox(const TBox* item, TBox::LayoutData* ldata, const LayoutContext& ctx)
 {
     LAYOUT_CALL_ITEM(item);
-    const System* parentSystem = item->system();
-
-    LD_CONDITION(parentSystem->ldata()->isSetBbox());
-
-    ldata->setPos(PointF());
-    ldata->setBbox(0.0, 0.0, parentSystem->ldata()->bbox().width(), 0);
-
-    TLayout::layoutText(item->text(), item->text()->mutldata());
-
-    Text::LayoutData* textLD = item->text()->mutldata();
-
-    double h = 0.0;
-    if (item->text()->empty()) {
-        h = FontMetrics::ascent(item->text()->font());
-    } else {
-        h = textLD->bbox().height();
-    }
-    double y = item->topMargin() * DPMM;
-    textLD->setPos(item->leftMargin() * DPMM, y);
-    h += item->topMargin() * DPMM + item->bottomMargin() * DPMM;
-    ldata->setBbox(0.0, 0.0, item->system()->width(), h);
-
-    layoutBaseMeasureBase(item, ldata, ctx);   // layout LayoutBreak's
+    BoxLayout::layoutTBox(item, ldata, ctx);
 }
 
 void TLayout::layoutBracket(const Bracket* item, Bracket::LayoutData* ldata, const LayoutConfiguration& conf)
@@ -2034,7 +1754,7 @@ void TLayout::layoutCapo(const Capo* item, Capo::LayoutData* ldata, const Layout
         }
     }
 
-    TLayout::layoutBaseTextBase(item, ldata);
+    TextLayout::layoutBaseTextBase(item, ldata);
 
     if (item->autoplace()) {
         const Segment* s = item->segment();
@@ -2108,7 +1828,7 @@ void TLayout::layoutExpression(const Expression* item, Expression::LayoutData* l
     const_cast<Expression*>(item)->setPlacementBasedOnVoiceAssignment(item->style().styleV(
                                                                           Sid::dynamicsHairpinVoiceBasedPlacement).value<DirectionV>());
 
-    TLayout::layoutBaseTextBase(item, ldata);
+    TextLayout::layoutBaseTextBase(item, ldata);
 
     const Segment* segment = item->segment();
 
@@ -2505,7 +2225,7 @@ void TLayout::layoutFiguredBass(const FiguredBass* item, FiguredBass::LayoutData
     ldata->setPos(PointF(0.0, y));
 
     // BOUNDING BOX and individual item layout (if required)
-    TLayout::layoutBaseTextBase1(item, ldata);  // prepare structs and data expected by Text methods
+    TextLayout::layoutBaseTextBase1(item, ldata);  // prepare structs and data expected by Text methods
     // if element could be parsed into items, layout each element
     // Items list will be empty in edit mode (see FiguredBass::startEdit).
     // TODO: consider disabling specific layout in case text style is changed (tid() != TextStyleName::FIGURED_BASS).
@@ -2538,7 +2258,7 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
     }
     ldata->setIsSkipDraw(false);
 
-    TLayout::layoutBaseTextBase(item, ldata);
+    TextLayout::layoutBaseTextBase(item, ldata);
     ldata->setPosY(0.0); // handle placement below
 
     if (item->autoplace()) {
@@ -3196,6 +2916,8 @@ void TLayout::layoutHairpinSegment(HairpinSegment* item, LayoutContext& ctx)
 
         item->hairpin()->setBeginTextAlign({ AlignH::LEFT, AlignV::VCENTER });
         item->hairpin()->setEndTextAlign({ AlignH::RIGHT, AlignV::VCENTER });
+        item->hairpin()->setBeginTextPosition(AlignH::LEFT);
+        item->hairpin()->setEndTextPosition(AlignH::RIGHT);
 
         double x1 = 0.0;
         layoutTextLineBaseSegment(item, ctx);
@@ -3419,6 +3141,7 @@ void TLayout::layoutHammerOnPullOffSegment(HammerOnPullOffSegment* item, LayoutC
         Align align;
         align.vertical = AlignV::BASELINE;
         align.horizontal = AlignH::HCENTER;
+        hopoText->setPosition(AlignH::HCENTER);
         hopoText->setAlign(align);
         layoutItem(hopoText, ctx);
 
@@ -3472,7 +3195,7 @@ void TLayout::layoutHammerOnPullOffSegment(HammerOnPullOffSegment* item, LayoutC
 
 void TLayout::layoutHammerOnPullOffText(HammerOnPullOffText* item, LayoutContext& ctx)
 {
-    layoutBaseTextBase(item, ctx);
+    TextLayout::layoutBaseTextBase(item, ctx);
 }
 
 void TLayout::fillHairpinSegmentShape(const HairpinSegment* item, HairpinSegment::LayoutData* ldata)
@@ -3498,7 +3221,7 @@ void TLayout::layoutHarpPedalDiagram(const HarpPedalDiagram* item, HarpPedalDiag
     LAYOUT_CALL_ITEM(item);
     const_cast<HarpPedalDiagram*>(item)->updateDiagramText();
 
-    layoutBaseTextBase(item, ldata);
+    TextLayout::layoutBaseTextBase(item, ldata);
 
     if (item->autoplace()) {
         const Segment* s = toSegment(item->explicitParent());
@@ -3599,7 +3322,7 @@ void TLayout::layoutImage(const Image* item, Image::LayoutData* ldata)
 void TLayout::layoutInstrumentChange(const InstrumentChange* item, InstrumentChange::LayoutData* ldata)
 {
     LAYOUT_CALL_ITEM(item);
-    layoutBaseTextBase(item, ldata);
+    TextLayout::layoutBaseTextBase(item, ldata);
 
     if (item->autoplace()) {
         const Segment* s = toSegment(item->explicitParent());
@@ -3621,7 +3344,7 @@ void TLayout::layoutInstrumentName(const InstrumentName* item, InstrumentName::L
 //        return;
 //    }
 
-    layoutBaseTextBase(item, ldata);
+    TextLayout::layoutBaseTextBase(item, ldata);
 }
 
 void TLayout::layoutJump(const Jump* item, Jump::LayoutData* ldata)
@@ -3629,14 +3352,16 @@ void TLayout::layoutJump(const Jump* item, Jump::LayoutData* ldata)
     LAYOUT_CALL_ITEM(item);
     LD_CONDITION(item->parentItem()->ldata()->isSetBbox());
 
-    layoutBaseTextBase(item, ldata);
+    TextLayout::layoutBaseTextBase(item, ldata);
 
-    AlignH align = item->align().horizontal;
+    AlignH position = item->position();
 
-    const Measure* measure = toMeasure(item->parentItem());
+    // ignore courtesy keysig, timesig, but fall back if needed
+    Measure* measure = toMeasure(item->parent());
+    const BarLine* bl = measure->endBarLine();
+    double xAdj = bl ? bl->segment()->x() + bl->ldata()->bbox().width() : measure->width();
 
-    bool avoidBarline = item->staffIdx() != 0 && align != AlignH::HCENTER;
-
+    bool avoidBarline = item->staffIdx() != 0 && position != AlignH::HCENTER;
     if (avoidBarline) {
         bool startRepeat = measure->repeatStart();
         bool endRepeat = measure->repeatEnd();
@@ -3644,20 +3369,18 @@ void TLayout::layoutJump(const Jump* item, Jump::LayoutData* ldata)
 
         const double fontSizeScaleFactor = item->size() / 10.0;
         double padding = (startRepeat || endRepeat) ? 0.0 : 0.5 * item->spatium() * fontSizeScaleFactor;
-        double xAdj = 0.0;
 
-        if (align == AlignH::LEFT) {
+        if (position == AlignH::LEFT) {
             const BarLine* bl = startRepeat || !measure->prevMeasure()
                                 ? measure->startBarLine(blIdx) : measure->prevMeasure()->endBarLine(blIdx);
             double blWidth = startRepeat ? bl->width() : 0.0;
             xAdj += padding + blWidth;
-        } else if (align == AlignH::RIGHT) {
+        } else if (position == AlignH::RIGHT) {
             const BarLine* bl = measure->endBarLine(blIdx);
             xAdj -= bl->width() + padding;
         }
-
-        ldata->moveX(xAdj);
     }
+    ldata->moveX(xAdj);
 
     if (item->autoplace()) {
         LD_CONDITION(ldata->isSetPos());
@@ -4063,7 +3786,7 @@ void TLayout::layoutLyricsLineSegment(LyricsLineSegment* item, LayoutContext& ct
     LyricsLayout::layout(item, ctx);
 }
 
-void TLayout::layoutMarker(const Marker* item, Marker::LayoutData* ldata, LayoutContext& ctx)
+void TLayout::layoutMarker(Marker* item, Marker::LayoutData* ldata, LayoutContext& ctx)
 {
     LAYOUT_CALL_ITEM(item);
 
@@ -4679,7 +4402,7 @@ void TLayout::layoutPlayCountText(PlayCountText* item, TextBase::LayoutData* lda
     BarLine* bl = item->barline();
     Segment* seg = item->segment();
 
-    layoutBaseTextBase(item, ldata);
+    TextLayout::layoutBaseTextBase(item, ldata);
 
     // Avoid incoming barlines from above
     double xAdj = 0.0;
@@ -4696,7 +4419,7 @@ void TLayout::layoutPlayCountText(PlayCountText* item, TextBase::LayoutData* lda
 void TLayout::layoutPlayTechAnnotation(const PlayTechAnnotation* item, PlayTechAnnotation::LayoutData* ldata)
 {
     LAYOUT_CALL_ITEM(item);
-    layoutBaseTextBase(item, ldata);
+    TextLayout::layoutBaseTextBase(item, ldata);
 
     if (item->isHandbellsSymbol()) {
         Chord* chord = nullptr;
@@ -4753,7 +4476,7 @@ void TLayout::layoutRasgueadoSegment(RasgueadoSegment* item, LayoutContext& ctx)
 void TLayout::layoutRehearsalMark(const RehearsalMark* item, RehearsalMark::LayoutData* ldata)
 {
     LAYOUT_CALL_ITEM(item);
-    layoutBaseTextBase(item, ldata);
+    TextLayout::layoutBaseTextBase(item, ldata);
 
     const Segment* s = item->segment();
 
@@ -4803,7 +4526,7 @@ void TLayout::layoutRehearsalMark(const RehearsalMark* item, RehearsalMark::Layo
 
     // special case for right aligned rehearsal marks at start of system
     // left align with start of measure if that is further left
-    if (item->align() == AlignH::RIGHT) {
+    if (item->position() == AlignH::RIGHT) {
         ldata->setPosX(std::min(ldata->pos().x(), measureX + ldata->bbox().width()));
     }
 
@@ -5275,7 +4998,7 @@ void TLayout::layoutSpacer(Spacer* item, LayoutContext&)
     PainterPath path = PainterPath();
     double w = spatium;
     double b = w * .5;
-    double h = item->explicitParent() ? item->absoluteGap() : std::min(item->gap(), Spatium(4.0)).toMM(spatium).val();       // limit length for palette
+    double h = item->explicitParent() ? item->absoluteGap() : std::min(item->gap(), 4.0_sp).toMM(spatium).val();       // limit length for palette
 
     switch (item->spacerType()) {
     case SpacerType::DOWN:
@@ -5431,7 +5154,7 @@ void TLayout::layoutStaffState(const StaffState* item, StaffState::LayoutData* l
 void TLayout::layoutStaffText(const StaffText* item, StaffText::LayoutData* ldata)
 {
     LAYOUT_CALL_ITEM(item);
-    layoutBaseTextBase(item, ldata);
+    TextLayout::layoutBaseTextBase(item, ldata);
 
     if (item->autoplace()) {
         const Segment* s = toSegment(item->explicitParent());
@@ -5609,10 +5332,10 @@ void TLayout::layoutStemSlash(const StemSlash* item, StemSlash::LayoutData* ldat
 void TLayout::layoutSticking(const Sticking* item, Sticking::LayoutData* ldata)
 {
     LAYOUT_CALL_ITEM(item);
-    layoutBaseTextBase(item, ldata);
+    TextLayout::layoutBaseTextBase(item, ldata);
 
-    AlignH itemAlign =  item->align().horizontal;
-    if (itemAlign != AlignH::LEFT) {
+    AlignH itemPosition =  item->position();
+    if (itemPosition != AlignH::LEFT) {
         const Segment* seg = item->segment();
         const Chord* chord = nullptr;
         track_idx_t sTrack = trackZeroVoice(item->track());
@@ -5628,7 +5351,7 @@ void TLayout::layoutSticking(const Sticking* item, Sticking::LayoutData* ldata)
         if (chord) {
             const Note* refNote = item->placeAbove() ? chord->upNote() : chord->downNote();
             double noteWidth = refNote->ldata()->bbox().width();
-            ldata->moveX(itemAlign == AlignH::HCENTER ? 0.5 * noteWidth : noteWidth);
+            ldata->moveX(itemPosition == AlignH::HCENTER ? 0.5 * noteWidth : noteWidth);
         }
     }
 
@@ -5648,7 +5371,7 @@ void TLayout::layoutStringTunings(StringTunings* item, LayoutContext& ctx)
     LAYOUT_CALL_ITEM(item);
     item->updateText();
 
-    TLayout::layoutBaseTextBase(item, ctx);
+    TextLayout::layoutBaseTextBase(item, ctx);
 
     if (item->noStringVisible()) {
         double spatium = item->spatium();
@@ -5807,7 +5530,7 @@ void TLayout::layoutSystemDivider(const SystemDivider* item, SystemDivider::Layo
 void TLayout::layoutSystemText(const SystemText* item, SystemText::LayoutData* ldata)
 {
     LAYOUT_CALL_ITEM(item);
-    layoutBaseTextBase(item, ldata);
+    TextLayout::layoutBaseTextBase(item, ldata);
 
     if (item->autoplace() && item->explicitParent()) {
         const Segment* s = toSegment(item->explicitParent());
@@ -5901,7 +5624,7 @@ void TLayout::layoutTempoText(const TempoText* item, TempoText::LayoutData* ldat
 
     ldata->disconnectSnappedItems();
 
-    layoutBaseTextBase(item, ldata);
+    TextLayout::layoutBaseTextBase(item, ldata);
 
     if (!item->autoplace()) {
         return;
@@ -5942,175 +5665,6 @@ void TLayout::layoutTempoText(const TempoText* item, TempoText::LayoutData* ldat
     Autoplace::autoplaceSegmentElement(item, ldata);
 }
 
-void TLayout::layoutTextBase(TextBase* item, LayoutContext& ctx)
-{
-    LAYOUT_CALL_ITEM(item);
-    layoutItem(item, ctx);
-}
-
-void TLayout::layoutBaseTextBase(const TextBase* item, TextBase::LayoutData* ldata)
-{
-    IF_ASSERT_FAILED(item->explicitParent()) {
-        return;
-    }
-
-    ldata->setPos(PointF());
-
-    if (item->placeBelow()) {
-        ldata->setPosY(item->staff() ? item->staff()->staffHeight(item->tick()) : 0.0);
-    }
-
-    layoutBaseTextBase1(item, ldata);
-}
-
-void TLayout::layoutBaseTextBase(TextBase* item, LayoutContext&)
-{
-    layoutBaseTextBase(item, item->mutldata());
-}
-
-void TLayout::layoutBaseTextBase1(const TextBase* item, TextBase::LayoutData* ldata)
-{
-    if (item->explicitParent() && item->layoutToParentWidth()) {
-        LD_CONDITION(item->parentItem()->ldata()->isSetBbox());
-    }
-
-    if (ldata->layoutInvalid) {
-        item->createBlocks(ldata);
-    }
-
-    Shape shape;
-    double y = 0.0;
-
-    double maxBlockWidth = -DBL_MAX;
-    // adjust the bounding box for the text item
-    for (size_t i = 0; i < ldata->blocks.size(); ++i) {
-        TextBlock& t = ldata->blocks[i];
-        t.layout(item);
-        y += t.lineSpacing();
-        t.setY(y);
-        if (!item->positionSeparateFromAlignment()) {
-            shape.add(t.shape().translated(PointF(0.0, y)));
-        }
-        maxBlockWidth = std::max(maxBlockWidth, t.boundingRect().width());
-    }
-
-    // ALIGN TEXT
-    // TODO - implement for all text items
-    if (item->positionSeparateFromAlignment()) {
-        for (size_t i = 0; i < ldata->blocks.size(); ++i) {
-            TextBlock& t = ldata->blocks[i];
-            double diff = maxBlockWidth - t.boundingRect().width();
-            if (muse::RealIsNull(diff)) {
-                shape.add(t.shape().translated(PointF(0.0, t.y())));
-                continue;
-            }
-            double rx = 0.0;
-            AlignH alignH = item->align().horizontal;
-            bool dynamicAlwaysCentered = item->isDynamic() && item->getProperty(Pid::CENTER_ON_NOTEHEAD).toBool();
-            if (alignH == AlignH::HCENTER || dynamicAlwaysCentered) {
-                rx = diff * 0.5;
-            } else if (alignH == AlignH::RIGHT) {
-                rx = diff;
-            }
-
-            for (TextFragment& f : t.fragments()) {
-                f.pos.rx() += rx;
-            }
-            t.shape().translate(PointF(rx, 0.0));
-            shape.add(t.shape().translated(PointF(0.0, t.y())));
-        }
-    }
-
-    RectF bb = shape.bbox();
-
-    double yoff = 0;
-    double h    = 0;
-    if (item->explicitParent()) {
-        if (item->layoutToParentWidth()) {
-            if (item->explicitParent()->isTBox()) {
-                // hack: vertical alignment is always TOP
-                const_cast<TextBase*>(item)->setAlign({ item->align().horizontal, AlignV::TOP });
-            } else if (item->explicitParent()->isBox()) {
-                // consider inner margins of frame
-                Box* b = toBox(item->explicitParent());
-                yoff = b->topMargin() * DPMM;
-
-                if (b->height() < bb.bottom()) {
-                    h = b->height() / 2 + bb.height();
-                } else {
-                    h  = b->height() - yoff - b->bottomMargin() * DPMM;
-                }
-            } else if (item->explicitParent()->isPage()) {
-                Page* p = toPage(item->explicitParent());
-                h = p->height() - p->tm() - p->bm();
-                yoff = p->tm();
-            } else if (item->explicitParent()->isMeasure()) {
-            } else {
-                h  = item->parentItem()->height();
-            }
-        }
-    } else {
-        ldata->setPos(PointF());
-    }
-
-    if (item->align() == AlignV::BOTTOM) {
-        yoff += h - bb.bottom();
-    } else if (item->align() == AlignV::VCENTER) {
-        yoff +=  (h - (bb.top() + bb.bottom())) * .5;
-    } else if (item->align() == AlignV::BASELINE) {
-        yoff += h * .5 - ldata->blocks.front().lineSpacing();
-    } else {
-        yoff += -bb.top();
-    }
-
-    for (TextBlock& t : ldata->blocks) {
-        t.setY(t.y() + yoff);
-    }
-
-    shape.translateY(yoff);
-    ldata->setShape(shape);
-
-    if (item->hasFrame()) {
-        item->layoutFrame(ldata);
-    }
-
-    if (!item->isDynamic() && !(item->explicitParent() && item->parent()->isBox())) {
-        computeTextHighResShape(item, ldata);
-    }
-}
-
-void TLayout::computeTextHighResShape(const TextBase* item, TextBase::LayoutData* ldata)
-{
-    Shape& shape = ldata->highResShape.mut_value();
-    shape.clear();
-    shape.elements().reserve(item->xmlText().size());
-
-    for (const TextBlock& block : ldata->blocks) {
-        double y = block.y();
-        for (const TextFragment& fragment : block.fragments()) {
-            FontMetrics fontMetrics = FontMetrics(fragment.font(item));
-            double x = fragment.pos.x();
-            size_t textSize = fragment.text.size();
-            for (size_t i = 0; i < textSize; ++i) {
-                Char character = fragment.text.at(i);
-                RectF characterBoundingRect = fontMetrics.tightBoundingRect(fragment.text.at(i));
-                characterBoundingRect.translate(x, y);
-                shape.add(characterBoundingRect);
-                if (i + 1 < textSize) {
-                    x += fontMetrics.horizontalAdvance(character);
-                }
-            }
-        }
-    }
-
-    ldata->highResShape = shape;
-}
-
-void TLayout::layoutBaseTextBase1(TextBase* item, const LayoutContext&)
-{
-    layoutBaseTextBase1(item, item->mutldata());
-}
-
 Shape TLayout::textLineBaseSegmentShape(const TextLineBaseSegment* item)
 {
     LAYOUT_CALL_ITEM(item);
@@ -6142,7 +5696,7 @@ void TLayout::layoutText(const Text* item, Text::LayoutData* ldata)
         LD_CONDITION(item->parentItem()->ldata()->isSetBbox());
     }
 
-    layoutBaseTextBase(item, ldata);
+    TextLayout::layoutBaseTextBase(item, ldata);
 }
 
 void TLayout::layoutTextLine(TextLine* item, LayoutContext& ctx)
@@ -6239,6 +5793,7 @@ void TLayout::layoutTextLineBaseSegment(TextLineBaseSegment* item, LayoutContext
         item->text()->setSize(tl->beginFontSize());
         item->text()->setOffset(tl->beginTextOffset() * item->mag());
         item->text()->setAlign(tl->beginTextAlign());
+        item->text()->setPosition(tl->beginTextPosition());
         item->text()->setFontStyle(tl->beginFontStyle());
     } else {
         item->text()->setXmlText(tl->continueText());
@@ -6246,6 +5801,7 @@ void TLayout::layoutTextLineBaseSegment(TextLineBaseSegment* item, LayoutContext
         item->text()->setSize(tl->continueFontSize());
         item->text()->setOffset(tl->continueTextOffset() * item->mag());
         item->text()->setAlign(tl->continueTextAlign());
+        item->text()->setPosition(tl->continueTextPosition());
         item->text()->setFontStyle(tl->continueFontStyle());
     }
     item->text()->setPlacement(PlacementV::ABOVE);
@@ -6259,6 +5815,7 @@ void TLayout::layoutTextLineBaseSegment(TextLineBaseSegment* item, LayoutContext
         item->endText()->setSize(tl->endFontSize());
         item->endText()->setOffset(tl->endTextOffset());
         item->endText()->setAlign(tl->endTextAlign());
+        item->endText()->setPosition(tl->endTextPosition());
         item->endText()->setFontStyle(tl->endFontStyle());
         item->endText()->setPlacement(PlacementV::ABOVE);
         item->endText()->setTrack(item->track());
@@ -6312,7 +5869,7 @@ void TLayout::layoutTextLineBaseSegment(TextLineBaseSegment* item, LayoutContext
     if (!item->text()->empty()) {
         if ((isSingleOrBegin && alignBeginText) || (!isSingleOrBegin && alignContinueText)) {
             l1 = gapBetweenTextAndLine;
-            switch (item->text()->align().horizontal) {
+            switch (item->text()->position()) {
             case AlignH::LEFT:
                 l1 += item->text()->ldata()->bbox().width();
                 break;
@@ -6363,7 +5920,7 @@ void TLayout::layoutTextLineBaseSegment(TextLineBaseSegment* item, LayoutContext
     if (!item->endText()->empty()) {
         if (alignEndText) {
             l2 = gapBetweenTextAndLine;
-            switch (item->endText()->align().horizontal) {
+            switch (item->endText()->position()) {
             case AlignH::RIGHT:
                 l2 += item->endText()->ldata()->bbox().width();
                 break;

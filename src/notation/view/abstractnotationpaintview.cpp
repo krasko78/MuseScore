@@ -114,7 +114,7 @@ void AbstractNotationPaintView::load()
         emit horizontalScrollChanged();
         emit verticalScrollChanged();
         emit viewportChanged();
-    });
+    }, async::Asyncable::Mode::SetReplace);
 
     scheduleRedraw();
 }
@@ -126,14 +126,14 @@ void AbstractNotationPaintView::initBackground()
     configuration()->backgroundChanged().onNotify(this, [this]() {
         emit backgroundColorChanged(configuration()->backgroundColor());
         scheduleRedraw();
-    });
+    }, async::Asyncable::Mode::SetReplace);
 }
 
 void AbstractNotationPaintView::initNavigatorOrientation()
 {
     configuration()->canvasOrientation().ch.onReceive(this, [this](muse::Orientation) {
         moveCanvasToPosition(PointF(0, 0));
-    });
+    }, async::Asyncable::Mode::SetReplace);
 }
 
 void AbstractNotationPaintView::moveCanvasToCenter()
@@ -314,7 +314,7 @@ void AbstractNotationPaintView::onLoadNotation(INotationPtr)
     updateLoopMarkers();
     notationPlayback()->loopBoundariesChanged().onNotify(this, [this]() {
         updateLoopMarkers();
-    });
+    }, Mode::SetReplace /*because this channel is from MasterNotation*/);
 
     m_notation->viewModeChanged().onNotify(this, [this]() {
         ensureViewportInsideScrollableArea();
@@ -708,7 +708,7 @@ void AbstractNotationPaintView::onNotationSetup()
 
     uiConfiguration()->currentThemeChanged().onNotify(this, [this]() {
         scheduleRedraw();
-    });
+    }, async::Asyncable::Mode::SetReplace);
 
     engravingConfiguration()->debuggingOptionsChanged().onNotify(this, [this]() {
         scheduleRedraw();
@@ -927,6 +927,14 @@ bool AbstractNotationPaintView::adjustCanvasPosition(const RectF& logicRect, boo
     TRACEFUNC;
 
     RectF viewRect = viewport();
+    PointF pos = viewRect.topLeft();
+
+    // Account for continuous panel if panning in continuous view
+    qreal continuousPanelWidth = 0;
+    if (notation()->viewMode() == engraving::LayoutMode::LINE) {
+        continuousPanelWidth = m_continuousPanel->width();
+    }
+    viewRect.adjust(continuousPanelWidth, 0, 0, 0);
 
     double viewArea = viewRect.width() * viewRect.height();
     double logicRectArea = logicRect.width() * logicRect.height();
@@ -948,17 +956,16 @@ bool AbstractNotationPaintView::adjustCanvasPosition(const RectF& logicRect, boo
         _scale = 1;
     }
 
-    PointF pos = viewRect.topLeft();
     PointF oldPos = pos;
 
     RectF showRect = logicRect;
 
     if (showRect.left() < viewRect.left()) {
-        pos.setX(showRect.left() - border);
+        pos.setX(showRect.left() - border - continuousPanelWidth);
     } else if (showRect.left() > viewRect.right()) {
         pos.setX(showRect.right() - width() / _scale + border);
     } else if (viewRect.width() >= showRect.width() && showRect.right() > viewRect.right()) {
-        pos.setX(showRect.left() - border);
+        pos.setX(showRect.left() - border - continuousPanelWidth);
     }
 
     if (adjustVertically) {

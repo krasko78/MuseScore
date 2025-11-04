@@ -100,6 +100,7 @@
 #include "dom/utils.h"
 
 #include "rendering/score/tlayout.h"
+#include "rendering/score/textlayout.h"
 #include "rendering/score/tremololayout.h"
 #include "rendering/score/chordlayout.h"
 #include "rendering/score/slurtielayout.h"
@@ -1519,7 +1520,7 @@ void SingleLayout::layout(Spacer* item, const Context&)
     PainterPath path = PainterPath();
     double w = spatium;
     double b = w * .5;
-    double h = item->explicitParent() ? item->absoluteGap() : std::min(item->gap(), Spatium(4.0)).toMM(spatium).val();       // limit length for palette
+    double h = item->explicitParent() ? item->absoluteGap() : std::min(item->gap(), 4.0_sp).toMM(spatium).val();       // limit length for palette
 
     switch (item->spacerType()) {
     case SpacerType::DOWN:
@@ -1937,20 +1938,60 @@ void SingleLayout::layoutTextBase(const TextBase* item, const Context& ctx, Text
     layout1TextBase(item, ctx, ldata);
 }
 
+static void textHorizontalLayout(const TextBase* item, Shape& shape, double maxBlockWidth, TextBase::LayoutData* ldata)
+{
+    // Position and alignment
+    for (size_t i = 0; i < ldata->blocks.size(); ++i) {
+        TextBlock& textBlock = ldata->blocks[i];
+        double xAdj = -textBlock.boundingRect().left();
+
+        // Set position relative to reference point
+        AlignH position = item->position();
+        if (position == AlignH::HCENTER) {
+            xAdj += (-maxBlockWidth) * .5;
+        } else if (position == AlignH::RIGHT) {
+            xAdj += -maxBlockWidth;
+        }
+
+        double diff = maxBlockWidth - textBlock.boundingRect().width();
+        if (muse::RealIsNull(diff)) {
+            // This is the longest line, don't align
+            for (TextFragment& f : textBlock.fragments()) {
+                f.pos.rx() += xAdj;
+            }
+            textBlock.shape().translate(PointF(xAdj, 0.0));
+            shape.add(textBlock.shape().translated(PointF(0.0, textBlock.y())));
+            continue;
+        }
+        // Align relative to the longest line
+        AlignH alignH = item->align().horizontal;
+        if (alignH == AlignH::HCENTER) {
+            xAdj += diff * 0.5;
+        } else if (alignH == AlignH::RIGHT) {
+            xAdj += diff;
+        }
+
+        for (TextFragment& fragment : textBlock.fragments()) {
+            fragment.pos.rx() += xAdj;
+        }
+        textBlock.shape().translate(PointF(xAdj, 0.0));
+        shape.add(textBlock.shape().translated(PointF(0.0, textBlock.y())));
+    }
+}
+
 void SingleLayout::layout1TextBase(const TextBase* item, const Context&, TextBase::LayoutData* ldata)
 {
     if (ldata->layoutInvalid) {
         item->createBlocks(ldata);
     }
 
-    RectF bb;
     double y = 0;
 
     double maxBlockWidth = -DBL_MAX;
     // adjust the bounding box for the text item
     for (size_t i = 0; i < ldata->rows(); ++i) {
         TextBlock& t = ldata->blocks[i];
-        t.layout(item);
+        TextLayout::layoutTextBlock(&t, item);
         const RectF* r = &t.boundingRect();
 
         if (r->height() == 0) {
@@ -1958,38 +1999,13 @@ void SingleLayout::layout1TextBase(const TextBase* item, const Context&, TextBas
         }
         y += t.lineSpacing();
         t.setY(y);
-        if (!item->positionSeparateFromAlignment()) {
-            bb |= r->translated(0.0, y);
-        }
         maxBlockWidth = std::max(maxBlockWidth, t.boundingRect().width());
     }
 
-    // ALIGN TEXT
-    // TODO - implement for all text items
-    if (item->positionSeparateFromAlignment()) {
-        for (size_t i = 0; i < ldata->blocks.size(); ++i) {
-            TextBlock& t = ldata->blocks[i];
-            double diff = maxBlockWidth - t.boundingRect().width();
-            if (muse::RealIsNull(diff)) {
-                const RectF& r = t.boundingRect();
-                bb |= r.translated(PointF(0.0, t.y()));
-                continue;
-            }
-            double rx = 0.0;
-            AlignH alignH = item->align().horizontal;
-            if (alignH == AlignH::HCENTER) {
-                rx = diff * 0.5;
-            } else if (alignH == AlignH::RIGHT) {
-                rx = diff;
-            }
+    Shape shape;
+    textHorizontalLayout(item, shape, maxBlockWidth, ldata);
 
-            for (TextFragment& f : t.fragments()) {
-                f.pos.rx() += rx;
-            }
-            const RectF& r = t.boundingRect().translated(PointF(rx, 0.0));
-            bb |= r.translated(PointF(0.0, t.y()));
-        }
-    }
+    RectF bb = shape.bbox();
 
     double yoff = 0;
     double h    = 0;

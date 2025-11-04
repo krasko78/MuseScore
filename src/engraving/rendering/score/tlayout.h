@@ -219,10 +219,7 @@ public:
     static void layoutBeam1(Beam* item, LayoutContext& ctx);
     static void layoutBend(const Bend* item, Bend::LayoutData* ldata);
 
-    static void layoutBox(const Box* item, Box::LayoutData* ldata, const LayoutContext& ctx); // factory
-    static void layoutBaseBox(const Box* item, Box::LayoutData* ldata, const LayoutContext& ctx); // base class
     static void layoutHBox(const HBox* item, HBox::LayoutData* ldata, const LayoutContext& ctx);
-    static void layoutHBox2(HBox* item, const LayoutContext& ctx);
     static void layoutVBox(const VBox* item, VBox::LayoutData* ldata, const LayoutContext& ctx);
     static void layoutFBox(const FBox* item, FBox::LayoutData* ldata, const LayoutContext& ctx);
     static void layoutTBox(const TBox* item, TBox::LayoutData* ldata, const LayoutContext& ctx);
@@ -286,7 +283,7 @@ public:
     static void layoutLyricsLine(LyricsLine* item, LayoutContext& ctx);
     static void layoutLyricsLineSegment(LyricsLineSegment* item, LayoutContext& ctx);
 
-    static void layoutMarker(const Marker* item, Marker::LayoutData* ldata, LayoutContext& ctx);
+    static void layoutMarker(Marker* item, Marker::LayoutData* ldata, LayoutContext& ctx);
     static void layoutMeasureBase(MeasureBase* item, LayoutContext& ctx); // factory
     static void layoutBaseMeasureBase(const MeasureBase* item, MeasureBase::LayoutData* ldata, const LayoutContext& ctx); // base class
     static void layoutMeasureNumber(MeasureNumber* item, MeasureNumber::LayoutData* ldata, const LayoutContext& ctx);
@@ -347,13 +344,6 @@ public:
     static void layoutTapping(Tapping* item, Tapping::LayoutData* ldata, LayoutContext& ctx);
     static void layoutTappingHalfSlur(TappingHalfSlur* item);
     static void layoutTempoText(const TempoText* item, TempoText::LayoutData* ldata);
-
-    static void layoutTextBase(TextBase* item, LayoutContext& ctx);                 // factory
-    static void layoutBaseTextBase(const TextBase* item, TextBase::LayoutData* data); // base class
-    static void layoutBaseTextBase(TextBase* item, LayoutContext& ctx);  // base class
-    static void layoutBaseTextBase1(TextBase* item, const LayoutContext& ctx);  // base class
-    static void layoutBaseTextBase1(const TextBase* item, TextBase::LayoutData* data);
-    static void computeTextHighResShape(const TextBase* item, TextBase::LayoutData* ldata);
 
     static void layoutText(const Text* item, Text::LayoutData* ldata);
 

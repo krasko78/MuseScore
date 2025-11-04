@@ -38,6 +38,10 @@ namespace mu::engraving {
 class TextBase;
 class TextBlock;
 
+static constexpr double SUBSCRIPT_SIZE     = 0.6;
+static constexpr double SUBSCRIPT_OFFSET   = 0.5;  // of x-height
+static constexpr double SUPERSCRIPT_OFFSET = -0.9; // of x-height
+
 //---------------------------------------------------------
 //   FrameType
 //---------------------------------------------------------
@@ -253,7 +257,6 @@ public:
     bool operator ==(const TextBlock& x) const { return m_fragments == x.m_fragments; }
     bool operator !=(const TextBlock& x) const { return m_fragments != x.m_fragments; }
     void draw(muse::draw::Painter*, const TextBase*) const;
-    void layout(const TextBase*);
     const std::list<TextFragment>& fragments() const { return m_fragments; }
     std::list<TextFragment>& fragments() { return m_fragments; }
     std::list<TextFragment> fragmentsWithoutEmpty();
@@ -276,6 +279,7 @@ public:
     double y() const { return m_y; }
     void setY(double val) { m_y = val; }
     double lineSpacing() const { return m_lineSpacing; }
+    void setLineSpacing(double val) { m_lineSpacing = val; }
     String text(int, int, bool = false) const;
     bool eol() const { return m_eol; }
     void setEol(bool val) { m_eol = val; }
@@ -283,7 +287,6 @@ public:
 
 private:
     void simplify();
-    double musicSymbolBaseLineAdjust(const TextBase* t, const TextFragment& f, const std::list<TextFragment>::iterator fi);
 
     std::list<TextFragment> m_fragments;
     double m_y = 0.0;
@@ -490,7 +493,6 @@ public:
     //! NOTE It can only be set for some types of text, see who has the setter.
     //! At the moment it's: Text, Jump, Marker
     bool layoutToParentWidth() const { return m_layoutToParentWidth; }
-    virtual bool positionSeparateFromAlignment() const { return false; }
 
     void setVoiceAssignment(VoiceAssignment v) { m_voiceAssignment = v; }
     VoiceAssignment voiceAssignment() const { return m_voiceAssignment; }

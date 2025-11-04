@@ -58,6 +58,9 @@ static const ElementStyle ottavaStyle {
     { Sid::ottavaTextAlignAbove,               Pid::BEGIN_TEXT_ALIGN },
     { Sid::ottavaTextAlignAbove,               Pid::CONTINUE_TEXT_ALIGN },
     { Sid::ottavaTextAlignAbove,               Pid::END_TEXT_ALIGN },
+    { Sid::ottavaPosition,                     Pid::BEGIN_TEXT_POSITION },
+    { Sid::ottavaPosition,                     Pid::CONTINUE_TEXT_POSITION },
+    { Sid::ottavaPosition,                     Pid::END_TEXT_POSITION },
     { Sid::ottavaLineWidth,                    Pid::LINE_WIDTH },
     { Sid::ottavaLineStyle,                    Pid::LINE_STYLE },
     { Sid::ottavaDashLineLen,                  Pid::DASH_LINE_LEN },
@@ -237,7 +240,7 @@ Ottava::Ottava(EngravingItem* parent)
     setContinueTextPlace(TextPlace::LEFT);
     setEndHookType(HookType::HOOK_90);
     setLineVisible(true);
-    setBeginHookHeight(Spatium(.0));
+    setBeginHookHeight(0_sp);
     setEndText(u"");
 
     initElementStyle(&ottavaStyle);
@@ -362,7 +365,7 @@ PropertyValue Ottava::propertyDefault(Pid pid) const
     case Pid::BEGIN_HOOK_TYPE:
         return HookType::NONE;
     case Pid::BEGIN_HOOK_HEIGHT:
-        return Spatium(.0);
+        return 0_sp;
     case Pid::END_TEXT:
         return String();
     case Pid::PLACEMENT:

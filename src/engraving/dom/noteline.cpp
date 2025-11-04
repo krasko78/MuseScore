@@ -39,6 +39,9 @@ static const ElementStyle noteLineStyle {
     { Sid::noteLineAlign,                      Pid::BEGIN_TEXT_ALIGN },
     { Sid::noteLineAlign,                      Pid::CONTINUE_TEXT_ALIGN },
     { Sid::noteLineAlign,                      Pid::END_TEXT_ALIGN },
+    { Sid::noteLinePosition,                   Pid::BEGIN_TEXT_POSITION },
+    { Sid::noteLinePosition,                   Pid::CONTINUE_TEXT_POSITION },
+    { Sid::noteLinePosition,                   Pid::END_TEXT_POSITION },
     { Sid::noteLineFontSpatiumDependent,       Pid::TEXT_SIZE_SPATIUM_DEPENDENT },
     { Sid::noteLineWidth,                      Pid::LINE_WIDTH },
     { Sid::noteLineStyle,                      Pid::LINE_STYLE },
@@ -144,7 +147,7 @@ PropertyValue NoteLine::propertyDefault(Pid propertyId) const
         return TextPlace::LEFT;
     case Pid::BEGIN_HOOK_HEIGHT:
     case Pid::END_HOOK_HEIGHT:
-        return Spatium(1.5);
+        return 1.5_sp;
     case Pid::PLACEMENT:
         return PlacementV::ABOVE;
     case Pid::DIAGONAL:
@@ -154,7 +157,7 @@ PropertyValue NoteLine::propertyDefault(Pid propertyId) const
     case Pid::OFFSET:
         return PointF();
     case Pid::GAP_BETWEEN_TEXT_AND_LINE:
-        return Spatium(0.5);
+        return 0.5_sp;
     case Pid::SYSTEM_FLAG:
         return false;
     case Pid::ANCHOR:

@@ -68,6 +68,7 @@
 #include "autoplace.h"
 #include "beamlayout.h"
 #include "beamtremololayout.h"
+#include "boxlayout.h"
 #include "chordlayout.h"
 #include "harmonylayout.h"
 #include "lyricslayout.h"
@@ -2128,6 +2129,7 @@ void SystemLayout::layoutSystem(System* system, LayoutContext& ctx, double xo1, 
             TLayout::layoutInstrumentName(t, t->mutldata());
 
             switch (t->align().horizontal) {
+            case AlignH::JUSTIFY:   // Justify is not supported for instrument names
             case AlignH::LEFT:
                 t->mutldata()->setPosX(0);
                 break;
@@ -2427,7 +2429,7 @@ void SystemLayout::layout2(System* system, LayoutContext& ctx)
 
     Box* vb = system->vbox();
     if (vb) {
-        TLayout::layoutBox(vb, vb->mutldata(), ctx);
+        BoxLayout::layoutBox(vb, vb->mutldata(), ctx);
         system->setbbox(vb->ldata()->bbox());
         return;
     }
@@ -2663,11 +2665,11 @@ void SystemLayout::setMeasureHeight(System* system, double height, const LayoutC
             mldata->setBbox(0.0, -spatium, m->width(), height + 2.0 * spatium);
         } else if (m->isHBox()) {
             mldata->setBbox(m->absoluteFromSpatium(toHBox(m)->topGap()), 0.0, m->width(), height);
-            TLayout::layoutHBox2(toHBox(m), ctx);
+            BoxLayout::layoutHBox2(toHBox(m), ctx);
         } else if (m->isTBox()) {
-            TLayout::layoutTBox(toTBox(m), toTBox(m)->mutldata(), ctx);
+            BoxLayout::layoutTBox(toTBox(m), toTBox(m)->mutldata(), ctx);
         } else if (m->isFBox()) {
-            TLayout::layoutFBox(toFBox(m), toFBox(m)->mutldata(), ctx);
+            BoxLayout::layoutFBox(toFBox(m), toFBox(m)->mutldata(), ctx);
         } else {
             LOGD("unhandled measure type %s", m->typeName());
         }
@@ -2954,7 +2956,7 @@ void SystemLayout::removeElementFromSkyline(EngravingItem* element, const System
     SkylineLine& skylineLine = isAbove ? skyline.north() : skyline.south();
 
     skylineLine.remove_if([element](ShapeElement& shapeEl) {
-        return element == shapeEl.item();
+        return element == shapeEl.item() || element == shapeEl.item()->parentItem();
     });
 }
 

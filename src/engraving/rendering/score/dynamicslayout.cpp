@@ -23,6 +23,7 @@
 #include "dynamicslayout.h"
 #include "layoutcontext.h"
 #include "tlayout.h"
+#include "textlayout.h"
 
 #include "../dom/hairpin.h"
 #include "../dom/staff.h"
@@ -62,10 +63,15 @@ void DynamicsLayout::doLayoutDynamic(Dynamic* item, Dynamic::LayoutData* ldata, 
 
     item->setPlacementBasedOnVoiceAssignment(conf.styleV(Sid::dynamicsHairpinVoiceBasedPlacement).value<DirectionV>());
 
-    TLayout::layoutBaseTextBase(item, ldata);
+    // If "Center on notehead" is on, override user position. Restore later
+    AlignH userPosition = item->getProperty(Pid::POSITION).value<AlignH>();
+    AlignH hPos = item->centerOnNotehead() ? AlignH::HCENTER : item->position();
+    item->setPosition(hPos);
+    TextLayout::layoutBaseTextBase(item, ldata);
+    item->setPosition(userPosition);
 
     const Segment* s = item->segment();
-    if (!s || (!item->centerOnNotehead() && item->align().horizontal == AlignH::LEFT)) {
+    if (!s || (!item->centerOnNotehead() && item->position() == AlignH::LEFT)) {
         return;
     }
 
@@ -74,7 +80,7 @@ void DynamicsLayout::doLayoutDynamic(Dynamic* item, Dynamic::LayoutData* ldata, 
         return;
     }
 
-    bool centerOnNote = item->centerOnNotehead() || (!item->centerOnNotehead() && item->align().horizontal == AlignH::HCENTER);
+    bool centerOnNote = item->centerOnNotehead() || (!item->centerOnNotehead() && item->position() == AlignH::HCENTER);
     double mag = item->staff()->staffMag(item);
     double noteHeadWidth = item->score()->noteHeadWidth() * mag;
 

@@ -585,6 +585,7 @@ bool NotationInteraction::doShowShadowNote(ShadowNote& shadowNote, ShadowNotePar
 void NotationInteraction::hideShadowNote()
 {
     score()->shadowNote()->setVisible(false);
+    m_shadowNoteChanged.send(/*visible*/ false);
 }
 
 RectF NotationInteraction::shadowNoteRect() const
@@ -3452,7 +3453,7 @@ void NotationInteraction::doFinishAddFretboardDiagram()
     }
 
     FretDiagram* fretDiagram = toFretDiagram(selectedElement);
-    if (!fretDiagram->harmonyText().empty()) {
+    if (!fretDiagram->harmonyPlainText().empty()) {
         return;
     }
 
@@ -4890,6 +4891,10 @@ void NotationInteraction::editElement(QKeyEvent* event)
         }
 
         apply();
+
+        if (isGripEditStarted()) {
+            updateGripAnchorLines();
+        }
     } else {
         rollback();
     }
@@ -5337,6 +5342,8 @@ void NotationInteraction::pasteSelection(const Fraction& scale)
         QMimeDataAdapter ma(mimeData);
         score()->cmdPaste(&ma, nullptr, scale);
     }
+
+    m_editData.element = nullptr;
 
     apply();
 

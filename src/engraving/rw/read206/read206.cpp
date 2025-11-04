@@ -1360,6 +1360,8 @@ static bool readTextProperties206(XmlReader& e, ReadContext& ctx, TextBase* t)
         align.horizontal = TConv::fromXml(e.readAsciiText(), AlignH::LEFT);
         t->setAlign(align);
         t->setPropertyFlags(Pid::ALIGN, PropertyFlags::UNSTYLED);
+        t->setPosition(align.horizontal);
+        t->setPropertyFlags(Pid::POSITION, PropertyFlags::UNSTYLED);
     } else if (tag == "valign") {
         Align align = t->align();
         align.vertical = TConv::fromXml(e.readAsciiText(), AlignV::TOP);
@@ -3146,10 +3148,10 @@ static void readMeasure206(Measure* m, int staffIdx, XmlReader& e, ReadContext& 
 
 static void readBox(Box* b, XmlReader& e, ReadContext& ctx)
 {
-    b->setAutoSizeEnabled(false);      // didn't exist in Mu2
+    b->setAutoSizeEnabled(false); // didn't exist in Mu2
 
-    b->setBoxHeight(Spatium(0));       // override default set in constructor
-    b->setBoxWidth(Spatium(0));
+    b->setBoxHeight(0_sp); // override default set in constructor
+    b->setBoxWidth(0_sp);
 
     while (e.readNextStartElement()) {
         const AsciiStringView tag(e.name());

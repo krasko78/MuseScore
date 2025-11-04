@@ -272,7 +272,8 @@ enum class AlignV : unsigned char {
 enum class AlignH : unsigned char {
     LEFT,
     RIGHT,
-    HCENTER
+    HCENTER,
+    JUSTIFY
 };
 
 struct Align {
@@ -870,6 +871,7 @@ enum class TextStyleType : unsigned char {
 
     // Line-oriented styles
     TEXTLINE,
+    SYSTEM_TEXTLINE,
     NOTELINE,
     VOLTA,
     OTTAVA,
