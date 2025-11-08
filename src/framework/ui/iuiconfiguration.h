@@ -24,6 +24,8 @@
 
 #include <optional>
 
+#include <QColor>
+
 #include "modularity/imoduleinterface.h"
 
 #include "global/types/retval.h"
@@ -126,5 +128,8 @@ public:
     virtual int flickableDeceleration() const = 0;
 
     virtual int tooltipDelay() const = 0;
+
+    virtual std::vector<QColor> colorDialogCustomColors() const = 0;
+    virtual void setColorDialogCustomColors(const std::vector<QColor>&) = 0;
 };
 }

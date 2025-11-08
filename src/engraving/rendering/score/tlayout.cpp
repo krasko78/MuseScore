@@ -1307,9 +1307,7 @@ void TLayout::layoutBend(const Bend* item, Bend::LayoutData* ldata)
 
             int idx = (pitch + 12) / 25;
             const char* l = Bend::label[idx];
-            bb.unite(fm.boundingRect(RectF(x2, y2, 0, 0),
-                                     muse::draw::AlignHCenter | muse::draw::AlignBottom | muse::draw::TextDontClip,
-                                     String::fromAscii(l)));
+            bb.unite(fm.boundingRect(String::fromAscii(l)));
             y = y2;
         }
         if (pitch == item->points().at(pt + 1).pitch) {
@@ -1334,9 +1332,7 @@ void TLayout::layoutBend(const Bend* item, Bend::LayoutData* ldata)
 
             int idx = (item->points().at(pt + 1).pitch + 12) / 25;
             const char* l = Bend::label[idx];
-            bb.unite(fm.boundingRect(RectF(x2, y2, 0, 0),
-                                     muse::draw::AlignHCenter | muse::draw::AlignBottom | muse::draw::TextDontClip,
-                                     String::fromAscii(l)));
+            bb.unite(fm.boundingRect(String::fromAscii(l)));
         } else {
             // down
             x2 = x + spatium * .5;
@@ -1987,7 +1983,7 @@ void TLayout::layoutFiguredBassItem(const FiguredBassItem* item, FiguredBassItem
 
     // font size in pixels, scaled according to spatium()
     // (use the same font selection as used in draw() below)
-    double m = ctx.conf().styleD(Sid::figuredBassFontSize) * item->spatium() / SPATIUM20;
+    double m = ctx.conf().styleD(Sid::figuredBassFontSize) * item->spatium() / item->defaultSpatium();
     f.setPointSizeF(m);
     FontMetrics fm(f);
 
@@ -3371,13 +3367,13 @@ void TLayout::layoutJump(const Jump* item, Jump::LayoutData* ldata)
         double padding = (startRepeat || endRepeat) ? 0.0 : 0.5 * item->spatium() * fontSizeScaleFactor;
 
         if (position == AlignH::LEFT) {
-            const BarLine* bl = startRepeat || !measure->prevMeasure()
-                                ? measure->startBarLine(blIdx) : measure->prevMeasure()->endBarLine(blIdx);
-            double blWidth = startRepeat ? bl->width() : 0.0;
+            const BarLine* bll = startRepeat || !measure->prevMeasure()
+                                 ? measure->startBarLine(blIdx) : measure->prevMeasure()->endBarLine(blIdx);
+            double blWidth = startRepeat ? bll->width() : 0.0;
             xAdj += padding + blWidth;
         } else if (position == AlignH::RIGHT) {
-            const BarLine* bl = measure->endBarLine(blIdx);
-            xAdj -= bl->width() + padding;
+            const BarLine* blr = measure->endBarLine(blIdx);
+            xAdj -= blr->width() + padding;
         }
     }
     ldata->moveX(xAdj);
@@ -5826,8 +5822,8 @@ void TLayout::layoutTextLineBaseSegment(TextLineBaseSegment* item, LayoutContext
     }
 
     if (!item->textLineBase()->textSizeSpatiumDependent()) {
-        item->text()->setSize(item->text()->size() * SPATIUM20 / item->spatium());
-        item->endText()->setSize(item->endText()->size() * SPATIUM20 / item->spatium());
+        item->text()->setSize(item->text()->size() * item->defaultSpatium() / item->spatium());
+        item->endText()->setSize(item->endText()->size() * item->defaultSpatium() / item->spatium());
     }
 
     PointF pp1;
