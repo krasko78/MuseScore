@@ -70,7 +70,6 @@ Item {
         anchors.leftMargin: 4
         anchors.right: parent.right
 
-        step: root.step // krasko
         navigationName: "Measure width"
         navigationPanel: root.navigationPanel
         navigationRowStart: leadingValue.navigationRowEnd + 1
