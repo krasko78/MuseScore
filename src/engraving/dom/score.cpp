@@ -35,6 +35,7 @@
 #include "editing/addremoveelement.h"
 #include "editing/mscoreview.h"
 #include "editing/splitjoinmeasure.h"
+#include "editing/transpose.h"
 
 #include "style/style.h"
 #include "style/defaultstyle.h"
@@ -92,6 +93,7 @@
 #include "stafftype.h"
 #include "synthesizerstate.h"
 #include "system.h"
+#include "systemdivider.h"
 #include "tempo.h"
 #include "tempotext.h"
 #include "text.h"
@@ -144,6 +146,11 @@ static void markInstrumentsAsPrimary(std::vector<Part*>& parts)
         bool isPrimary = (it->second % 2 != 0);
         instrument->setIsPrimary(isPrimary);
     }
+}
+
+static BeatsPerSecond roundTempo(const BeatsPerSecond& bps)
+{
+    return muse::RealRound(bps.val, TEMPO_PRECISION);
 }
 
 //---------------------------------------------------------
@@ -478,7 +485,7 @@ void Score::setUpTempoMap()
                 int tick2 = tickPositionFrom + pair2.first;
 
                 if (tempomap()->find(tick2) == tempomap()->end()) {
-                    tempomap()->setTempo(tick2, BeatsPerSecond(currentBps.val + pair2.second));
+                    tempomap()->setTempo(tick2, roundTempo(currentBps.val + pair2.second));
                 }
             }
         }
@@ -572,7 +579,7 @@ void Score::rebuildTempoAndTimeSigMaps(Measure* measure, std::optional<BeatsPerS
                     }
 
                     if (tt->isNormal() && !tt->isRelative() && !tempoPrimo) {
-                        tempoPrimo = tt->tempo();
+                        tempoPrimo = roundTempo(tt->tempo());
                     } else if (tt->isRelative()) {
                         tt->updateRelative();
                     }
@@ -585,14 +592,14 @@ void Score::rebuildTempoAndTimeSigMaps(Measure* measure, std::optional<BeatsPerS
                     } else if (tt->isTempoPrimo() && tt->followText()) {
                         tempomap()->setTempo(ticks, tempoPrimo ? *tempoPrimo : Constants::DEFAULT_TEMPO);
                     } else {
-                        tempomap()->setTempo(ticks, tt->tempo());
+                        tempomap()->setTempo(ticks, roundTempo(tt->tempo()));
                     }
                 }
             }
 
             if (!RealIsNull(stretch) && !RealIsEqual(stretch, 1.0)) {
                 BeatsPerSecond otempo = tempomap()->tempo(segment.tick().ticks());
-                BeatsPerSecond ntempo = otempo.val / stretch;
+                BeatsPerSecond ntempo = roundTempo(otempo.val / stretch);
                 tempomap()->setTempo(segment.tick().ticks(), ntempo);
 
                 Fraction tempoEndTick;
@@ -657,7 +664,7 @@ void Score::fixAnacrusisTempo(const std::vector<Measure*>& measures) const
         Measure* nextMeasure = measure->nextMeasure();
         if (nextMeasure) {
             if (TempoText* tt = getTempoTextIfExist(nextMeasure); tt) {
-                tempomap()->setTempo(measure->tick().ticks(), tt->tempo());
+                tempomap()->setTempo(measure->tick().ticks(), roundTempo(tt->tempo()));
             }
         }
     }
@@ -1360,25 +1367,12 @@ bool Score::checkHasMeasures() const
 }
 
 //---------------------------------------------------------
-//   spatiumHasChanged
-//---------------------------------------------------------
-
-static void spatiumHasChanged(void* data, EngravingItem* e)
-{
-    double* val = (double*)data;
-    e->spatiumChanged(val[0], val[1]);
-}
-
-//---------------------------------------------------------
 //   spatiumChanged
 //---------------------------------------------------------
 
 void Score::spatiumChanged(double oldValue, double newValue)
 {
-    double data[2];
-    data[0] = oldValue;
-    data[1] = newValue;
-    scanElements(data, spatiumHasChanged, true);
+    scanElements([&](EngravingItem* e) { e->spatiumChanged(oldValue, newValue); });
     for (Staff* staff : m_staves) {
         staff->spatiumChanged(oldValue, newValue);
     }
@@ -1390,7 +1384,7 @@ void Score::spatiumChanged(double oldValue, double newValue)
 //   updateStyle
 //---------------------------------------------------------
 
-static void updateStyle(void*, EngravingItem* e)
+static void updateStyle(EngravingItem* e)
 {
     bool v = e->generated();
     e->styleChanged();
@@ -1404,7 +1398,7 @@ static void updateStyle(void*, EngravingItem* e)
 
 void Score::styleChanged()
 {
-    scanElements(0, updateStyle);
+    scanElements(updateStyle);
     for (int i = 0; i < MAX_HEADERS; i++) {
         if (headerText(i)) {
             headerText(i)->styleChanged();
@@ -1812,8 +1806,7 @@ bool Score::canReselectItem(const EngravingItem* item) const
 
     EngravingItem* seg = const_cast<EngravingItem*>(item->findAncestor(ElementType::SEGMENT));
     if (seg) {
-        std::vector<EngravingItem*> elements;
-        seg->scanElements(&elements, collectElements, false /*all*/);
+        std::vector<EngravingItem*> elements = seg->getChildren(false);
         return muse::contains(elements, const_cast<EngravingItem*>(item));
     }
 
@@ -2008,16 +2001,16 @@ int Score::utime2utick(double utime) const
 //   scanElementsInRange
 //---------------------------------------------------------
 
-void Score::scanElementsInRange(void* data, void (* func)(void*, EngravingItem*), bool all)
+void Score::scanElementsInRange(std::function<void(EngravingItem*)> func)
 {
     Segment* startSeg = m_selection.startSegment();
     for (Segment* s = startSeg; s && s != m_selection.endSegment(); s = s->next1()) {
-        s->scanElements(data, func, all);
+        s->scanElements(func);
         Measure* m = s->measure();
         if (m && s == m->first()) {
             Measure* mmr = m->mmRest();
             if (mmr) {
-                mmr->scanElements(data, func, all);
+                mmr->scanElements(func);
             }
         }
     }
@@ -2030,7 +2023,7 @@ void Score::scanElementsInRange(void* data, void (* func)(void*, EngravingItem*)
         Spanner* spanner = toSpannerSegment(e)->spanner();
         if (handledSpanners.insert(spanner).second) {
             for (SpannerSegment* ss : spanner->spannerSegments()) {
-                ss->scanElements(data, func, all);
+                ss->scanElements(func);
             }
         }
     }
@@ -2766,7 +2759,7 @@ void Score::adjustKeySigs(track_idx_t sidx, track_idx_t eidx, KeyList km)
             Interval v = staff->part()->instrument(tick)->transpose();
             if (!v.isZero() && !style().styleB(Sid::concertPitch) && !key.isAtonal()) {
                 v.flip();
-                key.setKey(transposeKey(key.concertKey(), v, staff->part()->preferSharpFlat()));
+                key.setKey(Transpose::transposeKey(key.concertKey(), v, staff->part()->preferSharpFlat()));
             }
             staff->setKey(tick, key);
 
@@ -2846,7 +2839,7 @@ KeyList Score::keyList() const
     if (firstStaff && !masterScore()->style().styleB(Sid::concertPitch)
         && (firstStaff->part()->instrument()->transpose().chromatic || firstStaff->part()->instruments().size() > 1)) {
         int interval = firstStaff->part()->instrument()->transpose().chromatic;
-        normalizedC = transposeKey(normalizedC, interval);
+        normalizedC = Transpose::transposeKey(normalizedC, interval);
     }
 
     // create initial keyevent for transposing instrument if necessary
@@ -3024,7 +3017,7 @@ void Score::cmdConcertPitchChanged(bool flag)
         track_idx_t startTrack = staffIdx * VOICES;
         track_idx_t endTrack   = startTrack + VOICES;
 
-        transposeKeys(staffIdx, staffIdx + 1, Fraction(0, 1), lastSegment()->tick(), !flag);
+        Transpose::transposeKeys(this, staffIdx, staffIdx + 1, Fraction(0, 1), lastSegment()->tick(), !flag);
 
         for (Segment* segment = firstSegment(SegmentType::ChordRest); segment; segment = segment->next1(SegmentType::ChordRest)) {
             interval = staff->transpose(segment->tick());
@@ -3041,7 +3034,7 @@ void Score::cmdConcertPitchChanged(bool flag)
                     // just ones resulting from mmrests
                     Harmony* he = toHarmony(se);              // toHarmony() does not work as e is an ScoreElement
                     if (he->staff() == h->staff()) {
-                        undoTransposeHarmony(he, interval);
+                        Transpose::undoTransposeHarmony(this, he, interval);
                     }
                 }
                 //realized harmony should be invalid after a transpose command
@@ -3813,10 +3806,8 @@ bool Score::tryExtendSingleSelectionToRange(EngravingItem* newElement, staff_idx
 //   collectMatch
 //---------------------------------------------------------
 
-void Score::collectMatch(void* data, EngravingItem* e)
+void Score::collectMatch(ElementPattern* p, EngravingItem* e)
 {
-    ElementPattern* p = static_cast<ElementPattern*>(data);
-
     if (p->type != int(ElementType::INVALID) && p->type != int(e->type())) {
         return;
     }
@@ -3893,9 +3884,8 @@ void Score::collectMatch(void* data, EngravingItem* e)
 //   collectNoteMatch
 //---------------------------------------------------------
 
-void Score::collectNoteMatch(void* data, EngravingItem* e)
+void Score::collectNoteMatch(NotePattern* p, EngravingItem* e)
 {
-    NotePattern* p = static_cast<NotePattern*>(data);
     if (!e->isNote()) {
         return;
     }
@@ -3970,7 +3960,7 @@ void Score::selectSimilar(EngravingItem* e, bool sameStaff)
     pattern.staffEnd = sameStaff ? e->staffIdx() + 1 : muse::nidx;
     pattern.voice = muse::nidx;
 
-    score->scanElements(&pattern, collectMatch);
+    score->scanElements([&](EngravingItem* item) { collectMatch(&pattern, item); });
 
     score->select(0, SelectType::SINGLE, 0);
     score->select(pattern.el, SelectType::ADD, 0);
@@ -4004,7 +3994,7 @@ void Score::selectSimilarInRange(EngravingItem* e)
     pattern.staffEnd = selection().staffEnd();
     pattern.voice = muse::nidx;
 
-    score->scanElementsInRange(&pattern, collectMatch);
+    score->scanElementsInRange([&](EngravingItem* item) { collectMatch(&pattern, item); });
 
     score->select(0, SelectType::SINGLE, 0);
     score->select(pattern.el, SelectType::ADD, 0);
@@ -4306,7 +4296,7 @@ void Score::setTempo(Segment* segment, BeatsPerSecond tempo)
 
 void Score::setTempo(const Fraction& tick, BeatsPerSecond tempo)
 {
-    tempomap()->setTempo(tick.ticks(), tempo);
+    tempomap()->setTempo(tick.ticks(), roundTempo(tempo));
     setPlaylistDirty();
 }
 
@@ -5012,7 +5002,7 @@ ChordRest* Score::cmdTopStaff(ChordRest* cr)
 //   hasLyrics
 //---------------------------------------------------------
 
-bool Score::hasLyrics()
+bool Score::hasLyrics() const
 {
     if (!firstMeasure()) {
         return false;
@@ -5034,7 +5024,7 @@ bool Score::hasLyrics()
 //   hasHarmonies
 //---------------------------------------------------------
 
-bool Score::hasHarmonies()
+bool Score::hasHarmonies() const
 {
     if (!firstMeasure()) {
         return false;
@@ -5055,46 +5045,14 @@ bool Score::hasHarmonies()
 //   lyricCount
 //---------------------------------------------------------
 
-int Score::lyricCount()
+int Score::lyricCount() const
 {
-    size_t count = 0;
-    SegmentType st = SegmentType::ChordRest;
-    for (Segment* seg = firstMeasure()->first(st); seg; seg = seg->next1(st)) {
-        for (size_t i = 0; i < ntracks(); ++i) {
-            ChordRest* cr = toChordRest(seg->element(static_cast<int>(i)));
-            if (cr) {
-                count += cr->lyrics().size();
-            }
-        }
-    }
-    return int(count);
+    return int(lyrics().size());
 }
 
-//---------------------------------------------------------
-//   harmonyCount
-//---------------------------------------------------------
-
-int Score::harmonyCount()
+std::vector<Lyrics*> Score::lyrics() const
 {
-    int count = 0;
-    SegmentType st = SegmentType::ChordRest;
-    for (Segment* seg = firstMeasure()->first(st); seg; seg = seg->next1(st)) {
-        for (EngravingItem* e : seg->annotations()) {
-            if (e->type() == ElementType::HARMONY) {
-                count++;
-            }
-        }
-    }
-    return count;
-}
-
-//---------------------------------------------------------
-//   extractLyrics
-//---------------------------------------------------------
-
-String Score::extractLyrics()
-{
-    String result;
+    std::vector<Lyrics*> result;
     masterScore()->setExpandRepeats(true);
     SegmentType st = SegmentType::ChordRest;
     for (size_t track = 0; track < ntracks(); track++) {
@@ -5124,13 +5082,7 @@ String Score::extractLyrics()
                     if (!l) {
                         continue;
                     }
-                    String lyric = l->plainText().trimmed();
-                    LyricsSyllabic ls = l->syllabic();
-                    if (ls == LyricsSyllabic::SINGLE || ls == LyricsSyllabic::END) {
-                        result += lyric + u" ";
-                    } else if (ls == LyricsSyllabic::BEGIN || ls == LyricsSyllabic::MIDDLE) {
-                        result += lyric;
-                    }
+                    result.push_back(l);
                 }
                 m->setPlaybackCount(m->playbackCount() + 1);
                 if (m->endTick() >= endTick) {
@@ -5160,18 +5112,50 @@ String Score::extractLyrics()
                     if (!l) {
                         continue;
                     }
-                    String lyric = l->plainText().trimmed();
-                    LyricsSyllabic ls = l->syllabic();
-                    if (ls == LyricsSyllabic::SINGLE || ls == LyricsSyllabic::END) {
-                        result += lyric + u" ";
-                    } else if (ls == LyricsSyllabic::BEGIN || ls == LyricsSyllabic::MIDDLE) {
-                        result += lyric;
-                    }
+                    result.push_back(l);
                 }
             }
         }
     }
+    return result;
+}
+
+//---------------------------------------------------------
+//   extractLyrics
+//---------------------------------------------------------
+
+String Score::extractLyrics() const
+{
+    String result;
+    std::vector<Lyrics*> list = lyrics();
+    for (const Lyrics* l : list) {
+        String lyric = l->plainText().trimmed();
+        LyricsSyllabic ls = l->syllabic();
+        if (ls == LyricsSyllabic::SINGLE || ls == LyricsSyllabic::END) {
+            result += lyric + u" ";
+        } else if (ls == LyricsSyllabic::BEGIN || ls == LyricsSyllabic::MIDDLE) {
+            result += lyric;
+        }
+    }
     return result.trimmed();
+}
+
+//---------------------------------------------------------
+//   harmonyCount
+//---------------------------------------------------------
+
+int Score::harmonyCount() const
+{
+    int count = 0;
+    SegmentType st = SegmentType::ChordRest;
+    for (Segment* seg = firstMeasure()->first(st); seg; seg = seg->next1(st)) {
+        for (EngravingItem* e : seg->annotations()) {
+            if (e->type() == ElementType::HARMONY) {
+                count++;
+            }
+        }
+    }
+    return count;
 }
 
 //---------------------------------------------------------
@@ -5867,23 +5851,23 @@ void Score::rebuildBspTree()
 //    scan all elements
 //---------------------------------------------------------
 
-void Score::scanElements(void* data, void (* func)(void*, EngravingItem*), bool all)
+void Score::scanElements(std::function<void(EngravingItem*)> func)
 {
     for (MeasureBase* mb = first(); mb; mb = mb->next()) {
-        mb->scanElements(data, func, all);
+        mb->scanElements(func);
         if (mb->type() == ElementType::MEASURE) {
             Measure* m = toMeasure(mb);
             Measure* mmr = m->mmRest();
             if (mmr) {
-                mmr->scanElements(data, func, all);
+                mmr->scanElements(func);
             }
         }
     }
     for (Page* page : pages()) {
         for (System* s :page->systems()) {
-            s->scanElements(data, func, all);
+            s->scanElements(func);
         }
-        func(data, page);
+        func(page);
     }
 }
 
@@ -6099,7 +6083,7 @@ void Score::removeSystemLock(const SystemLock* lock)
 void Score::updateSwing()
 {
     for (Staff* s : m_staves) {
-        s->clearSwingList();
+        s->clearSwingMap();
     }
     Measure* fm = firstMeasure();
     if (!fm) {
@@ -6123,10 +6107,10 @@ void Score::updateSwing()
             sp.swingUnit = st->swingParameters().swingUnit;
             if (st->systemFlag()) {
                 for (Staff* sta : m_staves) {
-                    sta->insertIntoSwingList(s->tick(), sp);
+                    sta->insertIntoSwingMap(s->tick(), sp);
                 }
             } else {
-                staff->insertIntoSwingList(s->tick(), sp);
+                staff->insertIntoSwingMap(s->tick(), sp);
             }
         }
     }
@@ -6247,6 +6231,24 @@ void Score::updateChannel()
             }
         }
     }
+}
+
+SystemDivider* Score::systemDivider(size_t systemIdx, SystemDividerType type) const
+{
+    if (muse::contains(m_systemDividers, systemIdx)) {
+        return m_systemDividers.at(systemIdx).at(static_cast<size_t>(type));
+    }
+
+    return nullptr;
+}
+
+void Score::addSystemDivider(size_t systemIdx, SystemDivider* divider)
+{
+    if (!muse::contains(m_systemDividers, systemIdx)) {
+        m_systemDividers.emplace(systemIdx, std::array<SystemDivider*, 2> { nullptr, nullptr });
+    }
+
+    m_systemDividers.at(systemIdx)[static_cast<size_t>(divider->dividerType())] = divider;
 }
 
 UndoStack* Score::undoStack() const { return m_masterScore->undoStack(); }

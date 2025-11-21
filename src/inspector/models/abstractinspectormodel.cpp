@@ -126,6 +126,7 @@ static const QMap<mu::engraving::ElementType, InspectorModelType> NOTATION_ELEME
     { mu::engraving::ElementType::EXPRESSION, InspectorModelType::TYPE_EXPRESSION },
     { mu::engraving::ElementType::STRING_TUNINGS, InspectorModelType::TYPE_STRING_TUNINGS },
     { mu::engraving::ElementType::SYMBOL, InspectorModelType::TYPE_SYMBOL },
+    { mu::engraving::ElementType::SYSTEM_DIVIDER, InspectorModelType::TYPE_SYMBOL },
 };
 
 static const QMap<mu::engraving::HairpinType, InspectorModelType> HAIRPIN_ELEMENT_MODEL_TYPES = {
@@ -176,6 +177,11 @@ bool AbstractInspectorModel::isSystemObjectBelowBottomStaff() const
     return m_isSystemObjectBelowBottomStaff;
 }
 
+MeasurementUnits AbstractInspectorModel::measurementUnits() const
+{
+    return m_measurementUnits;
+}
+
 bool AbstractInspectorModel::shouldUpdateOnScoreChange() const
 {
     return m_shouldUpdateOnScoreChange;
@@ -199,6 +205,26 @@ void AbstractInspectorModel::updateIsSystemObjectBelowBottomStaff()
     if (m_isSystemObjectBelowBottomStaff != soBelowBottomStaff) {
         m_isSystemObjectBelowBottomStaff = soBelowBottomStaff;
         emit isSystemObjectBelowBottomStaffChanged(m_isSystemObjectBelowBottomStaff);
+    }
+}
+
+void AbstractInspectorModel::updatemeasurementUnits()
+{
+    MeasurementUnits result = MeasurementUnits::UNITS_UNKNOWN;
+
+    for (EngravingItem* item : m_elementList) {
+        MeasurementUnits itemUnits = item->offsetIsSpatiumDependent() ? MeasurementUnits::UNITS_SPATIUM : MeasurementUnits::UNITS_MM;
+        if (result != MeasurementUnits::UNITS_UNKNOWN && itemUnits != result) {
+            result = MeasurementUnits::UNITS_UNKNOWN;
+            break;
+        } else {
+            result = itemUnits;
+        }
+    }
+
+    if (m_measurementUnits != result) {
+        m_measurementUnits = result;
+        emit measurementUnitsChanged(m_measurementUnits);
     }
 }
 

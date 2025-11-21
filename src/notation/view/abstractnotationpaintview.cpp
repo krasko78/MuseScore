@@ -679,7 +679,7 @@ void AbstractNotationPaintView::paint(QPainter* qp)
         nvCtx.fromLogical = [this](const PointF& pos) -> PointF { return fromLogical(pos); };
 
         engraving::rendering::PaintOptions opt;
-        opt.invertColors = engravingConfiguration()->scoreInversionEnabled();
+        opt.invertColors = configuration()->shouldInvertScore();
         m_continuousPanel->paint(*painter, nvCtx, opt);
     }
 }
@@ -709,6 +709,22 @@ void AbstractNotationPaintView::onNotationSetup()
     uiConfiguration()->currentThemeChanged().onNotify(this, [this]() {
         scheduleRedraw();
     }, async::Asyncable::Mode::SetReplace);
+
+    engravingConfiguration()->selectionColorChanged().onReceive(this, [this](int, const muse::draw::Color&) {
+        scheduleRedraw();
+    });
+
+    engravingConfiguration()->formattingColorChanged().onReceive(this, [this](const Color&) {
+        scheduleRedraw();
+    });
+
+    engravingConfiguration()->invisibleColorChanged().onReceive(this, [this](const Color&) {
+        scheduleRedraw();
+    });
+
+    engravingConfiguration()->unlinkedColorChanged().onReceive(this, [this](const Color&) {
+        scheduleRedraw();
+    });
 
     engravingConfiguration()->debuggingOptionsChanged().onNotify(this, [this]() {
         scheduleRedraw();

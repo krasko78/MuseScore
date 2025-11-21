@@ -118,9 +118,12 @@ private:
     bool isPlaying() const;
 
     void clear();
+    void setRegions(const QList<RegionInfo>& regions);
 
     void onOnlineSoundsChanged();
     void onIsPlayingChanged();
+
+    void listenViewModeChanges();
 
     void startListeningToProgress(const muse::audio::TrackId trackId);
     void stopListeningToProgress(const muse::audio::TrackId trackId);
@@ -132,8 +135,8 @@ private:
     void onViewMatrixChanged();
 
     void initShouldShowRegions();
-    void updateRegionsBeingProcessed(const TracksBeingProcessed& tracks);
 
+    QList<RegionInfo> calculateRegions(const TracksBeingProcessed& tracks) const;
     std::vector<QRectF> calculateRects(const mu::engraving::Part* part, const std::vector<TickRange>& ranges) const;
     std::vector<QRectF> calculateRects(const mu::engraving::Part* part, const mu::engraving::System* system,
                                        const std::vector<TickRange>& ranges) const;

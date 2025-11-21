@@ -23,6 +23,7 @@
 #include <set>
 
 #include <QFile>
+#include <QFileInfo>
 
 #include "translation.h"
 
@@ -54,6 +55,7 @@
 #include "engraving/dom/timesig.h"
 #include "engraving/dom/tuplet.h"
 #include "engraving/dom/utils.h"
+#include "engraving/editing/transpose.h"
 
 #include "internal/midishared/generalmidi.h"
 #include "../midishared/midifile.h"
@@ -327,7 +329,7 @@ void MTrack::processMeta(int tick, const MidiEvent& mm)
         Fraction t = Fraction::fromTicks(tick);
         Interval v = staff->part()->instrument(t)->transpose();
         if (!v.isZero() && !cs->style().styleB(Sid::concertPitch)) {
-            cKey = transposeKey(tKey, v);
+            cKey = Transpose::transposeKey(tKey, v);
             // if there are more than 6 accidentals in transposing key, it cannot be PreferSharpFlat::AUTO
             if ((tKey > 6 || tKey < -6) && staff->part()->preferSharpFlat() == PreferSharpFlat::AUTO) {
                 staff->part()->setPreferSharpFlat(PreferSharpFlat::NONE);
@@ -624,7 +626,7 @@ void MTrack::createKeys(Key defaultKey, const KeyList& allKeyList)
             ke.setConcertKey(defaultKey);
             if (!v.isZero() && !staff->score()->style().styleB(Sid::concertPitch)) {
                 v.flip();
-                Key tKey = transposeKey(defaultKey, v);
+                Key tKey = Transpose::transposeKey(defaultKey, v);
                 ke.setKey(tKey);
             }
             staffKeyList[0] = ke;
@@ -1250,7 +1252,13 @@ Err importMidi(MasterScore* score, const QString& name)
         opers.addNewMidiFile(name);
     }
 
-    if (opers.data()->processingsOfOpenedFile == 0) {
+    // Check if file has been modified on disk since last import
+    QFileInfo fileInfo(name);
+    qint64 currentModTime = fileInfo.lastModified().toSecsSinceEpoch();
+    bool needsReload = (opers.data()->processingsOfOpenedFile == 0)
+                       || (opers.data()->fileModificationTime != currentModTime);
+
+    if (needsReload) {
         QFile fp(name);
         if (!fp.open(QIODevice::ReadOnly)) {
             LOGD("importMidi: file open error <%s>", qPrintable(name));
@@ -1274,6 +1282,7 @@ Err importMidi(MasterScore* score, const QString& name)
 
         loadMidiData(mf);
         opers.setMidiFileData(name, mf);
+        opers.data()->fileModificationTime = currentModTime;
     }
 
     opers.data()->tracks = convertMidi(score, opers.midiFile(name));

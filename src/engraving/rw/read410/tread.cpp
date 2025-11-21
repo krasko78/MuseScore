@@ -131,6 +131,7 @@
 #include "../../dom/vibrato.h"
 #include "../../dom/volta.h"
 #include "../../dom/whammybar.h"
+#include "../../editing/transpose.h"
 
 #include "../xmlreader.h"
 #include "../read206/read206.h"
@@ -1339,7 +1340,7 @@ void TRead::read(KeySig* s, XmlReader& e, ReadContext& ctx)
             if (p && !s->concertPitch()) {
                 Interval v = p->instrument(s->tick())->transpose();
                 if (!v.isZero()) {
-                    cKey = transposeKey(key, v);
+                    cKey = Transpose::transposeKey(key, v);
                 }
             }
             sig.setConcertKey(cKey);
@@ -1813,9 +1814,9 @@ void TRead::read(MMRestRange* r, XmlReader& xml, ReadContext& ctx)
 void TRead::read(SystemDivider* d, XmlReader& e, ReadContext& ctx)
 {
     if (e.attribute("type") == "left") {
-        d->setDividerType(SystemDivider::Type::LEFT);
+        d->setDividerType(SystemDividerType::LEFT);
     } else {
-        d->setDividerType(SystemDivider::Type::RIGHT);
+        d->setDividerType(SystemDividerType::RIGHT);
     }
     TRead::read(static_cast<Symbol*>(d), e, ctx);
 }
@@ -3755,8 +3756,6 @@ bool TRead::readProperties(SLine* l, XmlReader& e, ReadContext& ctx)
         TRead::read(ls, e, ctx);
         l->add(ls);
         ls->setVisible(l->visible());
-    } else if (tag == "length") {
-        l->setLen(e.readDouble());
     } else if (TRead::readProperty(l, tag, e, ctx, Pid::DIAGONAL)) {
     } else if (TRead::readProperty(l, tag, e, ctx, Pid::ANCHOR)) {
     } else if (TRead::readProperty(l, tag, e, ctx, Pid::LINE_WIDTH)) {

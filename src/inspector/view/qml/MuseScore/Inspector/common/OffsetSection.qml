@@ -31,6 +31,7 @@ InspectorPropertyView {
     property alias horizontalOffsetControl: horizontalOffsetControl
     property alias verticalOffsetControl: verticalOffsetControl
     property bool isVerticalOffsetAvailable: true
+    property int measurementUnits: CommonTypes.UNITS_UNKNOWN
     property double step // krasko
 
     titleText: qsTrc("inspector", "Offset")
@@ -61,6 +62,9 @@ InspectorPropertyView {
 
             isIndeterminate: root.propertyItem && enabled ? root.propertyItem.isUndefined : false
             currentValue: root.propertyItem ? root.propertyItem.x : 0
+            measureUnitsSymbol: root.measurementUnits === CommonTypes.UNITS_SPATIUM ? qsTrc("global", "sp")
+                              : root.measurementUnits === CommonTypes.UNITS_MM ?      "mm"
+                                                                                    : "--"
 
             onValueEditingFinished: function(newValue) {
                 root.propertyItem.x = newValue
@@ -84,6 +88,9 @@ InspectorPropertyView {
 
             isIndeterminate: root.propertyItem && enabled ? root.propertyItem.isUndefined : false
             currentValue: root.propertyItem ? root.propertyItem.y : 0
+            measureUnitsSymbol: root.measurementUnits === CommonTypes.UNITS_SPATIUM ? qsTrc("global", "sp")
+                              : root.measurementUnits === CommonTypes.UNITS_MM ?      "mm"
+                                                                                    : "--"
 
             onValueEditingFinished: function(newValue) {
                 root.propertyItem.y = newValue

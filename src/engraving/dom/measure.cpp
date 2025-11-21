@@ -1380,10 +1380,19 @@ RectF Measure::staffPageBoundingRect(staff_idx_t staffIdx) const
 bool Measure::acceptDrop(EditData& data) const
 {
     MuseScoreView* viewer = data.view();
-    EngravingItem* e = data.dropElement;
-    staff_idx_t staffIdx = track2staff(data.track);
+    const EngravingItem* e = data.dropElement;
 
-    RectF staffRect = system()->staff(staffIdx)->bbox().translated(system()->canvasPos());
+    if (data.track == muse::nidx) {
+        return false;
+    }
+
+    const staff_idx_t staffIdx = track2staff(data.track);
+    const SysStaff* sysStaff = system()->staff(staffIdx);
+    IF_ASSERT_FAILED(sysStaff) {
+        return false;
+    }
+
+    RectF staffRect = sysStaff->bbox().translated(system()->canvasPos());
     staffRect.intersect(canvasBoundingRect());
 
     //! NOTE: Should match NotationInteraction::dragMeasureAnchorElement
@@ -1393,8 +1402,8 @@ bool Measure::acceptDrop(EditData& data) const
     case ElementType::FBOX:
     case ElementType::HBOX: {
         const Measure* m = isMMRest() ? mmRestFirst() : this;
-        for (staff_idx_t staffIdx = 0; staffIdx < score()->nstaves(); ++staffIdx) {
-            if (m->isMeasureRepeatGroupWithPrevM(staffIdx)) {
+        for (staff_idx_t staffIdxLoop = 0; staffIdxLoop < score()->nstaves(); ++staffIdxLoop) {
+            if (m->isMeasureRepeatGroupWithPrevM(staffIdxLoop)) {
                 return false;
             }
         }
@@ -1448,8 +1457,8 @@ bool Measure::acceptDrop(EditData& data) const
         case ActionIconType::FFRAME:
         case ActionIconType::MEASURE: {
             const Measure* m = isMMRest() ? mmRestFirst() : this;
-            for (staff_idx_t staffIdx = 0; staffIdx < score()->nstaves(); ++staffIdx) {
-                if (m->isMeasureRepeatGroupWithPrevM(staffIdx)) {
+            for (staff_idx_t staffIdxLoop = 0; staffIdxLoop < score()->nstaves(); ++staffIdxLoop) {
+                if (m->isMeasureRepeatGroupWithPrevM(staffIdxLoop)) {
                     return false;
                 }
             }
@@ -1499,6 +1508,10 @@ EngravingItem* Measure::drop(EditData& data)
 {
     EngravingItem* e = data.dropElement;
     staff_idx_t staffIdx = track2staff(data.track);
+    if (staffIdx == muse::nidx) {
+        delete e;
+        return nullptr;
+    }
     Staff* staff = score()->staff(staffIdx);
     //bool fromPalette = (e->track() == -1);
 
@@ -1658,7 +1671,7 @@ EngravingItem* Measure::drop(EditData& data)
     case ElementType::BAR_LINE:
     {
         BarLine* bl = toBarLine(e);
-\
+
         if (bl->playCount() != -1) {
             undoChangeProperty(Pid::REPEAT_COUNT, bl->playCount());
         }
@@ -1670,7 +1683,7 @@ EngravingItem* Measure::drop(EditData& data)
             Segment* seg = undoGetSegmentR(SegmentType::EndBarLine, ticks());
             BarLine* cbl = toBarLine(seg->element(trackZeroVoice(data.track)));
             if (cbl) {
-                cbl->drop(data);
+                return cbl->drop(data);
             }
         } else if (bl->barLineType() == BarLineType::START_REPEAT) {
             Measure* m2 = isMMRest() ? mmRestFirst() : this;
@@ -1719,16 +1732,20 @@ EngravingItem* Measure::drop(EditData& data)
                     }
                 }
             }
-        } else if (Segment* seg = findSegmentR(SegmentType::EndBarLine, ticks())) {
-            // drop to first end barline
-            for (EngravingItem* ee : seg->elist()) {
-                if (ee) {
-                    ee->drop(data);
-                    break;
+        } else {
+            Segment* seg = undoGetSegmentR(SegmentType::EndBarLine, ticks());
+            // if any staff lacks a barline, create one
+            for (size_t stIdx = 0; stIdx < score()->nstaves(); ++stIdx) {
+                BarLine* staffBarLine = toBarLine(seg->element(stIdx * VOICES));
+                if (!staffBarLine) {
+                    staffBarLine = Factory::createBarLine(seg);
+                    staffBarLine->setParent(seg);
+                    staffBarLine->setTrack(stIdx * VOICES);
+                    undoAddElement(staffBarLine);
                 }
             }
-        } else {
-            delete e;
+            // drop to barline
+            return seg->element(trackZeroVoice(data.track))->drop(data);
         }
         break;
     }
@@ -2102,35 +2119,40 @@ bool Measure::isFirstInSection() const
 //   scanElements
 //---------------------------------------------------------
 
-void Measure::scanElements(void* data, void (* func)(void*, EngravingItem*), bool all)
+void Measure::scanElements(std::function<void(EngravingItem*)> func)
 {
     size_t nstaves = score()->nstaves();
-    if (!all && nstaves == 0) {
+    if (nstaves == 0) {
         return;
     }
 
-    MeasureBase::scanElements(data, func, all);
+    MeasureBase::scanElements(func);
 
     for (staff_idx_t staffIdx = 0; staffIdx < nstaves; ++staffIdx) {
         MStaff* ms = m_mstaves[staffIdx];
-        if (ms->measureNumber() && showMeasureNumberOnStaff(staffIdx)) {
-            func(data, ms->measureNumber());
+        MeasureNumber* measureNumber = ms->measureNumber();
+        if (measureNumber && measureNumber->systemFlag() && showMeasureNumberOnStaff(staffIdx)) {
+            func(measureNumber);
         }
 
-        if (!all && !(visible(staffIdx) && score()->staff(staffIdx)->show()) && !isCutawayClef(staffIdx)) {
+        if (!(visible(staffIdx) && score()->staff(staffIdx)->show()) && !isCutawayClef(staffIdx)) {
             continue;
         }
 
-        func(data, ms->lines());
+        if (measureNumber && !measureNumber->systemFlag()) {
+            func(measureNumber);
+        }
+
+        func(ms->lines());
         if (ms->vspacerUp()) {
-            func(data, ms->vspacerUp());
+            func(ms->vspacerUp());
         }
         if (ms->vspacerDown()) {
-            func(data, ms->vspacerDown());
+            func(ms->vspacerDown());
         }
 
         if (ms->mmRangeText()) {
-            func(data, ms->mmRangeText());
+            func(ms->mmRangeText());
         }
     }
 
@@ -2138,7 +2160,7 @@ void Measure::scanElements(void* data, void (* func)(void*, EngravingItem*), boo
         if (!s->enabled()) {
             continue;
         }
-        s->scanElements(data, func, all);
+        s->scanElements(func);
     }
 }
 

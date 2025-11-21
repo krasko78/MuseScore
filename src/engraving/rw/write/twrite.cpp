@@ -142,6 +142,7 @@
 #include "dom/soundflag.h"
 
 #include "dom/tapping.h"
+#include "dom/tempo.h"
 #include "dom/tempotext.h"
 #include "dom/text.h"
 #include "dom/textbase.h"
@@ -159,6 +160,8 @@
 #include "dom/volta.h"
 
 #include "dom/whammybar.h"
+
+#include "editing/transpose.h"
 
 #include "../xmlwriter.h"
 #include "writecontext.h"
@@ -453,6 +456,37 @@ void TWrite::writeSystemLocks(const Score* score, XmlWriter& xml)
     xml.endElement();
 }
 
+void TWrite::writeSystemDividers(const Score* score, XmlWriter& xml, WriteContext& ctx)
+{
+    std::vector<const System*> systemsToWrite;
+    for (const System* system : score->systems()) {
+        bool writeSystem = (system->systemDividerLeft() && !system->systemDividerLeft()->generated())
+                           || (system->systemDividerRight() && !system->systemDividerRight()->generated());
+        if (writeSystem) {
+            systemsToWrite.push_back(system);
+        }
+    }
+
+    if (systemsToWrite.empty()) {
+        return;
+    }
+
+    xml.startElement("SystemDividers");
+    for (const System* system : systemsToWrite) {
+        xml.startElement("system", { { "idx", muse::indexOf(score->systems(), system) } });
+        SystemDivider* dividerLeft = system->systemDividerLeft();
+        if (dividerLeft && !dividerLeft->generated()) {
+            write(dividerLeft, xml, ctx);
+        }
+        SystemDivider* dividerRight = system->systemDividerRight();
+        if (dividerRight && !dividerRight->generated()) {
+            write(dividerRight, xml, ctx);
+        }
+        xml.endElement();
+    }
+    xml.endElement();
+}
+
 void TWrite::writeItemEid(const EngravingObject* item, XmlWriter& xml, WriteContext& ctx)
 {
     if (ctx.configuration()->doNotSaveEIDsForBackCompat() || item->score()->isPaletteScore() || ctx.clipboardmode()) {
@@ -493,6 +527,12 @@ void TWrite::writeSystemLock(const SystemLock* systemLock, XmlWriter& xml)
     xml.tag("endMeasure", systemLock->endMB()->eid().toStdString());
 
     xml.endElement();
+}
+
+void TWrite::lineBreakToTag(String& str)
+{
+    // Raw newlines appearing next to tags (<font size="10> or <sym>...) get eaten by XML readers.
+    str.replace(u"\n", u"<br/>");
 }
 
 void TWrite::writeStyledProperties(const EngravingItem* item, XmlWriter& xml)
@@ -1257,7 +1297,9 @@ void TWrite::writeProperties(const TextBase* item, XmlWriter& xml, WriteContext&
         writeProperty(item, xml, spp.pid);
     }
     if (writeText) {
-        xml.writeXml(u"text", item->xmlText());
+        String xmlStr = item->xmlText();
+        lineBreakToTag(xmlStr);
+        xml.writeXml(u"text", xmlStr);
     }
 
     writeProperty(item, xml, Pid::TEXT_LINKED_TO_MASTER);
@@ -1603,17 +1645,6 @@ void TWrite::writeProperties(const SLine* item, XmlWriter& xml, WriteContext& ct
     writeProperty(item, xml, Pid::DASH_LINE_LEN);
     writeProperty(item, xml, Pid::DASH_GAP_LEN);
 
-    if (item->score()->isPaletteScore()) {
-        // when used as icon
-        if (!item->spannerSegments().empty()) {
-            const LineSegment* s = item->frontSegment();
-            xml.tag("length", s->pos2().x());
-        } else {
-            xml.tag("length", item->spatium() * 4);
-        }
-        return;
-    }
-
     if (!item->isUserModified()) {
         return;
     }
@@ -1749,8 +1780,8 @@ static void writeHarmonyInfo(const HarmonyInfo* item, const Harmony* h, XmlWrite
             Fraction tick = segment ? segment->tick() : Fraction(-1, 1);
             const Interval& interval = h->staff()->transpose(tick);
             if (ctx.clipboardmode() && !h->score()->style().styleB(Sid::concertPitch) && interval.chromatic) {
-                rRootTpc = transposeTpc(item->rootTpc(), interval, true);
-                rBassTpc = transposeTpc(item->bassTpc(), interval, true);
+                rRootTpc = Transpose::transposeTpc(item->rootTpc(), interval, true);
+                rBassTpc = Transpose::transposeTpc(item->bassTpc(), interval, true);
             }
         }
 
@@ -3101,7 +3132,12 @@ void TWrite::write(const System* item, XmlWriter& xml, WriteContext& ctx)
 
 void TWrite::write(const SystemDivider* item, XmlWriter& xml, WriteContext& ctx)
 {
-    xml.startElement(item, { { "type", (item->dividerType() == SystemDivider::Type::LEFT ? "left" : "right") } });
+    xml.startElement(item, { { "type", (item->dividerType() == SystemDividerType::LEFT ? "left" : "right") } });
+    if (item->scoreFont()) {
+        xml.tag("font", item->scoreFont()->name());
+        writeProperty(item, xml, Pid::SYMBOLS_SIZE);
+        writeProperty(item, xml, Pid::SYMBOL_ANGLE);
+    }
     writeProperties(static_cast<const BSymbol*>(item), xml, ctx);
     xml.endElement();
 }
@@ -3165,7 +3201,7 @@ void TWrite::write(const TempoText* item, XmlWriter& xml, WriteContext& ctx)
 {
     xml.startElement(item);
     writeProperty(item, xml, Pid::PLAY);
-    xml.tag("tempo", TConv::toXml(item->tempo()));
+    xml.tag("tempo", TConv::toXml(item->tempo(), TEMPO_PRECISION));
     if (item->followText()) {
         xml.tag("followText", item->followText());
     }

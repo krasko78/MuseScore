@@ -21,6 +21,8 @@
  */
 #include "tdraw.h"
 
+#include "defer.h"
+
 #include "draw/fontmetrics.h"
 #include "draw/svgrenderer.h"
 
@@ -640,9 +642,11 @@ static void drawDots(const BarLine* item, Painter* painter, double x)
         y2l = 2.5 * spatium;
     } else {
         const StaffType* st = item->staffType();
+        const int lines = st->lines();
+        const double lineDistance = st->lineDistance().toMM(spatium);
 
-        y1l = st->doty1() * spatium;
-        y2l = st->doty2() * spatium;
+        y1l = (static_cast<double>((lines - 1) / 2) - 0.5) * lineDistance;
+        y2l = (static_cast<double>(lines / 2) + 0.5) * lineDistance;
 
         //adjust for staffType offset
         double stYOffset = item->staffOffsetY();
@@ -677,13 +681,17 @@ void TDraw::draw(const BarLine* item, Painter* painter, const PaintOptions& opt)
 {
     TRACE_DRAW_ITEM;
 
-    painter->save();
-    setMask(item, painter);
-
     const BarLine::LayoutData* data = item->ldata();
     IF_ASSERT_FAILED(data) {
         return;
     }
+
+    painter->save();
+    DEFER {
+        painter->restore();
+    };
+
+    setMask(item, painter);
 
     switch (item->barLineType()) {
     case BarLineType::NORMAL: {
@@ -834,24 +842,41 @@ void TDraw::draw(const BarLine* item, Painter* painter, const PaintOptions& opt)
     }
     break;
     }
-    Segment* s = item->segment();
-    if (s && s->isEndBarLineType() && !opt.isPrinting) {
-        Measure* m = s->measure();
-        if (m->isIrregular() && item->score()->markIrregularMeasures() && !m->isMMRest()) {
-            painter->setPen(item->configuration()->invisibleColor());
 
+    // draw irregular measure mark
+
+    if (opt.isPrinting || !item->score()->markIrregularMeasures()) {
+        return;
+    }
+
+    const Segment* s = item->segment();
+    if (s && (s->isEndBarLineType() || s->isStartRepeatBarLineType())) {
+        const Measure* measure = s->measure();
+        if (s->isStartRepeatBarLineType()) {
+            const Measure* prevMeasure = measure ? measure->prevMeasure() : nullptr;
+            if (!prevMeasure) {
+                return;
+            }
+            if (const BarLine* prevEndBl = prevMeasure->endBarLine(item->staffIdx())) {
+                if (prevEndBl->segment() && prevEndBl->segment()->enabled()) {
+                    return;
+                }
+            }
+            measure = prevMeasure;
+        }
+
+        if (measure && measure->isIrregular() && !measure->isMMRest()) {
+            painter->setPen(item->configuration()->invisibleColor());
             Font f(u"Edwin", Font::Type::Text);
             f.setPointSizeF(12 * item->spatium() / item->defaultSpatium());
             f.setBold(true);
-            Char ch = m->ticks() > m->timesig() ? u'+' : u'-';
+            Char ch = measure->ticks() > measure->timesig() ? u'+' : u'-';
             RectF r = FontMetrics(f).boundingRect(ch);
 
             painter->setFont(f);
-            painter->drawText(-r.width(), 0.0, ch);
+            painter->drawText(-r.width(), -item->spatium(), ch);
         }
     }
-
-    painter->restore();
 }
 
 void TDraw::draw(const Beam* item, Painter* painter, const PaintOptions& opt)
@@ -1531,13 +1556,13 @@ void TDraw::draw(const GlissandoSegment* item, Painter* painter, const PaintOpti
 
         painter->drawLine(LineF(0.0, 0.0, l, 0.0));
     } else if (glissando->glissandoType() == GlissandoType::WAVY) {
-        RectF b = item->symBbox(SymId::wiggleTrill);
-        double a  = item->symAdvance(SymId::wiggleTrill);
+        RectF b = item->symBbox(SymId::wiggleGlissando);
+        double a  = item->symAdvance(SymId::wiggleGlissando);
         int n    = static_cast<int>(l / a);          // always round down (truncate) to avoid overlap
         double x  = (l - n * a) * 0.5;     // centre line in available space
         SymIdList ids;
         for (int i = 0; i < n; ++i) {
-            ids.push_back(SymId::wiggleTrill);
+            ids.push_back(SymId::wiggleGlissando);
         }
 
         item->score()->engravingFont()->draw(ids, painter, item->magS(), PointF(x, -(b.y() + b.height() * 0.5)));
@@ -2124,7 +2149,7 @@ void TDraw::draw(const MMRest* item, Painter* painter, const PaintOptions& opt)
     painter->setPen(item->curColor(opt));
     RectF numberBox = item->symBbox(ldata->numberSym);
     PointF numberPos = item->numberPos();
-    if (item->shouldShowNumber()) {
+    if (item->showNumber()) {
         item->drawSymbols(ldata->numberSym, painter, numberPos);
     }
 
@@ -2150,7 +2175,7 @@ void TDraw::draw(const MMRest* item, Painter* painter, const PaintOptions& opt)
             pen.setWidthF(hBarThickness);
             painter->setPen(pen);
             double halfHBarThickness = hBarThickness * .5;
-            if (item->shouldShowNumber() // avoid painting line through number
+            if (item->showNumber() // avoid painting line through number
                 && item->style().styleB(Sid::mmRestNumberMaskHBar)
                 && numberBox.bottom() >= -halfHBarThickness
                 && numberBox.top() <= halfHBarThickness) {
@@ -2190,23 +2215,24 @@ void TDraw::draw(const Note* item, Painter* painter, const PaintOptions& opt)
 
     const Note::LayoutData* ldata = item->ldata();
 
-    auto config = item->configuration();
+    const auto config = item->configuration();
+    const StaffType* staffType = item->staff() ? item->staff()->staffTypeForElement(item) : nullptr;
 
-    bool negativeFret = item->negativeFretUsed() && item->staff()->isTabStaff(item->tick());
+    const bool isTabStaff = staffType && staffType->isTabStaff();
+    const bool negativeFret = isTabStaff && item->negativeFretUsed();
+    const bool useCriticalColor = negativeFret && !item->deadNote() && opt.isPrinting;
 
-    Color c(negativeFret ? config->criticalColor() : item->curColor(opt));
-    painter->setPen(c);
-    bool tablature = item->staff() && item->staff()->isTabStaff(item->chord()->tick());
+    painter->setPen(useCriticalColor ? config->criticalColor() : item->curColor(opt));
 
     // tablature
-    if (tablature) {
+    if (isTabStaff) {
         if (item->displayFret() == Note::DisplayFretOption::Hide || item->shouldHideFret()) {
             return;
         }
         const Staff* st = item->staff();
         const StaffType* tab = st->staffTypeForElement(item);
 
-        if (negativeFret || (item->fretConflict() && !opt.isPrinting && item->score()->showUnprintable())) {                    // fret conflict
+        if (negativeFret || (item->fretConflict() && !opt.isPrinting && item->score()->showUnprintable())) { // fret conflict
             painter->save();
             painter->setPen(config->criticalColor());
             painter->setBrush(config->criticalBackgroundColor());
@@ -2217,10 +2243,9 @@ void TDraw::draw(const Note* item, Painter* painter, const PaintOptions& opt)
         Font f(tab->fretFont());
         f.setPointSizeF(f.pointSizeF() * item->magS());
         painter->setFont(f);
-        painter->setPen(c);
-        double startPosX = ldata->bbox().x();
 
-        double yOffset = tab->fretFontYOffset();
+        const double startPosX = ldata->bbox().x();
+        const double yOffset = tab->fretFontYOffset();
         painter->drawText(PointF(startPosX, yOffset * item->magS()), item->fretString());
     }
     // NOT tablature
@@ -2236,8 +2261,7 @@ void TDraw::draw(const Note* item, Painter* painter, const PaintOptions& opt)
             const Instrument* in = item->part()->instrument(item->chord()->tick());
             int i = item->ppitch();
             if (i < in->minPitchP() || i > in->maxPitchP()) {
-                painter->setPen(
-                    item->selected() ? config->criticalSelectedColor() : config->criticalColor());
+                painter->setPen(item->selected() ? config->criticalSelectedColor() : config->criticalColor());
             } else if (i < in->minPitchA() || i > in->maxPitchA()) {
                 painter->setPen(item->selected() ? config->warningSelectedColor() : config->warningColor());
             }

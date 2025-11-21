@@ -67,8 +67,6 @@ static constexpr double INCH      = 25.4; // millimitres per inch
 static constexpr double PPI       = 72.0; // typographical points per inch
 
 // INTERNAL DRAWING UNITS
-// Given that it's ultimately arbitrary, we may as well set our internal units to
-// something that makes them easier to read when debugging, e.g. 1/100 of millimitre.
 static constexpr double DPI = 1200;
 static constexpr double DPMM = DPI / INCH;
 
@@ -153,9 +151,11 @@ enum class MsError : unsigned char {
     CANNOT_REMOVE_TIME_TUPLET,
     CANNOT_REMOVE_TIME_MEASURE_REPEAT,
     NO_DEST,
+    SOURCE_PARTIAL_TUPLET,
     DEST_TUPLET,
     TUPLET_CROSSES_BAR,
     DEST_LOCAL_TIME_SIGNATURE,
+    SOURCE_PARTIAL_TREMOLO,
     DEST_TREMOLO,
     NO_MIME,
     DEST_NO_CR,
@@ -164,6 +164,7 @@ enum class MsError : unsigned char {
     CORRUPTED_MEASURE,
     CANNOT_REMOVE_KEY_SIG,
     CANNOT_JOIN_MEASURE_STAFFTYPE_CHANGE,
+    CANNOT_REPEAT_SELECTION,
 };
 
 /// \cond PLUGIN_API \private \endcond

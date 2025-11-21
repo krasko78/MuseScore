@@ -248,10 +248,10 @@ SymId Rest::getSymbol(DurationType type, int line, int lines) const
     case DurationType::V_LONG:
         return SymId::restLonga;
     case DurationType::V_BREVE:
-        return SymId::restDoubleWhole;
+        return (line < 0 || line >= lines) ? SymId::restDoubleWholeLegerLine : SymId::restDoubleWhole;
     case DurationType::V_MEASURE:
         if (ticks() >= Fraction(2, 1)) {
-            return SymId::restDoubleWhole;
+            return (line < 0 || line >= lines) ? SymId::restDoubleWholeLegerLine : SymId::restDoubleWhole;
         }
     // fall through
     case DurationType::V_WHOLE:
@@ -396,17 +396,17 @@ double Rest::downPos() const
 //   scanElements
 //---------------------------------------------------------
 
-void Rest::scanElements(void* data, void (* func)(void*, EngravingItem*), bool all)
+void Rest::scanElements(std::function<void(EngravingItem*)> func)
 {
-    ChordRest::scanElements(data, func, all);
+    ChordRest::scanElements(func);
     for (EngravingItem* e : el()) {
-        e->scanElements(data, func, all);
+        e->scanElements(func);
     }
     for (NoteDot* dot : m_dots) {
-        dot->scanElements(data, func, all);
+        dot->scanElements(func);
     }
     if (!isGap() || debugDrawGap()) {
-        func(data, this);
+        func(this);
     }
 }
 

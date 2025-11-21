@@ -58,6 +58,7 @@
 #include "volta.h"
 
 #include "editing/splitjoinmeasure.h"
+#include "editing/transpose.h"
 
 #include "log.h"
 
@@ -221,37 +222,44 @@ EngravingItem* ChordRest::drop(EditData& data)
     }
 
     case ElementType::BAR_LINE:
+    {
+        BarLine* bl = toBarLine(e);
+        Fraction barLineTick = bl->barLineType() == BarLineType::START_REPEAT ? tick() : endTick();
+
         if (data.control()) {
-            SplitJoinMeasure::splitMeasure(masterScore(), tick());
-        } else {
-            BarLine* bl = toBarLine(e);
-            bl->setPos(PointF());
-            bl->setTrack(staffIdx() * VOICES);
-            bl->setGenerated(false);
-            Fraction blt = bl->barLineType() == BarLineType::START_REPEAT ? tick() : endTick();
-
-            if (blt == m->tick() || blt == m->endTick()) {
-                return m->drop(data);
-            }
-
-            BarLine* obl = nullptr;
-            for (Staff* st  : staff()->staffList()) {
-                Score* score = st->score();
-                Measure* measure = score->tick2measure(m->tick());
-                Segment* seg = measure->undoGetSegment(SegmentType::BarLine, blt);
-                BarLine* l;
-                if (!obl) {
-                    obl = l = bl->clone();
-                } else {
-                    l = toBarLine(obl->linkedClone());
-                }
-                l->setTrack(st->idx() * VOICES);
-                l->setParent(seg);
-                score->undoAddElement(l);
-            }
+            SplitJoinMeasure::splitMeasure(masterScore(), barLineTick);
+            m = score()->tick2measure(tick());
+            // consume the ControlModifier flag
+            data.modifiers &= ~ControlModifier;
         }
+
+        if (barLineTick == m->tick() || barLineTick == m->endTick()) {
+            return m->drop(data);
+        }
+
+        bl->setPos(PointF());
+        bl->setTrack(staffIdx() * VOICES);
+        bl->setGenerated(false);
+
+        BarLine* obl = nullptr;
+        for (Staff* st : staff()->staffList()) {
+            Score* score = st->score();
+            Measure* measure = score->tick2measure(m->tick());
+            Segment* seg = measure->undoGetSegment(SegmentType::BarLine, barLineTick);
+            BarLine* l;
+            if (!obl) {
+                obl = l = bl->clone();
+            } else {
+                l = toBarLine(obl->linkedClone());
+            }
+            l->setTrack(st->idx() * VOICES);
+            l->setParent(seg);
+            score->undoAddElement(l);
+        }
+
         delete e;
         return nullptr;
+    }
 
     case ElementType::CLEF:
         score()->cmdInsertClef(toClef(e), this);
@@ -297,7 +305,7 @@ EngravingItem* ChordRest::drop(EditData& data)
         // calculate correct transposed tpc
         Interval v = staff()->transpose(tick());
         v.flip();
-        note->setTpc2(transposeTpc(note->tpc1(), v, true));
+        note->setTpc2(Transpose::transposeTpc(note->tpc1(), v, true));
 
         Segment* seg = segment();
         score()->undoRemoveElement(this);
@@ -318,7 +326,7 @@ EngravingItem* ChordRest::drop(EditData& data)
         Interval interval = staff()->transpose(tick());
         if (!style().styleB(Sid::concertPitch) && !interval.isZero()) {
             interval.flip();
-            score()->undoTransposeHarmony(harmony, interval);
+            Transpose::undoTransposeHarmony(score(), harmony, interval);
         }
     }
         [[fallthrough]];
@@ -1041,22 +1049,22 @@ EngravingItem* ChordRest::nextSegmentElement()
 //   scanElements
 //---------------------------------------------------------
 
-void ChordRest::scanElements(void* data, void (* func)(void*, EngravingItem*), bool all)
+void ChordRest::scanElements(std::function<void(EngravingItem*)> func)
 {
     if (m_beam && (m_beam->elements().front() == this)
         && !measure()->stemless(staffIdx())) {
-        m_beam->scanElements(data, func, all);
+        m_beam->scanElements(func);
     }
     for (Lyrics* l : m_lyrics) {
-        l->scanElements(data, func, all);
+        l->scanElements(func);
     }
     DurationElement* de = this;
     while (de->tuplet() && de->tuplet()->elements().front() == de) {
-        de->tuplet()->scanElements(data, func, all);
+        de->tuplet()->scanElements(func);
         de = de->tuplet();
     }
     if (m_tabDur) {
-        func(data, m_tabDur);
+        func(m_tabDur);
     }
 }
 

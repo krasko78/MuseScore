@@ -75,6 +75,7 @@ Column {
         offset: root.model?.offset ?? null
         isSnappedToGrid: root.model?.isSnappedToGrid ?? false
         isVerticalOffsetAvailable: root.model?.isVerticalOffsetAvailable ?? false
+        measurementUnits: root.model?.measurementUnits ?? CommonTypes.UNITS_UNKNOWN
         step: root.step // krasko
 
         navigationPanel: root.navigationPanel

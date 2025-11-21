@@ -115,6 +115,7 @@ set(LINK_LIB
     muse::mpe
     muse::midi
     muse::learn
+    muse::learn_qml
     muse::tours
     muse::multiinstances
     muse::cloud
@@ -131,6 +132,8 @@ set(LINK_LIB
     palette
     inspector
     playback
+    preferences
+    preferences_qml
     instrumentsscene
     musesounds
     )
@@ -419,6 +422,12 @@ elseif(OS_IS_MAC)
             ${PROJECT_SOURCE_DIR}/fonts/finalemaestro/FinaleMaestroText-Regular.otf
             ${PROJECT_SOURCE_DIR}/fonts/finalebroadway/FinaleBroadwayText.otf
             DESTINATION ${Mscore_SHARE_NAME}${Mscore_INSTALL_NAME}fonts
+    )
+
+    qt_generate_deploy_qml_app_script(
+        TARGET MuseScoreStudio
+        OUTPUT_SCRIPT deploy_script
+        MACOS_BUNDLE_POST_BUILD
     )
 
 ###########################################

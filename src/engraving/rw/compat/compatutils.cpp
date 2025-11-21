@@ -45,6 +45,7 @@
 #include "dom/capo.h"
 #include "dom/noteline.h"
 #include "dom/textline.h"
+#include "editing/transpose.h"
 #include "style/styledef.h"
 
 #include "engraving/style/textstyle.h"
@@ -583,7 +584,7 @@ double CompatUtils::convertChordExtModUnits(double val)
     // After 4.6 this is in % of root cap height
     // The best we can do for conversion of old files is to assume a default spatium of 1.75mm and a default font size of 10pt
     // The height value is calculated from Edwin at 10pt using FontMetrics::capHeight
-    const double DEFAULT_SPATIUM = StyleDef::styleValues[static_cast<size_t>(Sid::spatium)].defaultValue().toDouble();
+    const double DEFAULT_SPATIUM = StyleDef::styleValues[static_cast<size_t>(Sid::spatium)].defaultValue.toDouble();
     muse::draw::Font f(u"Edwin", muse::draw::Font::Type::Text);
     f.setPointSizeF(10);
     const double DEFAULT_FONT_CAP_HEIGHT = muse::draw::FontMetrics::capHeight(f);   // 121
@@ -742,7 +743,7 @@ void CompatUtils::addMissingInitKeyForTransposingInstrument(MasterScore* score)
                     Key key = Key::C;
                     Key cKey = key;
                     if (!score->style().styleB(Sid::concertPitch)) {
-                        cKey = transposeKey(key, v);
+                        cKey = Transpose::transposeKey(key, v);
                     }
                     kse.setConcertKey(cKey);
                     kse.setKey(key);

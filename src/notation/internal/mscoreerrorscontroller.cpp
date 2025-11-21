@@ -116,6 +116,10 @@ void MScoreErrorsController::checkAndShowMScoreError()
     case MsError::NO_DEST:
         title = muse::trc("notation", "No destination to paste");
         break;
+    case MsError::SOURCE_PARTIAL_TUPLET:
+        title = muse::trc("notation", "This selection cannot be copied");
+        message = muse::trc("notation", "Please select all notes that are part of this tuplet and try again.");
+        break;
     case MsError::DEST_TUPLET:
         title = muse::trc("notation", "Cannot paste into tuplet");
         break;
@@ -124,6 +128,10 @@ void MScoreErrorsController::checkAndShowMScoreError()
         break;
     case MsError::DEST_LOCAL_TIME_SIGNATURE:
         title = muse::trc("notation", "Cannot paste in local time signature");
+        break;
+    case MsError::SOURCE_PARTIAL_TREMOLO:
+        title = muse::trc("notation", "This selection cannot be copied");
+        message = muse::trc("notation", "Please select all notes that are part of this tremolo and try again.");
         break;
     case MsError::DEST_TREMOLO:
         title = muse::trc("notation", "Cannot paste in tremolo");
@@ -153,6 +161,10 @@ void MScoreErrorsController::checkAndShowMScoreError()
     case MsError::CANNOT_JOIN_MEASURE_STAFFTYPE_CHANGE:
         title = muse::trc("notation", "These measures cannot be joined");
         message = muse::trc("notation", "Please remove the staff type change and retry.");
+        break;
+    case MsError::CANNOT_REPEAT_SELECTION:
+        title = muse::trc("notation", "Can’t repeat this selection");
+        message = muse::trc("notation", "Make a list selection of notes or rests on the same beat or any range selection and retry.");
         break;
     }
 

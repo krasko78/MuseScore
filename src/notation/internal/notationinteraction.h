@@ -27,7 +27,6 @@
 #include "modularity/ioc.h"
 #include "async/asyncable.h"
 #include "iinteractive.h"
-#include "engraving/iengravingconfiguration.h"
 #include "engraving/rendering/isinglerenderer.h"
 #include "engraving/rendering/ieditmoderenderer.h"
 
@@ -35,6 +34,8 @@
 #include "../inotationconfiguration.h"
 #include "../iselectinstrumentscenario.h"
 #include "inotationundostack.h"
+
+#include "mscoreerrorscontroller.h"
 
 #include "engraving/dom/engravingitem.h"
 #include "engraving/dom/elementgroup.h"
@@ -59,7 +60,6 @@ class NotationInteraction : public INotationInteraction, public muse::Injectable
     muse::Inject<INotationConfiguration> configuration = { this };
     muse::Inject<ISelectInstrumentsScenario> selectInstrumentScenario = { this };
     muse::Inject<muse::IInteractive> interactive = { this };
-    muse::Inject<engraving::IEngravingConfiguration> engravingConfiguration = { this };
     muse::Inject<engraving::rendering::ISingleRenderer> engravingRenderer = { this };
     muse::Inject<engraving::rendering::IEditModeRenderer> editModeRenderer = { this };
     muse::Inject<appshell::IAppShellConfiguration> appshellConfiguration = { this }; // krasko
@@ -184,7 +184,8 @@ public:
     void endEditGrip() override;
     bool nextGrip() override; // krasko
 
-    bool isElementEditStarted() const override;
+    bool isEditingElement() const override;
+    muse::async::Notification isEditingElementChanged() const override;
     void startEditElement(EngravingItem* element) override;
     void changeEditElement(EngravingItem* newElement) override;
     bool isEditAllowed(QKeyEvent* event) override;
@@ -205,7 +206,7 @@ public:
 
     void copySelection() override;
     void copyLyrics() override;
-    muse::Ret repeatSelection() override;
+    void repeatSelection() override;
     void pasteSelection(const Fraction& scale = Fraction(1, 1)) override;
     void swapSelection() override;
     void deleteSelection() override;
@@ -342,6 +343,8 @@ public:
 
     void setGetViewRectFunc(const std::function<muse::RectF()>& func) override;
 
+    void checkAndShowError() override;
+
     void toggleDebugShowGapRests() override;
 
 private:
@@ -445,6 +448,8 @@ private:
     bool dropCanvas(EngravingItem* e);
     void resetDropData();
 
+    void repeatListSelection(const engraving::Selection& selection);
+
     void doFinishAddFretboardDiagram();
 
     bool selectInstrument(mu::engraving::InstrumentChange* instrumentChange);
@@ -530,6 +535,8 @@ private:
 
     std::shared_ptr<NotationSelectionFilter> m_selectionFilter = nullptr;
 
+    std::shared_ptr<MScoreErrorsController> m_errorsController = nullptr;
+
     DragData m_dragData;
     muse::async::Notification m_dragChanged;
     std::vector<muse::LineF> m_anchorLines;
@@ -537,6 +544,8 @@ private:
     QDrag* m_outgoingDrag = nullptr;
 
     mu::engraving::EditData m_editData;
+
+    muse::async::Notification m_isEditingElementChanged;
 
     muse::async::Notification m_textEditingStarted;
     muse::async::Notification m_textEditingChanged;

@@ -712,7 +712,7 @@ void NotationActionController::resetState()
     if (interaction->isTextEditingStarted()) {
         interaction->endEditElement();
         return;
-    } else if (interaction->isElementEditStarted()) {
+    } else if (interaction->isEditingElement()) {
         interaction->endEditElement();
         if (appshellConfiguration()->escKeyPreservesSelectionWhenEditing()) { // krasko
             return;
@@ -1282,14 +1282,8 @@ void NotationActionController::repeatSelection()
     if (!interaction) {
         return;
     }
-
-    Ret ret = interaction->repeatSelection();
-
+    interaction->repeatSelection();
     seekAndPlaySelectedElement(true);
-
-    if (!ret && !ret.text().empty()) {
-        interactive()->error("", ret.text());
-    }
 }
 
 void NotationActionController::pasteSelection(PastingType type)
@@ -2045,7 +2039,7 @@ void NotationActionController::navigateToTextElement(MoveDirection direction, bo
         const Harmony* chordSymbol = editedChordSymbol();
 
         // otherwise, chord symbol will be deleted when navigating away from it
-        const bool canPlay = chordSymbol && !chordSymbol->plainText().empty();
+        const bool canPlay = chordSymbol && !chordSymbol->harmonyName().empty();
 
         currentNotationInteraction()->navigateToNearHarmony(direction, nearNoteOrRest);
 
@@ -2070,7 +2064,7 @@ void NotationActionController::navigateToTextElementByFraction(const Fraction& f
         const Harmony* chordSymbol = editedChordSymbol();
 
         // otherwise, chord symbol will be deleted when navigating away from it
-        const bool canPlay = chordSymbol && !chordSymbol->plainText().empty();
+        const bool canPlay = chordSymbol && !chordSymbol->harmonyName().empty();
 
         currentNotationInteraction()->navigateToHarmony(fraction);
 
@@ -2093,7 +2087,7 @@ void NotationActionController::navigateToTextElementInNearMeasure(MoveDirection 
         const Harmony* chordSymbol = editedChordSymbol();
 
         // otherwise, chord symbol will be deleted when navigating away from it
-        const bool canPlay = chordSymbol && !chordSymbol->plainText().empty();
+        const bool canPlay = chordSymbol && !chordSymbol->harmonyName().empty();
 
         currentNotationInteraction()->navigateToHarmonyInNearMeasure(direction);
 
@@ -2354,7 +2348,7 @@ bool NotationActionController::isEditingElement() const
 {
     auto interaction = currentNotationInteraction();
     if (interaction) {
-        return interaction->isElementEditStarted() || interaction->isDragStarted();
+        return interaction->isEditingElement() || interaction->isDragStarted();
     }
     return false;
 }

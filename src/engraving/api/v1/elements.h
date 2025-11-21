@@ -2313,7 +2313,7 @@ public:
     const mu::engraving::Spanner* spanner() const { return toSpanner(e); }
 
     EngravingItem* startElement() const { return wrap(spanner()->startElement()); }
-    EngravingItem* endElement() const { return wrap(spanner()->startElement()); }
+    EngravingItem* endElement() const { return wrap(spanner()->endElement()); }
 
     QQmlListProperty<SpannerSegment> spannerSegments()
     {
@@ -2350,10 +2350,29 @@ public:
     const mu::engraving::Tie* tie() const { return toTie(e); }
 
     Note* startNote() const { return wrap<Note>(tie()->startNote()); }
-    Note* endNote() const { return wrap<Note>(tie()->startNote()); }
+    Note* endNote() const { return wrap<Note>(tie()->endNote()); }
     bool isInside() const { return tie()->isInside(); }
 
     /// \endcond
+};
+
+/** APIDOC
+ * Class representing a lyric.
+ * @class Lyric
+ * @hideconstructor
+*/
+class Lyric : public EngravingItem
+{
+    Q_OBJECT
+    Q_PROPERTY(QString plainText READ plainText)
+
+public:
+
+    Lyric(mu::engraving::Lyrics* l = nullptr, Ownership own = Ownership::PLUGIN)
+        : EngravingItem(l, own) {}
+
+    /** APIDOC @property {string} - plain text of lyric */
+    QString plainText() const { return toLyrics(e)->plainText(); }
 };
 
 #undef API_PROPERTY

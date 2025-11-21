@@ -26,6 +26,7 @@
 
 #include "../editing/addremoveelement.h"
 #include "../editing/editexcerpt.h"
+#include "../editing/transpose.h"
 #include "style/style.h"
 
 #include "barline.h"
@@ -440,7 +441,7 @@ void Excerpt::createExcerpt(Excerpt* excerpt)
             if (score->lastSegment()) {
                 endTick = score->lastSegment()->tick();
             }
-            score->transposeKeys(staffIdx, staffIdx + 1, Fraction(0, 1), endTick, flip);
+            Transpose::transposeKeys(score, staffIdx, staffIdx + 1, Fraction(0, 1), endTick, flip);
 
             for (auto segment = score->firstSegmentMM(SegmentType::ChordRest); segment;
                  segment = segment->next1MM(SegmentType::ChordRest)) {
@@ -466,7 +467,7 @@ void Excerpt::createExcerpt(Excerpt* excerpt)
                         if (hh->staff() != h->staff()) {
                             continue;
                         }
-                        score->undoTransposeHarmony(hh, interval);
+                        Transpose::undoTransposeHarmony(score, hh, interval);
                     }
                 }
             }
@@ -725,9 +726,9 @@ void Excerpt::cloneSpanner(Spanner* s, Score* score, track_idx_t dstTrack, track
     ns->styleChanged();
 }
 
-static void updateSpatium(void* oldElement, EngravingItem* newElement)
+static void updateSpatium(EngravingItem* oldElement, EngravingItem* newElement)
 {
-    double oldSpatium = static_cast<EngravingItem*>(oldElement)->spatium();
+    double oldSpatium = oldElement->spatium();
     double newSpatium = newElement->spatium();
     if (!muse::RealIsEqual(oldSpatium, newSpatium)) {
         newElement->spatiumChanged(oldSpatium, newSpatium);
@@ -741,7 +742,7 @@ static void cloneTuplets(ChordRest* ocr, ChordRest* ncr, Tuplet* ot, TupletMap& 
         tuplet->setTrack(track);
         tuplet->setParent(nm);
         tuplet->styleChanged();
-        tuplet->scanElements(ot, updateSpatium);
+        tuplet->scanElements([&](EngravingItem* newElement) { updateSpatium(ot, newElement); });
     };
 
     ot->setTrack(ocr->track());
@@ -1512,9 +1513,8 @@ void Excerpt::cloneStaff2(Staff* srcStaff, Staff* dstStaff, const Fraction& star
         }
 
         TremoloTwoChord* prevTremolo = nullptr;
-        for (track_idx_t srcTrack : muse::keys(map)) {
+        for (const auto& [srcTrack, dstTrack] : map) {
             TupletMap tupletMap;          // tuplets cannot cross measure boundaries
-            track_idx_t dstTrack = map.at(srcTrack);
             for (Segment* oseg = m->first(); oseg; oseg = oseg->next()) {
                 Segment* ns = nm->getSegment(oseg->segmentType(), oseg->tick());
                 EngravingItem* oef = oseg->element(trackZeroVoice(srcTrack));
@@ -1525,7 +1525,7 @@ void Excerpt::cloneStaff2(Staff* srcStaff, Staff* dstStaff, const Fraction& star
                         ne->setParent(ns);
                         ne->setScore(score);
                         ne->styleChanged();
-                        ne->scanElements(oef, updateSpatium);
+                        ne->scanElements([&](EngravingItem* newElement) { updateSpatium(oef, newElement); });
                         addElement(ne);
                     }
                 }
@@ -1565,7 +1565,7 @@ void Excerpt::cloneStaff2(Staff* srcStaff, Staff* dstStaff, const Fraction& star
                 ne->setParent(ns);
                 ne->setScore(score);
                 ne->styleChanged();
-                ne->scanElements(oe, updateSpatium);
+                ne->scanElements([&](EngravingItem* newElement) { updateSpatium(oe, newElement); });
                 addElement(ne);
                 if (oe->isChordRest()) {
                     ChordRest* ocr = toChordRest(oe);
@@ -1680,7 +1680,7 @@ void Excerpt::cloneStaff2(Staff* srcStaff, Staff* dstStaff, const Fraction& star
             interval.flip();
         }
 
-        score->transposeKeys(dstStaffIdx, dstStaffIdx + 1, startTick, endTick, !scoreConcertPitch);
+        Transpose::transposeKeys(score, dstStaffIdx, dstStaffIdx + 1, startTick, endTick, !scoreConcertPitch);
     }
 
     collectTieEndPoints(tieMap);

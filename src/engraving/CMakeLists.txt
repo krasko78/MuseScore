@@ -61,6 +61,7 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/engravingerrors.h
     ${CMAKE_CURRENT_LIST_DIR}/engravingproject.cpp
     ${CMAKE_CURRENT_LIST_DIR}/engravingproject.h
+    ${CMAKE_CURRENT_LIST_DIR}/iengravingpluginapihelper.h
     ${CMAKE_CURRENT_LIST_DIR}/iengravingconfiguration.h
     ${CMAKE_CURRENT_LIST_DIR}/iengravingfont.h
     ${CMAKE_CURRENT_LIST_DIR}/iengravingfontsprovider.h
@@ -410,7 +411,6 @@ if (QT_SUPPORT)
     list(APPEND MODULE_LINK Qt::Quick)
 endif()
 
-set(MODULE_ROOT ${CMAKE_CURRENT_LIST_DIR})
 setup_module()
 
 set_property(TARGET ${MODULE} APPEND PROPERTY AUTOMOC_MACRO_NAMES "BEGIN_QT_REGISTERED_ENUM")
@@ -419,4 +419,5 @@ set_property(TARGET ${MODULE} APPEND PROPERTY AUTOMOC_MACRO_NAMES "BEGIN_QT_REGI
 
 if (MUE_BUILD_ENGRAVING_TESTS)
     add_subdirectory(tests)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/api/tests)
 endif()

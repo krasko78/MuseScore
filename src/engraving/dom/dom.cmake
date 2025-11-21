@@ -231,8 +231,6 @@ set(DOM_SRC
     ${CMAKE_CURRENT_LIST_DIR}/pedal.h
     ${CMAKE_CURRENT_LIST_DIR}/pickscrape.cpp
     ${CMAKE_CURRENT_LIST_DIR}/pickscrape.h
-    ${CMAKE_CURRENT_LIST_DIR}/pitch.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/pitch.h
     ${CMAKE_CURRENT_LIST_DIR}/pitchspelling.cpp
     ${CMAKE_CURRENT_LIST_DIR}/pitchspelling.h
     ${CMAKE_CURRENT_LIST_DIR}/playcounttext.cpp
@@ -260,7 +258,6 @@ set(DOM_SRC
     ${CMAKE_CURRENT_LIST_DIR}/scorefile.cpp
     ${CMAKE_CURRENT_LIST_DIR}/scoreorder.cpp
     ${CMAKE_CURRENT_LIST_DIR}/scoreorder.h
-    ${CMAKE_CURRENT_LIST_DIR}/scoretree.cpp
     ${CMAKE_CURRENT_LIST_DIR}/segment.cpp
     ${CMAKE_CURRENT_LIST_DIR}/segment.h
     ${CMAKE_CURRENT_LIST_DIR}/segmentlist.cpp
@@ -348,7 +345,6 @@ set(DOM_SRC
     ${CMAKE_CURRENT_LIST_DIR}/tiemap.h
     ${CMAKE_CURRENT_LIST_DIR}/timesig.cpp
     ${CMAKE_CURRENT_LIST_DIR}/timesig.h
-    ${CMAKE_CURRENT_LIST_DIR}/transpose.cpp
     ${CMAKE_CURRENT_LIST_DIR}/tremolotwochord.cpp
     ${CMAKE_CURRENT_LIST_DIR}/tremolotwochord.h
     ${CMAKE_CURRENT_LIST_DIR}/tremolosinglechord.cpp

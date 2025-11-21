@@ -89,6 +89,8 @@
 #include "dom/utils.h"
 #include "dom/volta.h"
 
+#include "editing/transpose.h"
+
 #include "../compat/readchordlisthook.h"
 #include "../compat/readstyle.h"
 #include "../compat/tremolocompat.h"
@@ -738,13 +740,13 @@ static void readNote(Note* note, XmlReader& e, ReadContext& ctx)
             if (v.isZero()) {
                 note->setTpc2(note->tpc1());
             } else {
-                note->setTpc2(transposeTpc(note->tpc1(), v, true));
+                note->setTpc2(Transpose::transposeTpc(note->tpc1(), v, true));
             }
         } else {
             if (v.isZero()) {
                 note->setTpc1(note->tpc2());
             } else {
-                note->setTpc1(transposeTpc(note->tpc2(), v, true));
+                note->setTpc1(Transpose::transposeTpc(note->tpc2(), v, true));
             }
         }
     }
@@ -769,7 +771,7 @@ static void readNote(Note* note, XmlReader& e, ReadContext& ctx)
             LOGD("bad tpc2 - transposedPitch = %d, tpc2 = %d", transposedPitch, tpc2Pitch);
             // just in case the staff transposition info is not reliable here,
             v.flip();
-            note->setTpc2(mu::engraving::transposeTpc(note->tpc1(), v, true));
+            note->setTpc2(Transpose::transposeTpc(note->tpc1(), v, true));
         }
     }
 }
@@ -2918,7 +2920,7 @@ muse::Ret Read114::readScoreFile(Score* score, XmlReader& e, ReadInOutData* out)
             }
         } else if (tag == "Excerpt") {
             Excerpt* ex = new Excerpt(masterScore);
-            read400::TRead::read(ex, e, ctx);
+            readExcerpt(ex, e, ctx);
             masterScore->m_excerpts.push_back(ex);
         } else if (tag == "Beam") {
             Beam* beam = Factory::createBeam(masterScore->dummy()->system());
@@ -3176,6 +3178,26 @@ muse::Ret Read114::readScoreFile(Score* score, XmlReader& e, ReadInOutData* out)
     }
 
     return muse::make_ok();
+}
+
+void Read114::readExcerpt(Excerpt* item, XmlReader& e, ReadContext&)
+{
+    const std::vector<Part*>& pl = item->masterScore()->parts();
+    std::vector<Part*> parts;
+    while (e.readNextStartElement()) {
+        const AsciiStringView tag = e.name();
+        if (tag == "name" || tag == "title") {
+            item->setName(e.readText().trimmed());
+        } else if (tag == "part") {
+            size_t partIdx = static_cast<size_t>(e.readInt());
+            if (partIdx >= pl.size()) {
+                LOGD("Excerpt::read: bad part index");
+            } else {
+                parts.push_back(pl.at(partIdx));
+            }
+        }
+    }
+    item->setParts(parts);
 }
 
 bool Read114::pasteStaff(XmlReader&, Segment*, staff_idx_t, Fraction)

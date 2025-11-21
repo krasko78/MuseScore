@@ -25,6 +25,7 @@
 #include "containers.h"
 
 #include "engravingitem.h"
+#include "interval.h"
 #include "noteevent.h"
 #include "noteval.h"
 #include "pitchspelling.h"
@@ -157,16 +158,12 @@ public:
     Chord* chord() const { return (Chord*)explicitParent(); }
     void setParent(Chord* ch);
 
-    // Score Tree functions
-    EngravingObject* scanParent() const override;
-    EngravingObjectList scanChildren() const override;
-
     void undoUnlink() override;
 
     double mag() const override;
     EngravingItem* elementBase() const override;
 
-    void scanElements(void* data, void (* func)(void*, EngravingItem*), bool all = true) override;
+    void scanElements(std::function<void(EngravingItem*)> func) override;
     void setTrack(track_idx_t val) override;
 
     int playTicks() const;
@@ -359,7 +356,8 @@ public:
 
     bool removeSpannerFor(Spanner* e) { return muse::remove(m_spannerFor, e); }
 
-    void transposeDiatonic(int interval, bool keepAlterations, bool useDoubleAccidentals);
+    bool transposeDiatonic(int interval, bool keepAlterations, bool useDoubleAccidentals);
+    bool transpose(Interval interval, bool useDoubleSharpsFlats);
 
     void localSpatiumChanged(double oldValue, double newValue) override;
     PropertyValue getProperty(Pid propertyId) const override;

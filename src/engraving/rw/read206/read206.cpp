@@ -102,6 +102,7 @@
 #include "dom/utils.h"
 #include "dom/volta.h"
 #include "editing/undo.h"
+#include "editing/transpose.h"
 
 #include "../compat/readchordlisthook.h"
 #include "../compat/readstyle.h"
@@ -954,13 +955,13 @@ static void readNote206(Note* note, XmlReader& e, ReadContext& ctx)
             if (v.isZero()) {
                 note->setTpc2(note->tpc1());
             } else {
-                note->setTpc2(mu::engraving::transposeTpc(note->tpc1(), v, true));
+                note->setTpc2(Transpose::transposeTpc(note->tpc1(), v, true));
             }
         } else {
             if (v.isZero()) {
                 note->setTpc1(note->tpc2());
             } else {
-                note->setTpc1(mu::engraving::transposeTpc(note->tpc2(), v, true));
+                note->setTpc1(Transpose::transposeTpc(note->tpc2(), v, true));
             }
         }
     }
@@ -3480,6 +3481,7 @@ bool Read206::readScoreTag(Score* score, XmlReader& e, ReadContext& ctx)
             ctx.setLastMeasure(nullptr);
             ReadContext exCtx(s);
 
+            s->setIsOpen(true);
             readScoreTag(s, e, exCtx);
 
             ex->setTracksMapping(ctx.tracks());
