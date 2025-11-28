@@ -23,14 +23,14 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 
 import Muse.Ui 1.0
-import Muse.UiComponents 1.0
+import Muse.UiComponents
 import Muse.Dock 1.0
 import Muse.Extensions 1.0
 import MuseScore.AppShell 1.0
 
 import MuseScore.NotationScene 1.0
 import MuseScore.Palette 1.0
-import MuseScore.Inspector 1.0
+import MuseScore.Inspector
 import MuseScore.InstrumentsScene 1.0
 import MuseScore.Playback 1.0
 

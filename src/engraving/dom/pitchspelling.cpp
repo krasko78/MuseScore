@@ -691,6 +691,10 @@ void changeAllTpcs(Note* n, int tpc1)
     int tpc2 = Transpose::transposeTpc(tpc1, v, true);
     n->undoChangeProperty(Pid::TPC1, tpc1);
     n->undoChangeProperty(Pid::TPC2, tpc2);
+    for (Note* tied : n->tiedNotes()) {
+        tied->undoChangeProperty(Pid::TPC1, tpc1);
+        tied->undoChangeProperty(Pid::TPC2, tpc2);
+    }
 }
 
 //---------------------------------------------------------
@@ -1163,5 +1167,37 @@ Key clampKey(Key key, PreferSharpFlat prefer)
     }
 
     return key;
+}
+
+int bestEnharmonicFit(const std::vector<int> tpcs, Key key)
+{
+    int keyIndex = int(key) - int(Key::MIN);
+    if (keyIndex < 0 || keyIndex >= int(Key::NUM_OF)) {
+        return tpcs.front();
+    }
+
+    // Highest penalty in enharmonicSpelling available (100) + 1
+    int bestPenalty = 101;
+    int closestTpc = Tpc::TPC_INVALID;
+
+    for (int tpc : tpcs) {
+        if (tpc == Tpc::TPC_INVALID) {
+            continue;
+        }
+
+        int lof = tpc - Tpc::TPC_MIN;
+        if (lof < 0 || lof >= 34) {
+            continue;
+        }
+
+        int penalty = enharmonicSpelling[keyIndex][lof];
+
+        if (penalty < bestPenalty) {
+            bestPenalty = penalty;
+            closestTpc = tpc;
+        }
+    }
+
+    return closestTpc;
 }
 }

@@ -27,16 +27,16 @@
 
 #include "notation/inotationconfiguration.h"
 
-#include "actions/iactionsdispatcher.h"
-#include "ui/iuiconfiguration.h"
 #include "actions/actionable.h"
-#include "context/iglobalcontext.h"
+#include "actions/iactionsdispatcher.h"
 #include "async/asyncable.h"
+#include "context/iglobalcontext.h"
 #include "playback/iplaybackcontroller.h"
-#include "ui/iuicontextresolver.h"
 #include "ui/imainwindow.h"
 #include "ui/iuiactionsregister.h"
-#include "uicomponents/view/quickpaintedview.h"
+#include "ui/iuiconfiguration.h"
+#include "ui/iuicontextresolver.h"
+#include "uicomponents/qml/Muse/UiComponents/quickpaintedview.h"
 
 #include "notationviewinputcontroller.h"
 #include "noteinputcursor.h"
@@ -51,6 +51,7 @@ class AbstractNotationPaintView : public muse::uicomponents::QuickPaintedView, p
     public muse::async::Asyncable, public muse::actions::Actionable
 {
     Q_OBJECT
+    QML_ELEMENT;
 
     Q_PROPERTY(qreal startHorizontalScrollPosition READ startHorizontalScrollPosition NOTIFY horizontalScrollChanged)
     Q_PROPERTY(qreal horizontalScrollbarSize READ horizontalScrollbarSize NOTIFY horizontalScrollChanged)

@@ -78,6 +78,7 @@ set(MODULE_SRC
 set(MODULE_LINK
     muse::ui
     muse::uicomponents
+    muse::uicomponents_qml
     muse::dockwindow
     )
 

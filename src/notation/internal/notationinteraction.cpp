@@ -77,6 +77,7 @@
 #include "engraving/dom/navigate.h"
 #include "engraving/dom/page.h"
 #include "engraving/dom/part.h"
+#include "engraving/dom/pitchspelling.h"
 #include "engraving/dom/rest.h"
 #include "engraving/dom/shadownote.h"
 #include "engraving/dom/slur.h"
@@ -1614,7 +1615,7 @@ bool NotationInteraction::startDropImage(const QUrl& url)
     }
 
     auto image = static_cast<mu::engraving::Image*>(Factory::createItem(mu::engraving::ElementType::IMAGE, score()->dummy()));
-    if (!image->load(url.toLocalFile())) {
+    if (!image->loadFromFile(url.toLocalFile())) {
         return false;
     }
 
@@ -2982,7 +2983,7 @@ void NotationInteraction::doAddSlur(EngravingItem* firstItem, EngravingItem* sec
             partialSlur->undoSetOutgoing(true);
             firstChordRest = toChordRest(cr);
             const Measure* endMeas = otherElement->findMeasure();
-            ChordRest* endCr = endMeas->lastChordRest(0);
+            ChordRest* endCr = endMeas->lastChordRest(otherElement->track());
             secondChordRest = endCr;
         } else {
             partialSlur->undoSetIncoming(true);
@@ -2993,7 +2994,7 @@ void NotationInteraction::doAddSlur(EngravingItem* firstItem, EngravingItem* sec
                     startMeas = startMeas->nextMeasure();
                 }
             }
-            ChordRest* startCr = startMeas->firstChordRest(0);
+            ChordRest* startCr = startMeas->firstChordRest(otherElement->track());
             firstChordRest = startCr;
         }
         slurTemplate = partialSlur;
@@ -6186,7 +6187,7 @@ void NotationInteraction::addImageToItem(const muse::io::path_t& imagePath, Engr
     Image* image = Factory::createImage(item);
     image->setImageType(type);
 
-    if (!image->load(imagePath)) {
+    if (!image->loadFromFile(imagePath)) {
         delete image;
         return;
     }
@@ -6384,6 +6385,20 @@ void NotationInteraction::spellPitches()
 {
     startEdit(TranslatableString("undoableAction", "Optimize enharmonic spelling"));
     score()->spell();
+    apply();
+}
+
+void NotationInteraction::spellPitchesWithSharps()
+{
+    startEdit(TranslatableString("undoableAction", "Respell pitches with sharps"));
+    score()->spellWithSharpsOrFlats(Prefer::SHARPS);
+    apply();
+}
+
+void NotationInteraction::spellPitchesWithFlats()
+{
+    startEdit(TranslatableString("undoableAction", "Respell pitches with flats"));
+    score()->spellWithSharpsOrFlats(Prefer::FLATS);
     apply();
 }
 

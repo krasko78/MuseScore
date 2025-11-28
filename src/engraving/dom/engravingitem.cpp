@@ -686,6 +686,9 @@ Color EngravingItem::curColor(bool isVisible, Color normalColor, const rendering
     }
 
     if (opt.invertColors) {
+        if (normalColor == configuration()->defaultColor()) {
+            return configuration()->scoreInversionColor();
+        }
         return normalColor.inverted();
     }
 
@@ -1690,15 +1693,6 @@ const MeasureBase* EngravingItem::findMeasureBase() const
 {
     EngravingItem* e = const_cast<EngravingItem*>(this);
     return e->findMeasureBase();
-}
-
-//---------------------------------------------------------
-//   undoSetColor
-//---------------------------------------------------------
-
-void EngravingItem::undoSetColor(const Color& c)
-{
-    undoChangeProperty(Pid::COLOR, PropertyValue::fromValue(c));
 }
 
 //---------------------------------------------------------

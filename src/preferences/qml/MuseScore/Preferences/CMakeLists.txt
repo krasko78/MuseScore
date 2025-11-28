@@ -126,4 +126,7 @@ qt_add_qml_module(preferences_qml
         internal/UiFontSection.qml
         internal/WelcomeDialogSection.qml
         internal/ZoomSection.qml
+    IMPORTS
+        TARGET muse_ui_qml
+        TARGET muse_uicomponents_qml
 )
