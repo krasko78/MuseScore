@@ -26,6 +26,7 @@ set(MODULE_TEST_SRC
 )
 
 set(MODULE_TEST_LINK project
+    appshell # krasko
     muse_workspace # krasko
 )
 

@@ -36,6 +36,7 @@ set(MODULE_TEST_SRC
 )
 
 set(MODULE_TEST_LINK
+    appshell # krasko
     engraving
     notation
     muse_workspace # krasko

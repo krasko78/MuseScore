@@ -167,8 +167,6 @@ if (OS_IS_MAC)
     target_link_libraries(muse_ui PRIVATE ${AppKit})
 endif()
 
-set(MODULE_LINK ${MODULE_LINK} appshell) # krasko
-
 if (MUSE_MODULE_UI_TESTS)
     add_subdirectory(tests)
 endif()
