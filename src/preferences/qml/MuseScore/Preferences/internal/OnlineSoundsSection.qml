@@ -109,7 +109,7 @@ BaseSection {
     ComboBoxWithTitle {
         id: showProcessingVisualizationComboBox
 
-        control.width: showProcessingVisualizationComboBox.isOpened && root.autoProcessOnlineSoundsInBackground ?
+        controlWidth: showProcessingVisualizationComboBox.isOpened && root.autoProcessOnlineSoundsInBackground ?
                            378 : showProcessingVisualizationComboBox.columnWidth
 
         title: qsTrc("preferences", "Show processing visualization")
@@ -117,9 +117,9 @@ BaseSection {
         columnWidth: root.columnWidth
         currentIndex: showProcessingVisualizationComboBox.indexOfValue(root.progressBarMode)
 
-        navigation.name: "ShowProcessingVisualization"
-        navigation.panel: root.navigation
-        navigation.row: 3
+        navigationName: "ShowProcessingVisualization"
+        navigationPanel: root.navigation
+        navigationRow: 3
 
         model: {
             var options = [{ text: qsTrc("preferences", "Always"), value: 0 }]
