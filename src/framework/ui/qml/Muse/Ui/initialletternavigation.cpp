@@ -22,6 +22,7 @@
 
 #include "initialletternavigation.h"
 #include "log.h"
+#include "navigationpanel.h" // krasko
 
 using namespace muse::ui;
 
