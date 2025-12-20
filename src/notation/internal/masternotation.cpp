@@ -64,7 +64,7 @@ static ExcerptNotation* get_impl(const IExcerptNotationPtr& excerpt)
     return static_cast<ExcerptNotation*>(excerpt.get());
 }
 
-static IExcerptNotationPtr createAndInitExcerptNotation(IMasterNotation* master, mu::engraving::Excerpt* excerpt,
+static IExcerptNotationPtr createAndInitExcerptNotation(MasterNotation* master, mu::engraving::Excerpt* excerpt,
                                                         const muse::modularity::ContextPtr& iocCtx)
 {
     auto excerptNotation = std::make_shared<ExcerptNotation>(master, excerpt, iocCtx);
@@ -158,7 +158,6 @@ void MasterNotation::setMasterScore(mu::engraving::MasterScore* score)
     setScore(score);
 
     score->updateSwing();
-    score->updateCapo();
 
     initAfterSettingScore(score);
 }
@@ -289,6 +288,7 @@ void MasterNotation::applyOptions(mu::engraving::MasterScore* score, const Score
             nvb->setAutoSizeEnabled(tvb->isAutoSizeEnabled());
         }
 
+        score->clearSystemLocks();
         clearMeasures(score);
 
         // for templates using built-in base page style, set score page style to default (may be user-defined)

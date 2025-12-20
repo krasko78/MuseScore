@@ -109,8 +109,7 @@ void CommandLineParser::init()
                                           "Transpose the given score and export the data to a single JSON file, print it to stdout",
                                           "options"));
     m_parser.addOption(QCommandLineOption("score-elements",
-                                          "Scan the given score and export elements to a single JSON file, print it to stdout",
-                                          "options"));
+                                          "Scan the given score and export elements to a single JSON file, print it to stdout"));
     m_parser.addOption(QCommandLineOption("source-update", "Update the source in the given score"));
 
     m_parser.addOption(QCommandLineOption({ "S", "style" }, "Load style file", "style"));
@@ -126,6 +125,10 @@ void CommandLineParser::init()
     m_parser.addOption(QCommandLineOption("page",
                                           "Use with '-o <file>', export only the specified page. "
                                           "Supported output formats: SVG, PNG, PDF, MSCZ",
+                                          "options"));
+
+    m_parser.addOption(QCommandLineOption("region",
+                                          "Use with '-o <file>', export only the specified region to a separate mscz file. ",
                                           "options"));
 
     // MusicXML
@@ -317,6 +320,10 @@ void CommandLineParser::parse(int argc, char** argv)
             if (m_parser.isSet("page")) {
                 m_options.converterTask.params[CmdOptions::ParamKey::PageNumber] = m_parser.value("page");
             }
+
+            if (m_parser.isSet("region")) {
+                m_options.converterTask.params[CmdOptions::ParamKey::ScoreRegion] = m_parser.value("region");
+            }
         }
     }
 
@@ -373,7 +380,6 @@ void CommandLineParser::parse(int argc, char** argv)
         m_options.runMode = IApplication::RunMode::ConsoleApp;
         m_options.converterTask.type = ConvertType::ExportScoreElements;
         m_options.converterTask.inputFile = scorefiles[0];
-        m_options.converterTask.params[CmdOptions::ParamKey::ScoreElementsOptions] = m_parser.value("score-elements");
     }
 
     if (m_parser.isSet("source-update")) {

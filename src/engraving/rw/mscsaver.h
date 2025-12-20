@@ -28,7 +28,7 @@
 #include "../infrastructure/mscwriter.h"
 
 namespace mu::engraving::write {
-struct WriteRange;
+class WriteContext;
 }
 
 namespace mu::engraving {
@@ -41,7 +41,7 @@ public:
     MscSaver(const muse::modularity::ContextPtr& iocCtx)
         : muse::Injectable(iocCtx) {}
 
-    bool writeMscz(MasterScore* score, MscWriter& mscWriter, bool createThumbnail, const write::WriteRange* range = nullptr);
+    bool writeMscz(MasterScore* score, MscWriter& mscWriter, bool createThumbnail, const write::WriteContext* ctx = nullptr);
 
     bool exportPart(Score* partScore, MscWriter& mscWriter);
 };

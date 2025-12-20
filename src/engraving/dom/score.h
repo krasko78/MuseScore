@@ -147,6 +147,8 @@ class UndoStack;
 
 class ShadowNote;
 
+class IAutomation;
+
 struct Interval;
 struct NoteVal;
 struct ShowAnchors;
@@ -668,6 +670,7 @@ public:
     EngravingItem* getSelectedElement() const { return m_selection.element(); }
     const Selection& selection() const { return m_selection; }
     Selection& selection() { return m_selection; }
+    const SelectionFilter& selectionFilter() const { return m_selectionFilter; }
     SelectionFilter& selectionFilter() { return m_selectionFilter; }
     void setSelection(const Selection& s);
 
@@ -774,7 +777,7 @@ public:
 
     void updateSwing();
 
-    void updateCapo();
+    void updateCapo(bool ignoreNotationUpdate = false);
     void updateChannel();
 
     void cmdConcertPitchChanged(bool);
@@ -889,9 +892,7 @@ public:
     std::map<String, String>& metaTags() { return m_metaTags; }
     void setMetaTags(const std::map<String, String>& t) { m_metaTags = t; }
 
-    //@ returns as a string the metatag named 'tag'
     String metaTag(const String& tag) const;
-    //@ sets the metatag named 'tag' to 'val'
     void setMetaTag(const String& tag, const String& val);
 
     int pageNumberOffset() const { return m_pageNumberOffset; }
@@ -947,8 +948,7 @@ public:
 
     std::list<Score*> scoreList();
 
-    //@ appends to the score a number of measures
-    void appendMeasures(int);
+    void appendMeasures(int numMeasures);
 
     const std::multimap<int, Spanner*>& spanner() const { return m_spanner.map(); }
     SpannerMap& spannerMap() { return m_spanner; }
@@ -1000,9 +1000,9 @@ public:
     std::vector<Lyrics*> lyrics() const;
     String extractLyrics() const;
 
-    int keysig();
-    int duration();
-    int durationWithoutRepeats();
+    int keysig() const;
+    int duration() const;
+    int durationWithoutRepeats() const;
 
     void cmdInsertClef(Clef* clef, ChordRest* cr);
 
@@ -1067,6 +1067,8 @@ public:
     const std::map<size_t, std::array<SystemDivider*, 2> > systemDividers() const { return m_systemDividers; }
     SystemDivider* systemDivider(size_t systemIdx, SystemDividerType type) const;
     void addSystemDivider(size_t systemIdx, SystemDivider* divider);
+
+    virtual IAutomation* automation() const;
 
     friend class Chord;
 

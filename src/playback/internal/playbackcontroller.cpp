@@ -21,10 +21,13 @@
  */
 #include "playbackcontroller.h"
 
+#include "async/notifylist.h"
+
 #include "onlinesoundscontroller.h"
 
 #include "playbacktypes.h"
 
+#include "engraving/dom/masterscore.h"
 #include "engraving/dom/stafftext.h"
 #include "engraving/dom/utils.h"
 #include "engraving/dom/factory.h"
@@ -550,24 +553,6 @@ uint64_t PlaybackController::notationPlaybackKey() const
 
 void PlaybackController::onNotationChanged()
 {
-    DEFER {
-        m_isPlayAllowedChanged.notify();
-        m_totalPlayTimeChanged.notify();
-    };
-
-    if (globalContext()->currentMasterNotation() != m_masterNotation) {
-        m_masterNotation = globalContext()->currentMasterNotation();
-        notifyActionCheckedChanged(LOOP_CODE);
-
-        if (!m_masterNotation) {
-            return;
-        }
-
-        m_masterNotation->hasPartsChanged().onNotify(this, [this]() {
-            m_isPlayAllowedChanged.notify();
-        });
-    }
-
     setNotation(globalContext()->currentNotation());
 }
 
@@ -1717,16 +1702,30 @@ void PlaybackController::setNotation(notation::INotationPtr notation)
         return;
     }
 
+    if (m_notation) {
+        INotationPartsPtr notationParts = m_notation->parts();
+        NotifyList<const Part*> partList = notationParts->partList();
+        partList.disconnect(this);
+
+        m_notation->interaction()->selectionChanged().disconnect(this);
+        m_notation->interaction()->textEditingEnded().disconnect(this);
+        m_notation->soloMuteState()->trackSoloMuteStateChanged().disconnect(this);
+    }
+
     m_notation = notation;
 
+    m_isPlayAllowedChanged.notify();
+
     if (!m_notation) {
+        setMasterNotation(nullptr);
         return;
     }
+
+    setMasterNotation(m_notation->masterNotation());
 
     if (!m_notation->hasVisibleParts()) {
         pause();
     }
-    m_isPlayAllowedChanged.notify();
 
     // All invisible tracks should be muted in newly opened notations (initNotationSoloMuteState)
     // Once the mute state has been edited, this "custom state" will be recalled from then onwards
@@ -1745,8 +1744,7 @@ void PlaybackController::setNotation(notation::INotationPtr notation)
 
     updateSoloMuteStates();
 
-    INotationPartsPtr notationParts = m_notation->parts();
-    NotifyList<const Part*> partList = notationParts->partList();
+    NotifyList<const Part*> partList = m_notation->parts()->partList();
 
     partList.onItemAdded(this, [this](const Part* part) {
         onPartChanged(part);
@@ -1755,10 +1753,6 @@ void PlaybackController::setNotation(notation::INotationPtr notation)
     partList.onItemChanged(this, [this](const Part* part) {
         onPartChanged(part);
     });
-
-    notationPlayback()->loopBoundariesChanged().onNotify(this, [this]() {
-        updateLoop();
-    }, async::Asyncable::Mode::SetReplace);
 
     m_notation->interaction()->selectionChanged().onNotify(this, [this]() {
         onSelectionChanged();
@@ -1776,6 +1770,35 @@ void PlaybackController::setNotation(notation::INotationPtr notation)
     });
 }
 
+void PlaybackController::setMasterNotation(notation::IMasterNotationPtr masterNotation)
+{
+    if (m_masterNotation == masterNotation) {
+        return;
+    }
+
+    if (m_masterNotation) {
+        m_masterNotation->hasPartsChanged().disconnect(this);
+        m_masterNotation->playback()->loopBoundariesChanged().disconnect(this);
+    }
+
+    m_masterNotation = masterNotation;
+
+    notifyActionCheckedChanged(LOOP_CODE);
+    m_totalPlayTimeChanged.notify();
+
+    if (!m_masterNotation) {
+        return;
+    }
+
+    m_masterNotation->hasPartsChanged().onNotify(this, [this]() {
+        m_isPlayAllowedChanged.notify();
+    });
+
+    m_masterNotation->playback()->loopBoundariesChanged().onNotify(this, [this]() {
+        updateLoop();
+    });
+}
+
 void PlaybackController::setIsExportingAudio(bool exporting)
 {
     if (m_isExportingAudio == exporting) {
@@ -1785,14 +1808,41 @@ void PlaybackController::setIsExportingAudio(bool exporting)
     m_isExportingAudio = exporting;
     updateSoloMuteStates();
 
+    if (!exporting) {
+        return;
+    }
+
+    if (notationPlayback()) {
+        notationPlayback()->sendEventsForChangedTracks();
+    }
+
     if (!onlineSounds().empty() && !audioConfiguration()->autoProcessOnlineSoundsInBackground()) {
         dispatcher()->dispatch("process-online-sounds");
     }
 }
 
-bool PlaybackController::canReceiveAction(const ActionCode&) const
+bool PlaybackController::canReceiveAction(const ActionCode& code) const
 {
-    return m_masterNotation != nullptr && m_masterNotation->hasParts();
+    if (!m_masterNotation || !m_masterNotation->hasParts()) {
+        return false;
+    }
+
+    static const std::unordered_set<ActionCode> REQUIRES_MEASURES {
+        PLAY_CODE,
+        STOP_CODE,
+        PAUSE_AND_SELECT_CODE,
+        REWIND_CODE,
+        LOOP_CODE,
+        LOOP_IN_CODE,
+        LOOP_OUT_CODE,
+    };
+
+    if (muse::contains(REQUIRES_MEASURES, code)) {
+        const MasterScore* score = m_masterNotation->masterScore();
+        return score && score->firstMeasure();
+    }
+
+    return true;
 }
 
 const std::map<TrackId, AudioResourceMeta>& PlaybackController::onlineSounds() const

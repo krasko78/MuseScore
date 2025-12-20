@@ -37,16 +37,22 @@
 using namespace muse;
 using namespace mu::app;
 using namespace mu::appshell;
+using namespace mu::converter;
 
-static std::optional<size_t> parsePageNum(const QMap<CmdOptions::ParamKey, QVariant>& params)
+static std::optional<ConvertTarget> parseTarget(const QMap<CmdOptions::ParamKey, QVariant>& params)
 {
-    auto it = params.find(CmdOptions::ParamKey::PageNumber);
+    auto it = params.find(CmdOptions::ParamKey::ScoreRegion);
+    if (it != params.end()) {
+        return it.value().toString().toStdString();
+    }
+
+    it = params.find(CmdOptions::ParamKey::PageNumber);
     if (it == params.end()) {
         return std::nullopt;
     }
 
     bool ok = true;
-    size_t num = it.value().toULongLong(&ok) - 1;
+    page_num_t num = it.value().toULongLong(&ok) - 1;
 
     if (!ok) {
         LOGE() << "Invalid page, ignoring...";
@@ -79,7 +85,6 @@ void ConsoleApp::perform()
     m_globalModule.setApplication(shared_from_this());
     m_globalModule.registerResources();
     m_globalModule.registerExports();
-    m_globalModule.registerUiTypes();
 
     for (modularity::IModuleSetup* m : m_modules) {
         m->setApplication(shared_from_this());
@@ -91,11 +96,9 @@ void ConsoleApp::perform()
     }
 
     m_globalModule.resolveImports();
-    m_globalModule.registerApi();
+
     for (modularity::IModuleSetup* m : m_modules) {
-        m->registerUiTypes();
         m->resolveImports();
-        m->registerApi();
     }
 
     // ====================================================
@@ -223,6 +226,14 @@ void ConsoleApp::finish()
 
 void ConsoleApp::applyCommandLineOptions(const CmdOptions& options, IApplication::RunMode runMode)
 {
+    if (options.app.loggerLevel) {
+        m_globalModule.setLoggerLevel(options.app.loggerLevel.value());
+    }
+
+    if (runMode == IApplication::RunMode::AudioPluginRegistration) {
+        return;
+    }
+
     uiConfiguration()->setPhysicalDotsPerInch(options.ui.physicalDotsPerInch);
 
     notationConfiguration()->setTemplateModeEnabled(options.notation.templateModeEnabled);
@@ -278,10 +289,6 @@ void ConsoleApp::applyCommandLineOptions(const CmdOptions& options, IApplication
     if (options.app.revertToFactorySettings) {
         appshellConfiguration()->revertToFactorySettings(options.app.revertToFactorySettings.value());
     }
-
-    if (options.app.loggerLevel) {
-        m_globalModule.setLoggerLevel(options.app.loggerLevel.value());
-    }
 }
 
 int ConsoleApp::processConverter(const CmdOptions::ConverterTask& task)
@@ -295,7 +302,7 @@ int ConsoleApp::processConverter(const CmdOptions::ConverterTask& task)
         soundProfile.clear();
     }
 
-    converter::IConverterController::OpenParams openParams;
+    converter::OpenParams openParams;
     openParams.stylePath = task.params[CmdOptions::ParamKey::StylePath].toString();
     openParams.forceMode = task.params[CmdOptions::ParamKey::ForceMode].toBool();
     openParams.unrollRepeats = task.params[CmdOptions::ParamKey::UnrollRepeats].toBool();
@@ -306,9 +313,9 @@ int ConsoleApp::processConverter(const CmdOptions::ConverterTask& task)
         break;
     case ConvertType::File: {
         std::string transposeOptionsJson = task.params[CmdOptions::ParamKey::ScoreTransposeOptions].toString().toStdString();
-        std::optional<size_t> pageNum = parsePageNum(task.params);
+        std::optional<ConvertTarget> target = parseTarget(task.params);
         ret = converter()->fileConvert(task.inputFile, task.outputFile, openParams, soundProfile, extensionUri,
-                                       transposeOptionsJson, pageNum);
+                                       transposeOptionsJson, target);
     } break;
     case ConvertType::ConvertScoreParts:
         ret = converter()->convertScoreParts(task.inputFile, task.outputFile, openParams);
@@ -331,8 +338,7 @@ int ConsoleApp::processConverter(const CmdOptions::ConverterTask& task)
         ret = converter()->exportScoreTranspose(task.inputFile, task.outputFile, scoreTranspose, openParams);
     } break;
     case ConvertType::ExportScoreElements: {
-        std::string options = task.params[CmdOptions::ParamKey::ScoreElementsOptions].toString().toStdString();
-        ret = converter()->exportScoreElements(task.inputFile, task.outputFile, options, openParams);
+        ret = converter()->exportScoreElements(task.inputFile, task.outputFile, openParams);
     } break;
     case ConvertType::ExportScoreVideo: {
         ret = converter()->exportScoreVideo(task.inputFile, task.outputFile, openParams);

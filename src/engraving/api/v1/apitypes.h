@@ -232,10 +232,94 @@ enum class AccidentalBracket {
 };
 Q_ENUM_NS(AccidentalBracket);
 
-enum class ElementType {
-    ///.\{
-    INVALID               = int(mu::engraving::ElementType::INVALID),
+/** APIDOC
+ * Enumerates the list of built-in text style types
+ * @memberof Engraving
+ * @enum
+ */
+enum class TextStyleType : unsigned char {
+    DEFAULT                 = int(mu::engraving::TextStyleType::DEFAULT),
+    TITLE                   = int(mu::engraving::TextStyleType::TITLE),
+    SUBTITLE                = int(mu::engraving::TextStyleType::SUBTITLE),
+    COMPOSER                = int(mu::engraving::TextStyleType::COMPOSER),
+    LYRICIST                = int(mu::engraving::TextStyleType::LYRICIST),
+    TRANSLATOR              = int(mu::engraving::TextStyleType::TRANSLATOR),
+    FRAME                   = int(mu::engraving::TextStyleType::FRAME),
+    INSTRUMENT_EXCERPT      = int(mu::engraving::TextStyleType::INSTRUMENT_EXCERPT),
+    INSTRUMENT_LONG         = int(mu::engraving::TextStyleType::INSTRUMENT_LONG),
+    INSTRUMENT_SHORT        = int(mu::engraving::TextStyleType::INSTRUMENT_SHORT),
+    INSTRUMENT_CHANGE       = int(mu::engraving::TextStyleType::INSTRUMENT_CHANGE),
+    HEADER                  = int(mu::engraving::TextStyleType::HEADER),
+    FOOTER                  = int(mu::engraving::TextStyleType::FOOTER),
+    COPYRIGHT               = int(mu::engraving::TextStyleType::COPYRIGHT),
+    PAGE_NUMBER             = int(mu::engraving::TextStyleType::PAGE_NUMBER),
+    MEASURE_NUMBER          = int(mu::engraving::TextStyleType::MEASURE_NUMBER),
+    MEASURE_NUMBER_ALTERNATE= int(mu::engraving::TextStyleType::MEASURE_NUMBER_ALTERNATE),
+    MMREST_RANGE            = int(mu::engraving::TextStyleType::MMREST_RANGE),
+    TEMPO                   = int(mu::engraving::TextStyleType::TEMPO),
+    TEMPO_CHANGE            = int(mu::engraving::TextStyleType::TEMPO_CHANGE),
+    METRONOME               = int(mu::engraving::TextStyleType::METRONOME),
+    REPEAT_PLAY_COUNT       = int(mu::engraving::TextStyleType::REPEAT_PLAY_COUNT),
+    REPEAT_LEFT             = int(mu::engraving::TextStyleType::REPEAT_LEFT),
+    REPEAT_RIGHT            = int(mu::engraving::TextStyleType::REPEAT_RIGHT),
+    REHEARSAL_MARK          = int(mu::engraving::TextStyleType::REHEARSAL_MARK),
+    SYSTEM                  = int(mu::engraving::TextStyleType::SYSTEM),
+    STAFF                   = int(mu::engraving::TextStyleType::STAFF),
+    EXPRESSION              = int(mu::engraving::TextStyleType::EXPRESSION),
+    DYNAMICS                = int(mu::engraving::TextStyleType::DYNAMICS),
+    HAIRPIN                 = int(mu::engraving::TextStyleType::HAIRPIN),
+    LYRICS_ODD              = int(mu::engraving::TextStyleType::LYRICS_ODD),
+    LYRICS_EVEN             = int(mu::engraving::TextStyleType::LYRICS_EVEN),
+    HARMONY_A               = int(mu::engraving::TextStyleType::HARMONY_A),
+    HARMONY_B               = int(mu::engraving::TextStyleType::HARMONY_B),
+    HARMONY_ROMAN           = int(mu::engraving::TextStyleType::HARMONY_ROMAN),
+    HARMONY_NASHVILLE       = int(mu::engraving::TextStyleType::HARMONY_NASHVILLE),
+    TUPLET                  = int(mu::engraving::TextStyleType::TUPLET),
+    ARTICULATION            = int(mu::engraving::TextStyleType::ARTICULATION),
+    STICKING                = int(mu::engraving::TextStyleType::STICKING),
+    FINGERING               = int(mu::engraving::TextStyleType::FINGERING),
+    TAB_FRET_NUMBER         = int(mu::engraving::TextStyleType::TAB_FRET_NUMBER),
+    LH_GUITAR_FINGERING     = int(mu::engraving::TextStyleType::LH_GUITAR_FINGERING),
+    RH_GUITAR_FINGERING     = int(mu::engraving::TextStyleType::RH_GUITAR_FINGERING),
+    HAMMER_ON_PULL_OFF      = int(mu::engraving::TextStyleType::HAMMER_ON_PULL_OFF),
+    STRING_NUMBER           = int(mu::engraving::TextStyleType::STRING_NUMBER),
+    STRING_TUNINGS          = int(mu::engraving::TextStyleType::STRING_TUNINGS),
+    FRET_DIAGRAM_FINGERING  = int(mu::engraving::TextStyleType::FRET_DIAGRAM_FINGERING),
+    FRET_DIAGRAM_FRET_NUMBER= int(mu::engraving::TextStyleType::FRET_DIAGRAM_FRET_NUMBER),
+    HARP_PEDAL_DIAGRAM      = int(mu::engraving::TextStyleType::HARP_PEDAL_DIAGRAM),
+    HARP_PEDAL_TEXT_DIAGRAM = int(mu::engraving::TextStyleType::HARP_PEDAL_TEXT_DIAGRAM),
+    TEXTLINE                = int(mu::engraving::TextStyleType::TEXTLINE),
+    SYSTEM_TEXTLINE         = int(mu::engraving::TextStyleType::SYSTEM_TEXTLINE),
+    NOTELINE                = int(mu::engraving::TextStyleType::NOTELINE),
+    VOLTA                   = int(mu::engraving::TextStyleType::VOLTA),
+    OTTAVA                  = int(mu::engraving::TextStyleType::OTTAVA),
+    GLISSANDO               = int(mu::engraving::TextStyleType::GLISSANDO),
+    PEDAL                   = int(mu::engraving::TextStyleType::PEDAL),
+    BEND                    = int(mu::engraving::TextStyleType::BEND),
+    LET_RING                = int(mu::engraving::TextStyleType::LET_RING),
+    PALM_MUTE               = int(mu::engraving::TextStyleType::PALM_MUTE),
+    USER1                   = int(mu::engraving::TextStyleType::USER1),
+    USER2                   = int(mu::engraving::TextStyleType::USER2),
+    USER3                   = int(mu::engraving::TextStyleType::USER3),
+    USER4                   = int(mu::engraving::TextStyleType::USER4),
+    USER5                   = int(mu::engraving::TextStyleType::USER5),
+    USER6                   = int(mu::engraving::TextStyleType::USER6),
+    USER7                   = int(mu::engraving::TextStyleType::USER7),
+    USER8                   = int(mu::engraving::TextStyleType::USER8),
+    USER9                   = int(mu::engraving::TextStyleType::USER9),
+    USER10                  = int(mu::engraving::TextStyleType::USER10),
+    USER11                  = int(mu::engraving::TextStyleType::USER11),
+    USER12                  = int(mu::engraving::TextStyleType::USER12),
+};
+Q_ENUM_NS(TextStyleType);
 
+/** APIDOC
+ * Type of element
+ * @memberof Engraving
+ * @enum
+ */
+enum class ElementType {
+    INVALID               = int(mu::engraving::ElementType::INVALID),
     BRACKET_ITEM          = int(mu::engraving::ElementType::BRACKET_ITEM),
     PART                  = int(mu::engraving::ElementType::PART),
     STAFF                 = int(mu::engraving::ElementType::STAFF),
@@ -382,20 +466,16 @@ enum class ElementType {
     TAPPING_HALF_SLUR     = int(mu::engraving::ElementType::TAPPING_HALF_SLUR),
     TAPPING_HALF_SLUR_SEGMENT = int(mu::engraving::ElementType::TAPPING_HALF_SLUR_SEGMENT),
     TAPPING_TEXT          = int(mu::engraving::ElementType::TAPPING_TEXT),
-
     ROOT_ITEM             = int(mu::engraving::ElementType::ROOT_ITEM),
     DUMMY                 = int(mu::engraving::ElementType::DUMMY),
-
-    TREMOLO               = int(mu::engraving::ElementType::INVALID), // deprecated
-    COMPOUND              = int(mu::engraving::ElementType::INVALID), // deprecated
-    ELEMENT               = int(mu::engraving::ElementType::INVALID), // deprecated
-    ELEMENT_LIST          = int(mu::engraving::ElementType::INVALID), // deprecated
-    STAFF_LIST            = int(mu::engraving::ElementType::INVALID), // deprecated
-    MEASURE_LIST          = int(mu::engraving::ElementType::INVALID), // deprecated
-    OSSIA                 = int(mu::engraving::ElementType::INVALID), // deprecated
-
+    TREMOLO               = int(mu::engraving::ElementType::INVALID), // @ignore deprecated
+    COMPOUND              = int(mu::engraving::ElementType::INVALID), // @ignore deprecated
+    ELEMENT               = int(mu::engraving::ElementType::INVALID), // @ignore deprecated
+    ELEMENT_LIST          = int(mu::engraving::ElementType::INVALID), // @ignore deprecated
+    STAFF_LIST            = int(mu::engraving::ElementType::INVALID), // @ignore deprecated
+    MEASURE_LIST          = int(mu::engraving::ElementType::INVALID), // @ignore deprecated
+    OSSIA                 = int(mu::engraving::ElementType::INVALID), // @ignore deprecated
     MAXTYPE               = int(mu::engraving::ElementType::MAXTYPE)
-                            ///\}
 };
 Q_ENUM_NS(ElementType);
 
@@ -447,6 +527,11 @@ enum class TextPlace {
 };
 Q_ENUM_NS(TextPlace);
 
+/** APIDOC
+ * Direction
+ * @memberof Engraving
+ * @enum
+ */
 enum class Direction {
     AUTO = int(mu::engraving::DirectionV::AUTO),
     UP   = int(mu::engraving::DirectionV::UP),
@@ -454,6 +539,11 @@ enum class Direction {
 };
 Q_ENUM_NS(Direction);
 
+/** APIDOC
+ * Horizontal direction
+ * @memberof Engraving
+ * @enum
+ */
 enum class DirectionH {
     AUTO  = int(mu::engraving::DirectionH::AUTO),
     LEFT  = int(mu::engraving::DirectionH::LEFT),
@@ -467,6 +557,11 @@ enum class Orientation {
 };
 Q_ENUM_NS(Orientation);
 
+/** APIDOC
+ * Auto-hide flag
+ * @memberof Engraving
+ * @enum
+ */
 enum class AutoOnOff {
     AUTO = int(mu::engraving::AutoOnOff::AUTO),
     ON   = int(mu::engraving::AutoOnOff::ON),
@@ -619,6 +714,11 @@ enum class PreferSharpFlat {
 };
 Q_ENUM_NS(PreferSharpFlat);
 
+/** APIDOC
+ * Type of note head
+ * @memberof Engraving
+ * @enum
+ */
 enum class NoteHeadType {
     HEAD_AUTO    = int(mu::engraving::NoteHeadType::HEAD_AUTO),
     HEAD_WHOLE   = int(mu::engraving::NoteHeadType::HEAD_WHOLE),
@@ -644,6 +744,11 @@ enum class NoteHeadScheme {
 };
 Q_ENUM_NS(NoteHeadScheme);
 
+/** APIDOC
+ * Group of note head
+ * @memberof Engraving
+ * @enum
+ */
 enum class NoteHeadGroup {
     HEAD_NORMAL          = int(mu::engraving::NoteHeadGroup::HEAD_NORMAL),
     HEAD_CROSS           = int(mu::engraving::NoteHeadGroup::HEAD_CROSS),
@@ -1036,6 +1141,11 @@ enum class HookType {
 };
 Q_ENUM_NS(HookType);
 
+/** APIDOC
+ * Mode of key
+ * @memberof Engraving
+ * @enum
+ */
 enum class KeyMode {
     UNKNOWN    = int(mu::engraving::KeyMode::UNKNOWN),
     NONE       = int(mu::engraving::KeyMode::NONE),
@@ -1221,6 +1331,11 @@ enum class ChordLineType {
 };
 Q_ENUM_NS(ChordLineType);
 
+/** APIDOC
+ * Type of slur
+ * @memberof Engraving
+ * @enum
+ */
 enum class SlurStyleType {
     Undefined  = int(mu::engraving::SlurStyleType::Undefined),
     Solid      = int(mu::engraving::SlurStyleType::Solid),

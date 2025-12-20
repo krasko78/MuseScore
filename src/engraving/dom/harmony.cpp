@@ -1101,7 +1101,7 @@ const RealizedHarmony& Harmony::getRealizedHarmony() const
     const CapoParams& capo = st->capo(tick);
 
     int offset = 0;
-    if (capo.active) {
+    if (capo.active && CapoParams::TransposeMode::TAB_ONLY != capo.transposeMode) {
         offset = capo.fretPosition;
     }
 
@@ -1613,6 +1613,11 @@ PropertyValue Harmony::propertyDefault(Pid id) const
         break;
     }
     return v;
+}
+
+bool Harmony::positionRelativeToNoteheadRest() const
+{
+    return !parent()->isFretDiagram();
 }
 
 //---------------------------------------------------------

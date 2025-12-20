@@ -21,21 +21,21 @@
  */
 #pragma once
 
-#include <QString>
-
 #include "async/notification.h"
-#include "internal/inotationundostack.h"
-#include "notationtypes.h"
-#include "inotationpainting.h"
-#include "inotationviewstate.h"
-#include "inotationsolomutestate.h"
-#include "inotationstyle.h"
+
+#include "inotationaccessibility.h"
 #include "inotationelements.h"
 #include "inotationinteraction.h"
-#include "inotationaccessibility.h"
 #include "inotationmidiinput.h"
+#include "inotationpainting.h"
 #include "inotationparts.h"
+#include "inotationsolomutestate.h"
+#include "inotationstyle.h"
+#include "inotationviewstate.h"
+#include "internal/inotationundostack.h"
 #include "notationtypes.h"
+
+class QString;
 
 namespace mu::project {
 class INotationProject;
@@ -48,6 +48,7 @@ using INotationWeakPtr = std::weak_ptr<INotation>;
 using INotationPtrList = std::vector<INotationPtr>;
 
 class IMasterNotation;
+using IMasterNotationPtr = std::shared_ptr<IMasterNotation>;
 
 class INotation
 {
@@ -55,7 +56,7 @@ public:
     virtual ~INotation() = default;
 
     virtual project::INotationProject* project() const = 0;
-    virtual IMasterNotation* masterNotation() const = 0;
+    virtual IMasterNotationPtr masterNotation() const = 0;
 
     /// For MasterScores: the filename without extension
     /// For Scores: the excerpt name

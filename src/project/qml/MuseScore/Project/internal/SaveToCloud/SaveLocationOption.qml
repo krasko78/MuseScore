@@ -31,7 +31,6 @@ Item { // krasko: ability to click on the entire save option
     Layout.fillHeight: true
 
     property alias title: titleLabel.text
-    property alias isFreeLabelVisible: freeRect.visible
     property alias description: descriptionLabel.text
     property alias buttonText: button.text
 

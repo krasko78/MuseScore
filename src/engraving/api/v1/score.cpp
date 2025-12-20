@@ -27,6 +27,7 @@
 #include "dom/instrtemplate.h"
 #include "dom/measure.h"
 #include "dom/score.h"
+#include "dom/masterscore.h"
 #include "dom/segment.h"
 #include "dom/text.h"
 #include "editing/editsystemlocks.h"
@@ -36,47 +37,37 @@
 #include "apistructs.h"
 #include "cursor.h"
 #include "elements.h"
+#include "apitypes.h"
 
 using namespace mu::engraving::apiv1;
 
-/** APIDOC
- * Class representing a score.
- * We can get the current score by calling the `api.engraving.curScore`
- * @class Score
- * @memberof engraving
- * @hideconstructor
-*/
-
-/** APIDOC
- * Create a new Cursor
- * @method
- * @returns {Cursor} cursor
-*/
 Cursor* Score::newCursor()
 {
     return new Cursor(score());
 }
 
-//---------------------------------------------------------
-//   Score::addText
-///   \brief Adds a header text to the score, and a title frame if needed.
-///   \param type The text style for the text, for example:
-///   - "title"
-///   - "subtitle"
-///   - "composer"
-///   - "lyricist"
-///   \param txt Text to be added.
-//---------------------------------------------------------
-
 void Score::addText(const QString& type, const QString& txt)
 {
+    static const QMetaEnum meta = QMetaEnum::fromType<enums::TextStyleType>();
+
+    mu::engraving::TextStyleType tid;
+    const std::string key = type.toStdString();
+    bool ok = false;
+    int val = meta.keyToValue(key.c_str(), &ok);
+    if (ok) {
+        tid = static_cast<mu::engraving::TextStyleType>(val);
+    } else {
+        LOGE() << "Please use engraving::TextStyleType enum, the use of Xml tags is deprecated.";
+        AsciiStringView t(key);
+        tid = mu::engraving::TConv::fromXml(t, mu::engraving::TextStyleType::DEFAULT);
+    }
+
     mu::engraving::MeasureBase* mb = score()->first();
     if (!mb || !mb->isVBox()) {
         score()->insertBox(ElementType::VBOX, mb);
         mb = score()->first();
     }
-    AsciiStringView t(String::fromQString(type).toStdString());
-    mu::engraving::TextStyleType tid = mu::engraving::TConv::fromXml(t, mu::engraving::TextStyleType::DEFAULT);
+
     mu::engraving::Text* text = mu::engraving::Factory::createText(mb, tid);
     text->setParent(mb);
     text->setXmlText(txt);
@@ -168,7 +159,7 @@ Segment* Score::firstSegment(int segmentType)
     return wrap<Segment>(score()->firstSegment(engraving::SegmentType(segmentType)), Ownership::SCORE);
 }
 
-Measure* Score::tick2measure(FractionWrapper* f)
+Measure* Score::tick2measure(Fraction* f)
 {
     const mu::engraving::Fraction tick = f->fraction();
     if (!tick.isValid() || tick.negative()) {
@@ -177,7 +168,7 @@ Measure* Score::tick2measure(FractionWrapper* f)
     return wrap<Measure>(score()->tick2measure(tick));
 }
 
-Segment* Score::findSegmentAtTick(int segmentTypes, FractionWrapper* f)
+Segment* Score::findSegmentAtTick(int segmentTypes, Fraction* f)
 {
     const mu::engraving::Fraction tick = f->fraction();
     if (!tick.isValid() || tick.negative()) {
@@ -248,56 +239,41 @@ void Score::createPlayEvents()
     mu::engraving::CompatMidiRender::createPlayEvents(score());
 }
 
-//---------------------------------------------------------
-//   Score::staves
-//---------------------------------------------------------
-
-QQmlListProperty<Staff> Score::staves()
+QQmlListProperty<Staff> Score::staves() const
 {
     return wrapContainerProperty<Staff>(this, score()->staves());
 }
 
-//---------------------------------------------------------
-//   Score::pages
-//---------------------------------------------------------
+QQmlListProperty<Part> Score::parts() const
+{
+    return wrapContainerProperty<Part>(this, score()->parts());
+}
 
-QQmlListProperty<Page> Score::pages()
+QQmlListProperty<Excerpt> Score::excerpts() const
+{
+    return wrapExcerptsContainerProperty<Excerpt>(this, score()->masterScore()->excerpts());
+}
+
+QQmlListProperty<Page> Score::pages() const
 {
     return wrapContainerProperty<Page>(this, score()->pages());
 }
 
-//---------------------------------------------------------
-//   Score::systems
-//---------------------------------------------------------
-
-QQmlListProperty<System> Score::systems()
+QQmlListProperty<System> Score::systems() const
 {
     return wrapContainerProperty<System>(this, score()->systems());
 }
 
-/** APIDOC
- * @readonly
- * @member {Boolean}
- */
 bool Score::hasLyrics() const
 {
     return score()->hasLyrics();
 }
 
-/** APIDOC
- * @readonly
- * @member {Number}
- */
 int Score::lyricCount() const
 {
     return score()->lyricCount();
 }
 
-/** APIDOC
- * @readonly
- * @member {engraving.Lyric[]}
- * @since 4.7
- */
 QQmlListProperty<Lyrics> Score::lyrics() const
 {
     static std::vector<engraving::Lyrics*> list;
@@ -305,21 +281,11 @@ QQmlListProperty<Lyrics> Score::lyrics() const
     return wrapContainerProperty<Lyrics>(this, list);
 }
 
-/** APIDOC
-* Extracts all lyrics in the score and returns them in a single string.
-* @method
-* @return {String} - lyrics string
-*/
 QString Score::extractLyrics() const
 {
     return score()->extractLyrics();
 }
 
-/** APIDOC
- * @readonly
- * @member {engraving.Spanner[]}
- * @since 4.7
- */
 QQmlListProperty<Spanner> Score::spanners()
 {
     static std::vector<mu::engraving::Spanner*> spannerList;
@@ -364,7 +330,7 @@ void Score::endCmd(bool rollback)
     notation()->notationChanged().notify();
 }
 
-void Score::doLayout(FractionWrapper* startTick, FractionWrapper* endTick)
+void Score::doLayout(Fraction* startTick, Fraction* endTick)
 {
     score()->doLayoutRange(startTick->fraction(), endTick->fraction());
 }

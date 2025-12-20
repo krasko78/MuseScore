@@ -22,6 +22,7 @@
 
 #include "engravingapiv1.h"
 
+#include <QQmlEngine>
 #include <QJSValueIterator>
 
 #include "qmlpluginapi.h"
@@ -32,7 +33,7 @@ using namespace mu::engraving::apiv1;
 
 /** APIDOC
  * Information and actions related to Score
- * @namespace engraving
+ * @namespace Engraving
  */
 
 EngravingApiV1::EngravingApiV1(muse::api::IApiEngine* e)

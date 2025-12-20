@@ -1834,7 +1834,7 @@ void TLayout::layoutExpression(const Expression* item, Expression::LayoutData* l
         track_idx_t startTrack = track2staff(item->staffIdx());
         track_idx_t endTrack = startTrack + VOICES;
         for (track_idx_t track = startTrack; track < endTrack; ++track) {
-            EngravingItem* e = segment->elementAt(track);
+            EngravingItem* e = segment->element(track);
             if (e && e->isChord()) {
                 chordToAlign = toChord(e);
                 break;
@@ -3730,9 +3730,6 @@ static void _layoutLedgerLine(const LedgerLine* item, const LayoutContext& ctx, 
     }
     double w2 = ldata->lineWidth * .5;
 
-    //Adjust Y position to staffType offset
-    ldata->moveY(item->staffOffsetY());
-
     if (item->vertical()) {
         ldata->setBbox(-w2, 0, w2, item->len());
     } else {
@@ -4302,7 +4299,7 @@ void TLayout::layoutOrnamentCueNote(Ornament* item, LayoutContext& ctx)
     staff_idx_t startStaff = staff2track(parentChord->staffIdx());
     for (staff_idx_t staff = startStaff; staff < startStaff + VOICES; ++staff) {
         Segment* segment = parentChord->segment();
-        ChordRest* cr = segment->elementAt(staff) ? toChordRest(segment->elementAt(staff)) : nullptr;
+        ChordRest* cr = segment->element(staff) ? toChordRest(segment->element(staff)) : nullptr;
         if (cr) {
             minDist = std::max(minDist, HorizontalSpacing::minHorizontalDistance(cr->shape(), noteShape, cr->spatium()));
         }
@@ -4413,7 +4410,7 @@ void TLayout::layoutPlayCountText(PlayCountText* item, TextBase::LayoutData* lda
 
     // Avoid incoming barlines from above
     double xAdj = 0.0;
-    BarLine* blAbove = item->staffIdx() != 0 ? toBarLine(seg->elementAt(staff2track(item->staffIdx() - 1))) : nullptr;
+    BarLine* blAbove = item->staffIdx() != 0 ? toBarLine(seg->element(staff2track(item->staffIdx() - 1))) : nullptr;
     if (blAbove && blAbove->spanStaff()) {
         xAdj = blAbove->width();
     }
@@ -5340,27 +5337,6 @@ void TLayout::layoutSticking(const Sticking* item, Sticking::LayoutData* ldata)
 {
     LAYOUT_CALL_ITEM(item);
     TextLayout::layoutBaseTextBase(item, ldata);
-
-    AlignH itemPosition =  item->position();
-    if (itemPosition != AlignH::LEFT) {
-        const Segment* seg = item->segment();
-        const Chord* chord = nullptr;
-        track_idx_t sTrack = trackZeroVoice(item->track());
-        track_idx_t eTrack = sTrack + VOICES;
-        for (track_idx_t track = sTrack; track < eTrack; ++track) {
-            EngravingItem* el = seg->element(track);
-            if (el && el->isChord()) {
-                chord = toChord(el);
-                break;
-            }
-        }
-
-        if (chord) {
-            const Note* refNote = item->placeAbove() ? chord->upNote() : chord->downNote();
-            double noteWidth = refNote->ldata()->bbox().width();
-            ldata->moveX(itemPosition == AlignH::HCENTER ? 0.5 * noteWidth : noteWidth);
-        }
-    }
 
     if (item->autoplace() && item->explicitParent()) {
         const Segment* s = toSegment(item->explicitParent());

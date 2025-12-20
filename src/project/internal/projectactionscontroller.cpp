@@ -321,18 +321,17 @@ Ret ProjectActionsController::loadWithFallback(const std::shared_ptr<INotationPr
                                                const muse::io::path_t& loadPath,
                                                const std::string& format)
 {
-    bool forceLoad = false;
-    const std::string stylePath = "";
-    const bool unrollRepeats = false;
-    Ret result = project->load(loadPath, stylePath, forceLoad, unrollRepeats, format);
+    Ret result = project->load(loadPath, OpenParams(), format);
 
     if (result || result.code() == static_cast<int>(Ret::Code::Cancel)) {
         return result;
     }
 
-    forceLoad = shouldRetryLoadAfterError(result, loadPath);
+    bool forceLoad = shouldRetryLoadAfterError(result, loadPath);
     if (forceLoad) {
-        result = project->load(loadPath, stylePath, forceLoad, unrollRepeats, format);
+        OpenParams params;
+        params.forceMode = forceLoad;
+        result = project->load(loadPath, params, format);
     }
 
     return result;
@@ -569,7 +568,7 @@ Ret ProjectActionsController::openScoreFromMuseScoreCom(const QUrl& url)
         return scoreInfo.ret;
     }
 
-    bool isOwner = QString::number(scoreInfo.val.owner.id) == museScoreComService()->authorization()->accountInfo().val.id;
+    bool isOwner = QString::number(scoreInfo.val.owner.id) == museScoreComService()->authorization()->accountInfo().id;
 
     // If yes, score will be opened as regular cloud score; check if not yet opened
     if (isOwner) {

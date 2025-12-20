@@ -174,19 +174,16 @@ void LyricsLayout::layout(Lyrics* item, LayoutContext& ctx)
         }
     }
 
-    double nominalWidth = item->symWidth(SymId::noteheadBlack);
     if (item->position() == AlignH::HCENTER) {
         //
         // center under notehead, not origin
         // however, lyrics that are melismas or have verse numbers will be forced to left alignment
         //
         // center under note head
-        x += nominalWidth * .5 - centerAdjust * 0.5;
+        x += -centerAdjust * 0.5;
     } else if (item->position() == AlignH::LEFT) {
         // even for left aligned syllables, ignore leading verse numbers and/or punctuation
         x -= leftAdjust;
-    } else if (item->position() == AlignH::RIGHT) {
-        x += nominalWidth;
     }
 
     ldata->setPosX(x);
@@ -405,10 +402,10 @@ Lyrics* LyricsLayout::findNextLyrics(const ChordRest* endChordRest, int verseNum
     }
     for (Segment* segment = endChordRest->segment()->next1(SegmentType::ChordRest); segment;
          segment = segment->next1(SegmentType::ChordRest)) {
-        if (!segment->elementAt(endChordRest->track())) {
+        if (!segment->element(endChordRest->track())) {
             continue;
         }
-        ChordRest* nextCR = toChordRest(segment->elementAt(endChordRest->track()));
+        ChordRest* nextCR = toChordRest(segment->element(endChordRest->track()));
         for (Lyrics* lyr : nextCR->lyrics()) {
             if (lyr->verse() == verseNumber) {
                 return lyr;
@@ -584,7 +581,7 @@ void LyricsLayout::collectLyricsVerses(staff_idx_t staffIdx, System* system, Lyr
                 continue;
             }
             for (track_idx_t track = startTrack; track < endTrack; ++track) {
-                EngravingItem* element = segment.elementAt(track);
+                EngravingItem* element = segment.element(track);
                 if (!element) {
                     continue;
                 }

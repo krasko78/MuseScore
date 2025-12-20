@@ -47,14 +47,17 @@ namespace mu::engraving {
 
 //---------------------------------------------------------
 //   Sid
-///   Enumerates the list of score style settings
-//
-//    Keep in sync with styleTypes[] in styledef.cpp
+//   Enumerates the list of score style settings
+//   Keep in sync with styleTypes[] in styledef.cpp
 //---------------------------------------------------------
 
 BEGIN_QT_REGISTERED_ENUM(Sid)
+/** APIDOC
+ * Enumerates the list of score style settings
+ * @memberof Engraving
+ * @enum
+ */
 enum class Sid : short {
-    ///.\{
     NOSTYLE = -1,
 
     pageWidth,
@@ -149,7 +152,6 @@ enum class Sid : short {
     lyricsEvenPosition,
 
     figuredBassFontFamily,
-    //      figuredBassFontSize,
     figuredBassYOffset,
     figuredBassLineHeight,
     figuredBassAlignment,
@@ -1954,7 +1956,7 @@ enum class Sid : short {
     figuredBassMinDistance,
     tupletMinDistance,
 
-    /// Display options for tab elements (simple and common styles)
+    // Display options for tab elements (simple and common styles)
 
     slurShowTabSimple,
     slurShowTabCommon,
@@ -1994,6 +1996,81 @@ enum class Sid : short {
     chordlineThickness,
 
     dummyMusicalSymbolsScale,
+    dummyMusicalSymbolSize,
+
+    articulationMusicalSymbolSize,
+    bendMusicalSymbolSize,
+    chordSymbolAMusicalSymbolSize,
+    chordSymbolBMusicalSymbolSize,
+    composerMusicalSymbolSize,
+    copyrightMusicalSymbolSize,
+    defaultMusicalSymbolSize,
+    dynamicsMusicalSymbolSize,
+    expressionMusicalSymbolSize,
+    figuredBassMusicalSymbolSize,
+    fingeringMusicalSymbolSize,
+    footerMusicalSymbolSize,
+    frameMusicalSymbolSize,
+    fretDiagramFingeringMusicalSymbolSize,
+    fretDiagramFretNumberMusicalSymbolSize,
+    glissandoMusicalSymbolSize,
+    hairpinMusicalSymbolSize,
+    hammerOnPullOffTappingMusicalSymbolSize,
+    harpPedalDiagramMusicalSymbolSize,
+    harpPedalTextDiagramMusicalSymbolSize,
+    headerMusicalSymbolSize,
+    instrumentChangeMusicalSymbolSize,
+    letRingMusicalSymbolSize,
+    lhGuitarFingeringMusicalSymbolSize,
+    longInstrumentMusicalSymbolSize,
+    lyricistMusicalSymbolSize,
+    lyricsEvenMusicalSymbolSize,
+    lyricsOddMusicalSymbolSize,
+    measureNumberAlternateMusicalSymbolSize,
+    measureNumberMusicalSymbolSize,
+    metronomeMusicalSymbolSize,
+    mmRestRangeMusicalSymbolSize,
+    nashvilleNumberMusicalSymbolSize,
+    noteLineMusicalSymbolSize,
+    ottavaMusicalSymbolSize,
+    pageNumberMusicalSymbolSize,
+    palmMuteMusicalSymbolSize,
+    partInstrumentMusicalSymbolSize,
+    pedalMusicalSymbolSize,
+    rehearsalMarkMusicalSymbolSize,
+    repeatLeftMusicalSymbolSize,
+    repeatPlayCountMusicalSymbolSize,
+    repeatRightMusicalSymbolSize,
+    rhGuitarFingeringMusicalSymbolSize,
+    romanNumeralMusicalSymbolSize,
+    shortInstrumentMusicalSymbolSize,
+    staffTextMusicalSymbolSize,
+    stickingMusicalSymbolSize,
+    stringNumberMusicalSymbolSize,
+    stringTuningsMusicalSymbolSize,
+    subTitleMusicalSymbolSize,
+    systemTextLineMusicalSymbolSize,
+    systemTextMusicalSymbolSize,
+    tabFretNumberMusicalSymbolSize,
+    tempoChangeMusicalSymbolSize,
+    tempoMusicalSymbolSize,
+    textLineMusicalSymbolSize,
+    titleMusicalSymbolSize,
+    translatorMusicalSymbolSize,
+    tupletMusicalSymbolSize,
+    user1MusicalSymbolSize,
+    user2MusicalSymbolSize,
+    user3MusicalSymbolSize,
+    user4MusicalSymbolSize,
+    user5MusicalSymbolSize,
+    user6MusicalSymbolSize,
+    user7MusicalSymbolSize,
+    user8MusicalSymbolSize,
+    user9MusicalSymbolSize,
+    user10MusicalSymbolSize,
+    user11MusicalSymbolSize,
+    user12MusicalSymbolSize,
+    voltaMusicalSymbolSize,
 
     autoplaceEnabled,
     defaultsVersion,
@@ -2025,7 +2102,6 @@ enum class Sid : short {
     systemObjectsBelowBottomStaff,
 
     STYLES
-    ///\}
 };
 END_QT_REGISTERED_ENUM(Sid)
 

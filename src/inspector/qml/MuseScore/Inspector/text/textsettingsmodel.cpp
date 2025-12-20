@@ -96,6 +96,12 @@ void TextSettingsModel::createProperties()
 
     m_horizontalPosition = buildPropertyItem(textPositionId, onPropertyChanged, nullptr, onPropertyReset);
     m_symbolSize = buildPropertyItem(mu::engraving::Pid::MUSIC_SYMBOL_SIZE);
+    m_symbolScale = buildPropertyItem(mu::engraving::Pid::MUSICAL_SYMBOLS_SCALE, [this](const Pid pid, const QVariant& newValue) {
+        onPropertyValueChanged(pid, newValue.toDouble() / 100);
+    }, [this](const Sid sid, const QVariant& newValue) {
+        updateStyleValue(sid, newValue.toDouble() / 100);
+        emit requestReloadPropertyItems();
+    });
     m_isSizeSpatiumDependent = buildPropertyItem(mu::engraving::Pid::SIZE_SPATIUM_DEPENDENT);
 
     m_frameType = buildPropertyItem(mu::engraving::Pid::FRAME_TYPE, [this](const mu::engraving::Pid pid, const QVariant& newValue) {
@@ -136,6 +142,7 @@ void TextSettingsModel::loadProperties()
         Pid::ALIGN,
         Pid::POSITION,
         Pid::MUSIC_SYMBOL_SIZE,
+        Pid::MUSICAL_SYMBOLS_SCALE,
         Pid::TEXT_SIZE_SPATIUM_DEPENDENT,
         Pid::FRAME_TYPE,
         Pid::FRAME_BG_COLOR,
@@ -156,6 +163,7 @@ void TextSettingsModel::loadProperties()
         Pid::BEGIN_TEXT_ALIGN,
         Pid::BEGIN_TEXT_POSITION,
         Pid::MUSIC_SYMBOL_SIZE,
+        Pid::MUSICAL_SYMBOLS_SCALE,
         Pid::TEXT_SIZE_SPATIUM_DEPENDENT,
         Pid::FRAME_TYPE,
         Pid::FRAME_BG_COLOR,
@@ -224,6 +232,12 @@ void TextSettingsModel::loadProperties(const PropertyIdSet& propertyIdSet)
         loadPropertyItem(m_symbolSize);
     }
 
+    if (muse::contains(propertyIdSet, Pid::MUSICAL_SYMBOLS_SCALE)) {
+        loadPropertyItem(m_symbolScale, [](const QVariant& elementPropertyValue) -> QVariant {
+            return static_cast<int>(muse::DataFormatter::roundDouble(elementPropertyValue.toDouble() * 100.0));
+        });
+    }
+
     if (muse::contains(propertyIdSet, Pid::TEXT_SIZE_SPATIUM_DEPENDENT)) {
         loadPropertyItem(m_isSizeSpatiumDependent);
     }
@@ -272,6 +286,9 @@ void TextSettingsModel::loadProperties(const PropertyIdSet& propertyIdSet)
     updateIsLineSpacingAvailable();
     updateIsPositionAvailable();
     updateUsePositionRelativeToLine();
+    updateLeftPositionText();
+    updateCenterPositionText();
+    updateRightPositionText();
 }
 
 bool TextSettingsModel::isTextLineText() const
@@ -287,6 +304,7 @@ void TextSettingsModel::resetProperties()
     m_textLineSpacing->resetToDefault();
     m_isSizeSpatiumDependent->resetToDefault();
     m_symbolSize->resetToDefault();
+    m_symbolScale->resetToDefault();
 
     m_frameType->resetToDefault();
     m_frameBorderColor->resetToDefault();
@@ -374,6 +392,11 @@ PropertyItem* TextSettingsModel::horizontalPosition() const
 PropertyItem* TextSettingsModel::symbolSize() const
 {
     return m_symbolSize;
+}
+
+PropertyItem* TextSettingsModel::symbolScale() const
+{
+    return m_symbolScale;
 }
 
 PropertyItem* TextSettingsModel::isSizeSpatiumDependent() const
@@ -498,6 +521,21 @@ bool TextSettingsModel::usePositionRelativeToLine() const
     return m_usePositionRelativeToLine;
 }
 
+QString TextSettingsModel::leftPositionText() const
+{
+    return m_leftPositionText;
+}
+
+QString TextSettingsModel::centerPositionText() const
+{
+    return m_centerPositionText;
+}
+
+QString TextSettingsModel::rightPositionText() const
+{
+    return m_rightPositionText;
+}
+
 void TextSettingsModel::setAreTextPropertiesAvailable(bool areTextPropertiesAvailable)
 {
     if (m_areTextPropertiesAvailable == areTextPropertiesAvailable) {
@@ -596,6 +634,36 @@ void TextSettingsModel::setUsePositionRelativeToLineChanged(bool usePositionRela
 
     m_usePositionRelativeToLine = usePositionRelativeToLine;
     emit usePositionRelativeToLineChanged(m_usePositionRelativeToLine);
+}
+
+void TextSettingsModel::setLeftPositionText(QString leftPositionText)
+{
+    if (leftPositionText == m_leftPositionText) {
+        return;
+    }
+
+    m_leftPositionText = leftPositionText;
+    emit leftPositionTextChanged(m_leftPositionText);
+}
+
+void TextSettingsModel::setCenterPositionText(QString centerPositionText)
+{
+    if (centerPositionText == m_centerPositionText) {
+        return;
+    }
+
+    m_centerPositionText = centerPositionText;
+    emit centerPositionTextChanged(m_centerPositionText);
+}
+
+void TextSettingsModel::setRightPositionText(QString rightPositionText)
+{
+    if (rightPositionText == m_rightPositionText) {
+        return;
+    }
+
+    m_rightPositionText = rightPositionText;
+    emit rightPositionTextChanged(m_rightPositionText);
 }
 
 void TextSettingsModel::updateFramePropertiesAvailability()
@@ -703,16 +771,66 @@ void TextSettingsModel::updateUsePositionRelativeToLine()
 {
     bool useBarlineIcon = false;
     for (EngravingItem* item : m_elementList) {
-        bool useBl = item->isMarker() || item->isJump() || item->isRehearsalMark() || item->isMeasureNumber();
-        bool harmonyUseBl = item->isHarmony() && item->parent()->isFretDiagram();
-        bool textUseBl = item->isText() && (item->parent()->isBox() || item->parent()->isVoltaSegment());
-
-        if (useBl || harmonyUseBl || textUseBl) {
+        if (!toTextBase(item)->positionRelativeToNoteheadRest()) {
             useBarlineIcon = true;
         }
     }
 
     setUsePositionRelativeToLineChanged(useBarlineIcon);
+}
+
+void TextSettingsModel::updateLeftPositionText()
+{
+    for (EngravingItem* item : m_elementList) {
+        if (!item->parent()) {
+            continue;
+        }
+
+        if (item->parent()->isBox()) {
+            setLeftPositionText(muse::qtrc("inspector", "Left-align text box within frame"));
+        } else if (toTextBase(item)->positionRelativeToNoteheadRest()) {
+            setLeftPositionText(muse::qtrc("inspector", "Left-align text box to note/rest"));
+        } else {
+            setLeftPositionText(muse::qtrc("inspector", "Left-align text box to barline"));
+        }
+        return;
+    }
+}
+
+void TextSettingsModel::updateCenterPositionText()
+{
+    for (EngravingItem* item : m_elementList) {
+        if (!item->parent()) {
+            continue;
+        }
+
+        if (item->parent()->isBox()) {
+            setCenterPositionText(muse::qtrc("inspector", "Horizontally center text box within frame"));
+        } else if (toTextBase(item)->positionRelativeToNoteheadRest()) {
+            setCenterPositionText(muse::qtrc("inspector", "Horizontally center text box to note/rest"));
+        } else {
+            setCenterPositionText(muse::qtrc("inspector", "Horizontally center text box to barline"));
+        }
+        return;
+    }
+}
+
+void TextSettingsModel::updateRightPositionText()
+{
+    for (EngravingItem* item : m_elementList) {
+        if (!item->parent()) {
+            continue;
+        }
+
+        if (item->parent()->isBox()) {
+            setRightPositionText(muse::qtrc("inspector", "Right-align text box within frame"));
+        } else if (toTextBase(item)->positionRelativeToNoteheadRest()) {
+            setRightPositionText(muse::qtrc("inspector", "Right-align text box to note/rest"));
+        } else {
+            setRightPositionText(muse::qtrc("inspector", "Right-align text box to barline"));
+        }
+        return;
+    }
 }
 
 void TextSettingsModel::propertyChangedCallback(const engraving::Pid propertyId, const QVariant& newValue)

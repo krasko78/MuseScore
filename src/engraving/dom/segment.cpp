@@ -913,7 +913,6 @@ void Segment::remove(EngravingItem* el)
     case ElementType::SYSTEM_TEXT:
     case ElementType::TRIPLET_FEEL:
     case ElementType::PLAYTECH_ANNOTATION:
-    case ElementType::CAPO:
     case ElementType::SYMBOL:
     case ElementType::TAB_DURATION_SYMBOL:
     case ElementType::TEMPO_TEXT:
@@ -922,6 +921,12 @@ void Segment::remove(EngravingItem* el)
     case ElementType::FERMATA:
     case ElementType::STICKING:
     case ElementType::PLAY_COUNT_TEXT:
+        removeAnnotation(el);
+        break;
+    case ElementType::CAPO:
+        for (Staff* staff : el->part()->staves()) {
+            staff->removeCapoParams(el->tick());
+        }
         removeAnnotation(el);
         break;
 
@@ -1111,7 +1116,7 @@ bool Segment::isInsideTupletOnStaff(staff_idx_t staffIdx) const
     track_idx_t startTrack = staff2track(staffIdx);
     track_idx_t endTrack = startTrack + VOICES;
     for (track_idx_t track = startTrack; track < endTrack; ++track) {
-        ChordRest* chordRest = toChordRest(refCRSeg->elementAt(track));
+        ChordRest* chordRest = toChordRest(refCRSeg->element(track));
         if (chordRest && chordRest->tuplet() && tick() != chordRest->topTuplet()->tick()) {
             return true;
         }
@@ -1442,18 +1447,6 @@ void Segment::removeAnnotation(EngravingItem* e)
 void Segment::clearAnnotations()
 {
     m_annotations.clear();
-}
-
-//---------------------------------------------------------
-//   elementAt
-//    A variant of the element(int) function,
-//    specifically intended to be called from QML plugins
-//---------------------------------------------------------
-
-EngravingItem* Segment::elementAt(track_idx_t track) const
-{
-    EngravingItem* e = track < m_elist.size() ? m_elist[track] : 0;
-    return e;
 }
 
 //---------------------------------------------------------
@@ -2812,7 +2805,7 @@ bool Segment::hasTimeSigAcrossStaves() const
 bool Segment::canWriteSpannerStartEnd(track_idx_t track, const Spanner* spanner) const
 {
     staff_idx_t staffIdx = track2staff(track);
-    if (isChordRestType() && (elementAt(track) || (!spanner->isVoiceSpecific() && hasElements(staffIdx)))) {
+    if (isChordRestType() && (element(track) || (!spanner->isVoiceSpecific() && hasElements(staffIdx)))) {
         return true;
     }
 

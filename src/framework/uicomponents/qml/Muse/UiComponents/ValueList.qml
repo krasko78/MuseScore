@@ -289,7 +289,7 @@ Item {
 
             isSelected: selectionModel.hasSelection && selectionModel.isSelected(modelIndex)
             readOnly: root.readOnly
-            keyReadOnly: root.isReadOnlyFunction(model.index)
+            keyReadOnly: root.isKeyEditable ? root.isReadOnlyFunction(model.index) : true
 
             drawZebra: root.drawZebra
             keyColumnWidth: root.keyColumnWidth

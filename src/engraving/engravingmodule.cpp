@@ -143,7 +143,12 @@ void EngravingModule::registerApi()
 
     auto api = ioc()->resolve<muse::api::IApiRegister>(moduleName());
     if (api) {
-        api->regApiCreator(moduleName(), "api.engraving.v1", new muse::api::ApiCreator<apiv1::EngravingApiV1>());
+        api->regApiCreator(moduleName(), "MuseApi.Engraving", new muse::api::ApiCreator<apiv1::EngravingApiV1>());
+
+        //! TODO remove me
+        const char* uri = "MuseApi.Engraving";
+        api->regEnum<apiv1::enums::ElementType>(uri, muse::api::EnumType::String, "Element");
+        api->regEnum<apiv1::enums::TextStyleType>(uri);
     }
 #endif
 }
@@ -158,12 +163,8 @@ void EngravingModule::registerUiTypes()
     MScore::registerUiTypes();
 }
 
-void EngravingModule::onInit(const IApplication::RunMode& mode)
+void EngravingModule::onInit(const IApplication::RunMode&)
 {
-    if (mode == IApplication::RunMode::AudioPluginRegistration) {
-        return;
-    }
-
 #ifndef ENGRAVING_NO_INTERNAL
     // Init fonts
     {

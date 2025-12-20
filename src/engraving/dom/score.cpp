@@ -104,6 +104,8 @@
 #include "utils.h"
 #include "volta.h"
 
+#include "engraving/automation/iautomation.h"
+
 #ifndef ENGRAVING_NO_ACCESSIBILITY
 #include "accessibility/accessibleitem.h"
 #include "accessibility/accessibleroot.h"
@@ -1805,9 +1807,9 @@ Measure* Score::crMeasure(int idx) const
     for (MeasureBase* mb = m_measures.first(); mb; mb = mb->next()) {
         if (mb->isMeasure()) {
             ++i;
-        }
-        if (i == idx) {
-            return toMeasure(mb);
+            if (i == idx) {
+                return toMeasure(mb);
+            }
         }
     }
     return nullptr;
@@ -4488,6 +4490,16 @@ void Score::insertTime(const Fraction& tick, const Fraction& len)
     for (Part* part : parts()) {
         part->insertTime(tick, len);
     }
+
+    if (isMaster() && automation()) {
+        const int utick = repeatList().tick2utick(tick.ticks());
+
+        if (len.negative()) {
+            automation()->removeTicks(utick, std::abs(len.ticks()));
+        } else if (len.isNotZero()) {
+            automation()->moveTicks(utick, utick + len.ticks());
+        }
+    }
 }
 
 //---------------------------------------------------------
@@ -4651,7 +4663,7 @@ ChordRest* Score::findChordRestEndingBeforeTickInTrack(const Fraction& tick, tra
     }
 
     for (const Segment* s = m->last(SegmentType::ChordRest); s; s = s->prev(SegmentType::ChordRest)) {
-        if (ChordRest* cr = toChordRest(s->elementAt(trackIdx))) {
+        if (ChordRest* cr = toChordRest(s->element(trackIdx))) {
             if (cr->endTick() <= tick) {
                 return cr;
             }
@@ -5097,7 +5109,7 @@ int Score::harmonyCount() const
 //   keysig
 //---------------------------------------------------------
 
-int Score::keysig()
+int Score::keysig() const
 {
     Key result = Key::C;
     for (size_t staffIdx = 0; staffIdx < nstaves(); ++staffIdx) {
@@ -5118,7 +5130,7 @@ int Score::keysig()
 //   duration
 //---------------------------------------------------------
 
-int Score::duration()
+int Score::duration() const
 {
     const RepeatList& rl = masterScore()->repeatList(true);
     if (rl.empty()) {
@@ -5132,7 +5144,7 @@ int Score::duration()
 //   durationWithoutRepeats
 //---------------------------------------------------------
 
-int Score::durationWithoutRepeats()
+int Score::durationWithoutRepeats() const
 {
     const RepeatList& rl = masterScore()->repeatList(false);
     if (rl.empty()) {
@@ -6055,12 +6067,8 @@ void Score::updateSwing()
 //   updateCapo
 //---------------------------------------------------------
 
-void Score::updateCapo()
+void Score::updateCapo(bool ignoreNotationUpdate /* = false */)
 {
-    for (Staff* s : m_staves) {
-        s->clearCapoParams();
-    }
-
     Measure* fm = firstMeasure();
     if (!fm) {
         return;
@@ -6079,7 +6087,7 @@ void Score::updateCapo()
             }
 
             for (Staff* staff : e->staff()->staffList()) {
-                staff->insertCapoParams(segmentTick, toCapo(e)->params());
+                staff->insertCapoParams(segmentTick, toCapo(e)->params(), ignoreNotationUpdate);
             }
         }
     }
@@ -6185,6 +6193,8 @@ void Score::addSystemDivider(size_t systemIdx, SystemDivider* divider)
 
     m_systemDividers.at(systemIdx)[static_cast<size_t>(divider->dividerType())] = divider;
 }
+
+IAutomation* Score::automation() const { return m_masterScore->automation(); }
 
 UndoStack* Score::undoStack() const { return m_masterScore->undoStack(); }
 const RepeatList& Score::repeatList()  const { return m_masterScore->repeatList(); }

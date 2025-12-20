@@ -37,14 +37,17 @@ function nameFromSig(line)
 {
     let name = "";
     // Result Class::method(...)
-    let colonIdx = line.lastIndexOf("::")
-    if (colonIdx !== -1) {
-        colonIdx += 2 // skip `::`
-        let braceIdx = line.indexOf("(", colonIdx)
-        name = line.substr(colonIdx, (braceIdx - colonIdx))
+    let braceIdx = line.indexOf("(");
+    if (braceIdx === -1) {
+        let colonIdx = line.lastIndexOf("::", braceIdx);
+        if (colonIdx !== -1) {
+            colonIdx += 2 // skip `::`
+            name = line.substr(colonIdx, (braceIdx - colonIdx))
+        }
     }
 
     if (name === "") {
+        line = line.replace("Q_INVOKABLE", "");
         // Result method(...)
         line = line.trim()
         let spaceIdx = line.indexOf(" ")
@@ -75,19 +78,61 @@ function qmlPropName(line)
     return name;
 }
 
+function apiPropArgs(line) {
+    const startIdx = line.indexOf("(");
+    const endIdx = line.indexOf(")", startIdx);
+    if (startIdx !== -1 && endIdx !== -1) {
+        const argsStr = line.substr(startIdx + 1, endIdx - startIdx -1);
+        return argsStr.split(",");
+    }   
+    return [];
+}
+
 function qpropName(line)
 {
-    if (!line.includes("Q_PROPERTY")) {
-        return "";
-    }
-
-    const words = line.split(" ");
-    for (let i = 0; i < words.length; ++i) {
-        if (words[i] === "READ") {
-            let name = words[i - 1];
-            return name.trim()
+    // Q_PROPERTY(bool enabled READ enabled)
+    if (line.includes("Q_PROPERTY")) {
+        const words = line.split(" ");
+        for (let i = 0; i < words.length; ++i) {
+            if (words[i] === "READ") {
+                let name = words[i - 1];
+                return name.trim()
+            }
         }
     }
+
+    // API_PROPERTY(subType, SUBTYPE)
+    if (line.includes("API_PROPERTY(")) {
+        const args = apiPropArgs(line);
+        if (args.length >= 1) {
+            return args[0].trim();
+        } 
+    }
+
+    // API_PROPERTY_T(QColor, color,         COLOR)
+    if (line.includes("API_PROPERTY_T(")) {
+        const args = apiPropArgs(line);
+        if (args.length >= 1) {
+            return args[1].trim();
+        } 
+    }
+
+    // API_PROPERTY_READ_ONLY_T(bool, selected, SELECTED)
+    if (line.includes("API_PROPERTY_READ_ONLY_T(")) {
+        const args = apiPropArgs(line);
+        if (args.length >= 2) {
+            return args[1].trim();
+        } 
+    }
+
+    // API_PROPERTY_ENUM(enums::AutoOnOff, hideWhenEmpty, HIDE_WHEN_EMPTY)
+    if (line.includes("API_PROPERTY_ENUM(")) {
+        const args = apiPropArgs(line);
+        if (args.length >= 2) {
+            return args[1].trim();
+        } 
+    }
+
     return "";
 }
 
@@ -95,24 +140,37 @@ function enumName(line)
 {
     let name = "";
     line = line.trim()
-    let enumIdx = line.indexOf("enum");
-    if (enumIdx === -1) {
+    let startIdx = line.indexOf("enum");
+    if (startIdx === -1) {
         return name;
     }
 
-    enumIdx += 4
-    let braceIdx = line.indexOf("{", enumIdx) 
-    if (braceIdx !== -1) {
-        name = line.substr(enumIdx, (braceIdx - enumIdx))
-        name = name.trim();
+    startIdx += 4; // skip `enum`
+    let classIdx = line.indexOf("class", startIdx);
+    if (classIdx !== -1) {
+        startIdx = classIdx;
+        startIdx += 5; // skip `class`
     }
 
-    return name;
+    let endIdx = line.indexOf(":", startIdx);
+    if (endIdx === -1) {
+        endIdx = line.indexOf("{", startIdx);
+        if (endIdx === -1) {
+            endIdx = line.length;
+        }
+    }
+
+    name = line.substr(startIdx, (endIdx - startIdx))
+
+    return name.trim();
 }
 
 function enumKey(line) 
 {
-    let key = "";
+    if (line.includes("@ignore")) {
+        return "";
+    }
+
     line = line.trim()
     let idx = line.indexOf('=')
     if (idx === -1) {
@@ -125,6 +183,276 @@ function enumKey(line)
     }
 
     return ""
+}
+
+const NAMESPACE_TYPE = "namespace"
+const CLASS_TYPE = "class"
+const DECLARE_TYPE = "declare"
+const METHOD_TYPE = "method"
+const MEMBER_TYPE = "member"
+const QPROP_TYPE = "qproperty"
+const PROP_TYPE = "property"
+const ENUM_TYPE = "enum"
+
+class Doc {
+    type = "";
+    isQml = false;
+    comment = "";
+    name = "";
+    lookupName = false;
+    lookupBody = false;
+
+    constructor(type, comm) {
+        this.type = type;
+        this.comment = comm;
+    }
+
+    isCompleted() {
+        return !this.lookupName && !this.lookupBody;
+    }
+
+    tagName() {
+        const match = this.comment.match(/@name\s+(\S+)/);
+        if (match) {
+            return match[1];
+        }
+        return "";
+    }
+
+    removeTagName() {
+        this.comment = this.comment.replace(/^\s*\*\s*.*@name.*$\n?/gm, '');
+    }
+
+    takeTagName() {
+        const name = this.tagName();
+        if (name !== "") {
+            this.removeTagName();
+        }
+        return name;
+    }
+
+    addMemberof(tag, parentName) {
+        this.comment = this.comment.replace(tag, `@memberof ${parentName}\n* ${tag}`);
+    }
+}
+
+class NamespaceDoc extends Doc {
+
+    constructor(comm) {
+        super(NAMESPACE_TYPE, comm);
+    }
+
+    processComment(parentName) {
+        const match = this.comment.match(/@namespace\s+(\S+)/);
+        if (match) {
+            this.isParent = true;
+            this.name = match[1];
+        }
+    }
+}
+
+class ClassDoc extends Doc {
+
+    constructor(comm) {
+        super(CLASS_TYPE, comm);
+    }
+
+    processComment(parentName) {
+        const match = this.comment.match(/@class\s+(\S+)/);
+        if (match) {
+            this.isParent = true;
+
+            // For Qml we can explicitly specify memberof, 
+            // for C++ memberof can be specified (preferably), but it may not.
+            if (this.isQml) {
+                this.name = QML_NS+"."+match[1];
+                this.comment = this.comment.replace('@class', `@memberof ${QML_NS}\n* @class`);
+            } else {
+                const memberofMatch = this.comment.match(/@memberof\s+(\S+)/);
+                if (memberofMatch) {
+                    this.name = memberofMatch[1]+"."+match[1];
+                } else {
+                    this.name = match[1];
+                }
+            }
+        }
+    }
+}
+
+class DeclareDoc extends Doc {
+
+    constructor(comm) {
+        super(DECLARE_TYPE, comm);
+    }
+
+    processComment(parentName) {
+        this.isParent = true;
+        const match = this.comment.match(/@declare\s+(\S+)/);
+        if (match) {
+            const memberofMatch = this.comment.match(/@memberof\s+(\S+)/);
+            if (memberofMatch) {
+                this.name = memberofMatch[1]+"."+match[1];
+            } else {
+                this.name= match[1];
+            }
+        }
+    }
+}
+
+class MethodDoc extends Doc {
+
+    constructor(comm) {
+        super(METHOD_TYPE, comm);
+    }
+
+    processComment(parentName) {
+        this.addMemberof("@method", parentName);
+        const name = this.takeTagName();
+        if (name !== "") {
+            this.processName(undefined, name);
+        } else {
+            this.lookupName = true;
+        }
+    }
+
+    processName(line, name) {
+        name = name ? name : nameFromSig(line);
+        if (name !== "") {
+            // add name
+            this.comment = this.comment.replace('@method', `@method ${name}`);
+            this.lookupName = false;
+        }
+    }
+}
+
+class MemberDoc extends Doc {
+
+    constructor(comm) {
+        super(MEMBER_TYPE, comm);
+    }
+
+    processComment(parentName) {
+        this.addMemberof("@member", parentName);
+        const name = this.takeTagName();
+        if (name !== "") {
+            this.processName(undefined, name);
+        } else {
+            this.lookupName = true;
+        }
+    }
+
+    processName(line, name) {
+        if (!name) {
+            if (this.isQml) {
+                name = qmlPropName(line);
+            } else {
+                name = nameFromSig(line);
+            }
+        }
+
+        if (name !== "") {
+            // add name 
+            const regex = /@member\s+\{([^}]+)\}\s+/;
+            this.comment = this.comment.replace(regex, `@member {$1} ${name}\n`);
+            this.lookupName = false;
+        }
+    }
+}
+
+class QPropDoc extends Doc {
+
+    constructor(comm) {
+        super(QPROP_TYPE, comm);
+    }
+
+    processComment(parentName) {
+        // add memberof and make as member
+        this.comment = this.comment.replace('@q_property', `@memberof ${parentName}\n* @member`);
+        const name = this.takeTagName();
+        if (name !== "") {
+            this.processName(undefined, name);
+        } else {
+            this.lookupName = true;
+        }
+    }
+
+    processName(line, name) {
+        name = name ? name : qpropName(line);
+        if (name !== "") {
+            // add name 
+            const regex = /@member\s+\{([^}]+)\}\s+/;
+            this.comment = this.comment.replace(regex, `@member {$1} ${name}\n`);
+            this.lookupName = false;
+        }
+    }
+}
+
+class PropDoc extends Doc {
+
+    constructor(comm) {
+        super(PROP_TYPE, comm);
+    }
+
+    processComment(parentName) {
+        this.comment = this.comment.replace('/** ', `*`);
+        this.comment = this.comment.replace('/**', `*`);
+        this.comment = this.comment.replace('*/', ``);
+        this.lookupName = true;
+    }
+
+    processName(line, name) {
+        if (!name) {
+            if (this.isQml) {
+                name = qmlPropName(line);
+            } else {
+                name = nameFromSig(line);
+            }
+        }
+
+        if (name !== "") {
+            // add name 
+            const regex = /@property\s+\{([^}]+)\}\s+/;
+            this.comment = this.comment.replace(regex, `@property {$1} ${name} `);
+            this.lookupName = false;
+        }
+    }
+}
+
+class EnumDoc extends Doc {
+
+    constructor(comm) {
+        super(ENUM_TYPE, comm);
+    }
+
+    processComment(parentName) {
+        const name = this.takeTagName();
+        if (name !== "") {
+            this.processName(undefined, name);
+        } else {
+            this.lookupName = true;
+        }
+    }
+
+    processName(line, name) {
+        name = name ? name : enumName(line);
+        if (name !== "") {
+            this.comment += `const ${name} = {\n`;
+            this.lookupName = false;
+            this.lookupBody = true;
+        }
+    }
+
+    processBody(line) {
+        let key = enumKey(line);
+        if (key !== "") {
+            this.comment += '\t' + key + ': "' + key + '",\n'
+        }
+
+        if (line.startsWith('}')) {
+            this.lookupBody = false;
+            this.comment += '};';
+        }
+    }
 }
 
 async function extractDoc(file)
@@ -144,261 +472,116 @@ async function extractDoc(file)
         hasApidoc: false,
         apidocStarted: false,
 
-        currentDoc: "",
+        currentComment: "",
+        parentDoc: null,
+        doc: null,
+        docs: [],
+        
         doclets: [],
 
-        parentDoc: "", // namespace or class
-        parentName: "",
-
-        methodLookName: false,
-        methods: [],
-
-        propLookName: false,
-        props: [],
-
-        qpropLookName: false,
-        qprops: [],
-
-        memberLookName: false,
-        members: [],
-        
-        enumLookName: false,
-        enumStarted: false,
-        enums: [],
-
         makeDoclet: function() {
-            let doc = "";
+            let doclet = "";
 
-            let propsDoc = "";
-            for (const p of state.props) {
-                propsDoc += p; 
+            if (state.parentDoc) {
+                let propsDoc = "";
+                for (const d of state.docs) {
+                    if (d.type === PROP_TYPE) {
+                        propsDoc += d.comment; 
+                    }
+                }
+
+                doclet = state.parentDoc.comment.replace('*/', `${propsDoc}*/`);
             }
 
-            doc = state.parentDoc.replace('*/', `${propsDoc}*/`);
-
-            for (const p of state.qprops) {
-                doc += p
+            for (const d of state.docs) {
+                if (d.type !== PROP_TYPE) {
+                    doclet += d.comment;
+                }
             }
 
-            for (const m of state.members) {
-                doc += m
-            }
+            this.doclets.push(doclet);
 
-            for (const en of state.enums) {
-                doc += en
-            }
-
-            for (const m of state.methods) {
-                doc += m;
-            }
-
-            return doc;
+            // reset
+            this.currentComment = "";
+            this.parentDoc = null;
+            this.doc = null;
+            this.docs = [];
         },
-
-        resetDoclet: function() {
-            this.parentDoc = "";
-            this.parentName = "";
-
-            this.methodLookName = false;
-            this.methods = [];
-
-            this.propLookName = false;
-            this.props = [];
-
-            this.qpropLookName = false;
-            this.qprops = [];
-
-            this.memberLookName = false;
-            this.members = [];
-            
-            this.enumLookName = false;
-            this.enumStarted = false;
-            this.enums = [];
-        }
     }                                   
 
     for await (let line of rl) {
         line = line.trim()
 
+        // start APIDOC
         if (line.startsWith(APIDOC_BEGIN)) {
             // remove APIDOC
             line = line.replace("APIDOC", "");
             state.hasApidoc = true;
             state.apidocStarted = true;
-            state.currentDoc = "";
+            state.currentComment = "";
         }
 
+        // collect APIDOC comment
+        if (state.apidocStarted) {
+            state.currentComment += line + "\n";
+        }
+
+        // end APIDOC
         if (state.apidocStarted && line.endsWith(APIDOC_END)) {
-            state.currentDoc += line + "\n";
             state.apidocStarted = false;
 
             // check of kind 
-
-            // get parent - namespace or class
-            const namespaceMatch = state.currentDoc.match(/@namespace\s+(\S+)/);
-            if (namespaceMatch) {
-                if (state.parentDoc !== "") {
-                    let doc = state.makeDoclet();
-                    state.doclets.push(doc);
-                    state.resetDoclet()
-                }    
-
-                state.parentName = namespaceMatch[1];
-                state.parentDoc = state.currentDoc;
-                continue;
+            if (state.currentComment.includes('@namespace')) {
+                state.doc = new NamespaceDoc(state.currentComment);
+            } else if (state.currentComment.includes('@class')) {
+                state.doc = new ClassDoc(state.currentComment);
+            } else if (state.currentComment.includes('@declare')) {
+                state.doc = new DeclareDoc(state.currentComment);
+            } else if (state.currentComment.includes('@method')) {
+                state.doc = new MethodDoc(state.currentComment)
+            } else if (state.currentComment.includes('@member ')) {
+                state.doc = new MemberDoc(state.currentComment)
+            } else if (state.currentComment.includes('@property')) {
+                state.doc = new PropDoc(state.currentComment)
+            } else if (state.currentComment.includes('@q_property')) {
+                state.doc = new QPropDoc(state.currentComment)
+            } else if (state.currentComment.includes('@enum')) {
+                state.doc = new EnumDoc(state.currentComment)
             }
 
-            const classMatch = state.currentDoc.match(/@class\s+(\S+)/);
-            if (classMatch) {
-                if (state.parentDoc !== "") {
-                    let doc = state.makeDoclet();
-                    state.doclets.push(doc);
-                    state.resetDoclet()
-                }  
-                
-                // Start a new class
-                state.parentDoc = state.currentDoc;
+            state.doc.isQml = isQml;
+            state.doc.processComment(state.parentDoc ? state.parentDoc.name : undefined)
 
-                // For Qml we can explicitly specify memberof, 
-                // for C++ memberof can be specified (preferably), but it may not.
-                if (isQml) {
-                    state.parentName = QML_NS+"."+classMatch[1];
-                    state.parentDoc = state.parentDoc.replace('@class', `@memberof ${QML_NS}\n* @class`);
-                } else {
-                    const memberofMatch = state.currentDoc.match(/@memberof\s+(\S+)/);
-                    if (memberofMatch) {
-                        state.parentName = memberofMatch[1]+"."+classMatch[1];
-                    } else {
-                        state.parentName = classMatch[1];
-                    }
-                }
-                continue;
-            }
-
-            // try add memberof to method
-            if (state.currentDoc.includes('@method')) {
-                state.currentDoc = state.currentDoc.replace('@method', `@memberof ${state.parentName}\n* @method`);
-                state.methodLookName = true;
-                continue;
-            }
-
-            // try get property 
-            if (state.currentDoc.includes('@property')) {
-                state.currentDoc = state.currentDoc.replace('/** ', `*`);
-                state.currentDoc = state.currentDoc.replace('/**', `*`);
-                state.currentDoc = state.currentDoc.replace('*/', ``);
-                state.propLookName = true;
-                continue;
-            }
-
-            // try get q_property 
-            if (state.currentDoc.includes('@q_property')) {
-                // add memberof and make as member
-                state.currentDoc = state.currentDoc.replace('@q_property', `@memberof ${state.parentName}\n* @member`);
-                state.qpropLookName = true;
-                continue;
-            }
-
-            // try get member 
-            if (state.currentDoc.includes('@member ')) {
-                state.currentDoc = state.currentDoc.replace('@member', `@memberof ${state.parentName}\n* @member`);
-                state.memberLookName = true;
-                continue;
-            }
-
-            // try get enum 
-            if (state.currentDoc.includes('@enum')) {
-                const nameMatch = state.currentDoc.match(/@name\s+(\S+)/);
-                if (nameMatch) {
-                    // remove @name
-                    state.currentDoc = state.currentDoc.replace(/^\s*\*\s*.*@name.*$\n?/gm, '');
-                    state.enumStarted = true;
-                    state.currentDoc += 'const ' + nameMatch[1] + ' = {\n';
-                } else {
-                    state.enumLookName = true;
-                }
-                continue;
-            }
-        }
-
-        if (state.apidocStarted) {
-            state.currentDoc += line + "\n";
-        }
-
-         if (state.methodLookName) {
-            let name = nameFromSig(line);
-            if (name !== "") {
-                state.methodLookName = false;
-                state.currentDoc = state.currentDoc.replace('@method', `@method ${name}`);
-                state.methods.push(state.currentDoc);
-            }
-        }
-
-        if (state.propLookName) {
-            let name = "";
-            if (isQml) {
-                name = qmlPropName(line);
+            if (state.doc.isParent) {  // like namespace, class, declare
+                if (state.parentDoc) {
+                    state.makeDoclet();
+                } 
+                state.parentDoc = state.doc; 
             } else {
-                name = nameFromSig(line);
-            }
-
-            if (name !== "") {
-                state.propLookName = false;
-                // add name 
-                const regex = /@property\s+\{([^}]+)\}\s+/;
-                state.currentDoc = state.currentDoc.replace(regex, `@property {$1} ${name} `);
-                state.props.push(state.currentDoc);
+                if (state.doc.isCompleted()) {
+                    // finish
+                    state.docs.push(state.doc);
+                }
             }
         }
 
-        if (state.qpropLookName) {
-            let name = qpropName(line);
-            if (name !== "") {
-                state.qpropLookName = false;
-                // add name 
-                const regex = /@member\s+\{([^}]+)\}\s+/;
-                state.currentDoc = state.currentDoc.replace(regex, `@member {$1} ${name}\n`);
-                state.qprops.push(state.currentDoc);
+        // look name if need after APIDOC
+        if (state.doc && state.doc.lookupName) {
+            state.doc.processName(line);
+            if (state.doc.isCompleted()) {
+                // finish
+                state.docs.push(state.doc);
             }
         }
 
-        if (state.memberLookName) {
-            let name = "";
-            if (isQml) {
-                name = qmlPropName(line);
-            } else {
-                name = nameFromSig(line);
-            }
+        // look body if need after APIDOC
+        if (state.doc && state.doc.lookupBody) {
+            state.doc.processBody(line);
 
-            if (name !== "") {
-                state.memberLookName = false;
-                // add name 
-                const regex = /@member\s+\{([^}]+)\}\s+/;
-                state.currentDoc = state.currentDoc.replace(regex, `@member {$1} ${name}\n`);
-                state.members.push(state.currentDoc);
+            if (state.doc.isCompleted()) {
+                // finish
+                state.docs.push(state.doc);
             }
-        }
-
-        if (state.enumLookName) {
-            let name = enumName(line);
-            if (name !== "") {
-                state.enumLookName = false;
-                state.enumStarted = true;
-                state.currentDoc += 'const ' + name + ' = {\n';
-            }
-        }
-
-        if (state.enumStarted) {
-            let key = enumKey(line);
-            if (key !== "") {
-                state.currentDoc += '\t' + key + ': "' + key + '",\n'
-            }
-        }
-
-        if (state.enumStarted && line.startsWith('}')) {
-            state.enumStarted = false;
-            state.currentDoc += '};';
-            state.enums.push(state.currentDoc);
         }
     }
 
@@ -407,7 +590,7 @@ async function extractDoc(file)
     }
 
     // last 
-    state.doclets.push(state.makeDoclet());
+    state.makeDoclet();
 
     let doc = "";
     for (let d of state.doclets) {

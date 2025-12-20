@@ -153,11 +153,16 @@ void TextLayout::computeTextHighResShape(const TextBase* item, TextBase::LayoutD
             size_t textSize = fragment.text.size();
             for (size_t i = 0; i < textSize; ++i) {
                 Char character = fragment.text.at(i);
-                RectF characterBoundingRect = fontMetrics.tightBoundingRect(fragment.text.at(i));
+                String text{ character };
+                if (character.isHighSurrogate() && i + 1 < textSize) {
+                    text += fragment.text.at(i + 1);
+                    i++;
+                }
+                RectF characterBoundingRect = fontMetrics.tightBoundingRect(text);
                 characterBoundingRect.translate(x, y);
                 shape.add(characterBoundingRect);
                 if (i + 1 < textSize) {
-                    x += fontMetrics.horizontalAdvance(character);
+                    x += fontMetrics.horizontalAdvance(text);
                 }
             }
         }
@@ -192,6 +197,10 @@ void TextLayout::textHorizontalLayout(const TextBase* item, Shape& shape, double
         default:
             ASSERT_X("Lay out to parent width only valid for items with page or frame as parent");
         }
+    } else if (item->positionRelativeToNoteheadRest()) {
+        // For items aligned to notehead/rests
+        double mag = item->staff() ? item->staff()->staffMag(item) : 1.0;
+        layoutWidth = item->symWidth(SymId::noteheadBlack) * mag;
     }
 
     // Position and alignment
@@ -217,6 +226,7 @@ void TextLayout::textHorizontalLayout(const TextBase* item, Shape& shape, double
             shape.add(textBlock.shape().translated(PointF(0.0, textBlock.y())));
             continue;
         }
+
         // Align relative to the longest line
         AlignH alignH = item->align().horizontal;
         if (alignH == AlignH::HCENTER) {

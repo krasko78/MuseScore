@@ -28,33 +28,69 @@ async function enumTest()
          * @memberof Qml
          * @enum
          */
-        enum ButtonCode {
+        enum class ButtonCode {
             Ok = int(IInteractive::Button::Ok),
             Continue = int(IInteractive::Button::Continue)
         };
     `;
 
-    const expectCode = `/** 
-* Question buttons
-* @memberof Qml
-* @enum
-*/
-const ButtonCode = {
-	Ok: "Ok",
-	Continue: "Continue",
-};`;
+    saveFile(testCode, testFile);
+
+    const doc = await extractDoc(testFile);
+    console.log(doc)
+}
+
+async function classTest() {
+    const testFile = TEMP_DIR + "/class.h";
+    const testCode = `
+        /** APIDOC
+         * Class representing a score.
+         * We can get the current score
+         * @class Score
+         * @memberof engraving
+         * @hideconstructor
+        */
+
+        /** APIDOC
+         * Indicates that the element is selected.
+         * @readonly
+         * @q_property {Boolean}
+         */
+        API_PROPERTY_READ_ONLY_T(bool, selected, SELECTED)
+
+        /** APIDOC
+         * Checks whether two variables represent the same object
+         * @method
+         * @param {Engraving.ScoreElement} other Object for comparison
+         * @return {Boolean} result
+        */
+        Q_INVOKABLE bool is(apiv1::ScoreElement* other) { return other && element() == other->element(); }
+
+        /** APIDOC
+         * @readonly
+         * @member {engraving.Lyric[]}
+         * @since 4.7
+         */
+        QQmlListProperty<Lyrics> Score::lyrics() const {}
+
+        /** APIDOC
+         * Next measure, accounting for multimeasure rests.
+         * @readonly
+         * @q_property {engraving.Measure}
+         * @name nextMeasureMM
+         */
+    `;
 
     saveFile(testCode, testFile);
 
     const doc = await extractDoc(testFile);
     console.log(doc)
-    
-   // EXPECT_EQ(doc, expectCode)
 }
 
 async function main() 
 {
-    await enumTest();
+    //await enumTest();
+   await classTest();
 }
 
 main();

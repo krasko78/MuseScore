@@ -801,12 +801,10 @@ enum RepeatPlayCountPreset : unsigned char {
 };
 
 //-------------------------------------------------------------------
-//   Tid
-///   Enumerates the list of built-in text substyles
-///   \internal
-///   Must be in sync with textStyles (in textstyle.cpp)
-//-------------------------------------------------------------------
+// TextStyleType
+// Must be in sync with textStyles (in textstyle.cpp)
 // P_TYPE::TEXT_STYLE
+//-------------------------------------------------------------------
 enum class TextStyleType : unsigned char {
     DEFAULT,
 
@@ -1386,9 +1384,15 @@ struct SwingParameters {
 };
 
 struct CapoParams {
-    bool active = false;
-    int fretPosition = 0;
+    enum class TransposeMode {
+        PLAYBACK_ONLY = 0,
+        STANDARD_ONLY = 1,
+        TAB_ONLY      = 2,
+    };
     std::unordered_set<string_idx_t> ignoredStrings;
+    int fretPosition = 0;
+    TransposeMode transposeMode = TransposeMode::PLAYBACK_ONLY;
+    bool active = false;
 };
 
 struct PartAudioSettingsCompat {

@@ -1948,7 +1948,7 @@ void Score::upDown(bool up, UpDownMode mode)
                     return;                                 // no next string to move to
                 }
                 string = stt->visualStringToPhys(string);
-                fret = stringData->fret(pitch + pitchOffset, string, staff);
+                fret = stringData->fret(pitch + pitchOffset, string, staff, tick);
                 if (fret == -1) {                            // can't have that note on that string
                     return;
                 }
@@ -1975,7 +1975,7 @@ void Score::upDown(bool up, UpDownMode mode)
                 }
                 // update pitch and tpc's and check it matches stringData
                 upDownChromatic(up, pitch, oNote, key, tpc1, tpc2, newPitch, newTpc1, newTpc2);
-                if (newPitch + pitchOffset != stringData->getPitch(string, fret, staff) && !oNote->bendBack()) {
+                if (newPitch + pitchOffset != stringData->getPitch(string, fret, staff, oNote->tick()) && !oNote->bendBack()) {
                     // oh-oh: something went very wrong!
                     LOGD("upDown tab in-string: pitch mismatch");
                     return;
@@ -2054,7 +2054,9 @@ void Score::upDown(bool up, UpDownMode mode)
                     }
                 }
             }
+            part->stringData(tick, staff->idx())->convertPitch(newPitch, staff, tick, &string, &fret);
             undoChangePitch(oNote, newPitch, newTpc1, newTpc2);
+            undoChangeFretting(oNote, newPitch, string, fret, newTpc1, newTpc2);
         }
         // store fret change only if undoChangePitch has not been called,
         // as undoChangePitch() already manages fret changes, if necessary
@@ -3334,7 +3336,11 @@ void Score::cmdIncDecDuration(int nSteps, bool stepDotted)
                     staff2track(m_selection.staffEnd()), selectionFilter(), m_selection.rangeContainsMultiNoteChords());
         pasteStaff(e, m_selection.startSegment(), m_selection.staffStart(), scale);
     } else if (m_selection.isList()) {
-        const std::set<ChordRest*> crs = getSelectedChordRests();
+        const std::vector<Note*> notes = m_selection.noteList();
+        const std::set<ChordRest*> crsSet = getSelectedChordRests();
+        std::vector<ChordRest*> crs(crsSet.begin(), crsSet.end());
+        std::sort(crs.begin(), crs.end(), [](const ChordRest* a, const ChordRest* b) { return a->tick() > b->tick(); });
+
         for (ChordRest* cr : crs) {
             // if measure rest is selected as input, then the correct initialDuration will be the
             // duration of the measure's time signature, else is just the ChordRest's duration
@@ -3359,15 +3365,9 @@ void Score::cmdIncDecDuration(int nSteps, bool stepDotted)
                 changeCRlen(cr, newDuration);
             }
         }
-        // 2nd loop needed to reselect what was selected before 1st loop
-        // as `changeCRlen()` changes the selection to `SelectType::SINGLE`
-        for (ChordRest* cr : crs) {
-            EngravingItem* e = cr;
-            if (cr->isChord()) {
-                e = toChord(cr)->upNote();
-            }
-            if (canReselectItem(e)) {
-                select(e, SelectType::ADD);
+        for (Note* n : notes) {
+            if (canReselectItem(n)) {
+                select(toEngravingItem(n), SelectType::ADD);
             }
         }
     }
@@ -3434,9 +3434,9 @@ void Score::cmdMoveRest(Rest* rest, DirectionV dir)
 {
     PointF pos(rest->offset());
     if (dir == DirectionV::UP) {
-        pos.ry() -= style().spatium();
+        pos.ry() -= rest->spatium() * rest->staffType()->lineDistance().val();
     } else if (dir == DirectionV::DOWN) {
-        pos.ry() += style().spatium();
+        pos.ry() += rest->spatium() * rest->staffType()->lineDistance().val();
     }
     rest->undoChangeProperty(Pid::OFFSET, pos);
 }

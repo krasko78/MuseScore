@@ -774,8 +774,9 @@ void TRead::read(Dynamic* d, XmlReader& e, ReadContext& ctx)
             d->setVelChangeSpeed(TConv::fromXml(e.readAsciiText(), DynamicSpeed::NORMAL));
         } else if (tag == "play") {
             d->setPlayDynamic(e.readBool());
+        } else if (ctx.mscVersion() < 470 && tag == "dynamicsSize") {
+            d->setSymbolScale(e.readDouble());
         } else if (readProperty(d, tag, e, ctx, Pid::AVOID_BARLINES)) {
-        } else if (readProperty(d, tag, e, ctx, Pid::DYNAMICS_SIZE)) {
         } else if (readProperty(d, tag, e, ctx, Pid::CENTER_ON_NOTEHEAD)) {
         } else if (readProperty(d, tag, e, ctx, Pid::ANCHOR_TO_END_OF_PREVIOUS)) {
         } else if (!readProperties(static_cast<TextBase*>(d), e, ctx)) {
@@ -848,7 +849,12 @@ void TRead::read(FretDiagram* d, XmlReader& e, ReadContext& ctx)
         } else if (tag == "Harmony") {
             Harmony* h = new Harmony(d->score()->dummy()->segment());
             read(h, e, ctx);
-            d->add(h);
+            if (h->chords().empty()) {
+                // Invalid harmony
+                delete h;
+            } else {
+                d->add(h);
+            }
         } else if (readProperty(d, tag, e, ctx, Pid::FRET_SHOW_FINGERINGS)) {
         } else if (readProperty(d, tag, e, ctx, Pid::FRET_FINGERING)) {
         } else if (TRead::readProperty(d, tag, e, ctx, Pid::EXCLUDE_VERTICAL_ALIGN)) {
@@ -2703,10 +2709,13 @@ void TRead::read(Capo* c, XmlReader& xml, ReadContext& ctx)
             }
         } else if (tag == "generateText") {
             c->setProperty(Pid::CAPO_GENERATE_TEXT, xml.readBool());
+        } else if (TRead::readProperty(c, tag, xml, ctx, Pid::CAPO_TRANSPOSE_MODE)) {
+            continue;
         } else if (!readProperties(static_cast<StaffTextBase*>(c), xml, ctx)) {
             xml.unknown();
         }
     }
+    params.transposeMode = c->params().transposeMode;
 
     c->setParams(params);
 }
@@ -3283,6 +3292,11 @@ bool TRead::readProperties(Note* n, XmlReader& e, ReadContext& ctx)
         f->setTrack(n->track());
         TRead::read(f, e, ctx);
         n->add(f);
+    } else if (tag == "Text") {
+        Text* t = Factory::createText(n);
+        t->setTrack(n->track());
+        TRead::read(t, e, ctx);
+        n->add(t);
     } else if (tag == "Symbol") {
         Symbol* s = new Symbol(n);
         s->setTrack(n->track());
@@ -4428,6 +4442,7 @@ bool TRead::readProperties(TextBase* t, XmlReader& e, ReadContext& ctx)
     } else if (readProperty(t, tag, e, ctx, Pid::DIRECTION)) {
     } else if (readProperty(t, tag, e, ctx, Pid::CENTER_BETWEEN_STAVES)) {
     } else if (readProperty(t, tag, e, ctx, Pid::MUSIC_SYMBOL_SIZE)) {
+    } else if (readProperty(t, tag, e, ctx, Pid::MUSICAL_SYMBOLS_SCALE)) {
     } else if (!readItemProperties(t, e, ctx)) {
         return false;
     }

@@ -1,7 +1,7 @@
 ﻿
 ### Adding a new non-visual extension  
 
-Create a new folder in the custom extensions folder:  
+Create a new folder in the user extensions folder:  
 * Windows - `C:\Users\username\AppData\Local\MuseScore\MuseScore4\extensions`  
 * MacOS -   
 * Linux - `$HOME/.local/share/MuseScore/MuseScore4/extensions`  
@@ -17,16 +17,23 @@ Fill out the manifest as follows:
     "title": "My quick start",
     "description": "This is a development extension for API research.",
 
-    "path": "main.js"
+    "actions": [
+        {
+            "path": "main.js"
+        }
+    ]
 }
 ```
 
 Create a new file `main.js`  
-Fill out the manifest as follows:  
+Fill out as follows:  
 ```
+const Log = require("MuseApi.Log");
+const Interactive = require("MuseApi.Interactive");
+
 function main() {
-    api.log.info("called main from myquickstart")
-    api.interactive.info("myquickstart", "called MAIN from myquickstart")
+    Log.info("called main from quickstart")
+    Interactive.info("Quick start", "called MAIN from quickstart")
 }
 ```
    
@@ -54,17 +61,21 @@ Fill out the manifest as follows:
     "title": "My quick start visual",
     "description": "This is a development extension for API research.",
 
-    "path": "Main.qml"
+    "actions": [
+        {
+            "path": "Main.qml"
+        }
+    ]
 }
 ```
 
 Create a new file `Main.qml`  
-Fill out the manifest as follows:  
+Fill out as follows:  
 ```
 import QtQuick
 
-import MuseApi.Extensions
 import MuseApi.Controls
+import MuseApi.Interactive
 
 ExtensionBlank {
 
@@ -72,8 +83,6 @@ ExtensionBlank {
 
     implicitHeight: 400
     implicitWidth: 400
-
-    color: api.theme.backgroundPrimaryColor
 
     StyledTextLabel {
         id: label1
@@ -90,7 +99,7 @@ ExtensionBlank {
         text: "Click me"
 
         onClicked: {
-            api.interactive.info("Quick start", "Clicked on button")
+            Interactive.info("Quick start", "Clicked on button")
         }
     }
 }

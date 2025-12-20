@@ -163,7 +163,7 @@
     <message>
         <location filename="../../src/palette/view/widgets/customizekitdialog.ui" line="281"/>
         <source>Staff line:</source>
-        <translation>Viivaston viiva:</translation>
+        <translation>Viivastoviiva:</translation>
     </message>
     <message>
         <location filename="../../src/palette/view/widgets/customizekitdialog.ui" line="307"/>
@@ -1329,7 +1329,7 @@
     <message>
         <location filename="../../src/notation/view/widgets/editstaff.ui" line="906"/>
         <source>Edit string data…</source>
-        <translation>Muokkaa kielen tietoja...</translation>
+        <translation>Muokkaa kielitietoja...</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editstaff.ui" line="913"/>
@@ -1710,7 +1710,7 @@
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="61"/>
         <source>Header &amp; footer</source>
-        <translation>Ylätunniste &amp; alatunniste</translation>
+        <translation>Ylä- ja alatunniste</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="66"/>
@@ -1726,7 +1726,7 @@
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="76"/>
         <source>Clefs, key &amp; time signatures</source>
-        <translation>Nuottiavaimet, sävel- &amp; tahtilajit</translation>
+        <translation>Nuottiavaimet, sävel- ja tahtilajit</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="81"/>
@@ -1753,7 +1753,7 @@
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="101"/>
         <source>Repeats</source>
-        <translation>Toistot</translation>
+        <translation>Kertaukset</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="106"/>
@@ -1776,7 +1776,7 @@
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="121"/>
         <source>Slurs &amp; ties</source>
-        <translation>Sidos- &amp; yhdyskaaret</translation>
+        <translation>Sidos- ja yhdyskaaret</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="126"/>
@@ -1815,7 +1815,7 @@
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="156"/>
         <source>Glissandos &amp; note-anchored lines</source>
-        <translation>Gissandot &amp; nuottiin ankkuroidut viivat</translation>
+        <translation>Gissandot ja nuottiin ankkuroidut viivat</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="161"/>
@@ -1838,7 +1838,7 @@
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="176"/>
         <source>Articulations &amp; ornaments</source>
-        <translation>Artikulaatiot &amp; korukuviot</translation>
+        <translation>Artikulaatiot ja korukuviot</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="181"/>
@@ -1856,7 +1856,7 @@
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="191"/>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="9862"/>
         <source>Staff text</source>
-        <translation>Viivastoteksti - ääniliput</translation>
+        <translation>Viivastoteksti</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="196"/>
@@ -2244,7 +2244,7 @@ space unit</extracomment>
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="452"/>
         <source>Reset &apos;Staff line thickness&apos; value</source>
-        <translation>Palauta &apos;Viivaston viivan paksuus&apos; -arvo</translation>
+        <translation>Palauta &apos;Viivastoviivan paksuus&apos; -arvo</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="464"/>
@@ -4322,12 +4322,12 @@ jos niiden perässä on viivoja</translation>
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="11313"/>
         <source>Snap to dynamics</source>
-        <translation>Nappaa dynamiikkaan</translation>
+        <translation>Kohdista dynamiikkaan</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="11336"/>
         <source>Reset &apos;Snap to dynamics&apos; value</source>
-        <translation>Palauta &apos;Nappaa dynamiikkaan&apos; -arvo</translation>
+        <translation>Palauta &apos;Kohdista dynamiikkaan&apos; -arvo</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="11558"/>
@@ -5046,7 +5046,7 @@ jos niiden perässä on viivoja</translation>
     <message>
         <location filename="../../src/notation/view/widgets/pagesettings.ui" line="75"/>
         <source>Apply to all parts</source>
-        <translation>Käytä kaikkiin stemmoihin</translation>
+        <translation>Koskee kaikkia stemmoja</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/pagesettings.ui" line="108"/>
@@ -6078,204 +6078,209 @@ jos niiden perässä on viivoja</translation>
     </message>
     <message>
         <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="92"/>
+        <source>Accessibility &amp;statement</source>
+        <translation>Saavutettavuus&amp;seloste</translation>
+    </message>
+    <message>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="97"/>
         <source>Revert to &amp;factory settings</source>
         <translation>Palauta te&amp;hdasasetukset</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="93"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="98"/>
         <source>Revert to factory settings</source>
         <translation>Palauta tehdasasetukset</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="100"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="105"/>
         <source>Restore the &amp;default layout</source>
         <translation>Palauta &amp;oletusasettelu</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="101"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="106"/>
         <source>Restore the default layout</source>
         <translation>Palauta oletusasettelu</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="108"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="113"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="48"/>
         <source>&amp;Playback controls</source>
         <translation>&amp;Toistosäätimet</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="109"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="114"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="49"/>
         <source>Show/hide playback controls</source>
         <translation>Näytä/piilota toistosäätimet</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="115"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="120"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="55"/>
         <source>&amp;Note input</source>
         <translation>&amp;Nuotinsyöttö</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="116"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="121"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="56"/>
         <source>Show/hide note input toolbar</source>
         <translation>Näytä/piilota nuotinsyöttöpalkki</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="124"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="129"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="64"/>
         <source>&amp;Palettes</source>
         <translation>&amp;Paletit</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="125"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="130"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="65"/>
         <source>Show/hide palettes</source>
         <translation>Näytä/piilota paletit</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="131"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="136"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="71"/>
         <source>&amp;Layout</source>
         <translation>&amp;Asettelu</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="132"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="137"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="72"/>
         <source>Show/hide layout panel</source>
         <translation>Näytä/piilota asettelupaneeli</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="138"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="143"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="78"/>
         <source>Propert&amp;ies</source>
         <translation>&amp;Ominaisuudet</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="139"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="144"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="79"/>
         <source>Show/hide properties</source>
         <translation>Näytä/piilota ominaisuudet</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="145"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="150"/>
         <source>S&amp;election filter</source>
         <translation>V&amp;alintasuodatin</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="146"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="151"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="86"/>
         <source>Show/hide selection filter</source>
         <translation>Näytä/piilota valintasuodatin</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="152"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="157"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="92"/>
         <source>&amp;History</source>
         <translation>&amp;Historia</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="153"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="158"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="93"/>
         <source>Show/hide undo history</source>
         <translation>Näytä/piilota kumoamishistoria</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="161"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="166"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="101"/>
         <source>&amp;Navigator</source>
         <translation>&amp;Navigaattori</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="162"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="167"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="102"/>
         <source>Show/hide navigator</source>
         <translation>Näytä/piilota navigaattori</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="170"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="175"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="110"/>
         <source>&amp;Braille</source>
         <translation>P&amp;istekirjoitus</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="171"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="176"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="111"/>
         <source>Show/hide braille panel</source>
         <translation>Näytä/piilota pistekirjoituspaneeli</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="179"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="184"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="119"/>
         <source>Tim&amp;eline</source>
         <translation>&amp;Aikajana</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="180"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="185"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="120"/>
         <source>Show/hide timeline</source>
         <translation>Näytä/piilota aikajana</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="186"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="191"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="126"/>
         <source>Mixer</source>
         <translation>Mikseri</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="187"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="192"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="127"/>
         <source>Show/hide mixer</source>
         <translation>Näytä/piilota mikseri</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="194"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="199"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="134"/>
         <source>Piano &amp;keyboard</source>
         <translation>Pianon &amp;koskettimet</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="195"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="200"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="135"/>
         <source>Show/hide piano keyboard</source>
         <translation>Näytä/piilota pianon koskettimet</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="201"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="206"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="141"/>
         <source>Percussion</source>
         <translation>Lyömäsoittimet</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="202"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="207"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="142"/>
         <source>Show/hide percussion panel</source>
         <translation>Näytä/piilota lyömäsoitinpaneeli</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="208"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="213"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="148"/>
         <source>Score comparison tool</source>
         <translation>Partituurien vertailutyökalu</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="216"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="221"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="156"/>
         <source>&amp;Status bar</source>
         <translation>&amp;Tilarivi</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="217"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="222"/>
         <location filename="../../src/appshell_web/internal/applicationuiactions.cpp" line="157"/>
         <source>Show/hide status bar</source>
         <translation>Näytä/piilota tilarivi</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="224"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="229"/>
         <source>&amp;Preferences</source>
         <translation>&amp;Asetukset</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="225"/>
+        <location filename="../../src/appshell/internal/applicationuiactions.cpp" line="230"/>
         <source>Preferences…</source>
         <translation>Asetukset...</translation>
     </message>
@@ -6369,7 +6374,7 @@ jos niiden perässä on viivoja</translation>
     <message>
         <location filename="../../src/framework/diagnostics/internal/diagnosticsactions.cpp" line="72"/>
         <source>Show engraving &amp;elements</source>
-        <translation>Näytä kaiverrus&amp;elementit</translation>
+        <translation>Näytä graafiset &amp;elementit</translation>
     </message>
     <message>
         <location filename="../../src/framework/diagnostics/internal/diagnosticsactions.cpp" line="77"/>
@@ -6791,22 +6796,22 @@ jos niiden perässä on viivoja</translation>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="245"/>
         <source>Snap to &amp;previous</source>
-        <translation>Nappaa &amp;edelliseen</translation>
+        <translation>Kohdista &amp;edelliseen</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="246"/>
         <source>Snap to previous</source>
-        <translation>Nappaa edelliseen</translation>
+        <translation>Kohdista edelliseen</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="252"/>
         <source>Snap to &amp;next</source>
-        <translation>Nappaa &amp;seuraavaan</translation>
+        <translation>Kohdista &amp;seuraavaan</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="253"/>
         <source>Snap to next</source>
-        <translation>Nappaa seuraavaan</translation>
+        <translation>Kohdista seuraavaan</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="259"/>
@@ -7268,7 +7273,7 @@ jos niiden perässä on viivoja</translation>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="558"/>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="559"/>
         <source>Staff text properties…</source>
-        <translation>Viivaston tekstin ominaisuudet…</translation>
+        <translation>Viivastotekstin ominaisuudet…</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="564"/>
@@ -8570,7 +8575,7 @@ jos niiden perässä on viivoja</translation>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1717"/>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1718"/>
         <source>Advance cursor: next beat (chord symbols)</source>
-        <translation>Ennakko kohdistin: seuraava isku (sointumerkit)</translation>
+        <translation>Siirrä kohdistin: seuraava isku (sointumerkit)</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1723"/>
@@ -8582,55 +8587,55 @@ jos niiden perässä on viivoja</translation>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1729"/>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1730"/>
         <source>Advance cursor: longa (chord symbols/figured bass)</source>
-        <translation>Kursorin eteneminen: longa (sointumerkit/kuvioitu basso)</translation>
+        <translation>Siirrä kohdistin: longa (sointumerkit/kuvioitu basso)</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1735"/>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1736"/>
         <source>Advance cursor: breve (chord symbols/figured bass)</source>
-        <translation>Kursorin eteneminen: brevis (sointumerkit/kuvioitu basso)</translation>
+        <translation>Siirrä kohdistin: brevis (sointumerkit/kuvioitu basso)</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1741"/>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1742"/>
         <source>Advance cursor: whole note (chord symbols/figured bass)</source>
-        <translation>Kursorin eteneminen: kokonuotti (sointumerkit/kuvioitu basso)</translation>
+        <translation>Siirrä kohdistin: kokonuotti (sointumerkit/kuvioitu basso)</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1747"/>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1748"/>
         <source>Advance cursor: half note (chord symbols/figured bass)</source>
-        <translation>Kursorin eteneminen: puolinuotti (sointumerkit/kuvioitu basso)</translation>
+        <translation>Siirrä kohdistin: puolinuotti (sointumerkit/kuvioitu basso)</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1753"/>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1754"/>
         <source>Advance cursor: quarter note (chord symbols/figured bass)</source>
-        <translation>Kursorin eteneminen: neljäsosanuotti (sointumerkit/kuvioitu basso)</translation>
+        <translation>Siirrä kohdistin: neljäsosanuotti (sointumerkit/kuvioitu basso)</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1759"/>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1760"/>
         <source>Advance cursor: eighth note (chord symbols/figured bass)</source>
-        <translation>Kursorin eteneminen: kahdeksasosanuotti (sointumerkit/kuvioitu basso)</translation>
+        <translation>Siirrä kohdistin: kahdeksasosanuotti (sointumerkit/kuvioitu basso)</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1765"/>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1766"/>
         <source>Advance cursor: 16th note (chord symbols/figured bass)</source>
-        <translation>Kursorin eteneminen: 1/16-nuotti (sointumerkit/kuvioitu basso)</translation>
+        <translation>Siirrä kohdistin: 1/16-nuotti (sointumerkit/kuvioitu basso)</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1771"/>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1772"/>
         <source>Advance cursor: 32nd note (chord symbols/figured bass)</source>
-        <translation>Kursorin eteneminen: 1/32-nuotti (sointumerkit/kuvioitu basso)</translation>
+        <translation>Siirrä kohdistin: 1/32-nuotti (sointumerkit/kuvioitu basso)</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1777"/>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1778"/>
         <source>Advance cursor: 64th note (chord symbols/figured bass)</source>
-        <translation>Kursorin eteneminen: 1/64-nuotti (sointumerkit/kuvioitu basso)</translation>
+        <translation>Siirrä kohdistin: 1/64-nuotti (sointumerkit/kuvioitu basso)</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1783"/>
@@ -9972,13 +9977,13 @@ jos niiden perässä on viivoja</translation>
         <location filename="../../src/playback/internal/playbackuiactions.cpp" line="122"/>
         <location filename="../../src/playback/internal/playbackuiactions.cpp" line="123"/>
         <source>Play repeats</source>
-        <translation>Soita kertaukset</translation>
+        <translation>Toista kertaukset</translation>
     </message>
     <message>
         <location filename="../../src/playback/internal/playbackuiactions.cpp" line="130"/>
         <location filename="../../src/playback/internal/playbackuiactions.cpp" line="131"/>
         <source>Play chord symbols</source>
-        <translation>Soita sointumerkit</translation>
+        <translation>Toista sointumerkit</translation>
     </message>
     <message>
         <location filename="../../src/playback/internal/playbackuiactions.cpp" line="138"/>
@@ -10335,12 +10340,12 @@ jos niiden perässä on viivoja</translation>
         <translation>Tilit</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationactioncontroller.cpp" line="318"/>
+        <location filename="../../src/appshell/internal/applicationactioncontroller.cpp" line="325"/>
         <source>Are you sure you want to revert to factory settings?</source>
         <translation>Haluatko varmasti palata tehdasasetuksiin?</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationactioncontroller.cpp" line="319"/>
+        <location filename="../../src/appshell/internal/applicationactioncontroller.cpp" line="326"/>
         <source>This action will reset all your app preferences and delete all custom palettes and custom shortcuts. The list of recent scores will also be cleared.
 
 This action will not delete any of your scores.</source>
@@ -10349,27 +10354,27 @@ This action will not delete any of your scores.</source>
 Tämä toiminto ei poista yhtään partituuriasi.</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationactioncontroller.cpp" line="329"/>
+        <location filename="../../src/appshell/internal/applicationactioncontroller.cpp" line="336"/>
         <source>Revert</source>
         <translation>Palauta</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationactioncontroller.cpp" line="331"/>
+        <location filename="../../src/appshell/internal/applicationactioncontroller.cpp" line="338"/>
         <source>Revert to factory settings</source>
         <translation>Palauta tehdasasetukset</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationactioncontroller.cpp" line="343"/>
+        <location filename="../../src/appshell/internal/applicationactioncontroller.cpp" line="350"/>
         <source>Would you like to restart MuseScore Studio now?</source>
         <translation>Haluatko käynnistää nyt MuseScore Studion uudelleen?</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationactioncontroller.cpp" line="344"/>
+        <location filename="../../src/appshell/internal/applicationactioncontroller.cpp" line="351"/>
         <source>MuseScore Studio needs to be restarted for these changes to take effect.</source>
         <translation>MuseScore Studio on käynnistettävä uudelleen, jotta muutokset tulevat voimaan.</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/internal/applicationactioncontroller.cpp" line="349"/>
+        <location filename="../../src/appshell/internal/applicationactioncontroller.cpp" line="356"/>
         <source>Restart</source>
         <translation>Käynnistä uudelleen</translation>
     </message>
@@ -10690,47 +10695,47 @@ Published under the &lt;a href=&quot;%1&quot;&gt;GNU General Public License vers
 <context>
     <name>appshell/menu/diagnostics</name>
     <message>
-        <location filename="../../src/appshell/view/appmenumodel.cpp" line="489"/>
+        <location filename="../../src/appshell/view/appmenumodel.cpp" line="490"/>
         <source>&amp;System</source>
         <translation>&amp;Järjestelmä</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/view/appmenumodel.cpp" line="501"/>
+        <location filename="../../src/appshell/view/appmenumodel.cpp" line="502"/>
         <source>&amp;MuseSampler</source>
         <translation>&amp;MuseSampler</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/view/appmenumodel.cpp" line="547"/>
+        <location filename="../../src/appshell/view/appmenumodel.cpp" line="548"/>
         <source>A&amp;ctions</source>
         <translation>&amp;Toiminnot</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/view/appmenumodel.cpp" line="548"/>
+        <location filename="../../src/appshell/view/appmenumodel.cpp" line="549"/>
         <source>&amp;Accessibility</source>
         <translation>S&amp;aavutettavuus</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/view/appmenumodel.cpp" line="549"/>
+        <location filename="../../src/appshell/view/appmenumodel.cpp" line="550"/>
         <source>&amp;Engraving</source>
-        <translation>&amp;Kaiverrus</translation>
+        <translation>&amp;Graafinen muotoilu</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/view/appmenumodel.cpp" line="550"/>
+        <location filename="../../src/appshell/view/appmenumodel.cpp" line="551"/>
         <source>E&amp;xtensions</source>
         <translation>&amp;Laajennukset</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/view/appmenumodel.cpp" line="551"/>
+        <location filename="../../src/appshell/view/appmenumodel.cpp" line="552"/>
         <source>Auto&amp;bot</source>
         <translation>Auto&amp;botti</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/view/appmenumodel.cpp" line="552"/>
+        <location filename="../../src/appshell/view/appmenumodel.cpp" line="553"/>
         <source>&amp;VST</source>
         <translation>&amp;VST</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/view/appmenumodel.cpp" line="556"/>
+        <location filename="../../src/appshell/view/appmenumodel.cpp" line="557"/>
         <location filename="../../src/appshell_web/view/appmenumodel.cpp" line="291"/>
         <source>&amp;Diagnostics</source>
         <translation>&amp;Diagnostiikka</translation>
@@ -10787,7 +10792,7 @@ Published under the &lt;a href=&quot;%1&quot;&gt;GNU General Public License vers
 <context>
     <name>appshell/menu/help</name>
     <message>
-        <location filename="../../src/appshell/view/appmenumodel.cpp" line="475"/>
+        <location filename="../../src/appshell/view/appmenumodel.cpp" line="476"/>
         <source>&amp;Help</source>
         <translation>&amp;Apua</translation>
     </message>
@@ -11246,12 +11251,12 @@ Published under the &lt;a href=&quot;%1&quot;&gt;GNU General Public License vers
     <message>
         <location filename="../../src/appshell/qml/Preferences/internal/NoteInput/NotePreviewSection.qml" line="112"/>
         <source>Play chord when editing</source>
-        <translation>Soita sointu muokkauksen aikana</translation>
+        <translation>Toista sointu muokattaessa</translation>
     </message>
     <message>
         <location filename="../../src/appshell/qml/Preferences/internal/NoteInput/NotePreviewSection.qml" line="129"/>
         <source>Play chord symbols and Nashville numbers</source>
-        <translation>Soita sointumerkit ja Nashville-numerot</translation>
+        <translation>Toista sointumerkit ja Nashville-numerot</translation>
     </message>
     <message>
         <location filename="../../src/appshell/qml/Preferences/internal/NoteInput/NotePreviewSection.qml" line="146"/>
@@ -11261,7 +11266,7 @@ Published under the &lt;a href=&quot;%1&quot;&gt;GNU General Public License vers
     <message>
         <location filename="../../src/appshell/qml/Preferences/internal/NoteInput/NotePreviewSection.qml" line="163"/>
         <source>Play preview notes with score dynamics</source>
-        <translation>Soita esittelynuotit partituurin dynamiikalla</translation>
+        <translation>Toista esikatselunuotit partituurin dynamiikalla</translation>
     </message>
     <message>
         <location filename="../../src/appshell/qml/Preferences/internal/NoteInput/NotePreviewSection.qml" line="180"/>
@@ -11271,7 +11276,7 @@ Published under the &lt;a href=&quot;%1&quot;&gt;GNU General Public License vers
     <message>
         <location filename="../../src/appshell/qml/Preferences/internal/NoteInput/NotePreviewSection.qml" line="195"/>
         <source>Play MIDI notes with velocity and duration during note input</source>
-        <translation>Soita MIDI-nuotit iskuvoiman ja keston mukaan nuotinsyötön aikana</translation>
+        <translation>Toista MIDI-nuotit iskuvoiman ja keston mukaan nuotinsyötön aikana</translation>
     </message>
     <message>
         <location filename="../../src/appshell/qml/Preferences/internal/NoteInput/VoiceAssignmentSection.qml" line="35"/>
@@ -11662,7 +11667,7 @@ Published under the &lt;a href=&quot;%1&quot;&gt;GNU General Public License vers
     <message>
         <location filename="../../src/appshell/view/preferences/preferencesmodel.cpp" line="166"/>
         <source>Save &amp; publish</source>
-        <translation>Tallenna &amp; julkaise</translation>
+        <translation>Tallenna ja julkaise</translation>
     </message>
     <message>
         <location filename="../../src/appshell/view/preferences/preferencesmodel.cpp" line="172"/>
@@ -11795,7 +11800,7 @@ Published under the &lt;a href=&quot;%1&quot;&gt;GNU General Public License vers
     <message>
         <location filename="../../src/appshell/internal/startupscenario.cpp" line="245"/>
         <source>Includes a new system for hiding empty staves, a new text editing widget, guitar notation improvements, engraving improvements and more.</source>
-        <translation>Sisältää uuden järjestelmän tyhjien nuottiviivastojen piilottamiseen, uuden tekstinmuokkauswidgetin, parannuksia kitaranotaatioon, parannuksia kaiverrukseen ja paljon muuta.</translation>
+        <translation>Sisältää uuden järjestelmän tyhjien nuottiviivastojen piilottamiseen, uuden tekstinmuokkauswidgetin, parannuksia kitaranotaatioon, parannuksia grafiikkaan ja paljon muuta.</translation>
     </message>
     <message>
         <location filename="../../src/appshell/internal/startupscenario.cpp" line="247"/>
@@ -12197,18 +12202,18 @@ Otenauha %1 kielissä %2</translation>
         <translation>Ei voi luoda poikkeusjakoa suhteella %1 kestolle %2</translation>
     </message>
     <message>
-        <location filename="../../src/engraving/dom/edit.cpp" line="8014"/>
-        <location filename="../../src/engraving/dom/edit.cpp" line="8162"/>
+        <location filename="../../src/engraving/dom/edit.cpp" line="8020"/>
+        <location filename="../../src/engraving/dom/edit.cpp" line="8168"/>
         <source>Remove stale partial tie</source>
         <translation>Poista vanhentunut vajaa yhdyskaari</translation>
     </message>
     <message>
-        <location filename="../../src/engraving/dom/edit.cpp" line="8072"/>
+        <location filename="../../src/engraving/dom/edit.cpp" line="8078"/>
         <source>Reset incoming partial slur</source>
         <translation>Palauta sisääntuleva vajaa sidoskaari</translation>
     </message>
     <message>
-        <location filename="../../src/engraving/dom/edit.cpp" line="8082"/>
+        <location filename="../../src/engraving/dom/edit.cpp" line="8088"/>
         <source>Reset outgoing partial slur</source>
         <translation>Palauta ulosmenevä vajaa sidoskaari</translation>
     </message>
@@ -12859,13 +12864,13 @@ Otenauha %1 kielissä %2</translation>
         <location filename="../../src/engraving/types/typesconv.cpp" line="188"/>
         <location filename="../../src/engraving/types/typesconv.cpp" line="545"/>
         <source>bracket(s)</source>
-        <translation><numerusform>sulkeet</numerusform><numerusform>sulku(-keet)</numerusform></translation>
+        <translation><numerusform>sulkeet</numerusform><numerusform>sulkeet</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="189"/>
         <location filename="../../src/engraving/types/typesconv.cpp" line="546"/>
         <source>Bracket(s)</source>
-        <translation><numerusform>sulkeet</numerusform><numerusform>Sulku(-keet)</numerusform></translation>
+        <translation><numerusform>sulkeet</numerusform><numerusform>Sulkeet</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="191"/>
@@ -12930,62 +12935,62 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="206"/>
         <source>multimeasure rest range(s)</source>
-        <translation><numerusform>monitahtiset tauot</numerusform><numerusform>monitahtitaukoalue(-eet)</numerusform></translation>
+        <translation><numerusform>monitahtiset tauot</numerusform><numerusform>monitahtitauon alue(et)</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="207"/>
         <source>Multimeasure rest range(s)</source>
-        <translation><numerusform>Monitahtiset tauot</numerusform><numerusform>Monitahtitaukoalue(-eet)</numerusform></translation>
+        <translation><numerusform>Monitahtiset tauot</numerusform><numerusform>Monitahtitauon alue(et)</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="209"/>
         <source>instrument name(s)</source>
-        <translation><numerusform>Soittimen nimet</numerusform><numerusform>soittimen nimi(-met)</numerusform></translation>
+        <translation><numerusform>Soittimen nimet</numerusform><numerusform>soitinten nimet</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="210"/>
         <source>Instrument name(s)</source>
-        <translation><numerusform>Soittimen nimet</numerusform><numerusform>Soittimen nimi(-met)</numerusform></translation>
+        <translation><numerusform>Soittimen nimet</numerusform><numerusform>Soitinten nimet</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="212"/>
         <source>slur segment(s)</source>
-        <translation><numerusform>karisegmentit</numerusform><numerusform>sidoskaarisegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>karisegmentit</numerusform><numerusform>sidoskaarisegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="213"/>
         <source>Slur segment(s)</source>
-        <translation><numerusform>kaarisegmentit</numerusform><numerusform>Sidoskaarisegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>kaarisegmentit</numerusform><numerusform>Sidoskaarisegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="215"/>
         <source>tie segment(s)</source>
-        <translation><numerusform>yhdyskaarisegmentit</numerusform><numerusform>yhdyskaarisegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>yhdyskaarisegmentit</numerusform><numerusform>yhdyskaarisegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="216"/>
         <source>Tie segment(s)</source>
-        <translation><numerusform>Yhdyskaarisegmentit</numerusform><numerusform>Yhdyskaarisegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>Yhdyskaarisegmentit</numerusform><numerusform>Yhdyskaarisegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="218"/>
         <source>laissez vibrer segment(s)</source>
-        <translation><numerusform>laissez vibrer segmentit</numerusform><numerusform>laissez vibrer segmentti(-tit)</numerusform></translation>
+        <translation><numerusform>laissez vibrer segmentit</numerusform><numerusform>laissez vibrer segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="219"/>
         <source>Laissez vibrer segment(s)</source>
-        <translation><numerusform>yhdyskaarisegmentit</numerusform><numerusform>Laissez vibrer segmentti(-tit)</numerusform></translation>
+        <translation><numerusform>yhdyskaarisegmentit</numerusform><numerusform>Laissez vibrer segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="221"/>
         <source>partial tie segment(s)</source>
-        <translation><numerusform>osittainen yhdyskaarisegmentti(-tit)</numerusform><numerusform>osittainen yhdyskaarisegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>osittainen yhdyskaarisegmentti(-tit)</numerusform><numerusform>osittaiset yhdyskaarisegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="222"/>
         <source>Partial tie segment(s)</source>
-        <translation><numerusform>Osittainen yhdyskaarisegmentti(-tit)</numerusform><numerusform>osittainen yhdyskaarisegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>Osittainen yhdyskaarisegmentti(-tit)</numerusform><numerusform>osittaiset yhdyskaarisegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="224"/>
@@ -13040,12 +13045,12 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="239"/>
         <source>accidental(s)</source>
-        <translation><numerusform>etumerkki(-kit)</numerusform><numerusform>etumerkki(-kit)</numerusform></translation>
+        <translation><numerusform>etumerkki(-kit)</numerusform><numerusform>etumerkit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="240"/>
         <source>Accidental(s)</source>
-        <translation><numerusform>Etumerkki(-kit)</numerusform><numerusform>etumerkki(-kit)</numerusform></translation>
+        <translation><numerusform>Etumerkki(-kit)</numerusform><numerusform>etumerkit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="242"/>
@@ -13060,47 +13065,47 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="245"/>
         <source>stem(s)</source>
-        <translation><numerusform>nuotinvarsi(-ret)</numerusform><numerusform>nuotinvarsi(-ret)</numerusform></translation>
+        <translation><numerusform>nuotinvarsi(-ret)</numerusform><numerusform>nuotinvarret</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="246"/>
         <source>Stem(s)</source>
-        <translation><numerusform>Nuotinvarsi(-ret)</numerusform><numerusform>nuotinvarsi(-ret)</numerusform></translation>
+        <translation><numerusform>Nuotinvarsi(-ret)</numerusform><numerusform>nuotinvarret</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="248"/>
         <source>flag(s)</source>
-        <translation><numerusform>lippu(-put)</numerusform><numerusform>lippu(-put)</numerusform></translation>
+        <translation><numerusform>lippu(-put)</numerusform><numerusform>liput</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="249"/>
         <source>Flag(s)</source>
-        <translation><numerusform>lippu(-put)</numerusform><numerusform>Lippu(-put)</numerusform></translation>
+        <translation><numerusform>lippu(-put)</numerusform><numerusform>Liput</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="251"/>
         <source>note(s)</source>
-        <translation><numerusform>nuotti(-tit)</numerusform><numerusform>nuotti(-tit)</numerusform></translation>
+        <translation><numerusform>nuotti(-tit)</numerusform><numerusform>nuotit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="252"/>
         <source>Note(s)</source>
-        <translation><numerusform>Nuotti(-tit)</numerusform><numerusform>nuotti(-tit)</numerusform></translation>
+        <translation><numerusform>Nuotti(-tit)</numerusform><numerusform>nuotit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="254"/>
         <source>clef(s)</source>
-        <translation><numerusform>nuottiavain(-vaimet)</numerusform><numerusform>nuottiavain(-vaimet)</numerusform></translation>
+        <translation><numerusform>nuottiavain(-vaimet)</numerusform><numerusform>nuottiavaimet</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="255"/>
         <source>Clef(s)</source>
-        <translation><numerusform>Nuottiavaimet</numerusform><numerusform>Nuottiavain(-vaimet)</numerusform></translation>
+        <translation><numerusform>Nuottiavaimet</numerusform><numerusform>Nuottiavaimet</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="257"/>
         <source>key signature(s)</source>
-        <translation><numerusform>sävellaji(t)</numerusform><numerusform>Sävellaji(t)</numerusform></translation>
+        <translation><numerusform>sävellaji(t)</numerusform><numerusform>sävellaji(t)</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="258"/>
@@ -13135,17 +13140,17 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="267"/>
         <source>Rest(s)</source>
-        <translation><numerusform>Tauko</numerusform><numerusform>Tauko(-ot)</numerusform></translation>
+        <translation><numerusform>Tauko</numerusform><numerusform>Tauot</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="269"/>
         <source>multimeasure rest(s)</source>
-        <translation><numerusform>monitahtitauko(-ot)</numerusform><numerusform>monitahtitauko(-ot)</numerusform></translation>
+        <translation><numerusform>monitahtitauko(-ot)</numerusform><numerusform>monitahtitauot</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="270"/>
         <source>Multimeasure rest(s)</source>
-        <translation><numerusform>Monitahtitauko(-ot)</numerusform><numerusform>monitahtitauko(-ot)</numerusform></translation>
+        <translation><numerusform>Monitahtitauko(-ot)</numerusform><numerusform>Monitahtitauot</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="272"/>
@@ -13160,12 +13165,12 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="278"/>
         <source>breath(s)</source>
-        <translation><numerusform>hengitys(-tykset)</numerusform><numerusform>hengitys(-tykset)</numerusform></translation>
+        <translation><numerusform>hengitys(-tykset)</numerusform><numerusform>hengitykset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="279"/>
         <source>Breath(s)</source>
-        <translation><numerusform>Hengitys(-tykset)</numerusform><numerusform>hengitys(-tykset)</numerusform></translation>
+        <translation><numerusform>Hengitys(-tykset)</numerusform><numerusform>Hengitykset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="281"/>
@@ -13175,37 +13180,37 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="282"/>
         <source>Measure repeat(s)</source>
-        <translation><numerusform>Tahdin toisto(t)</numerusform><numerusform>tahdin toisto(t)</numerusform></translation>
+        <translation><numerusform>Tahdin toisto(t)</numerusform><numerusform>Tahdin toisto(t)</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="284"/>
         <source>tie(s)</source>
-        <translation><numerusform>yhdyskaari(-ret)</numerusform><numerusform>yhdyskaari(-ret)</numerusform></translation>
+        <translation><numerusform>yhdyskaari(-ret)</numerusform><numerusform>yhdyskaaret</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="285"/>
         <source>Tie(s)</source>
-        <translation><numerusform>Yhdyskaari</numerusform><numerusform>Yhdyskaari(-ret)</numerusform></translation>
+        <translation><numerusform>Yhdyskaari</numerusform><numerusform>Yhdyskaaret</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="287"/>
         <source>laissez vibrer(s)</source>
-        <translation><numerusform>laissez vibrer(-it)</numerusform><numerusform>laissez vibrer(-it)</numerusform></translation>
+        <translation><numerusform>laissez vibrer(-it)</numerusform><numerusform>laissez vibrerit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="288"/>
         <source>Laissez vibrer(s)</source>
-        <translation><numerusform>Laissez vibrer(-it)</numerusform><numerusform>Laissez vibrer(-it)</numerusform></translation>
+        <translation><numerusform>Laissez vibrer(-it)</numerusform><numerusform>Laissez vibrerit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="290"/>
         <source>partial tie(s)</source>
-        <translation><numerusform>osittainen yhdyskaari(-ret)</numerusform><numerusform>osittainen yhdyskaari(-ret)</numerusform></translation>
+        <translation><numerusform>osittainen yhdyskaari(-ret)</numerusform><numerusform>osittaiset yhdyskaaret</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="291"/>
         <source>Partial tie(s)</source>
-        <translation><numerusform>Osittainen yhdyskaari(-ret)</numerusform><numerusform>osittainen yhdyskaari(-ret)</numerusform></translation>
+        <translation><numerusform>Osittainen yhdyskaari(-ret)</numerusform><numerusform>Osittaiset yhdyskaaret</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="293"/>
@@ -13215,7 +13220,7 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="294"/>
         <source>Articulation(s)</source>
-        <translation><numerusform>Artikulaatio(t)</numerusform><numerusform>artikulaatio(t)</numerusform></translation>
+        <translation><numerusform>Artikulaatio(t)</numerusform><numerusform>Artikulaatio(t)</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="296"/>
@@ -13230,12 +13235,12 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="299"/>
         <source>fermata(s)</source>
-        <translation><numerusform>fermaatti(-tit)</numerusform><numerusform>fermaatti(-tit)</numerusform></translation>
+        <translation><numerusform>fermaatti(-tit)</numerusform><numerusform>fermaatit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="300"/>
         <source>Fermata(s)</source>
-        <translation><numerusform>Fermaatti(-tit)</numerusform><numerusform>fermaatti(-tit)</numerusform></translation>
+        <translation><numerusform>Fermaatti(-tit)</numerusform><numerusform>Fermaatit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="302"/>
@@ -13250,12 +13255,12 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="305"/>
         <source>dynamic(s)</source>
-        <translation><numerusform>dynamiikka(-kat)</numerusform><numerusform>dynamiikka(-kat)</numerusform></translation>
+        <translation><numerusform>dynamiikka(-kat)</numerusform><numerusform>dynamiikat</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="306"/>
         <source>Dynamic(s)</source>
-        <translation><numerusform>Dynamiikka(-kat)</numerusform><numerusform>Dynamiikka(-kat)</numerusform></translation>
+        <translation><numerusform>Dynamiikka(-kat)</numerusform><numerusform>Dynamiikat</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="308"/>
@@ -13270,12 +13275,12 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="311"/>
         <source>beam(s)</source>
-        <translation><numerusform>palkki(-kit)</numerusform><numerusform>palkki(-kit)</numerusform></translation>
+        <translation><numerusform>palkki(-kit)</numerusform><numerusform>palkit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="312"/>
         <source>Beam(s)</source>
-        <translation><numerusform>Palkki(-kit)</numerusform><numerusform>Palkki(-kit)</numerusform></translation>
+        <translation><numerusform>Palkki(-kit)</numerusform><numerusform>Palkit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="314"/>
@@ -13300,52 +13305,52 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="320"/>
         <source>figured bass item(s)</source>
-        <translation><numerusform>kenraalibassokohde(-teet)</numerusform><numerusform>kenraalibassokohde</numerusform></translation>
+        <translation><numerusform>kenraalibassokohde(-teet)</numerusform><numerusform>kenraalibasson kohteet</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="321"/>
         <source>Figured bass item(s)</source>
-        <translation><numerusform>Kenraalibassokohde(-teet)</numerusform><numerusform>Kenraalibassokohde(-teet)</numerusform></translation>
+        <translation><numerusform>Kenraalibassokohde(-teet)</numerusform><numerusform>Kenraalibasson kohteet</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="323"/>
         <source>marker(s)</source>
-        <translation><numerusform>merkki</numerusform><numerusform>merkki(-kit)</numerusform></translation>
+        <translation><numerusform>merkki</numerusform><numerusform>merkit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="324"/>
         <source>Marker(s)</source>
-        <translation><numerusform>marker(s)</numerusform><numerusform>Merkki(-kit)</numerusform></translation>
+        <translation><numerusform>marker(s)</numerusform><numerusform>Merkit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="326"/>
         <source>jump(s)</source>
-        <translation><numerusform>hyppy(-pyt)</numerusform><numerusform>hyppy(-pyt)</numerusform></translation>
+        <translation><numerusform>hyppy(-pyt)</numerusform><numerusform>hypyt</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="327"/>
         <source>Jump(s)</source>
-        <translation><numerusform>Hyppy(-pyt)</numerusform><numerusform>Hyppy(-pyt)</numerusform></translation>
+        <translation><numerusform>Hyppy(-pyt)</numerusform><numerusform>Hypyt</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="329"/>
         <source>fingering(s)</source>
-        <translation><numerusform>sormitus(-tukset)</numerusform><numerusform>sormitus(-tukset)</numerusform></translation>
+        <translation><numerusform>sormitus(-tukset)</numerusform><numerusform>sormitukset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="330"/>
         <source>Fingering(s)</source>
-        <translation><numerusform>Sormitus(-tukset)</numerusform><numerusform>Sormitus(-tukset)</numerusform></translation>
+        <translation><numerusform>Sormitus(-tukset)</numerusform><numerusform>Sormitukset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="332"/>
         <source>tuplet(s)</source>
-        <translation><numerusform>tupletti(-tit)</numerusform><numerusform>tupletti(-tit)</numerusform></translation>
+        <translation><numerusform>tupletti(-tit)</numerusform><numerusform>tupletit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="333"/>
         <source>Tuplet(s)</source>
-        <translation><numerusform>Tupletti(-tit)</numerusform><numerusform>Tupletti(-tit)</numerusform></translation>
+        <translation><numerusform>Tupletti(-tit)</numerusform><numerusform>Tupletit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="335"/>
@@ -13380,12 +13385,12 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="344"/>
         <source>sound flag(s)</source>
-        <translation><numerusform>äänilippu(-put)</numerusform><numerusform>äänilippu(-put)</numerusform></translation>
+        <translation><numerusform>äänilippu(-put)</numerusform><numerusform>ääniliput</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="345"/>
         <source>Sound flag(s)</source>
-        <translation><numerusform>Äänilippu(-put)</numerusform><numerusform>Äänilippu(-put)</numerusform></translation>
+        <translation><numerusform>Äänilippu(-put)</numerusform><numerusform>Ääniliput</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="347"/>
@@ -13400,12 +13405,12 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="350"/>
         <source>playing technique annotation(s)</source>
-        <translation><numerusform>soittotekniikan merkintä(-nät)</numerusform><numerusform>soittotekniikan merkintä(-nät)</numerusform></translation>
+        <translation><numerusform>soittotekniikan merkintä(-nät)</numerusform><numerusform>soittotekniikan merkinnät</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="351"/>
         <source>Playing technique annotation(s)</source>
-        <translation><numerusform>Soittotekniikan merkintä(-nät)</numerusform><numerusform>Soittotekniikan merkintä(-nät)</numerusform></translation>
+        <translation><numerusform>Soittotekniikan merkintä(-nät)</numerusform><numerusform>Soittotekniikan merkinnät</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="353"/>
@@ -13420,13 +13425,13 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="356"/>
         <source>string tunings</source>
-        <translation><numerusform>kielen viritykset</numerusform><numerusform>kielen viritykset</numerusform></translation>
+        <translation><numerusform>kielen viritykset</numerusform><numerusform>kieliviritykset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="357"/>
         <location filename="../../src/engraving/types/typesconv.cpp" line="1728"/>
         <source>String tunings</source>
-        <translation><numerusform>Kielen viritykset</numerusform><numerusform>Kielen viritykset</numerusform></translation>
+        <translation><numerusform>Kielen viritykset</numerusform><numerusform>Kieliviritykset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="359"/>
@@ -13451,72 +13456,72 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="365"/>
         <source>instrument change(s)</source>
-        <translation><numerusform>soittimen vaihto(t)</numerusform><numerusform>soittimen vaihto(t)</numerusform></translation>
+        <translation><numerusform>soittimen vaihto(t)</numerusform><numerusform>soittimen vaihdot</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="366"/>
         <source>Instrument change(s)</source>
-        <translation><numerusform>Soittimen vaihto(-dot)</numerusform><numerusform>Soittimen vaihto(t)</numerusform></translation>
+        <translation><numerusform>Soittimen vaihto(-dot)</numerusform><numerusform>Soittimen vaihdot</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="368"/>
         <source>staff type change(s)</source>
-        <translation><numerusform>viivastotyypin muutos(-tokset)</numerusform><numerusform>viivastotyypin muutos(-tokset)</numerusform></translation>
+        <translation><numerusform>viivastotyypin muutos(-tokset)</numerusform><numerusform>viivastotyypin muutokset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="369"/>
         <source>Staff type change(s)</source>
-        <translation><numerusform>Viivastotyypin muutos(-tokset)</numerusform><numerusform>Viivastotyypin muutos(-tokset)</numerusform></translation>
+        <translation><numerusform>Viivastotyypin muutos(-tokset)</numerusform><numerusform>Viivastotyypin muutokset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="371"/>
         <source>chord symbol(s)</source>
-        <translation><numerusform>Sointumerkki(-kit)</numerusform><numerusform>sointumerkki(-kit)</numerusform></translation>
+        <translation><numerusform>Sointumerkki(-kit)</numerusform><numerusform>sointumerkit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="372"/>
         <source>Chord symbol(s)</source>
-        <translation><numerusform>Sointumerkki(-kit)</numerusform><numerusform>Sointumerkki(-kit)</numerusform></translation>
+        <translation><numerusform>Sointumerkki(-kit)</numerusform><numerusform>Sointumerkit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="374"/>
         <source>fretboard diagram(s)</source>
-        <translation><numerusform>otelaudan kaavio(t)</numerusform><numerusform>otetaulukko(-kot)</numerusform></translation>
+        <translation><numerusform>otelaudan kaavio(t)</numerusform><numerusform>otetaulukot</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="375"/>
         <source>Fretboard diagram(s)</source>
-        <translation><numerusform>Otelaudan kaavio(t)</numerusform><numerusform>Otetaulukko(-kot)</numerusform></translation>
+        <translation><numerusform>Otelaudan kaavio(t)</numerusform><numerusform>Otetaulukot</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="377"/>
         <source>harp pedal diagram(s)</source>
-        <translation><numerusform>harppupedaalikaavio(t)</numerusform><numerusform>harppupedaalikaavio(t)</numerusform></translation>
+        <translation><numerusform>harppupedaalikaavio(t)</numerusform><numerusform>harpun pedaalikaaviot</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="378"/>
         <source>Harp pedal diagram(s)</source>
-        <translation><numerusform>Harppupedaalikaavio(t)</numerusform><numerusform>Harppupedaalikaavio(t)</numerusform></translation>
+        <translation><numerusform>Harppupedaalikaavio(t)</numerusform><numerusform>Harpun pedaalikaaviot</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="380"/>
         <source>bend(s)</source>
-        <translation><numerusform>taivutus(-tukset)</numerusform><numerusform>taivutus(-tukset)</numerusform></translation>
+        <translation><numerusform>taivutus(-tukset)</numerusform><numerusform>taivutukset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="381"/>
         <source>Bend(s)</source>
-        <translation><numerusform>Taivutus(et)</numerusform><numerusform>Taivutus(-tukset)</numerusform></translation>
+        <translation><numerusform>Taivutus(et)</numerusform><numerusform>Taivutukset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="383"/>
         <source>tremolo bar(s)</source>
-        <translation><numerusform>tremolo-palkki(t)</numerusform><numerusform>tremolo-palkki(t)</numerusform></translation>
+        <translation><numerusform>tremolo-palkki(t)</numerusform><numerusform>tremolovivut</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="384"/>
         <source>Tremolo bar(s)</source>
-        <translation><numerusform>Tremolo-palkki(-kit)</numerusform><numerusform>Tremolo-palkki(t)</numerusform></translation>
+        <translation><numerusform>Tremolo-palkki(-kit)</numerusform><numerusform>Tremolovivut</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="386"/>
@@ -13531,212 +13536,212 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="389"/>
         <source>hairpin segment(s)</source>
-        <translation><numerusform>hiusneulasegmentti(-tit)</numerusform><numerusform>hiusneulasegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>hiusneulasegmentti(-tit)</numerusform><numerusform>hiusneulasegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="390"/>
         <source>Hairpin segment(s)</source>
-        <translation><numerusform>Hiusnulasegmentti(-tit)</numerusform><numerusform>Hiusneulasegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>Hiusnulasegmentti(-tit)</numerusform><numerusform>Hiusneulasegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="392"/>
         <source>ottava segment(s)</source>
-        <translation><numerusform>ottava segmentti(-tit))</numerusform><numerusform>ottava segmentti(-tit)</numerusform></translation>
+        <translation><numerusform>ottava segmentti(-tit))</numerusform><numerusform>ottava segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="393"/>
         <source>Ottava segment(s)</source>
-        <translation><numerusform>Ottava segmentti(-tit)</numerusform><numerusform>Ottava segment(s)</numerusform></translation>
+        <translation><numerusform>Ottava segmentti(-tit)</numerusform><numerusform>Ottava segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="395"/>
         <source>trill segment(s)</source>
-        <translation><numerusform>trillisegment(-tit)</numerusform><numerusform>trillisegment(-tit)</numerusform></translation>
+        <translation><numerusform>trillisegment(-tit)</numerusform><numerusform>trillisegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="396"/>
         <source>Trill segment(s)</source>
-        <translation><numerusform>Trillisegment(-tit)</numerusform><numerusform>Trillisegment(-tit)</numerusform></translation>
+        <translation><numerusform>Trillisegment(-tit)</numerusform><numerusform>Trillisegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="398"/>
         <source>let ring segment(s)</source>
-        <translation><numerusform>anna soida -segmentti(-tit)</numerusform><numerusform>anna soida -segmentti(-tit)</numerusform></translation>
+        <translation><numerusform>anna soida -segmentti(-tit)</numerusform><numerusform>anna soida -segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="399"/>
         <source>Let ring segment(s)</source>
-        <translation><numerusform>Anna soida -segmentti(-tit)</numerusform><numerusform>Anna soida -segmentti(-tit)</numerusform></translation>
+        <translation><numerusform>Anna soida -segmentti(-tit)</numerusform><numerusform>Anna soida -segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="401"/>
         <source>gradual tempo change segment(s)</source>
-        <translation><numerusform>asteittaisen tempon muutoksen segmentti(-tit)</numerusform><numerusform>asteittaisen tempon muutoksen segmentti(t)</numerusform></translation>
+        <translation><numerusform>asteittaisen tempon muutoksen segmentti(-tit)</numerusform><numerusform>asteittaisen tempon muutoksen segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="402"/>
         <source>Gradual tempo change segment(s)</source>
-        <translation><numerusform>Asteittaisen tempon muutoksen segmentti(-tit)</numerusform><numerusform>Asteittaisen tempon muutoksen segmentti(-tit)</numerusform></translation>
+        <translation><numerusform>Asteittaisen tempon muutoksen segmentti(-tit)</numerusform><numerusform>Asteittaisen tempon muutoksen segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="404"/>
         <source>vibrato segment(s)</source>
-        <translation><numerusform>vibrato-segmentti(t)</numerusform><numerusform>vibrato-segmentti(t)</numerusform></translation>
+        <translation><numerusform>vibrato-segmentti(t)</numerusform><numerusform>vibrato-segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="405"/>
         <source>Vibrato segment(s)</source>
-        <translation><numerusform>Vibrato-segmentti(-tit)</numerusform><numerusform>Vibrato-segmentti(t)</numerusform></translation>
+        <translation><numerusform>Vibrato-segmentti(-tit)</numerusform><numerusform>Vibrato-segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="407"/>
         <source>palm mute segment(s)</source>
-        <translation><numerusform>Kämmenvaimennussegmentti(-tit)</numerusform><numerusform>kämmenvaimennussegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>Kämmenvaimennussegmentti(-tit)</numerusform><numerusform>kämmenvaimennussegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="408"/>
         <source>Palm mute segment(s)</source>
-        <translation><numerusform>Kämmenvaimennussegmentti(-tit)</numerusform><numerusform>Kämmenvaimennussegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>Kämmenvaimennussegmentti(-tit)</numerusform><numerusform>Kämmenvaimennussegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="410"/>
         <source>whammy bar segment(s)</source>
-        <translation><numerusform>vibrakampisegmentti(-tit)</numerusform><numerusform>vibrakampisegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>vibrakampisegmentti(-tit)</numerusform><numerusform>vibrakampisegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="411"/>
         <source>Whammy bar segment(s)</source>
-        <translation><numerusform>Vibrakampisegmentti(-tit)</numerusform><numerusform>Vibrakampisegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>Vibrakampisegmentti(-tit)</numerusform><numerusform>Vibrakampisegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="413"/>
         <source>rasgueado segment(s)</source>
-        <translation><numerusform>rasgueado-segmentti(-tit)</numerusform><numerusform>rasgueado-segmentti(-tit)</numerusform></translation>
+        <translation><numerusform>rasgueado-segmentti(-tit)</numerusform><numerusform>rasgueado-segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="414"/>
         <source>Rasgueado segment(s)</source>
-        <translation><numerusform>Rasgueado-segmentti(-tit)</numerusform><numerusform>Rasgueado-segmentti(-tit)</numerusform></translation>
+        <translation><numerusform>Rasgueado-segmentti(-tit)</numerusform><numerusform>Rasgueado-segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="416"/>
         <source>harmonic mark segment(s)</source>
-        <translation><numerusform>harmonisen merkin segmentti(-tit)</numerusform><numerusform>harmonisen merkin segmentti(t)</numerusform></translation>
+        <translation><numerusform>harmonisen merkin segmentti(-tit)</numerusform><numerusform>harmonisen merkin segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="417"/>
         <source>Harmonic mark segment(s)</source>
-        <translation><numerusform>Harmonisen merkin segmentti(-tit)</numerusform><numerusform>Harmonisen merkin segmentti(t)</numerusform></translation>
+        <translation><numerusform>Harmonisen merkin segmentti(-tit)</numerusform><numerusform>Harmonisen merkin segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="419"/>
         <source>pick scrape segment(s)</source>
-        <translation><numerusform>plektra­raapaisusegmentti(-tit)</numerusform><numerusform>plektra­raapaisusegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>plektra­raapaisusegmentti(-tit)</numerusform><numerusform>plektra­n raapaisusegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="420"/>
         <source>Pick scrape segment(s)</source>
-        <translation><numerusform>Plektra­raapaisusegmentti(-tit)</numerusform><numerusform>Plektra­raapaisusegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>Plektra­raapaisusegmentti(-tit)</numerusform><numerusform>Plektra­n raapaisusegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="422"/>
         <source>text line segment(s)</source>
-        <translation><numerusform>tekstirivin segmentti(-tit)</numerusform><numerusform>tekstirivin segmentti(-tit)</numerusform></translation>
+        <translation><numerusform>tekstirivin segmentti(-tit)</numerusform><numerusform>tekstirivin segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="423"/>
         <source>Text line segment(s)</source>
-        <translation><numerusform>Tekstirivin segmentti(-tit)</numerusform><numerusform>Tekstirivin segmentti(-tit)</numerusform></translation>
+        <translation><numerusform>Tekstirivin segmentti(-tit)</numerusform><numerusform>Tekstirivin segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="425"/>
         <source>volta segment(s)</source>
-        <translation><numerusform>maalisegmentti(-tit)</numerusform><numerusform>maalisegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>maalisegmentti(-tit)</numerusform><numerusform>maalisegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="426"/>
         <source>Volta segment(s)</source>
-        <translation><numerusform>Maalisegmentti(-tit)</numerusform><numerusform>Maalisegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>Maalisegmentti(-tit)</numerusform><numerusform>Maalisegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="428"/>
         <source>pedal segment(s)</source>
-        <translation><numerusform>pedaalisegmentti(-tit)</numerusform><numerusform>pedaalisegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>pedaalisegmentti(-tit)</numerusform><numerusform>pedaalisegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="429"/>
         <source>Pedal segment(s)</source>
-        <translation><numerusform>Pedaalisegmentti(-tit)</numerusform><numerusform>Pedaalisegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>Pedaalisegmentti(-tit)</numerusform><numerusform>Pedaalisegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="431"/>
         <source>extension line segment(s)</source>
-        <translation><numerusform>jatkoviivan segmentti(-tit)</numerusform><numerusform>jatkoviivan segmentti(-tit)</numerusform></translation>
+        <translation><numerusform>jatkoviivan segmentti(-tit)</numerusform><numerusform>jatkoviivan segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="432"/>
         <source>Extension line segment(s)</source>
-        <translation><numerusform>Jatkoviivan segmentti(-tit)</numerusform><numerusform>Jatkoviivan segmentti(-tit)</numerusform></translation>
+        <translation><numerusform>Jatkoviivan segmentti(-tit)</numerusform><numerusform>Jatkoviivan segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="434"/>
         <source>partial extension line segment(s)</source>
-        <translation><numerusform>osittainen jatkoviivan segmentti(t)</numerusform><numerusform>osittaisen jatkoviivan segmentti(t)</numerusform></translation>
+        <translation><numerusform>osittainen jatkoviivan segmentti(t)</numerusform><numerusform>osittaisen jatkoviivan segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="435"/>
         <source>Partial extension line segment(s)</source>
-        <translation><numerusform>Osittainen jatkoviivan segmentti(-tit)</numerusform><numerusform>Osittaisen jatkoviivan segmentti(t)</numerusform></translation>
+        <translation><numerusform>Osittainen jatkoviivan segmentti(-tit)</numerusform><numerusform>Osittaisen jatkoviivan segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="437"/>
         <source>glissando segment(s)</source>
-        <translation><numerusform>glissando-segmentti(t)</numerusform><numerusform>glissando-segmentti(t)</numerusform></translation>
+        <translation><numerusform>glissando-segmentti(t)</numerusform><numerusform>glissando-segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="438"/>
         <source>Glissando segment(s)</source>
-        <translation><numerusform>Glissando-segmentti(-tit)</numerusform><numerusform>Glissando-segmentti(t)</numerusform></translation>
+        <translation><numerusform>Glissando-segmentti(-tit)</numerusform><numerusform>Glissando-segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="440"/>
         <source>note-anchored line segment(s)</source>
-        <translation><numerusform>nuottiin ankkuroitu(-dut) viivasegmentti(-tit)</numerusform><numerusform>nuottiin ankkuroitu(-dut) viivasegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>nuottiin ankkuroitu(-dut) viivasegmentti(-tit)</numerusform><numerusform>nuottiin ankkuroidut viivasegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="441"/>
         <source>Note-anchored line segment(s)</source>
-        <translation><numerusform>Nuottiin ankkuroitu(-dut) viivasegmentti(-tit)</numerusform><numerusform>Nuottiin ankkuroitu(-dut) viivasegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>Nuottiin ankkuroitu(-dut) viivasegmentti(-tit)</numerusform><numerusform>Nuottiin ankkuroidut viivasegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="443"/>
         <source>layout break(s)</source>
-        <translation><numerusform>asettelun vaihto(-dot)</numerusform><numerusform>asettelun vaihto(-dot)</numerusform></translation>
+        <translation><numerusform>asettelun vaihto(-dot)</numerusform><numerusform>asettelun vaihdot</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="444"/>
         <source>Layout break(s)</source>
-        <translation><numerusform>Asettelun vaihto(-dot)</numerusform><numerusform>Asettelun vaihto(-dot)</numerusform></translation>
+        <translation><numerusform>Asettelun vaihto(-dot)</numerusform><numerusform>Asettelun vaihdot</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="446"/>
         <source>staff visibility icon(s)</source>
-        <translation><numerusform>viivaston näkyvyyskuvake(-keet)</numerusform><numerusform>viivaston näkyvyyskuvake(-keet)</numerusform></translation>
+        <translation><numerusform>viivaston näkyvyyskuvake(-keet)</numerusform><numerusform>viivaston näkyvyyskuvakkeet</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="447"/>
         <source>Staff visibility icon(s)</source>
-        <translation><numerusform>Viivaston näkyvyyskuvake(-keet)</numerusform><numerusform>Viivaston näkyvyyskuvake(-keet)</numerusform></translation>
+        <translation><numerusform>Viivaston näkyvyyskuvake(-keet)</numerusform><numerusform>Viivaston näkyvyyskuvakkeet</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="449"/>
         <source>system lock(s)</source>
-        <translation><numerusform>järjestelmän lukitus(-tukset)</numerusform><numerusform>viivastoryhmän lukitus(-tukset)</numerusform></translation>
+        <translation><numerusform>järjestelmän lukitus(-tukset)</numerusform><numerusform>viivastoryhmän lukitukset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="450"/>
         <source>System lock(s)</source>
-        <translation><numerusform>Järjestelmän lukitus(-tukset)</numerusform><numerusform>Viivastoryhmän lukitus(-tukset)</numerusform></translation>
+        <translation><numerusform>Järjestelmän lukitus(-tukset)</numerusform><numerusform>Viivastoryhmän lukitukset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="452"/>
@@ -13771,12 +13776,12 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="461"/>
         <source>note dot(s)</source>
-        <translation><numerusform>nuotinpiste(-teet)</numerusform><numerusform>nuotinpiste(-teet)</numerusform></translation>
+        <translation><numerusform>nuotinpiste(-teet)</numerusform><numerusform>nuotin pisteet</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="462"/>
         <source>Note dot(s)</source>
-        <translation><numerusform>Nuotinpiste(-teet)</numerusform><numerusform>Nuotinpiste(-teet)</numerusform></translation>
+        <translation><numerusform>Nuotinpiste(-teet)</numerusform><numerusform>Nuotin pisteet</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="464"/>
@@ -13791,52 +13796,52 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="467"/>
         <source>measure(s)</source>
-        <translation><numerusform>tahti(-dit)</numerusform><numerusform>tahti(-dit)</numerusform></translation>
+        <translation><numerusform>tahti(-dit)</numerusform><numerusform>tahdit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="468"/>
         <source>Measure(s)</source>
-        <translation><numerusform>Tahti(-dit)</numerusform><numerusform>Tahti(-dit)</numerusform></translation>
+        <translation><numerusform>Tahti(-dit)</numerusform><numerusform>Tahdit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="470"/>
         <source>selection(s)</source>
-        <translation><numerusform>valinta(-nat)</numerusform><numerusform>valinta(-nat)</numerusform></translation>
+        <translation><numerusform>valinta(-nat)</numerusform><numerusform>valinnat</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="471"/>
         <source>Selection(s)</source>
-        <translation><numerusform>Valinta(-nat)</numerusform><numerusform>Valinta(-nat)</numerusform></translation>
+        <translation><numerusform>Valinta(-nat)</numerusform><numerusform>Valinnat</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="473"/>
         <source>lasso(s)</source>
-        <translation><numerusform>lasso(t)</numerusform><numerusform>lasso(s)</numerusform></translation>
+        <translation><numerusform>lasso(t)</numerusform><numerusform>lasso(t)</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="474"/>
         <source>Lasso(s)</source>
-        <translation><numerusform>Lasso(t)</numerusform><numerusform>Lasso(s)</numerusform></translation>
+        <translation><numerusform>Lasso(t)</numerusform><numerusform>Lasso(t)</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="476"/>
         <source>shadow note(s)</source>
-        <translation><numerusform>varjonuotti(-tit)</numerusform><numerusform>varjonuotti(-tit)</numerusform></translation>
+        <translation><numerusform>varjonuotti(-tit)</numerusform><numerusform>varjonuotit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="477"/>
         <source>Shadow note(s)</source>
-        <translation><numerusform>Varjonuotti(-tit)</numerusform><numerusform>Varjonuotti(-tit)</numerusform></translation>
+        <translation><numerusform>Varjonuotti(-tit)</numerusform><numerusform>Varjonuotit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="479"/>
         <source>tab duration symbol(s)</source>
-        <translation><numerusform>tabulatuurin kestomerkki(-kit)</numerusform><numerusform>tabulatuurin kestomerkki(-kit)</numerusform></translation>
+        <translation><numerusform>tabulatuurin kestomerkki(-kit)</numerusform><numerusform>tabulatuurin kestomerkit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="480"/>
         <source>Tab duration symbol(s)</source>
-        <translation><numerusform>Tabulatuurin kestomerkki(-kit)</numerusform><numerusform>Tabulatuurin kestomerkki(-kit)</numerusform></translation>
+        <translation><numerusform>Tabulatuurin kestomerkki(-kit)</numerusform><numerusform>Tabulatuurin kestomerkit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="482"/>
@@ -13922,17 +13927,17 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="506"/>
         <source>gradual tempo change(s)</source>
-        <translation><numerusform>asteittainen(-set) tempomuutos(-kset)</numerusform><numerusform>asteittainen(-set) tempomuutos(-tokset)</numerusform></translation>
+        <translation><numerusform>asteittainen(-set) tempomuutos(-kset)</numerusform><numerusform>asteittaiset tempomuutokset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="507"/>
         <source>Gradual tempo change(s)</source>
-        <translation><numerusform>Asteittainen tempomuutos(-tokset)</numerusform><numerusform>Asteittainen(-set) tempomuutos(-tokset)</numerusform></translation>
+        <translation><numerusform>Asteittainen tempomuutos(-tokset)</numerusform><numerusform>Asteittaiset tempomuutokset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="509"/>
         <source>vibrato(s)</source>
-        <translation><numerusform>vibrato(t)</numerusform><numerusform>vibrato(s)</numerusform></translation>
+        <translation><numerusform>vibrato(t)</numerusform><numerusform>vibrato(t)</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="510"/>
@@ -13942,22 +13947,22 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="512"/>
         <source>palm mute(s)</source>
-        <translation><numerusform>kämmenvaimennus(-nukset)</numerusform><numerusform>kämmenvaimennus(-nukset)</numerusform></translation>
+        <translation><numerusform>kämmenvaimennus(-nukset)</numerusform><numerusform>kämmenvaimennukset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="513"/>
         <source>Palm mute(s)</source>
-        <translation><numerusform>Kämmenvaimennus</numerusform><numerusform>Kämmenvaimennus(-nukset)</numerusform></translation>
+        <translation><numerusform>Kämmenvaimennus</numerusform><numerusform>Kämmenvaimennukset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="515"/>
         <source>whammy bar(s)</source>
-        <translation><numerusform>vibrakampi(a)</numerusform><numerusform>vibrakampi(-met)</numerusform></translation>
+        <translation><numerusform>vibrakampi(a)</numerusform><numerusform>vibrakammet</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="516"/>
         <source>Whammy bar(s)</source>
-        <translation><numerusform>Vibrakampi(a)</numerusform><numerusform>Vibrakampi(-met)</numerusform></translation>
+        <translation><numerusform>Vibrakampi(a)</numerusform><numerusform>Vibrakammet</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="518"/>
@@ -13972,22 +13977,22 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="521"/>
         <source>harmonic mark(s)</source>
-        <translation><numerusform>harmoniamerkki(-kit)</numerusform><numerusform>harmoniamerkki(-kit)</numerusform></translation>
+        <translation><numerusform>harmoniamerkki(-kit)</numerusform><numerusform>harmoniamerkit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="522"/>
         <source>Harmonic mark(s)</source>
-        <translation><numerusform>Harmoniamerkki(-kit)</numerusform><numerusform>Harmoniamerkki(-kit)</numerusform></translation>
+        <translation><numerusform>Harmoniamerkki(-kit)</numerusform><numerusform>Harmoniamerkit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="524"/>
         <source>pick scrape out(s)</source>
-        <translation><numerusform>plektra­raapaisu(t)</numerusform><numerusform>plektra­raapaisu(t)</numerusform></translation>
+        <translation><numerusform>plektra­raapaisu(t)</numerusform><numerusform>plektra­n raapaisu(t)</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="525"/>
         <source>Pick scrape out(s)</source>
-        <translation><numerusform>Plektra­raapaisu(t)</numerusform><numerusform>Plektra­raapaisu(t)</numerusform></translation>
+        <translation><numerusform>Plektra­raapaisu(t)</numerusform><numerusform>Plektra­n raapaisu(t)</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="527"/>
@@ -14012,12 +14017,12 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="533"/>
         <source>note-anchored line(s)</source>
-        <translation><numerusform>nuottiin ankkuroitu(-dut) rivi(t)</numerusform><numerusform>nuottiin ankkuroitu(-dut) rivi(t)</numerusform></translation>
+        <translation><numerusform>nuottiin ankkuroitu(-dut) rivi(t)</numerusform><numerusform>nuottiin ankkuroidut rivit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="534"/>
         <source>Note-anchored line(s)</source>
-        <translation><numerusform>Nuottiin ankkuroitu(-dut) rivi(t)</numerusform><numerusform>Nuottiin ankkuroitu(-dut) rivi(t)</numerusform></translation>
+        <translation><numerusform>Nuottiin ankkuroitu(-dut) rivi(t)</numerusform><numerusform>Nuottiin ankkuroidut rivit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="536"/>
@@ -14032,12 +14037,12 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="539"/>
         <source>partial extension line(s)</source>
-        <translation><numerusform>osittainen jatkoviiva(t)</numerusform><numerusform>osittainen jatkoviiva(t)</numerusform></translation>
+        <translation><numerusform>osittainen jatkoviiva(t)</numerusform><numerusform>osittaiset jatkoviivat</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="540"/>
         <source>Partial extension line(s)</source>
-        <translation><numerusform>Osittainen jatkoviiva(t)</numerusform><numerusform>Osittainen jatkoviiva(t)</numerusform></translation>
+        <translation><numerusform>Osittainen jatkoviiva(t)</numerusform><numerusform>Osittaiset jatkoviivat</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="542"/>
@@ -14052,12 +14057,12 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="548"/>
         <source>segment(s)</source>
-        <translation><numerusform>segmentti</numerusform><numerusform>segmentti(-tit)</numerusform></translation>
+        <translation><numerusform>segmentti</numerusform><numerusform>segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="549"/>
         <source>Segment(s)</source>
-        <translation><numerusform>Segmentti(-tit)</numerusform><numerusform>Segmentti(-tit)</numerusform></translation>
+        <translation><numerusform>Segmentti(-tit)</numerusform><numerusform>Segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="551"/>
@@ -14072,72 +14077,72 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="554"/>
         <source>chord(s)</source>
-        <translation><numerusform>Sointu(-nut)</numerusform><numerusform>sointu(-nut)</numerusform></translation>
+        <translation><numerusform>Sointu(-nut)</numerusform><numerusform>soinnut</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="555"/>
         <source>Chord(s)</source>
-        <translation><numerusform>Sointu(-nut)</numerusform><numerusform>Sointu(-nut)</numerusform></translation>
+        <translation><numerusform>Sointu(-nut)</numerusform><numerusform>Soinnut</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="557"/>
         <source>slur(s)</source>
-        <translation><numerusform>sidoskaari(-ret)</numerusform><numerusform>sidoskaari(-ret)</numerusform></translation>
+        <translation><numerusform>sidoskaari(-ret)</numerusform><numerusform>sidoskaaret</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="558"/>
         <source>Slur(s)</source>
-        <translation><numerusform>Sidoskaari(-ret)</numerusform><numerusform>Sidoskaari(-ret)</numerusform></translation>
+        <translation><numerusform>Sidoskaari(-ret)</numerusform><numerusform>Sidoskaaret</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="560"/>
         <source>horizontal frame(s)</source>
-        <translation><numerusform>vaakasuora(t) kehys(-hykset)</numerusform><numerusform>vaakakehys(-hykset)</numerusform></translation>
+        <translation><numerusform>vaakasuora(t) kehys(-hykset)</numerusform><numerusform>vaakakehykset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="561"/>
         <source>Horizontal frame(s)</source>
-        <translation><numerusform>Vaakasuora(t) kehys(-hykset)</numerusform><numerusform>Vaakakehys(-hykset)</numerusform></translation>
+        <translation><numerusform>Vaakasuora(t) kehys(-hykset)</numerusform><numerusform>Vaakakehykset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="563"/>
         <source>vertical frame(s)</source>
-        <translation><numerusform>pystykehys(-hykset)</numerusform><numerusform>pystykehys(-hykset)</numerusform></translation>
+        <translation><numerusform>pystykehys(-hykset)</numerusform><numerusform>pystykehykset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="564"/>
         <source>Vertical frame(s)</source>
-        <translation><numerusform>Pystykehys(-hykset)</numerusform><numerusform>Pystykehys(-hykset)</numerusform></translation>
+        <translation><numerusform>Pystykehys(-hykset)</numerusform><numerusform>Pystykehykset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="566"/>
         <source>text frame(s)</source>
-        <translation><numerusform>tTekstikehys(-hykset)</numerusform><numerusform>tekstikehys(-hykset)</numerusform></translation>
+        <translation><numerusform>tTekstikehys(-hykset)</numerusform><numerusform>tekstikehykset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="567"/>
         <source>Text frame(s)</source>
-        <translation><numerusform>Tekstikehys(-hykset)</numerusform><numerusform>Tekstikehys(-hykset)</numerusform></translation>
+        <translation><numerusform>Tekstikehys(-hykset)</numerusform><numerusform>Tekstikehykset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="569"/>
         <source>fretboard diagram frame(s)</source>
-        <translation><numerusform>sointudiagrammin kehys(-hykset)</numerusform><numerusform>otetaulukon kehys(-hykset)</numerusform></translation>
+        <translation><numerusform>sointudiagrammin kehys(-hykset)</numerusform><numerusform>otetaulukon kehykset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="570"/>
         <source>Fretboard diagram frame(s)</source>
-        <translation><numerusform>Sointudiagrammin kehys(-hykset)</numerusform><numerusform>Otetaulukon kehys(-hykset)</numerusform></translation>
+        <translation><numerusform>Sointudiagrammin kehys(-hykset)</numerusform><numerusform>Otetaulukon kehykset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="575"/>
         <source>bagpipe embellishment(s)</source>
-        <translation><numerusform>säkkipillikoriste(-teet)</numerusform><numerusform>säkkipillikoriste(-teet)</numerusform></translation>
+        <translation><numerusform>säkkipillikoriste(-teet)</numerusform><numerusform>säkkipillikoriste(et)</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="576"/>
         <source>Bagpipe embellishment(s)</source>
-        <translation><numerusform>Säkkipillikoriste(-teet)</numerusform><numerusform>Säkkipillikoriste(-teet)</numerusform></translation>
+        <translation><numerusform>Säkkipillikoriste(-teet)</numerusform><numerusform>Säkkipillikoriste(et)</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="578"/>
@@ -14152,32 +14157,32 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="584"/>
         <source>guitar bend(s)</source>
-        <translation><numerusform>kielen taivutus(-tukset)</numerusform><numerusform>kielen taivutus(-tukset)</numerusform></translation>
+        <translation><numerusform>kielen taivutus(-tukset)</numerusform><numerusform>kielen taivutukset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="585"/>
         <source>Guitar bend(s)</source>
-        <translation><numerusform>Kielen taivutus(-tukset)</numerusform><numerusform>Kielen taivutus(-tukset)</numerusform></translation>
+        <translation><numerusform>Kielen taivutus(-tukset)</numerusform><numerusform>Kielen taivutukset</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="587"/>
         <source>guitar bend segment(s)</source>
-        <translation><numerusform>kielen taivutussegmentti(-tit)</numerusform><numerusform>kielen taivutussegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>kielen taivutussegmentti(-tit)</numerusform><numerusform>kielen taivutussegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="588"/>
         <source>Guitar bend segment(s)</source>
-        <translation><numerusform>kielen taivutussegmentti(-tit)</numerusform><numerusform>Kielen taivutussegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>kielen taivutussegmentti(-tit)</numerusform><numerusform>Kielen taivutussegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="590"/>
         <source>guitar bend hold(s)</source>
-        <translation><numerusform>kielen taivutuspidike(-keet)</numerusform><numerusform>kielen taivutuspidike(-keet)</numerusform></translation>
+        <translation><numerusform>kielen taivutuspidike(-keet)</numerusform><numerusform>kielen taivutuspidikkeet</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="591"/>
         <source>Guitar bend hold(s)</source>
-        <translation><numerusform>Kielen taivutuspidike(-keet)</numerusform><numerusform>Kielen taivutuspidike(-keet)</numerusform></translation>
+        <translation><numerusform>Kielen taivutuspidike(-keet)</numerusform><numerusform>Kielen taivutuspidikkeet</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="593"/>
@@ -14234,22 +14239,22 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="611"/>
         <source>hammer-on / pull-off segment(s)</source>
-        <translation><numerusform>hammer-on / pull-off segmentti(-tit)</numerusform><numerusform>hammer-on / pull-off segmentti(-tit)</numerusform></translation>
+        <translation><numerusform>hammer-on / pull-off segmentti(-tit)</numerusform><numerusform>hammer-on / pull-off -segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="612"/>
         <source>Hammer-on / pull-off segment(s)</source>
-        <translation><numerusform>Hammer-on / pull-off segmentti(-tit)</numerusform><numerusform>Hammer-on / pull-off segmentti(-tit)</numerusform></translation>
+        <translation><numerusform>Hammer-on / pull-off segmentti(-tit)</numerusform><numerusform>Hammer-on / pull-off -segmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="614"/>
         <source>hammer-on / pull-off text(s)</source>
-        <translation><numerusform>hammer-on / pull-off teksti(-tit)</numerusform><numerusform>hammer-on / pull-off teksti(-tit)</numerusform></translation>
+        <translation><numerusform>hammer-on / pull-off teksti(-tit)</numerusform><numerusform>hammer-on / pull-off -teksti(t)</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="615"/>
         <source>Hammer-on / pull-off text(s)</source>
-        <translation><numerusform>Hammer-on / pull-off teksti(-tit)</numerusform><numerusform>Hammer-on / pull-off teksti(-tit)</numerusform></translation>
+        <translation><numerusform>Hammer-on / pull-off teksti(-tit)</numerusform><numerusform>Hammer-on / pull-off -teksti(t)</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="617"/>
@@ -14264,32 +14269,32 @@ Otenauha %1 kielissä %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="620"/>
         <source>tapping half slur(s)</source>
-        <translation><numerusform>tapping puolikaari(-ret)</numerusform><numerusform>tapping puolikaari(-ret)</numerusform></translation>
+        <translation><numerusform>tapping puolikaari(-ret)</numerusform><numerusform>tapping puolikaaret</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="621"/>
         <source>Tapping half slur(s)</source>
-        <translation><numerusform>Tapping puolikaari(-ret)</numerusform><numerusform>Tapping puolikaari(-ret)</numerusform></translation>
+        <translation><numerusform>Tapping puolikaari(-ret)</numerusform><numerusform>Tapping puolikaaret</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="623"/>
         <source>tapping half slur segment(s)</source>
-        <translation><numerusform>tapping puolikaarisegmentti(-tit)</numerusform><numerusform>tapping puolikaarisegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>tapping puolikaarisegmentti(-tit)</numerusform><numerusform>tapping puolikaarisegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="624"/>
         <source>Tapping half slur segment(s)</source>
-        <translation><numerusform>Tapping puolikaarisegmentti(-tit)</numerusform><numerusform>Tapping puolikaarisegmentti(-tit)</numerusform></translation>
+        <translation><numerusform>Tapping puolikaarisegmentti(-tit)</numerusform><numerusform>Tapping puolikaarisegmentit</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="626"/>
         <source>tapping text(s)</source>
-        <translation><numerusform>tapping teksti(-tit)</numerusform><numerusform>tapping teksti(-tit)</numerusform></translation>
+        <translation><numerusform>tapping teksti(-tit)</numerusform><numerusform>tapping teksti(t)</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="627"/>
         <source>Tapping text(s)</source>
-        <translation><numerusform>Tapping teksti(-tit)</numerusform><numerusform>Tapping teksti(-tit)</numerusform></translation>
+        <translation><numerusform>Tapping teksti(-tit)</numerusform><numerusform>Tapping teksti(t)</numerusform></translation>
     </message>
     <message>
         <location filename="../../src/engraving/types/typesconv.cpp" line="946"/>
@@ -15144,7 +15149,7 @@ Otenauha %1 kielissä %2</translation>
     <message>
         <location filename="../../src/playback/view/internal/soundflag/soundflagsettingsmodel.cpp" line="374"/>
         <source>Staff text</source>
-        <translation>Viivastoteksti - ääniliput</translation>
+        <translation>Viivastoteksti</translation>
     </message>
 </context>
 <context>
@@ -17228,7 +17233,7 @@ Otenauha %1 kielissä %2</translation>
     <message>
         <location filename="../../src/engraving/types/typesconv.cpp" line="1099"/>
         <source>Pitch names</source>
-        <translation>Sävelten nimet</translation>
+        <translation>Sävelnimet</translation>
     </message>
     <message>
         <location filename="../../src/engraving/types/typesconv.cpp" line="1100"/>
@@ -17642,12 +17647,12 @@ Otenauha %1 kielissä %2</translation>
     <message>
         <location filename="../../src/engraving/dom/property.cpp" line="101"/>
         <source>span from</source>
-        <translation>ulottuvuus ylös</translation>
+        <translation>aloita viivastolta</translation>
     </message>
     <message>
         <location filename="../../src/engraving/dom/property.cpp" line="102"/>
         <source>span to</source>
-        <translation>ulottuvuus alas</translation>
+        <translation>ulota viivastoon</translation>
     </message>
     <message>
         <location filename="../../src/engraving/dom/property.cpp" line="103"/>
@@ -18547,22 +18552,22 @@ Otenauha %1 kielissä %2</translation>
     <message>
         <location filename="../../src/engraving/dom/property.cpp" line="318"/>
         <source>barline span</source>
-        <translation>tahtiviivan väli</translation>
+        <translation>tahtiviivan ulottuvuus</translation>
     </message>
     <message>
         <location filename="../../src/engraving/dom/property.cpp" line="319"/>
         <source>barline span from</source>
-        <translation>tahtiviivan väli alkaen</translation>
+        <translation>tahtiviivan aloitus viivastolta</translation>
     </message>
     <message>
         <location filename="../../src/engraving/dom/property.cpp" line="320"/>
         <source>barline span to</source>
-        <translation>tähtiviivan väli päättyen</translation>
+        <translation>tahtiviivan ulottuvuus viivastoon</translation>
     </message>
     <message>
         <location filename="../../src/engraving/dom/property.cpp" line="321"/>
         <source>bracket span</source>
-        <translation>hakasulkeen väli</translation>
+        <translation>hakasulkeen ulottuvuus</translation>
     </message>
     <message>
         <location filename="../../src/engraving/dom/property.cpp" line="323"/>
@@ -18812,17 +18817,17 @@ Otenauha %1 kielissä %2</translation>
     <message>
         <location filename="../../src/engraving/dom/property.cpp" line="380"/>
         <source>snap expression</source>
-        <translation>nappaa ilmaisuun</translation>
+        <translation>kohdista ilmaisuun</translation>
     </message>
     <message>
         <location filename="../../src/engraving/dom/property.cpp" line="381"/>
         <source>snap before</source>
-        <translation>nappaa ennen</translation>
+        <translation>kohdista ennen</translation>
     </message>
     <message>
         <location filename="../../src/engraving/dom/property.cpp" line="382"/>
         <source>snap after</source>
-        <translation>nappaa jälkeen</translation>
+        <translation>kohdista jälkeen</translation>
     </message>
     <message>
         <location filename="../../src/engraving/dom/property.cpp" line="384"/>
@@ -18937,12 +18942,12 @@ Otenauha %1 kielissä %2</translation>
     <message>
         <location filename="../../src/engraving/dom/property.cpp" line="412"/>
         <source>tremolo type</source>
-        <translation>tremolo-tyyppi</translation>
+        <translation>tremolotyyppi</translation>
     </message>
     <message>
         <location filename="../../src/engraving/dom/property.cpp" line="413"/>
         <source>tremolo style</source>
-        <translation>tremolo-tyyli</translation>
+        <translation>tremolotyyli</translation>
     </message>
     <message>
         <location filename="../../src/engraving/dom/property.cpp" line="414"/>
@@ -20997,12 +21002,12 @@ Otenauha %1 kielissä %2</translation>
     <message>
         <location filename="../../src/engraving/types/symnames.cpp" line="5702"/>
         <source>Snap pizzicato above</source>
-        <translation>Näpsypizzicato yläpuolella</translation>
+        <translation>Näpsy-pizzicato yläpuolella</translation>
     </message>
     <message>
         <location filename="../../src/engraving/types/symnames.cpp" line="5703"/>
         <source>Snap pizzicato below</source>
-        <translation>Näpsypizzicato alapuolella</translation>
+        <translation>Näpsy-pizzicato alapuolella</translation>
     </message>
     <message>
         <location filename="../../src/engraving/types/symnames.cpp" line="5709"/>
@@ -21565,7 +21570,7 @@ Otenauha %1 kielissä %2</translation>
     <message>
         <location filename="../../src/engraving/types/typesconv.cpp" line="3172"/>
         <source>Tremolo sawtooth wide</source>
-        <translation>Laaja sahalaitatremolo</translation>
+        <translation>Leveä sahalaitatremolo</translation>
     </message>
 </context>
 <context>
@@ -23077,7 +23082,7 @@ kohotahti</translation>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/general/appearance/internal/AppearanceOffsetSection.qml" line="65"/>
         <source>Snap to grid</source>
-        <translation>Kiinnitä ruudukkoon</translation>
+        <translation>Kohdista ruudukkoon</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/general/appearance/internal/AppearanceOffsetSection.qml" line="82"/>
@@ -23527,7 +23532,7 @@ kohotahti</translation>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/barlines/BarlineSettings.qml" line="74"/>
         <source>Repeat style</source>
-        <translation>Toista tyyli</translation>
+        <translation>Kertausmerkkien tyyli</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/barlines/BarlineSettings.qml" line="104"/>
@@ -23542,12 +23547,12 @@ kohotahti</translation>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/barlines/BarlineSettings.qml" line="156"/>
         <source>Span from</source>
-        <translation>Ulottuvuus ylös</translation>
+        <translation>Aloita viivastolta</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/barlines/BarlineSettings.qml" line="175"/>
         <source>Span to</source>
-        <translation>Ulottuvuus alas</translation>
+        <translation>Ulota viivastoon</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/barlines/BarlineSettings.qml" line="193"/>
@@ -23631,7 +23636,7 @@ kohotahti</translation>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/bends/BendSettings.qml" line="81"/>
         <source>Customize bend</source>
-        <translation>Mukauta taivutus</translation>
+        <translation>Mukauta taivutusta</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/bends/BendSettings.qml" line="104"/>
@@ -24009,7 +24014,7 @@ kohotahti</translation>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/fretdiagrams/internal/FretAdvancedSettingsTab.qml" line="80"/>
         <source>Strings</source>
-        <translation>Jouset</translation>
+        <translation>Kielet</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/fretdiagrams/internal/FretAdvancedSettingsTab.qml" line="104"/>
@@ -24147,7 +24152,7 @@ kohotahti</translation>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/jumps/JumpSettings.qml" line="75"/>
         <source>Play repeats</source>
-        <translation>Soita kertaukset</translation>
+        <translation>Toista kertaukset</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/keysignatures/KeySignatureSettings.qml" line="48"/>
@@ -24258,7 +24263,7 @@ kohotahti</translation>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/lines/internal/GradualTempoChangePositionSettingsTab.qml" line="69"/>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/lines/internal/HairpinPositionSettingsTab.qml" line="77"/>
         <source>Snap to next</source>
-        <translation>Nappaa seuraavaan</translation>
+        <translation>Kohdista seuraavaan</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/lines/internal/HairpinPositionSettingsTab.qml" line="63"/>
@@ -24268,7 +24273,7 @@ kohotahti</translation>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/lines/internal/HairpinPositionSettingsTab.qml" line="68"/>
         <source>Snap to previous</source>
-        <translation>Nappaa edelliseen</translation>
+        <translation>Kohdista edelliseen</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/lines/internal/HairpinStyleSettings.qml" line="58"/>
@@ -24475,7 +24480,7 @@ kohotahti</translation>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/notes/BeamSettings.qml" line="188"/>
         <source>Move cross-staff beam</source>
-        <translation>Siirrä viivastonvälistä palkkia</translation>
+        <translation>Siirrä viivastojen välistä palkkia</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/notes/BeamSettings.qml" line="227"/>
@@ -24830,7 +24835,7 @@ kohotahti</translation>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/stafftype/StaffTypeSettings.qml" line="192"/>
         <location filename="../../src/inspector/models/notation/notes/noteheads/noteheadsettingsmodel.cpp" line="193"/>
         <source>Pitch names</source>
-        <translation>Sävelten nimet</translation>
+        <translation>Sävelnimet</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/stafftype/StaffTypeSettings.qml" line="193"/>
@@ -24954,7 +24959,7 @@ kohotahti</translation>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/tremolobars/TremoloBarSettings.qml" line="58"/>
         <source>Tremolo bar type</source>
-        <translation>Tremolo-palkin tyyppi</translation>
+        <translation>Tremolovivun tyyppi</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/tremolobars/TremoloBarSettings.qml" line="65"/>
@@ -25225,7 +25230,7 @@ kohotahti</translation>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/text/TextSettings.qml" line="207"/>
         <source>Staff text properties</source>
-        <translation>Viivaston tekstin ominaisuudet</translation>
+        <translation>Viivastotekstin ominaisuudet</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/text/textstylepopup/FrameSubPopup.qml" line="49"/>
@@ -25714,7 +25719,7 @@ kohotahti</translation>
     <message>
         <location filename="../../src/inspector/models/notation/tremolobars/tremolobarsettingsmodel.cpp" line="35"/>
         <source>Tremolo bar</source>
-        <translation>Tremolo-palkki</translation>
+        <translation>Tremolovipu</translation>
     </message>
     <message>
         <location filename="../../src/inspector/models/notation/tremolos/tremolosettingsmodel.cpp" line="37"/>
@@ -26130,7 +26135,7 @@ kohotahti</translation>
     <message>
         <location filename="../../src/instrumentsscene/qml/MuseScore/InstrumentsScene/internal/StaffSettingsPopup.qml" line="72"/>
         <source>Staff type</source>
-        <translation>Viivaston tyyppi</translation>
+        <translation>Viivastotyyppi</translation>
     </message>
     <message>
         <location filename="../../src/instrumentsscene/qml/MuseScore/InstrumentsScene/internal/StaffSettingsPopup.qml" line="106"/>
@@ -26250,7 +26255,7 @@ In addition, Mastering MuseScore features a supportive community of musicians, w
 (Note: Mastering MuseScore is available in English only)</source>
         <translation>Tervetuloa Mastering MuseScoreen – kattavimpaan resurssiin maailman suosituimman nuotinkirjoitusohjelmiston oppimiseen! Nimeni on Marc Sabatella, ja olen auttanut kehittämään, tukemaan ja mainostamaan MuseScorea sen ensimmäisestä julkaisusta lähtien yli kymmenen vuotta sitten.
 
-Oletpa vasta aloittamassa nuotinkirjoitusohjelmistoa tai kokenut käyttäjä, joka haluaa tutkia edistyneitä kaiverrus- ja toistotekniikoita, lippulaivaverkkokurssini Mastering MuseScore kattaa kaiken, mitä sinun tarvitsee tietää saadaksesi eniten irti MuseScoresta.
+Oletpa vasta aloittamassa nuotinkirjoitusohjelmistoa tai kokenut käyttäjä, joka haluaa tutkia edistyneitä grafiikka- ja toistotekniikoita, lippulaivaverkkokurssini Mastering MuseScore kattaa kaiken, mitä sinun tarvitsee tietää saadaksesi eniten irti MuseScoresta.
 
 Lisäksi Mastering MuseScore sisältää tukevan muusikkoyhteisön, jossa on keskustelutiloja, livelähetyksiä ja muita aiheeseen liittyviä kursseja ja palveluita, jotka auttavat sinua luomaan parasta musiikkiasi. Hyödynnä tämä tilaisuus oppia MuseScore yhdeltä sen tunnetuimmista asiantuntijoista!
 
@@ -26437,7 +26442,7 @@ Lisäksi Mastering MuseScore sisältää tukevan muusikkoyhteisön, jossa on kes
     <message>
         <location filename="../../src/notation/qml/MuseScore/NotationScene/internal/CapoPopup.qml" line="64"/>
         <source>Capo settings</source>
-        <translation>Kapo asetukset</translation>
+        <translation>Kapon asetukset</translation>
     </message>
     <message>
         <location filename="../../src/notation/qml/MuseScore/NotationScene/internal/CapoPopup.qml" line="76"/>
@@ -26575,7 +26580,7 @@ Lisäksi Mastering MuseScore sisältää tukevan muusikkoyhteisön, jossa on kes
     <message>
         <location filename="../../src/notation/qml/MuseScore/NotationScene/internal/EditStyle/ChordSymbolsPage.qml" line="160"/>
         <source>Edit chord symbol text style</source>
-        <translation>Muokkaa sointusymbolin tekstityyliä</translation>
+        <translation>Muokkaa sointumerkin tekstityyliä</translation>
     </message>
     <message>
         <location filename="../../src/notation/qml/MuseScore/NotationScene/internal/EditStyle/ChordSymbolsPage.qml" line="263"/>
@@ -26910,7 +26915,7 @@ Lisäksi Mastering MuseScore sisältää tukevan muusikkoyhteisön, jossa on kes
     <message>
         <location filename="../../src/notation/qml/MuseScore/NotationScene/internal/EditStyle/RepeatPage.qml" line="53"/>
         <source>Measure repeats</source>
-        <translation>Tahdin toistot</translation>
+        <translation>Tahdin kertaukset</translation>
     </message>
     <message>
         <location filename="../../src/notation/qml/MuseScore/NotationScene/internal/EditStyle/RepeatPage.qml" line="61"/>
@@ -27242,7 +27247,7 @@ Lisäksi Mastering MuseScore sisältää tukevan muusikkoyhteisön, jossa on kes
     <message>
         <location filename="../../src/notation/qml/MuseScore/NotationScene/internal/StringTuningsPopup.qml" line="65"/>
         <source>String tunings settings</source>
-        <translation>Jousen viritysasetukset</translation>
+        <translation>Kieliviritysten asetukset</translation>
     </message>
     <message>
         <location filename="../../src/notation/qml/MuseScore/NotationScene/internal/StringTuningsPopup.qml" line="77"/>
@@ -27257,7 +27262,7 @@ Lisäksi Mastering MuseScore sisältää tukevan muusikkoyhteisön, jossa on kes
     <message>
         <location filename="../../src/notation/qml/MuseScore/NotationScene/internal/StringTuningsPopup.qml" line="131"/>
         <source>Strings</source>
-        <translation>Jouset</translation>
+        <translation>Kielet</translation>
     </message>
     <message>
         <location filename="../../src/notation/qml/MuseScore/NotationScene/internal/StringTuningsPopup.qml" line="171"/>
@@ -27349,31 +27354,31 @@ Lisäksi Mastering MuseScore sisältää tukevan muusikkoyhteisön, jossa on kes
         <translation>Zoom valikko</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/view/appmenumodel.cpp" line="676"/>
+        <location filename="../../src/appshell/view/appmenumodel.cpp" line="677"/>
         <location filename="../../src/appshell_web/view/appmenumodel.cpp" line="367"/>
         <source>Insert &amp;after selection…</source>
         <translation>Lisää valinnan &amp;jälkeen…</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/view/appmenumodel.cpp" line="677"/>
+        <location filename="../../src/appshell/view/appmenumodel.cpp" line="678"/>
         <location filename="../../src/appshell_web/view/appmenumodel.cpp" line="368"/>
         <source>Insert &amp;before selection…</source>
         <translation>Lisää &amp;ennen valintaa…</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/view/appmenumodel.cpp" line="679"/>
+        <location filename="../../src/appshell/view/appmenumodel.cpp" line="680"/>
         <location filename="../../src/appshell_web/view/appmenumodel.cpp" line="370"/>
         <source>Insert at &amp;start of score…</source>
         <translation>Lisää partituurin &amp;alkuun…</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/view/appmenumodel.cpp" line="680"/>
+        <location filename="../../src/appshell/view/appmenumodel.cpp" line="681"/>
         <location filename="../../src/appshell_web/view/appmenumodel.cpp" line="371"/>
         <source>Insert at &amp;end of score…</source>
         <translation>Lisää partituurin &amp;loppuun…</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/view/appmenumodel.cpp" line="694"/>
+        <location filename="../../src/appshell/view/appmenumodel.cpp" line="695"/>
         <location filename="../../src/notation/view/noteinputbarmodel.cpp" line="652"/>
         <source>Insert at end of score</source>
         <translation>Lisää partituurin loppuun</translation>
@@ -28173,7 +28178,7 @@ Lisäksi Mastering MuseScore sisältää tukevan muusikkoyhteisön, jossa on kes
     <message>
         <location filename="../../src/notation/view/selectionfilter/elementsselectionfiltermodel.cpp" line="91"/>
         <source>Grace notes</source>
-        <translation>Korusävelet</translation>
+        <translation>Korunuotit</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/selectionfilter/notesinchordselectionfiltermodel.cpp" line="149"/>
@@ -28269,7 +28274,7 @@ Lisäksi Mastering MuseScore sisältää tukevan muusikkoyhteisön, jossa on kes
     <message>
         <location filename="../../src/notation/view/widgets/editstringdata.cpp" line="224"/>
         <source>&lt;b&gt;Always open&lt;/b&gt;&lt;br&gt;On tablature staves, fret positions other than ‘0’ cannot be entered on strings marked ‘always open’. Useful for instruments with strings that are not on the fretboard, such as the theorbo.</source>
-        <translation>&lt;b&gt;Aina auki&lt;/b&gt;&lt;br&gt;Tablatuuriviivastoilla ei voida syöttää muuta nauhan sijaintia kuin ‘0’ ‘aina auki’ merkittyihin merkkijonoihin. Hyödyllinen soittimille, joiden kielet eivät ole otelaudalla, kuten theorbo.</translation>
+        <translation>&lt;b&gt;Aina auki&lt;/b&gt;&lt;br&gt;Tablatuuriviivastoilla ei voida syöttää muuta nauhan sijaintia kuin ‘0’ ‘aina auki’ merkittyihin merkkijonoihin. Hyödyllinen soittimille, joiden kielet eivät ole otelaudalla, kuten teorbi.</translation>
     </message>
 </context>
 <context>
@@ -28315,7 +28320,7 @@ Lisäksi Mastering MuseScore sisältää tukevan muusikkoyhteisön, jossa on kes
         <location filename="../../src/notation/view/widgets/editstyle.cpp" line="242"/>
         <location filename="../../src/notation/view/widgets/editstyle.cpp" line="1283"/>
         <source>Apply to all parts</source>
-        <translation>Käytä kaikkiin stemmoihin</translation>
+        <translation>Koskee kaikkia stemmoja</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.cpp" line="736"/>
@@ -28649,7 +28654,7 @@ Lisäksi Mastering MuseScore sisältää tukevan muusikkoyhteisön, jossa on kes
     <message>
         <location filename="../../src/notation/qml/MuseScore/NotationScene/internal/EditStyle/ChordSymbolsPage.qml" line="658"/>
         <source>Positioning</source>
-        <translation>Asettelu</translation>
+        <translation>Sijoittelu</translation>
     </message>
     <message>
         <location filename="../../src/notation/qml/MuseScore/NotationScene/internal/EditStyle/ChordSymbolsPage.qml" line="764"/>
@@ -29150,7 +29155,7 @@ Lisäksi Mastering MuseScore sisältää tukevan muusikkoyhteisön, jossa on kes
     <message>
         <location filename="../../src/notation/qml/MuseScore/NotationScene/internal/EditStyle/ClefKeyTimeSigPage.qml" line="483"/>
         <source>Clefs, key &amp; time signatures at repeats and jumps</source>
-        <translation>Nuottiavaimet, sävel- &amp; tahtilajit kertauksissa ja hypyissä</translation>
+        <translation>Nuottiavaimet, sävel- ja tahtilajit kertauksissa ja hypyissä</translation>
     </message>
     <message>
         <location filename="../../src/notation/qml/MuseScore/NotationScene/internal/EditStyle/ClefKeyTimeSigPage.qml" line="527"/>
@@ -29180,12 +29185,12 @@ Lisäksi Mastering MuseScore sisältää tukevan muusikkoyhteisön, jossa on kes
     <message>
         <location filename="../../src/notation/qml/MuseScore/NotationScene/internal/EditStyle/ClefKeyTimeSigPage.qml" line="590"/>
         <source>Place clefs before repeats</source>
-        <translation>Sijoita nuottiavaimet ennen kertauksia</translation>
+        <translation>Sijoita nuottiavaimet kertaumerkkien edelle</translation>
     </message>
     <message>
         <location filename="../../src/notation/qml/MuseScore/NotationScene/internal/EditStyle/ClefKeyTimeSigPage.qml" line="599"/>
         <source>Place clefs after repeats</source>
-        <translation>Sijoita nuottiavaimet kertauksien jälkeen</translation>
+        <translation>Sijoita nuottiavaimet kertausmerkkien jälkeen</translation>
     </message>
     <message>
         <location filename="../../src/notation/qml/MuseScore/NotationScene/internal/EditStyle/ClefKeyTimeSigPage.qml" line="621"/>
@@ -29648,7 +29653,7 @@ Lisäksi Mastering MuseScore sisältää tukevan muusikkoyhteisön, jossa on kes
     <message>
         <location filename="../../src/notation/view/widgets/stafftextpropertiesdialog.cpp" line="58"/>
         <source>Staff text properties</source>
-        <translation>Viivaston tekstin ominaisuudet</translation>
+        <translation>Viivastotekstin ominaisuudet</translation>
     </message>
 </context>
 <context>
@@ -29896,7 +29901,7 @@ Lisäksi Mastering MuseScore sisältää tukevan muusikkoyhteisön, jossa on kes
     <message>
         <location filename="../../src/palette/qml/MuseScore/Palette/internal/AddPalettesPopup.qml" line="137"/>
         <source>Add %1 palette</source>
-        <translation>Lisää %1 paletti</translation>
+        <translation>Lisää %1 -paletti</translation>
     </message>
     <message>
         <location filename="../../src/palette/qml/MuseScore/Palette/internal/AddPalettesPopup.qml" line="163"/>
@@ -30107,12 +30112,12 @@ Lisäksi Mastering MuseScore sisältää tukevan muusikkoyhteisön, jossa on kes
         <translation>Aloita kaikkien palettien etsintä kirjoittamalla</translation>
     </message>
     <message>
-        <location filename="../../src/palette/internal/palette.cpp" line="545"/>
+        <location filename="../../src/palette/internal/palette.cpp" line="544"/>
         <source>Writing palette file</source>
         <translation>Kirjoitetaan palettitiedostoa</translation>
     </message>
     <message>
-        <location filename="../../src/palette/internal/palette.cpp" line="546"/>
+        <location filename="../../src/palette/internal/palette.cpp" line="545"/>
         <source>Writing palette file
 %1
 failed.</source>
@@ -30278,7 +30283,7 @@ kirjoitus epäonnistui.</translation>
         <location filename="../../src/palette/internal/palettecreator.cpp" line="782"/>
         <location filename="../../src/palette/internal/palettecreator.cpp" line="1791"/>
         <source>Tremolo bar</source>
-        <translation>Tremolo-palkki</translation>
+        <translation>Tremolovipu</translation>
     </message>
     <message>
         <location filename="../../src/palette/internal/palettecreator.cpp" line="791"/>
@@ -30325,7 +30330,7 @@ kirjoitus epäonnistui.</translation>
     <message>
         <location filename="../../src/palette/internal/palettecreator.cpp" line="1015"/>
         <source>Arpeggios &amp; glissandos</source>
-        <translation>Arpeggiot &amp; glissandot</translation>
+        <translation>Arpeggiot ja glissandot</translation>
     </message>
     <message>
         <location filename="../../src/palette/internal/palettecreator.cpp" line="1070"/>
@@ -30584,7 +30589,7 @@ kirjoitus epäonnistui.</translation>
         <location filename="../../src/palette/internal/palettecreator.cpp" line="1535"/>
         <location filename="../../src/palette/internal/palettecreator.cpp" line="1536"/>
         <source>Staff text</source>
-        <translation>Viivastoteksti - ääniliput</translation>
+        <translation>Viivastoteksti</translation>
     </message>
     <message>
         <location filename="../../src/palette/internal/palettecreator.cpp" line="1546"/>
@@ -32783,60 +32788,60 @@ avaaminen epäonnistui: %2</translation>
         <translation>Aktivoi tämä profiili</translation>
     </message>
     <message>
-        <location filename="../../src/playback/internal/playbackcontroller.cpp" line="85"/>
+        <location filename="../../src/playback/internal/playbackcontroller.cpp" line="86"/>
         <source>Reverb</source>
         <translation>Kaiku</translation>
     </message>
     <message>
-        <location filename="../../src/playback/internal/playbackcontroller.cpp" line="91"/>
+        <location filename="../../src/playback/internal/playbackcontroller.cpp" line="92"/>
         <location filename="../../src/playback/view/internal/mixerchannelitem.cpp" line="617"/>
         <source>Aux %1</source>
         <translation>Aux %1</translation>
     </message>
     <message>
-        <location filename="../../src/playback/internal/playbackcontroller.cpp" line="1016"/>
+        <location filename="../../src/playback/internal/playbackcontroller.cpp" line="1025"/>
         <source>Metronome</source>
         <translation>Metronomi</translation>
     </message>
     <message>
-        <location filename="../../src/playback/internal/playbackcontroller.cpp" line="1026"/>
+        <location filename="../../src/playback/internal/playbackcontroller.cpp" line="1035"/>
         <source>Chords</source>
         <translation>Soinnut</translation>
     </message>
     <message>
-        <location filename="../../src/playback/internal/onlinesoundscontroller.cpp" line="178"/>
+        <location filename="../../src/playback/internal/onlinesoundscontroller.cpp" line="179"/>
         <source>This may be due to a poor internet connection or server issue. Your score will still play, but some sounds may be missing. Please check your connection, and make sure MuseHub is running and you are logged in. &lt;a href=&quot;%1&quot;&gt;Learn more here&lt;/a&gt;.</source>
         <translation>Tämä voi johtua heikosta internetyhteydestä tai palvelinongelmasta. Partituurisi soi edelleen, mutta jotkin äänet saattavat puuttua. Tarkista yhteytesi ja varmista, että MuseHub on käynnissä ja olet kirjautunut sisään. &lt;a href=&quot;%1&quot;&gt;Lue lisää täältä&lt;/a&gt;.</translation>
     </message>
     <message>
-        <location filename="../../src/playback/internal/onlinesoundscontroller.cpp" line="184"/>
+        <location filename="../../src/playback/internal/onlinesoundscontroller.cpp" line="185"/>
         <location filename="../../src/playback/view/internal/onlinesoundsstatusmodel.cpp" line="117"/>
         <source>Some online sounds aren’t ready yet</source>
         <translation>Jotkin online-äänet eivät ole vielä valmiita</translation>
     </message>
     <message>
-        <location filename="../../src/playback/internal/onlinesoundscontroller.cpp" line="218"/>
+        <location filename="../../src/playback/internal/onlinesoundscontroller.cpp" line="219"/>
         <source>You’ve reached your current render limit for %1. You will be able to process online sounds again after your quota resets on %2. More info: &lt;a href=&quot;%3&quot;&gt;%3&lt;/a&gt;.</source>
         <translation>Olet saavuttanut nykyisen renderöintikiintiösi kohdassa %1. Voit käsitellä online-ääniä uudelleen, kun kiintiösi nollataan kohdassa %2. Lisätietoja: &lt;a href=&quot;%3&quot;&gt;%3&lt;/a&gt;.</translation>
     </message>
     <message>
-        <location filename="../../src/playback/internal/onlinesoundscontroller.cpp" line="225"/>
+        <location filename="../../src/playback/internal/onlinesoundscontroller.cpp" line="226"/>
         <location filename="../../src/playback/view/internal/onlinesoundsstatusmodel.cpp" line="119"/>
         <source>Unable to process online sounds</source>
         <translation>Online-äänien käsittely epäonnistui</translation>
     </message>
     <message>
-        <location filename="../../src/playback/internal/onlinesoundscontroller.cpp" line="242"/>
+        <location filename="../../src/playback/internal/onlinesoundscontroller.cpp" line="243"/>
         <source>Are you sure you want to clear online sounds cache?</source>
         <translation>Haluatko varmasti tyhjentää online-äänien välimuistin?</translation>
     </message>
     <message>
-        <location filename="../../src/playback/internal/onlinesoundscontroller.cpp" line="243"/>
+        <location filename="../../src/playback/internal/onlinesoundscontroller.cpp" line="244"/>
         <source>This will delete online sounds data stored on your computer for this score. Online sounds processing will try to restart immediately.</source>
         <translation>Tämä poistaa tietokoneellesi tallennetut tämän partituurin online-äänitiedot. Online-äänien käsittely yrittää käynnistyä uudelleen välittömästi.</translation>
     </message>
     <message>
-        <location filename="../../src/playback/internal/playbackcontroller.cpp" line="1387"/>
+        <location filename="../../src/playback/internal/playbackcontroller.cpp" line="1396"/>
         <source>Loading audio samples</source>
         <translation>Ladataan ääninäytteitä</translation>
     </message>
@@ -34012,7 +34017,7 @@ Haluatko korvata sen?</translation>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Migration/MigrationContentFor362.qml" line="85"/>
         <source>Use our new notation and sound mapping for &lt;a href=&quot;%1&quot;&gt;MDL percussion&lt;/a&gt;</source>
-        <translation>Käytä uutta notaatio- ja äänikartoitustamme &lt;a href=&quot;%1&quot;&gt;MDL-lyömäsoittimille&lt;/a&gt;</translation>
+        <translation>Käytä uutta nuotinnustamme ja äänikartoitustamme &lt;a href=&quot;%1&quot;&gt;MDL-lyömäsoittimille&lt;/a&gt;</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Migration/MigrationContentFor362.qml" line="100"/>
@@ -34022,7 +34027,7 @@ Haluatko korvata sen?</translation>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Migration/MigrationContentForPre362.qml" line="83"/>
         <source>Select the engraving improvements you would like to apply to your score</source>
-        <translation>Valitse kaiverrusparannukset, joita haluat soveltaa partituuriisi</translation>
+        <translation>Valitse graafiset parannukset, joita haluat soveltaa partituuriisi</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Migration/MigrationContentForPre362.qml" line="112"/>
@@ -34037,7 +34042,7 @@ Haluatko korvata sen?</translation>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Migration/MigrationContentForPre362.qml" line="138"/>
         <source>Our new notation and sound mapping for &lt;a href=&quot;%1&quot;&gt;MDL percussion&lt;/a&gt;</source>
-        <translation>Uusi notaatio- ja äänikartoituksemme &lt;a href=&quot;%1&quot;&gt;MDL-lyömäsoittimille&lt;/a&gt;</translation>
+        <translation>Uusi nuotinnus- ja äänikartoituksemme &lt;a href=&quot;%1&quot;&gt;MDL-lyömäsoittimille&lt;/a&gt;</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Migration/MigrationContentForPre362.qml" line="157"/>
@@ -34795,17 +34800,16 @@ Haluatko korvata sen?</translation>
         <translation>Ilmainen</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/view/publish/publishtoolbarmodel.cpp" line="47"/>
         <source>Save this score to your MuseScore.com account</source>
         <translation>Tallenna tämä partituuri MuseScore.com-tilillesi</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/view/publish/publishtoolbarmodel.cpp" line="51"/>
+        <location filename="../../src/appshell/view/publish/publishtoolbarmodel.cpp" line="48"/>
         <source>Share this score and its audio on MuseScore.com</source>
         <translation>Jaa tämä partituuri ja sen äänitiedosto MuseScore.com&apos;issa</translation>
     </message>
     <message>
-        <location filename="../../src/appshell/view/publish/publishtoolbarmodel.cpp" line="52"/>
+        <location filename="../../src/appshell/view/publish/publishtoolbarmodel.cpp" line="49"/>
         <source>Share the audio from this score on Audio.com</source>
         <translation>Jaa tämän partituurin ääni Audio.com&apos;issa</translation>
     </message>
@@ -35302,17 +35306,17 @@ Haluatko korvata sen?</translation>
         <translation>Musta</translation>
     </message>
     <message>
-        <location filename="../../src/framework/ui/view/navigationpanel.cpp" line="153"/>
+        <location filename="../../src/framework/ui/view/navigationpanel.cpp" line="145"/>
         <source>direction is horizontal</source>
         <translation>suunta on horisonttaalinen</translation>
     </message>
     <message>
-        <location filename="../../src/framework/ui/view/navigationpanel.cpp" line="154"/>
+        <location filename="../../src/framework/ui/view/navigationpanel.cpp" line="146"/>
         <source>direction is vertical</source>
         <translation>suunta on vertikaalinen</translation>
     </message>
     <message>
-        <location filename="../../src/framework/ui/view/navigationpanel.cpp" line="155"/>
+        <location filename="../../src/framework/ui/view/navigationpanel.cpp" line="147"/>
         <source>direction is both</source>
         <translation>suunta on molempia</translation>
     </message>
@@ -35584,7 +35588,7 @@ Haluatko korvata sen?</translation>
     <message>
         <location filename="../../src/inspector/models/notation/barlines/barlinesettingsmodel.cpp" line="233"/>
         <source>Set barline span interval as staff default</source>
-        <translation>Aseta tahtiviivan laajuus nuottirivin oletukseksi</translation>
+        <translation>Aseta tahtiviivan ulottuvuus nuottirivin oletukseksi</translation>
     </message>
     <message>
         <location filename="../../src/inspector/models/notation/bends/bendsettingsmodel.cpp" line="277"/>
@@ -35825,12 +35829,12 @@ Haluatko korvata sen?</translation>
     <message>
         <location filename="../../src/notation/internal/notationinteraction.cpp" line="4028"/>
         <source>Toggle snap to previous</source>
-        <translation>Nappaa edelliseen</translation>
+        <translation>Vaihda kohdistus edelliseen</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationinteraction.cpp" line="4069"/>
         <source>Toggle snap to next</source>
-        <translation>Nappaa seuraavaan</translation>
+        <translation>Vaihda kohdistus seuraavaan</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationinteraction.cpp" line="4209"/>
@@ -36433,7 +36437,7 @@ Haluatko korvata sen?</translation>
     <message>
         <location filename="../../src/notation/internal/notationparts.cpp" line="560"/>
         <source>Set staff type</source>
-        <translation>Aseta viivaston tyyppi</translation>
+        <translation>Aseta viivastotyyppi</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationparts.cpp" line="582"/>
@@ -36508,7 +36512,7 @@ Haluatko korvata sen?</translation>
     <message>
         <location filename="../../src/notation/view/widgets/stafftextpropertiesdialog.cpp" line="148"/>
         <source>Edit staff text properties</source>
-        <translation>Muokkaa viivaston tekstin ominaisuuksia</translation>
+        <translation>Muokkaa viivastotekstin ominaisuuksia</translation>
     </message>
     <message>
         <location filename="../../src/palette/view/widgets/timesignaturepropertiesdialog.cpp" line="216"/>

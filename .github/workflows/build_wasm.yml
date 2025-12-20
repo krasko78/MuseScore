@@ -50,7 +50,7 @@ jobs:
         echo "CCACHE_TIMESTAMP=$(date -u +"%F-%T")" | tee -a $GITHUB_ENV
 
     - name: Restore ccache files
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ${{ github.workspace }}/.ccache
         key: wasm-ccache-${{ env.CCACHE_TIMESTAMP }}
@@ -59,9 +59,6 @@ jobs:
       run: |
         sudo apt-get update && sudo apt-get install -y ccache
         bash ./buildscripts/ci/tools/setup_ccache_config.sh
-
-    - name: Register gcc problem matcher
-      run: echo "::add-matcher::.github/problem_matchers/gcc.json"
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v4
@@ -75,6 +72,10 @@ jobs:
     - name: Setup environment
       run: |
         bash ./buildscripts/ci/linux/setup.sh --arch wasm
+
+    - name: Register gcc problem matcher
+      run: echo "::add-matcher::.github/problem_matchers/gcc.json"
+
     - name: Build
       env:
         CMAKE_PREFIX_PATH: ${{env.QT_ROOT_DIR}}
@@ -86,7 +87,7 @@ jobs:
       run: |
         bash ./buildscripts/ci/wasm/package.sh
     - name: Upload artifacts on GitHub
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ env.UPLOAD_ARTIFACT_NAME }}
         path: ./build.artifacts/

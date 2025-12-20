@@ -226,8 +226,8 @@ const UiActionList ApplicationUiActions::m_actions = {
     UiAction("preference-dialog",
              mu::context::UiCtxAny,
              mu::context::CTX_ANY,
-             TranslatableString("action", "&Preferences"),
-             TranslatableString("action", "Preferences…")
+             TranslatableString("action", "&Preferences…"),
+             TranslatableString("action", "Preferences")
              ),
 
     UiAction("action://copy",
@@ -361,10 +361,10 @@ bool ApplicationUiActions::actionChecked(const UiAction& act) const
     }
 
     if (dockName == NOTATION_BRAILLE_PANEL_NAME) {
-        return brailleConfiguration()->braillePanelEnabled();
+        return brailleConfiguration() && brailleConfiguration()->braillePanelEnabled();
     }
 
-    const IDockWindow* window = dockWindowProvider()->window();
+    const IDockWindow* window = dockWindowProvider() ? dockWindowProvider()->window() : nullptr;
     return window ? window->isDockOpen(dockName) : false;
 }
 

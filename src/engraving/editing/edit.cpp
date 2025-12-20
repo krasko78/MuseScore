@@ -3431,7 +3431,7 @@ void Score::deleteMeasures(MeasureBase* mbStart, MeasureBase* mbEnd, bool preser
                     }
                 }
 
-                KeySig* nks = (KeySig*)s->elementAt(staff2track(staffIdx));
+                KeySig* nks = (KeySig*)s->element(staff2track(staffIdx));
                 if (!nks) {
                     nks = Factory::createKeySig(s);
                     nks->setParent(s);
@@ -4315,7 +4315,7 @@ void Score::addHairpinToDynamic(Hairpin* hairpin, Dynamic* dynamic)
 
     Chord* startChord = nullptr;
     for (Segment* segment = dynamicSegment; segment; segment = segment->prev(SegmentType::ChordRest)) {
-        EngravingItem* element = segment->elementAt(track);
+        EngravingItem* element = segment->element(track);
         if (element && element->isChord()) {
             startChord = toChord(element);
             break;
@@ -4375,6 +4375,8 @@ Hairpin* Score::addHairpinToDynamicOnGripDrag(Dynamic* dynamic, bool isLeftGrip,
         hairpin->setTick(dynamic->tick());
         hairpin->setTick2(seg->tick());
     }
+
+    hairpin->setVoiceAssignment(dynamic->voiceAssignment());
 
     undoAddElement(hairpin);
 
@@ -5208,14 +5210,11 @@ void Score::cloneVoice(track_idx_t strack, track_idx_t dtrack, Segment* sf, cons
                     }
                 }
 
-                if (oe->isChord()) {
-                    Chord* och = toChord(ocr);
-                    Chord* nch = toChord(ncr);
-
-                    size_t n = och->notes().size();
+                auto cloneChord = [&](Chord* oldChord, Chord* newChord) {
+                    size_t n = oldChord->notes().size();
                     for (size_t i = 0; i < n; ++i) {
-                        Note* on = och->notes().at(i);
-                        Note* nn = nch->notes().at(i);
+                        Note* on = oldChord->notes().at(i);
+                        Note* nn = newChord->notes().at(i);
                         staff_idx_t idx = track2staff(dtrack);
                         Fraction tick = oseg->tick();
                         Interval v = staff(idx) ? staff(idx)->transpose(tick) : Interval();
@@ -5270,31 +5269,39 @@ void Score::cloneVoice(track_idx_t strack, track_idx_t dtrack, Segment* sf, cons
                         }
                     }
                     // two note tremolo
-                    if (och->tremoloTwoChord()) {
-                        if (och == och->tremoloTwoChord()->chord1()) {
+                    if (oldChord->tremoloTwoChord()) {
+                        if (oldChord == oldChord->tremoloTwoChord()->chord1()) {
                             if (tremolo) {
                                 LOGD("unconnected two note tremolo");
                             }
                             if (link) {
-                                tremolo = item_cast<TremoloTwoChord*>(och->tremoloTwoChord()->linkedClone());
+                                tremolo = item_cast<TremoloTwoChord*>(oldChord->tremoloTwoChord()->linkedClone());
                             } else {
-                                tremolo = item_cast<TremoloTwoChord*>(och->tremoloTwoChord()->clone());
+                                tremolo = item_cast<TremoloTwoChord*>(oldChord->tremoloTwoChord()->clone());
                             }
-                            tremolo->setScore(nch->score());
-                            tremolo->setParent(nch);
-                            tremolo->setTrack(nch->track());
-                            tremolo->setChords(nch, nullptr);
-                            nch->setTremoloTwoChord(tremolo);
-                        } else if (och == och->tremoloTwoChord()->chord2()) {
+                            tremolo->setScore(newChord->score());
+                            tremolo->setParent(newChord);
+                            tremolo->setTrack(newChord->track());
+                            tremolo->setChords(newChord, nullptr);
+                            newChord->setTremoloTwoChord(tremolo);
+                        } else if (oldChord == oldChord->tremoloTwoChord()->chord2()) {
                             if (!tremolo) {
                                 LOGD("first note for two note tremolo missing");
                             } else {
-                                tremolo->setChords(tremolo->chord1(), nch);
-                                nch->setTremoloTwoChord(tremolo);
+                                tremolo->setChords(tremolo->chord1(), newChord);
+                                newChord->setTremoloTwoChord(tremolo);
                             }
                         } else {
                             LOGD("inconsistent two note tremolo");
                         }
+                    }
+                };
+                if (oe->isChord()) {
+                    cloneChord(toChord(ocr), toChord(ncr));
+                    for (size_t i = 0; i < toChord(ocr)->graceNotes().size(); ++i) {
+                        Chord* ogc = toChord(ocr)->graceNotes().at(i);
+                        Chord* ngc = toChord(ncr)->graceNotes().at(i);
+                        cloneChord(ogc, ngc);
                     }
                 }
 
@@ -6797,6 +6804,8 @@ void Score::undoAddElement(EngravingItem* element, bool addToLinkedStaves, bool 
             && et != ElementType::VIBRATO
             && et != ElementType::TEXTLINE
             && et != ElementType::PEDAL
+            && et != ElementType::LET_RING
+            && et != ElementType::PALM_MUTE
             && et != ElementType::PARTIAL_LYRICSLINE
             && et != ElementType::BREATH
             && et != ElementType::DYNAMIC
@@ -7064,6 +7073,8 @@ void Score::undoAddElement(EngravingItem* element, bool addToLinkedStaves, bool 
                    || element->isVibrato()
                    || element->isTextLine()
                    || element->isPedal()
+                   || element->isLetRing()
+                   || element->isPalmMute()
                    || element->isPartialLyricsLine()) {
             Spanner* sp   = toSpanner(element);
             Spanner* nsp  = toSpanner(ne);

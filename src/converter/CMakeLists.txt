@@ -28,6 +28,7 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/convertermodule.cpp
     ${CMAKE_CURRENT_LIST_DIR}/convertermodule.h
     ${CMAKE_CURRENT_LIST_DIR}/convertercodes.h
+    ${CMAKE_CURRENT_LIST_DIR}/convertertypes.h
     ${CMAKE_CURRENT_LIST_DIR}/iconvertercontroller.h
 
     ${CMAKE_CURRENT_LIST_DIR}/api/converterapi.cpp
@@ -41,6 +42,7 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/internal/compat/backendapi.h
     ${CMAKE_CURRENT_LIST_DIR}/internal/compat/backendjsonwriter.cpp
     ${CMAKE_CURRENT_LIST_DIR}/internal/compat/backendjsonwriter.h
+    ${CMAKE_CURRENT_LIST_DIR}/internal/compat/backendtypes.h
     ${CMAKE_CURRENT_LIST_DIR}/internal/compat/notationmeta.cpp
     ${CMAKE_CURRENT_LIST_DIR}/internal/compat/notationmeta.h
     ${CMAKE_CURRENT_LIST_DIR}/internal/compat/scoreelementsscanner.cpp

@@ -1220,6 +1220,7 @@ void TWrite::write(const Capo* item, XmlWriter& xml, WriteContext& ctx)
     writeProperty(item, xml, Pid::ACTIVE);
     writeProperty(item, xml, Pid::CAPO_FRET_POSITION);
     writeProperty(item, xml, Pid::CAPO_GENERATE_TEXT);
+    writeProperty(item, xml, Pid::CAPO_TRANSPOSE_MODE);
 
     std::set<string_idx_t> orderedStrings;
     for (string_idx_t idx : item->params().ignoredStrings) {
@@ -1245,7 +1246,6 @@ void TWrite::write(const Dynamic* item, XmlWriter& xml, WriteContext& ctx)
     writeProperty(item, xml, Pid::DYNAMIC_TYPE);
     writeProperty(item, xml, Pid::VELOCITY);
     writeProperty(item, xml, Pid::AVOID_BARLINES);
-    writeProperty(item, xml, Pid::DYNAMICS_SIZE);
     writeProperty(item, xml, Pid::CENTER_ON_NOTEHEAD);
     writeProperty(item, xml, Pid::PLAY);
     writeProperty(item, xml, Pid::ANCHOR_TO_END_OF_PREVIOUS);
@@ -1284,9 +1284,6 @@ void TWrite::writeProperties(const TextBase* item, XmlWriter& xml, WriteContext&
         if (!item->isStyled(spp.pid)) {
             writeProperty(item, xml, spp.pid);
         }
-    }
-    if (item->hasSymbolSize()) {
-        writeProperty(item, xml, Pid::MUSIC_SYMBOL_SIZE);
     }
     for (const auto& spp : *textStyle(item->textStyleType())) {
         if (item->isStyled(spp.pid)
@@ -1715,7 +1712,7 @@ static void writeHarmonyInfo(const HarmonyInfo* item, const Harmony* h, XmlWrite
 
 void TWrite::write(const Harmony* item, XmlWriter& xml, WriteContext& ctx)
 {
-    if (!ctx.canWrite(item)) {
+    if (!ctx.canWrite(item) || item->chords().empty()) {
         return;
     }
     xml.startElement(item);
@@ -2393,8 +2390,21 @@ void TWrite::write(const Part* item, XmlWriter& xml, WriteContext& ctx)
 {
     xml.startElement(item, { { "id", item->id().toUint64() } });
 
+    auto shouldWriteStaff = [&ctx](const Staff* staff) {
+        if (!ctx.shouldWriteRange()) {
+            return true;
+        }
+
+        const WriteRange& range = ctx.range().value();
+        const staff_idx_t idx = staff->idx();
+
+        return idx >= range.startStaffIdx && idx < range.endStaffIdx;
+    };
+
     for (const Staff* staff : item->staves()) {
-        write(staff, xml, ctx);
+        if (shouldWriteStaff(staff)) {
+            write(staff, xml, ctx);
+        }
     }
 
     if (!item->show()) {
@@ -3315,12 +3325,19 @@ static bool writeVoiceMove(XmlWriter& xml, WriteContext& ctx, Segment* seg, cons
     return voiceTagWritten;
 }
 
+static void writeTimeSig(Score* score, const Fraction& tick, XmlWriter& xml, WriteContext& ctx)
+{
+    Fraction tsf = score->sigmap()->timesig(tick).nominal();
+    TimeSig* ts = Factory::createTimeSig(score->dummy()->segment());
+    ts->setSig(tsf);
+    TWrite::write(ts, xml, ctx);
+}
+
 //---------------------------------------------------------
 //   writeSegments
 //    ls  - write upto this segment (excluding)
 //          can be zero
 //---------------------------------------------------------
-
 void TWrite::writeSegments(XmlWriter& xml, WriteContext& ctx, track_idx_t strack, track_idx_t etrack,
                            Segment* sseg, Segment* eseg, bool writeSystemElements, bool forceTimeSig)
 {
@@ -3368,11 +3385,18 @@ void TWrite::writeSegments(XmlWriter& xml, WriteContext& ctx, track_idx_t strack
     int lastTrackWritten = static_cast<int>(strack - 1);   // for counting necessary <voice> tags
     for (track_idx_t track = strack; track < etrack; ++track) {
         if (!ctx.canWriteVoice(track)) {
+            if (forceTimeSig && track2voice(track) == 0) {
+                bool voiceTagWritten = writeVoiceMove(xml, ctx, sseg, startTick, track, &lastTrackWritten);
+                writeTimeSig(score, startTick, xml, ctx);
+                if (voiceTagWritten) {
+                    xml.endElement(); // </voice>
+                }
+            }
+
             continue;
         }
 
         bool voiceTagWritten = false;
-
         bool timeSigWritten = false;     // for forceTimeSig
         bool crWritten = false;          // for forceTimeSig
         bool keySigWritten = false;      // for forceTimeSig
@@ -3492,11 +3516,7 @@ void TWrite::writeSegments(XmlWriter& xml, WriteContext& ctx, track_idx_t strack
                     keySigWritten = true;
                 }
                 // we will miss a time sig!
-                Fraction tsf = score->sigmap()->timesig(segment->tick()).nominal();
-                TimeSig* ts = Factory::createTimeSig(score->dummy()->segment());
-                ts->setSig(tsf);
-                TWrite::write(ts, xml, ctx);
-                delete ts;
+                writeTimeSig(score, segment->tick(), xml, ctx);
                 timeSigWritten = true;
             }
             if (needMove) {

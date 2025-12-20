@@ -28,6 +28,8 @@
 #include "dom/imageStore.h"
 #include "dom/audio.h"
 
+#include "engraving/automation/iautomation.h"
+
 #include "rwregister.h"
 #include "inoutdata.h"
 
@@ -40,7 +42,7 @@ using namespace mu::engraving;
 using namespace mu::engraving::rw;
 
 bool MscSaver::writeMscz(MasterScore* score, MscWriter& mscWriter, bool createThumbnail,
-                         const write::WriteRange* range)
+                         const write::WriteContext* ctx)
 {
     TRACEFUNC;
 
@@ -61,8 +63,8 @@ bool MscSaver::writeMscz(MasterScore* score, MscWriter& mscWriter, bool createTh
 
     WriteInOutData masterWriteOutData(score);
 
-    if (range) {
-        masterWriteOutData.ctx.setRange(*range);
+    if (ctx) {
+        masterWriteOutData.ctx = *ctx;
     }
 
     // Write MasterScore
@@ -78,7 +80,7 @@ bool MscSaver::writeMscz(MasterScore* score, MscWriter& mscWriter, bool createTh
 
     // Write Excerpts
     {
-        if (!range) {
+        if (!ctx || !ctx->shouldWriteRange()) {
             const std::vector<Excerpt*>& excerpts = score->excerpts();
 
             for (size_t excerptIndex = 0; excerptIndex < excerpts.size(); ++excerptIndex) {
@@ -156,6 +158,13 @@ bool MscSaver::writeMscz(MasterScore* score, MscWriter& mscWriter, bool createTh
     {
         if (score->audio()) {
             mscWriter.writeAudioFile(score->audio()->data());
+        }
+    }
+
+    // Write automation
+    {
+        if (score->automation()) {
+            mscWriter.writeAutomationJsonFile(score->automation()->toJson());
         }
     }
 

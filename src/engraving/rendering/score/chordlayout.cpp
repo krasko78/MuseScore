@@ -187,7 +187,7 @@ void ChordLayout::layoutPitched(Chord* item, LayoutContext& ctx)
         }
         Arpeggio::LayoutData* arpldata = spanArp->mutldata();
         const Segment* seg = spanArp->chord()->segment();
-        const EngravingItem* endItem = seg->elementAt(spanArp->endTrack());
+        const EngravingItem* endItem = seg->element(spanArp->endTrack());
         const Chord* endChord = item;
         if (endItem && endItem->isChord()) {
             endChord = toChord(endItem);
@@ -1641,7 +1641,7 @@ static void layoutSegmentElements(Segment* segment, track_idx_t startTrack, trac
 void ChordLayout::skipAccidentals(Segment* segment, track_idx_t startTrack, track_idx_t endTrack)
 {
     for (track_idx_t track = startTrack; track < endTrack; ++track) {
-        EngravingItem* item = segment->elementAt(track);
+        EngravingItem* item = segment->element(track);
         if (item && item->isChord()) {
             for (Note* note : toChord(item)->notes()) {
                 Accidental* acc = note->accidental();
@@ -3198,6 +3198,8 @@ void ChordLayout::layoutNote2(Note* item, LayoutContext& ctx)
     }
 
     ParenthesisLayout::layoutParentheses(item, ctx);
+
+    TLayout::fillNoteShape(item, ldata);
 }
 
 void ChordLayout::checkStartEndSlurs(Chord* chord, LayoutContext& ctx)
@@ -3375,7 +3377,7 @@ void ChordLayout::fillShape(const Chord* item, ChordRest::LayoutData* ldata)
     shape.add(chordRestShape(item));      // add lyrics
 
     for (const LedgerLine* l : item->ledgerLines()) {
-        shape.add(l->shape().translate(l->pos() - l->staffOffset()));
+        shape.add(l->shape().translate(l->pos()));
     }
 
     if (beamlet && stem) {

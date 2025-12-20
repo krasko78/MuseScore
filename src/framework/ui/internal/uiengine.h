@@ -41,7 +41,6 @@
 #include "appshell/internal/appshellconfigurationproxy.h" // krasko
 
 namespace muse::ui {
-class QmlApiEngine;
 class UiEngine : public QObject, public IUiEngine, public Injectable
 {
     Q_OBJECT
@@ -114,7 +113,7 @@ signals:
 private:
 
     QQmlApplicationEngine* m_engine = nullptr;
-    QmlApiEngine* m_apiEngine = nullptr;
+    muse::api::JsApiEngine* m_apiEngine = nullptr;
     mu::appshell::AppShellConfigurationProxy* m_appshellConfigurationProxy = nullptr; // krasko
     QStringList m_sourceImportPaths;
     api::ThemeApi* m_theme = nullptr;

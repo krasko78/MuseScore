@@ -120,9 +120,9 @@ static mu::engraving::KeyboardModifier keyboardModifier(Qt::KeyboardModifiers km
     return mu::engraving::KeyboardModifier(int(km));
 }
 
-static qreal nudgeDistance(const mu::engraving::EditData& editData)
+static double nudgeDistance(const mu::engraving::EditData& editData)
 {
-    qreal spatium = editData.element->spatium();
+    double spatium = editData.element->spatium();
 
     /*if (editData.element->isBeam()) { // krasko start: do not treat beams differently
         if (editData.modifiers & Qt::ControlModifier) {
@@ -143,9 +143,9 @@ static qreal nudgeDistance(const mu::engraving::EditData& editData)
     return spatium * mu::engraving::MScore::nudgeStep;
 }
 
-static qreal nudgeDistance(const mu::engraving::EditData& editData, qreal raster)
+static double nudgeDistance(const mu::engraving::EditData& editData, double raster)
 {
-    qreal distance = nudgeDistance(editData);
+    double distance = nudgeDistance(editData);
     if (raster > 0) {
         raster = editData.element->spatium() / raster;
         if (distance < raster) {
@@ -247,7 +247,9 @@ NotationInteraction::NotationInteraction(Notation* notation, INotationUndoStackP
     });
 
     m_undoStack->undoRedoNotification().onNotify(this, [this]() {
-        endEditElement();
+        if (!isTextEditingStarted()) {
+            endEditElement();
+        }
     });
 
     m_undoStack->stackChanged().onNotify(this, [this]() {
@@ -2700,7 +2702,7 @@ void NotationInteraction::applyPaletteElementToRange(EngravingItem* element, mu:
             const track_idx_t track2 = staff2track(sel.staffEnd());
             for (Segment* seg : segList) {
                 for (track_idx_t track = track1; track < track2; ++track) {
-                    EngravingItem* item = seg->elementAt(track);
+                    EngravingItem* item = seg->element(track);
                     if (!item || !item->isChord()) {
                         continue;
                     }
@@ -4244,21 +4246,21 @@ void NotationInteraction::nudgeAnchors(MoveDirection d)
     }
 
     startEdit(TranslatableString("undoableAction", "Nudge"));
-    qreal vRaster = mu::engraving::MScore::vRaster();
-    qreal hRaster = mu::engraving::MScore::hRaster();
+    double vRaster = m_editData.element->isBarLine() ? 4 : mu::engraving::MScore::vRaster();
+    double hRaster = m_editData.element->isBarLine() ? 4 : mu::engraving::MScore::hRaster();
 
     switch (d) {
     case MoveDirection::Left:
-        m_editData.delta = QPointF(-nudgeDistance(m_editData, hRaster), 0);
+        m_editData.delta = PointF(-nudgeDistance(m_editData, hRaster), 0);
         break;
     case MoveDirection::Right:
-        m_editData.delta = QPointF(nudgeDistance(m_editData, hRaster), 0);
+        m_editData.delta = PointF(nudgeDistance(m_editData, hRaster), 0);
         break;
     case MoveDirection::Up:
-        m_editData.delta = QPointF(0, -nudgeDistance(m_editData, vRaster));
+        m_editData.delta = PointF(0, -nudgeDistance(m_editData, vRaster));
         break;
     case MoveDirection::Down:
-        m_editData.delta = QPointF(0, nudgeDistance(m_editData, vRaster));
+        m_editData.delta = PointF(0, nudgeDistance(m_editData, vRaster));
         break;
     default:
         rollback();
@@ -4399,51 +4401,62 @@ bool NotationInteraction::needStartEditGrip(QKeyEvent* event) const
 
 bool NotationInteraction::handleKeyPress(QKeyEvent* event)
 {
+    mu::engraving::EngravingItem* editElem = m_editData.element;
+    IF_ASSERT_FAILED(editElem) {
+        return false;
+    }
+
+    if (editElem->isTextBase() && doTextEdit(event, toTextBase(editElem))) {
+        return true;
+    }
+
+    //: Means: an editing operation triggered by a keystroke
+    startEdit(TranslatableString("undoableAction", "Keystroke edit"));
+
+    if (editElem->edit(m_editData)) {
+        apply();
+        return true;
+    } else {
+        rollback();
+    }
+
     if (event->modifiers() & Qt::KeyboardModifier::AltModifier) {
         return false;
     }
 
-    if (m_editData.element->isTextBase()) {
-        return false;
-    }
-
-    qreal vRaster = mu::engraving::MScore::vRaster();
-    qreal hRaster = mu::engraving::MScore::hRaster();
+    const double vRaster = editElem->isBeam() ? 4 : mu::engraving::MScore::vRaster();
+    const double hRaster = editElem->isBeam() ? 4 : mu::engraving::MScore::hRaster();
 
     qreal raster = 0; // krasko
 
     switch (event->key()) {
     case Qt::Key_Tab:
-        if (!m_editData.element->hasGrips()) {
+        if (!editElem->hasGrips()) {
             return false;
         }
-
-        m_editData.element->nextGrip(m_editData);
-
+        editElem->nextGrip(m_editData);
         return true;
     case Qt::Key_Backtab:
-        if (!m_editData.element->hasGrips()) {
+        if (!editElem->hasGrips()) {
             return false;
         }
-
-        m_editData.element->prevGrip(m_editData);
-
+        editElem->prevGrip(m_editData);
         return true;
     case Qt::Key_Left: // krasko start
         raster = appshellConfiguration()->enableHighPrecisionNudging() ? 0 : hRaster;
-        m_editData.delta = QPointF(-nudgeDistance(m_editData, raster), 0);
+        m_editData.delta = PointF(-nudgeDistance(m_editData, raster), 0);
         break;
     case Qt::Key_Right:
         raster = appshellConfiguration()->enableHighPrecisionNudging() ? 0 : hRaster;
-        m_editData.delta = QPointF(nudgeDistance(m_editData, raster), 0);
+        m_editData.delta = PointF(nudgeDistance(m_editData, raster), 0);
         break;
     case Qt::Key_Up:
         raster = appshellConfiguration()->enableHighPrecisionNudging() ? 0 : vRaster;
-        m_editData.delta = QPointF(0, -nudgeDistance(m_editData, raster));
+        m_editData.delta = PointF(0, -nudgeDistance(m_editData, raster));
         break;
     case Qt::Key_Down:
         raster = appshellConfiguration()->enableHighPrecisionNudging() ? 0 : vRaster;
-        m_editData.delta = QPointF(0, nudgeDistance(m_editData, raster));
+        m_editData.delta = PointF(0, nudgeDistance(m_editData, raster));
         break; // krasko end
     default:
         return false;
@@ -4453,17 +4466,76 @@ bool NotationInteraction::handleKeyPress(QKeyEvent* event)
     m_editData.hRaster = hRaster;
     m_editData.vRaster = vRaster;
 
+    //: Means: an editing operation triggered by a keystroke
+    startEdit(TranslatableString("undoableAction", "Keystroke edit"));
+
     if (m_editData.curGrip != mu::engraving::Grip::NO_GRIP && int(m_editData.curGrip) < m_editData.grips) {
         m_editData.pos = m_editData.grip[int(m_editData.curGrip)].center() + m_editData.delta;
 
-        m_editData.element->startDragGrip(m_editData);
-        m_editData.element->dragGrip(m_editData);
-        m_editData.element->endDragGrip(m_editData);
+        editElem->startDragGrip(m_editData);
+        editElem->dragGrip(m_editData);
+        editElem->endDragGrip(m_editData);
     } else {
-        m_editData.element->startDrag(m_editData);
-        m_editData.element->drag(m_editData);
-        m_editData.element->endDrag(m_editData);
+        editElem->startDrag(m_editData);
+        editElem->drag(m_editData);
+        editElem->endDrag(m_editData);
     }
+
+    apply();
+    return true;
+}
+
+bool NotationInteraction::doTextEdit(QKeyEvent* event, TextBase* tb)
+{
+    IF_ASSERT_FAILED(event && tb) {
+        return false;
+    }
+
+    //: Means: an editing operation triggered by a keystroke
+    startEdit(TranslatableString("undoableAction", "Keystroke edit"));
+
+    if (!tb->edit(m_editData)) {
+        rollback();
+        return false;
+    }
+
+    apply();
+
+    // Replace newly added straight quotes with curly ones in a separate undo action...
+    const bool isSingleQuoteInput = event->text() == u"\'";
+    const bool isDoubleQuoteInput = event->text() == u"\"";
+    if (!isSingleQuoteInput && !isDoubleQuoteInput) {
+        return true;
+    }
+
+    TextEditData* ted = static_cast<TextEditData*>(m_editData.getData(tb).get());
+    TextCursor* cursor = ted ? ted->cursor() : nullptr;
+    IF_ASSERT_FAILED(cursor) {
+        return true;
+    }
+
+    bool useCloseQuote = false; // Use close if there's a non-space before the newly inputted quote
+
+    const int row = cursor->row();
+    const int col = cursor->column();
+    if (col > 1) {
+        const String prev = cursor->extractText(row, col - 2, row, col - 1);
+        useCloseQuote = prev != String(" ");
+    }
+
+    //: Means: an editing operation triggered by a keystroke
+    startEdit(TranslatableString("undoableAction", "Keystroke edit"));
+
+    cursor->movePosition(TextCursor::MoveOperation::Left);
+    score()->undo(new RemoveText(cursor, event->text()), &m_editData);
+
+    const String replacement = isSingleQuoteInput
+                               ? String(useCloseQuote ? u"’" : u"‘")
+                               : String(useCloseQuote ? u"”" : u"“");
+
+    tb->insertText(m_editData, replacement);
+
+    apply();
 
     return true;
 }
@@ -4790,34 +4862,22 @@ void NotationInteraction::editElement(QKeyEvent* event)
         }
     }
 
-    //: Means: an editing operation triggered by a keystroke
-    startEdit(TranslatableString("undoableAction", "Keystroke edit"));
-
     if (needStartEditGrip(event)) {
         m_editData.curGrip = m_editData.element->defaultGrip();
     }
 
-    bool handled = m_editData.element->edit(m_editData);
-    if (!handled) {
-        handled = handleKeyPress(event);
-    }
-
-    if (handled) {
-        event->accept();
-
+    if (handleKeyPress(event)) {
         if (isBracket && system && bracketIndex != muse::nidx) {
             mu::engraving::EngravingItem* bracket = system->brackets().at(bracketIndex);
             m_editData.element = bracket;
             select({ bracket }, SelectType::SINGLE);
         }
 
-        apply();
-
         if (isGripEditStarted()) {
             updateGripAnchorLines();
         }
-    } else {
-        rollback();
+
+        event->accept();
     }
 
     if (isTextEditingStarted()) {
@@ -5172,8 +5232,8 @@ void NotationInteraction::repeatSelection()
             // Looking for the previous Chord
             while (prevSegment)
             {
-                if (prevSegment->elementAt(el->track())->isChord()) {
-                    c = toChord(prevSegment->elementAt(el->track()));
+                if (prevSegment->element(el->track())->isChord()) {
+                    c = toChord(prevSegment->element(el->track()));
                     break;
                 }
                 prevSegment = prevSegment->prev1WithElemsOnTrack(el->track());
@@ -7947,6 +8007,7 @@ void NotationInteraction::addFretboardDiagram()
     startEdit(TranslatableString("undoableAction", "Add fretboard diagram"));
 
     engraving::FretDiagram* lastAddedDiagram = nullptr;
+    std::vector<engraving::FretDiagram*> created;
 
     for (EngravingItem* element : filteredElements) {
         engraving::FretDiagram* diagram = engraving::Factory::createFretDiagram(score->dummy()->segment());
@@ -7957,9 +8018,16 @@ void NotationInteraction::addFretboardDiagram()
 
         diagram->setParent(harmony->parent());
         score->undoAddElement(diagram);
-        score->undoChangeParent(harmony, diagram, track2staff(element->track()));
-
+        created.push_back(diagram);
         lastAddedDiagram = diagram;
+    }
+
+    for (int i = int(created.size()) - 1; i >= 0; --i) {
+        FretDiagram* diagram = created[i];
+        Harmony* harmony = toHarmony(filteredElements[i]);
+
+        score->undoChangeParent(harmony, diagram,
+                                track2staff(filteredElements[i]->track()));
     }
 
     apply();

@@ -26,6 +26,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_MODULE_PATH
     ${CMAKE_CURRENT_LIST_DIR}
@@ -131,12 +132,6 @@ option(MUE_ENABLE_LOAD_QML_FROM_SOURCE "Load qml files from source (not resource
 option(MUE_ENABLE_ENGRAVING_RENDER_DEBUG "Enable rendering debug" OFF)
 option(MUE_ENABLE_ENGRAVING_LD_ACCESS "Enable diagnostic engraving check layout data access" OFF)
 option(MUE_ENABLE_ENGRAVING_LD_PASSES "Enable engraving layout by passes" OFF)
-
-if (OS_IS_LIN)
-    option(MUSE_PIPEWIRE_AUDIO_DRIVER "Use PipeWire audio driver" OFF) # Turns ON on CI
-elseif (OS_IS_FBSD)
-    option(MUSE_PIPEWIRE_AUDIO_DRIVER "Use PipeWire audio driver" OFF)
-endif()
 
 ###########################################
 # Setup Configure

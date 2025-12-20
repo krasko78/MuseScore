@@ -25,6 +25,8 @@
 
 #include "extensions/api/v1/ipluginapiv1.h"
 
+#include "global/api/apiutils.h"
+
 #include "modularity/ioc.h"
 #include "actions/iactionsdispatcher.h"
 #include "context/iglobalcontext.h"
@@ -35,6 +37,8 @@
 #include "apitypes.h"
 #include "cursor.h"
 #include "enums.h"
+
+#include "log.h"
 
 namespace mu::engraving {
 class EngravingItem;
@@ -48,7 +52,7 @@ class Score;
 
 namespace mu::engraving::apiv1 {
 class EngravingItem;
-class FractionWrapper;
+class Fraction;
 class OrnamentIntervalWrapper;
 class MsProcess;
 class Score;
@@ -139,7 +143,7 @@ private:
 public:
     // Should be initialized in qmlpluginapi.cpp
     /// Contains mu::engraving::ElementType enumeration values
-    DECLARE_API_ENUM(Element,          elementTypeEnum,        mu::engraving::apiv1::enums::ElementType)
+    DECLARE_API_ENUM(Element, elementTypeEnum, mu::engraving::apiv1::enums::ElementType)
     /// Contains mu::engraving::AccidentalType enumeration values
     DECLARE_API_ENUM(Accidental,       accidentalTypeEnum,     mu::engraving::apiv1::enums::AccidentalType)
     /// Contains mu::engraving::AccidentalBracket enumeration values
@@ -543,8 +547,8 @@ public:
     Q_INVOKABLE void openLog(const QString&);
     Q_INVOKABLE void closeLog();
 
-    Q_INVOKABLE apiv1::FractionWrapper* fraction(int numerator, int denominator) const;
-    Q_INVOKABLE apiv1::FractionWrapper* fractionFromTicks(int ticks) const;
+    Q_INVOKABLE apiv1::Fraction* fraction(int numerator, int denominator) const;
+    Q_INVOKABLE apiv1::Fraction* fractionFromTicks(int ticks) const;
 
     Q_INVOKABLE apiv1::OrnamentIntervalWrapper* ornamentInterval(int step, int type) const;
 
@@ -591,6 +595,7 @@ public:
 private:
     mu::engraving::Score* currentScore() const;
 
+    muse::api::IApiEngine* m_engine = nullptr;
     QString m_pluginType;
     QString m_title;
     QString m_version;

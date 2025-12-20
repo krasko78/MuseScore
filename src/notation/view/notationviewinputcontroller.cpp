@@ -152,7 +152,7 @@ void NotationViewInputController::onNotationChanged()
         if (AbstractElementPopupModel::hasElementEditPopup(selectedItem)) {
             m_view->showElementPopup(type);
         }
-    });
+    }, Asyncable::Mode::SetReplace /* FIXME */);
 
     currNotation->interaction()->textEditingStarted().onNotify(this, [this] {
         const INotationPtr notation = currentNotation();
@@ -184,7 +184,7 @@ void NotationViewInputController::onNotationChanged()
         }
 
         m_view->hideElementPopup();
-    });
+    }, Asyncable::Mode::SetReplace /* FIXME */);
 
     currNotation->interaction()->textEditingChanged().onNotify(this, [this] {
         const INotationPtr notation = currentNotation();
@@ -200,11 +200,11 @@ void NotationViewInputController::onNotationChanged()
         if (AbstractElementPopupModel::hasTextStylePopup(item) && item->cursor()->hasSelection()) {
             m_view->showElementPopup(item->type());
         }
-    });
+    }, Asyncable::Mode::SetReplace /* FIXME */);
 
     currNotation->interaction()->textEditingEnded().onReceive(this, [this](const TextBase*) {
         m_view->hideElementPopup(PopupModelType::TYPE_TEXT);
-    });
+    }, Asyncable::Mode::SetReplace /* FIXME */);
 }
 
 void NotationViewInputController::initZoom()
@@ -670,13 +670,6 @@ void NotationViewInputController::mousePressEvent(QMouseEvent* event)
     EngravingItem* hitElement = nullptr;
     staff_idx_t hitStaffIndex = muse::nidx;
 
-    DEFER {
-        EngravingItem* playbackStartElement = resolveStartPlayableElement();
-        if (playbackStartElement) {
-            playbackController()->seekElement(playbackStartElement);
-        }
-    };
-
     if (!m_readonly) {
         INotationInteraction::HitElementContext context;
         context.element = viewInteraction()->hitElement(logicPos, hitWidth());
@@ -702,6 +695,7 @@ void NotationViewInputController::mousePressEvent(QMouseEvent* event)
     }
 
     if (playbackController()->isPlaying()) {
+        playbackController()->seekElement(hitElement);
         return;
     }
 
@@ -744,6 +738,9 @@ void NotationViewInputController::mousePressEvent(QMouseEvent* event)
     // Select
     mousePress_considerSelect(ctx);
 
+    // Seek
+    mousePress_seekSelection(ctx);
+
     // Misc
     if (button == Qt::LeftButton) {
         handleLeftClick(ctx);
@@ -759,13 +756,12 @@ void NotationViewInputController::handleClickInNoteInputMode(QMouseEvent* event)
     if (event->button() == Qt::RightButton) {
         m_ignoreNextMouseContextMenuEvent = true;
         dispatcher()->dispatch("remove-note", ActionData::make_arg1<PointF>(logicPos));
-        return;
+    } else {
+        const Qt::KeyboardModifiers keyState = event->modifiers();
+        const bool replace = keyState & Qt::ShiftModifier;
+        const bool insert = keyState & Qt::ControlModifier;
+        dispatcher()->dispatch("put-note", ActionData::make_arg3<PointF, bool, bool>(logicPos, replace, insert));
     }
-
-    const Qt::KeyboardModifiers keyState = event->modifiers();
-    const bool replace = keyState & Qt::ShiftModifier;
-    const bool insert = keyState & Qt::ControlModifier;
-    dispatcher()->dispatch("put-note", ActionData::make_arg3<PointF, bool, bool>(logicPos, replace, insert));
 }
 
 bool NotationViewInputController::mousePress_considerGrip(const ClickContext& ctx)
@@ -792,7 +788,9 @@ bool NotationViewInputController::mousePress_considerDragOutgoingElement(const C
     }
 
     viewInteraction()->select({ ctx.hitElement }, SelectType::SINGLE, ctx.hitStaff);
+    playbackController()->seekElement(ctx.hitElement);
     m_mouseDownInfo.dragAction = MouseDownInfo::DragOutgoingElement;
+
     return true;
 }
 
@@ -873,6 +871,37 @@ void NotationViewInputController::mousePress_considerSelect(const ClickContext& 
     }
 
     viewInteraction()->select({ ctx.hitElement }, selectType, ctx.hitStaff);
+}
+
+void NotationViewInputController::mousePress_seekSelection(const ClickContext& ctx)
+{
+    const INotationSelectionPtr selection = viewInteraction()->selection();
+    const std::vector<EngravingItem*>& elements = selection->elements();
+
+    if (!selection->isRange() && !elements.empty()) {
+        playbackController()->seekElement(elements.back());
+        return;
+    }
+
+    EngravingItem* elementToSeek = ctx.hitElement;
+
+    for (EngravingItem* element: elements) {
+        if (!element || element == elementToSeek) {
+            continue;
+        }
+
+        if (!seekAllowed(element)) {
+            continue;
+        }
+
+        if (elementToSeek && elementToSeek->tick() <= element->tick()) {
+            continue;
+        }
+
+        elementToSeek = element;
+    }
+
+    playbackController()->seekElement(elementToSeek);
 }
 
 void NotationViewInputController::cycleOverlappingHitElements(const std::vector<EngravingItem*>& hitElements,
@@ -1293,23 +1322,39 @@ void NotationViewInputController::mouseDoubleClickEvent(QMouseEvent* event)
         return;
     }
 
-    const INotationInteraction::HitElementContext& ctx = hitElementContext();
-    if (!ctx.element) {
+    EngravingItem* hitElement = hitElementContext().element;
+    if (!hitElement) {
         return;
     }
 
-    if (viewInteraction()->textEditingAllowed(ctx.element)) {
-        viewInteraction()->startEditText(ctx.element, m_mouseDownInfo.logicalBeginPoint);
+    if (viewInteraction()->textEditingAllowed(hitElement)) {
+        viewInteraction()->startEditText(hitElement, m_mouseDownInfo.logicalBeginPoint);
         return;
     }
 
-    if (ctx.element->isMeasure() && event->modifiers() == Qt::NoModifier) {
-        dispatcher()->dispatch("note-input", ActionData::make_arg1<PointF>(m_mouseDownInfo.logicalBeginPoint));
+    if (event->modifiers() != Qt::NoModifier) {
         return;
     }
 
-    if (ctx.element->isInstrumentName()) {
+    switch (hitElement->type()) {
+    case ElementType::INSTRUMENT_NAME: {
         m_shouldStartEditOnLeftClickRelease = true;
+        break;
+    }
+    case ElementType::MEASURE: {
+        dispatcher()->dispatch("note-input", ActionData::make_arg1<PointF>(m_mouseDownInfo.logicalBeginPoint));
+        break;
+    }
+    case ElementType::NOTE: {
+        const Chord* chord = toNote(hitElement)->chord();
+        IF_ASSERT_FAILED(chord) {
+            break;
+        }
+        const std::vector<Note*> notes = chord->notes();
+        viewInteraction()->select({ notes.begin(), notes.end() });
+        break;
+    }
+    default: break;
     }
 }
 
@@ -1695,39 +1740,4 @@ void NotationViewInputController::updateShadowNotePopupVisibility(bool forceHide
     }
 
     m_view->showElementPopup(ElementType::SHADOW_NOTE);
-}
-
-EngravingItem* NotationViewInputController::resolveStartPlayableElement() const
-{
-    if (playbackController()->isPlaying()) {
-        EngravingItem* hitElement = hitElementContext().element;
-        return seekAllowed(hitElement) ? hitElement : nullptr;
-    }
-
-    const INotationSelectionPtr selection = viewInteraction()->selection();
-    const std::vector<EngravingItem*>& elements = selection->elements();
-
-    if (!selection->isRange() && !elements.empty()) {
-        return elements.back();
-    }
-
-    EngravingItem* playbackStartElement = hitElementContext().element;
-
-    for (EngravingItem* element: elements) {
-        if (!element || element == playbackStartElement) {
-            continue;
-        }
-
-        if (!seekAllowed(element)) {
-            continue;
-        }
-
-        if (playbackStartElement && playbackStartElement->tick() <= element->tick()) {
-            continue;
-        }
-
-        playbackStartElement = element;
-    }
-
-    return playbackStartElement;
 }
