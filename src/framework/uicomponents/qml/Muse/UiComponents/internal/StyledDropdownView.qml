@@ -23,6 +23,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls // krasko: needed for ScrollBar.AlwaysOn
 
 import Muse.Ui
 import Muse.UiComponents
