@@ -77,10 +77,12 @@ DropdownView {
     focusPolicies: PopupView.NoFocus
 
     signal handleItem(int index, var value)
+    signal itemNavActivated(int index, var value) // krasko
 
     onOpened: {
         content.navigationSection.requestActive()
 
+        prv.finishedOpening = true // krasko
         prv.positionViewAtIndex(root.currentIndex)
     }
 
@@ -201,6 +203,8 @@ DropdownView {
             QtObject {
                 id: prv
 
+                property bool finishedOpening: false // krasko
+
                 function positionViewAtIndex(itemIndex) {
                     view.positionViewAtIndex(itemIndex, ListView.Contain)
                     correctPosition(itemIndex)
@@ -252,6 +256,11 @@ DropdownView {
                     if (navigation.highlight) {
                         view.positionViewAtIndex(index, ListView.Contain)
                         Qt.callLater(prv.navigateToItem, index)
+                    }
+
+                    if (navigation.active && prv.finishedOpening) {  // krasko
+                        var value = Utils.getItemValue(root.model, item.index, root.valueRole, undefined)
+                        root.itemNavActivated(item.index, value)
                     }
                 }
 
