@@ -80,10 +80,10 @@ DropdownView {
     signal itemNavActivated(int index, var value) // krasko
 
     onOpened: {
-        content.navigationSection.requestActive()
+        //content.navigationSection.requestActive() // krasko: do not focus the first nav control; current item will be focused two lines below
 
-        prv.finishedOpening = true // krasko
         prv.positionViewAtIndex(root.currentIndex)
+        Qt.callLater(prv.navigateToItem, root.currentIndex) // krasko: activate current item's navigation
     }
 
     onClosed: {
@@ -203,8 +203,6 @@ DropdownView {
             QtObject {
                 id: prv
 
-                property bool finishedOpening: false // krasko
-
                 function positionViewAtIndex(itemIndex) {
                     view.positionViewAtIndex(itemIndex, ListView.Contain)
                     correctPosition(itemIndex)
@@ -258,7 +256,7 @@ DropdownView {
                         Qt.callLater(prv.navigateToItem, index)
                     }
 
-                    if (navigation.active && prv.finishedOpening) {  // krasko
+                    if (navigation.active) {  // krasko
                         var value = Utils.getItemValue(root.model, item.index, root.valueRole, undefined)
                         root.itemNavActivated(item.index, value)
                     }
