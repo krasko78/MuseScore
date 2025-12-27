@@ -67,7 +67,7 @@ bool MScore::_errorIsWarning = false;
 
 void MScore::registerUiTypes()
 {
-#ifdef SCRIPT_INTERFACE
+#ifndef ENGRAVING_NO_API
     qRegisterMetaType<Spanner::Anchor>("Anchor");
     qRegisterMetaType<SegmentType>("SegmentType");
     qRegisterMetaType<FiguredBassItem::Modifier>("Modifier");
@@ -120,6 +120,7 @@ std::string MScore::errorToString(MsError err)
     case MsError::CANNOT_JOIN_MEASURE_STAFFTYPE_CHANGE: return "CANNOT_JOIN_MEASURE_STAFFTYPE_CHANGE";
     case MsError::CANNOT_REPEAT_SELECTION: return "CANNOT_REPEAT_SELECTION";
     case MsError::TRANSPOSE_NO_FRET_DIAGRAM: return "TRANSPOSE_NO_FRET_DIAGRAM";
+    case MsError::CANNOT_EXPLODE_IMPLODE_LOCAL_TIMESIG: return "CANNOT_EXPLODE_IMPLODE_LOCAL_TIMESIG";
     }
 
     return {};

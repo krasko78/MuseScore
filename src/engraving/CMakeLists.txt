@@ -21,9 +21,9 @@
 muse_create_module(engraving)
 
 # TODO: convert to target-based variant of qt_add_resources
-# (Not easy because of heavy use of aliases, which is much more cumbersome 
+# (Not easy because of heavy use of aliases, which is much more cumbersome
 # in CMake than in .qrc files)
-muse_module_add_qrc(engraving 
+muse_module_add_qrc(engraving
     engraving.qrc
     data/fonts/fonts_Smufl.qrc
 )
@@ -313,7 +313,7 @@ target_sources(engraving PRIVATE
 )
 
 if (ENGRAVING_NO_ACCESSIBILITY)
-    target_compile_definitions(engraving PRIVATE ENGRAVING_NO_ACCESSIBILITY)
+    target_compile_definitions(engraving PUBLIC ENGRAVING_NO_ACCESSIBILITY)
 else()
     target_sources(engraving PRIVATE
         accessibility/accessibleitem.cpp
@@ -326,7 +326,7 @@ else()
 endif()
 
 if (ENGRAVING_NO_INTERNAL)
-    target_compile_definitions(engraving PRIVATE ENGRAVING_NO_INTERNAL ENGRAVING_NO_INTERACTIVE ENGRAVING_NO_API)
+    target_compile_definitions(engraving PUBLIC ENGRAVING_NO_INTERNAL ENGRAVING_NO_INTERACTIVE ENGRAVING_NO_API)
 else()
     include(${CMAKE_CURRENT_LIST_DIR}/api/v1/api_v1.cmake)
     target_sources(engraving PRIVATE
@@ -342,7 +342,7 @@ else()
     )
 endif()
 
-set_source_files_properties( 
+set_source_files_properties(
     # For these files, Unity Build does not work
     dom/excerpt.cpp
     #api/vi/excerpt.cpp
@@ -411,7 +411,7 @@ target_include_directories(engraving PRIVATE
 
 target_link_libraries(engraving PRIVATE muse::draw)
 
-if (QT_SUPPORT)
+if (MUSE_QT_SUPPORT)
     target_link_libraries(engraving PRIVATE Qt::Quick)
 endif()
 
@@ -424,6 +424,10 @@ if (MUE_BUILD_ENGRAVING_TESTS)
     add_subdirectory(api/tests)
 endif()
 
-if (QT_SUPPORT)
+if (MUSE_QT_SUPPORT)
     add_subdirectory(qml/MuseScore/Engraving)
+endif()
+
+if (MSVC_IDE)
+    target_sources(engraving PRIVATE engraving.natvis)
 endif()

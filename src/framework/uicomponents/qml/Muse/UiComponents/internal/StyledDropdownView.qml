@@ -83,7 +83,7 @@ DropdownView {
         //content.navigationSection.requestActive() // krasko: do not focus the first nav control; current item will be focused two lines below
 
         prv.positionViewAtIndex(root.currentIndex)
-        Qt.callLater(prv.navigateToItem, root.currentIndex) // krasko: activate current item's navigation
+        prv.navigateToItem(root.currentIndex)
     }
 
     onClosed: {

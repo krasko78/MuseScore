@@ -1575,6 +1575,7 @@ bool NotationInteraction::startDropRange(const QByteArray& data)
         if (reader.name() == "StaffList") {
             rdd.sourceTick = Fraction::fromString(reader.attribute("tick"));
             rdd.tickLength = Fraction::fromString(reader.attribute("len"));
+            rdd.timeStretch = reader.hasAttribute("timeStretch") ? Fraction::fromString(reader.attribute("timeStretch")) : Fraction(1, 1);
             rdd.sourceStaffIdx = static_cast<staff_idx_t>(reader.intAttribute("staff", -1));
             rdd.numStaves = reader.intAttribute("staves", 0);
             break;
@@ -1603,6 +1604,7 @@ bool NotationInteraction::startDropRange(const Fraction& sourceTick, const Fract
 
     rdd.sourceTick = sourceTick;
     rdd.tickLength = tickLength;
+    rdd.timeStretch = score()->staff(sourceStaffIdx)->timeStretch(sourceTick);
     rdd.sourceStaffIdx = sourceStaffIdx;
     rdd.numStaves = numStaves;
     rdd.preserveMeasureAlignment = preserveMeasureAlignment;
@@ -1776,7 +1778,7 @@ static Segment* rangeEndSegment(Score* score, const Fraction& endTick)
 }
 
 static bool dropRangePosition(Score* score, const PointF& pos,
-                              Fraction sourceStartTick, Fraction tickLength,
+                              Fraction sourceStartTick, Fraction tickLength, Fraction timeStretch,
                               staff_idx_t numStaves, staff_idx_t* targetStartStaffIdx,
                               Segment** targetStartSegment, const Segment** targetEndSegment = nullptr,
                               bool preserveMeasureAlignment = false,
@@ -1828,21 +1830,18 @@ static bool dropRangePosition(Score* score, const PointF& pos,
     const staff_idx_t targetEndStaffIdx = std::min(*targetStartStaffIdx + numStaves, score->nstaves());
 
     // Add time tick anchors throughout these measures
-    for (MeasureBase* mb = targetStartMeasure; mb && mb->tick() <= targetEndMeasure->tick(); mb = mb->next()) {
-        if (!mb->isMeasure()) {
-            continue;
-        }
+    for (Measure* m = targetStartMeasure; m && m->tick() <= targetEndMeasure->tick(); m = m->nextMeasure()) {
         std::set<Fraction> additionalAnchorRelTicks;
         if (preserveMeasureAlignment) {
-            if (mb == targetStartMeasure) {
-                additionalAnchorRelTicks.insert(targetStartTick - mb->tick());
+            if (m == targetStartMeasure) {
+                additionalAnchorRelTicks.insert(targetStartTick - m->tick());
             }
-            if (mb == targetEndMeasure) {
-                additionalAnchorRelTicks.insert(targetEndTick - mb->tick());
+            if (m == targetEndMeasure) {
+                additionalAnchorRelTicks.insert(targetEndTick - m->tick());
             }
         }
         for (staff_idx_t i = *targetStartStaffIdx; i < targetEndStaffIdx; ++i) {
-            EditTimeTickAnchors::updateAnchors(toMeasure(mb), i, additionalAnchorRelTicks);
+            EditTimeTickAnchors::updateAnchors(m, i, additionalAnchorRelTicks);
         }
     }
 
@@ -1874,6 +1873,16 @@ static bool dropRangePosition(Score* score, const PointF& pos,
         }
     }
 
+    // Check the time stretch for all measures overlapping the destination range.
+    for (Measure* m = targetStartMeasure; m && m->tick() <= targetEndMeasure->tick(); m = m->nextMeasure()) {
+        for (staff_idx_t staffIdx = *targetStartStaffIdx; staffIdx < targetEndStaffIdx; ++staffIdx) {
+            Fraction mTimeStretch = score->staff(staffIdx)->timeStretch(m->tick());
+            if (mTimeStretch != timeStretch) {
+                return false;
+            }
+        }
+    }
+
     if (showAnchors) {
         *showAnchors = ShowAnchors(0, *targetStartStaffIdx, *targetStartStaffIdx + numStaves,
                                    targetStartTick, targetEndTick,
@@ -1901,7 +1910,7 @@ bool NotationInteraction::updateDropRange(const PointF& pos, std::optional<bool>
     ShowAnchors showAnchors;
 
     const bool ok = dropRangePosition(score(), pos,
-                                      rdd.sourceTick, rdd.tickLength, rdd.numStaves,
+                                      rdd.sourceTick, rdd.tickLength, rdd.timeStretch, rdd.numStaves,
                                       &staffIdx, &segment, &endSegment,
                                       rdd.preserveMeasureAlignment, &showAnchors);
 
@@ -2208,13 +2217,13 @@ bool NotationInteraction::dropRange(const QByteArray& data, const PointF& pos, b
     Segment* segment = nullptr;
 
     const bool ok = dropRangePosition(score(), pos,
-                                      rdd.sourceTick, rdd.tickLength, rdd.numStaves,
+                                      rdd.sourceTick, rdd.tickLength, rdd.timeStretch, rdd.numStaves,
                                       &staffIdx, &segment, nullptr, rdd.preserveMeasureAlignment);
     if (!ok) {
         return false;
     }
 
-    if (segment->isTupletSubdivision() || segment->isInsideTupletOnStaff(staffIdx)) {
+    if (segment->isTupletSubdivisionOnStaff(staffIdx) || segment->isInsideTupletOnStaff(staffIdx)) {
         endDrop();
         notifyAboutDropChanged();
         //MScore::setError(MsError::DEST_TUPLET);
@@ -2248,14 +2257,19 @@ bool NotationInteraction::dropRange(const QByteArray& data, const PointF& pos, b
     }
 
     XmlReader e(data);
-    score()->pasteStaff(e, segment, staffIdx);
+    bool succeeded = score()->pasteStaff(e, segment, staffIdx);
 
     endDrop();
-    apply();
+
+    if (succeeded) {
+        apply();
+    } else {
+        rollback();
+    }
 
     checkAndShowError();
 
-    return true;
+    return succeeded;
 }
 
 bool NotationInteraction::selectInstrument(mu::engraving::InstrumentChange* instrumentChange)
@@ -4516,8 +4530,8 @@ bool NotationInteraction::doTextEdit(QKeyEvent* event, TextBase* tb)
 
     bool useCloseQuote = false; // Use close if there's a non-space before the newly inputted quote
 
-    const int row = cursor->row();
-    const int col = cursor->column();
+    const int row = static_cast<int>(cursor->row());
+    const int col = static_cast<int>(cursor->column());
     if (col > 1) {
         const String prev = cursor->extractText(row, col - 2, row, col - 1);
         useCloseQuote = prev != String(" ");
@@ -4529,12 +4543,20 @@ bool NotationInteraction::doTextEdit(QKeyEvent* event, TextBase* tb)
     cursor->movePosition(TextCursor::MoveOperation::Left);
     score()->undo(new RemoveText(cursor, event->text()), &m_editData);
 
+    //: Single open quotation mark
+    const String singleOpenQuote = muse::mtrc("notation", u"‘");
+    //: Single close quotation mark
+    const String singleCloseQuote = muse::mtrc("notation", u"’");
+    //: Double open quotation mark
+    const String doubleOpenQuote = muse::mtrc("notation", u"“");
+    //: Double close quotation mark
+    const String doubleCloseQuote = muse::mtrc("notation", u"”");
+
     const String replacement = isSingleQuoteInput
-                               ? String(useCloseQuote ? u"’" : u"‘")
-                               : String(useCloseQuote ? u"”" : u"“");
+                               ? (useCloseQuote ? singleCloseQuote : singleOpenQuote)
+                               : (useCloseQuote ? doubleCloseQuote : doubleOpenQuote);
 
     tb->insertText(m_editData, replacement);
-
     apply();
 
     return true;
@@ -5260,7 +5282,7 @@ void NotationInteraction::repeatSelection()
     // Use copy-paste logic for range selections...
     if (!selection.isRange() || !m_selection->canCopy()) {
         MScore::setError(MsError::CANNOT_REPEAT_SELECTION);
-        MScoreErrorsController(iocContext()).checkAndShowMScoreError();
+        checkAndShowError();
         return;
     }
 
@@ -5277,7 +5299,11 @@ void NotationInteraction::repeatSelection()
             if (e) {
                 startEdit(TranslatableString("undoableAction", "Repeat selection"));
                 ChordRest* cr = toChordRest(e);
-                score()->pasteStaff(xml, cr->segment(), cr->staffIdx());
+                if (!score()->pasteStaff(xml, cr->segment(), cr->staffIdx())) {
+                    rollback();
+                    checkAndShowError();
+                    return;
+                }
                 apply();
 
                 showItem(cr);
@@ -5294,7 +5320,7 @@ void NotationInteraction::repeatListSelection(const Selection& selection)
     // Only "single-tick" list selections are currently supported...
     if (firstTick != lastTick) {
         MScore::setError(MsError::CANNOT_REPEAT_SELECTION);
-        MScoreErrorsController(iocContext()).checkAndShowMScoreError();
+        checkAndShowError();
         return;
     }
 
@@ -5350,6 +5376,7 @@ void NotationInteraction::pasteSelection(const Fraction& scale)
 {
     startEdit(TranslatableString("undoableAction", "Paste"));
 
+    bool succeeded = true;
     if (isTextEditingStarted()) {
         const QMimeData* mimeData = QApplication::clipboard()->mimeData();
         if (mimeData->hasFormat(TextEditData::mimeRichTextFormat)) {
@@ -5380,15 +5407,18 @@ void NotationInteraction::pasteSelection(const Fraction& scale)
     } else {
         const QMimeData* mimeData = QApplication::clipboard()->mimeData();
         QMimeDataAdapter ma(mimeData);
-        score()->cmdPaste(&ma, nullptr, scale);
+        succeeded = score()->cmdPaste(&ma, nullptr, scale);
     }
 
     m_editData.element = nullptr;
 
-    apply();
-
-    if (EngravingItem* pastedElement = selection()->element()) {
-        selectAndStartEditIfNeeded(pastedElement);
+    if (succeeded) {
+        apply();
+        if (EngravingItem* pastedElement = selection()->element()) {
+            selectAndStartEditIfNeeded(pastedElement);
+        }
+    } else {
+        rollback();
     }
 
     checkAndShowError();
@@ -6322,8 +6352,13 @@ void NotationInteraction::explodeSelectedStaff()
     }
 
     startEdit(TranslatableString("undoableAction", "Explode"));
-    score()->cmdExplode();
-    apply();
+    if (score()->cmdExplode()) {
+        apply();
+    } else {
+        rollback();
+    }
+
+    checkAndShowError();
 }
 
 void NotationInteraction::implodeSelectedStaff()
@@ -6333,8 +6368,13 @@ void NotationInteraction::implodeSelectedStaff()
     }
 
     startEdit(TranslatableString("undoableAction", "Implode"));
-    score()->cmdImplode();
-    apply();
+    if (score()->cmdImplode()) {
+        apply();
+    } else {
+        rollback();
+    }
+
+    checkAndShowError();
 }
 
 void NotationInteraction::realizeSelectedChordSymbols(bool literal, Voicing voicing, HarmonyDurationType durationType)

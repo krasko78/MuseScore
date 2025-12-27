@@ -21,8 +21,10 @@
  */
 
 #include "initialletternavigation.h"
-#include "log.h"
-#include "navigationpanel.h" // krasko
+
+#include "global/log.h"
+
+#include "navigationpanel.h"
 
 using namespace muse::ui;
 
