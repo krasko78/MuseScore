@@ -53,9 +53,6 @@ public:
     virtual bool expandShowMoreSectionsInPropertiesPanel() const = 0;
     virtual muse::async::Channel<bool> expandShowMoreSectionsInPropertiesPanelChanged() const = 0;
 
-    virtual bool doNotHighlightDisabledItemsOnHover() const = 0;
-    virtual muse::async::Channel<bool> doNotHighlightDisabledItemsOnHoverChanged() const = 0;
-
     virtual bool showScrollbarOnScrollableDropDownLists() const = 0;
     virtual muse::async::Channel<bool> showScrollbarOnScrollableDropDownListsChanged() const = 0;
 
@@ -65,8 +62,8 @@ public:
     virtual mu::engraving::Color scrollbarColor() const = 0;
     virtual muse::async::Channel<mu::engraving::Color> scrollbarColorChanged() const = 0;
 
-    virtual bool mainMenuFontFollowsPreferencesFont() const = 0;
-    virtual muse::async::Channel<bool> mainMenuFontFollowsPreferencesFontChanged() const = 0;
+    virtual bool mainMenuFontSameAsUiFont() const = 0;
+    virtual muse::async::Channel<bool> mainMenuFontSameAsUiFontChanged() const = 0;
 
     virtual double mainMenuFontSizeMultiplier() const = 0;
     virtual muse::async::Channel<double> mainMenuFontSizeMultiplierChanged() const = 0;
@@ -78,8 +75,8 @@ public:
     virtual int verticalPanelsWidth() const = 0;
     virtual muse::async::Channel<int> verticalPanelsWidthChanged() const = 0;
 
-    virtual int scrollDecelerationOfListsAndPanels() const = 0;
-    virtual muse::async::Channel<int> scrollDecelerationOfListsAndPanelsChanged() const = 0;
+    virtual int flickableMaxVelocity() const = 0;
+    virtual muse::async::Channel<int> flickableMaxVelocityChanged() const = 0;
 
     virtual double stepForSpinControlsOnAppearanceTab() const = 0;
     virtual muse::async::Channel<double> stepForSpinControlsOnAppearanceTabChanged() const = 0;

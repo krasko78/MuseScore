@@ -55,15 +55,13 @@ static constexpr char KEY_EscKeyPreservesSelectionWhenEditing[] = "krasko/escKey
 
 static constexpr char KEY_ExpandShowMoreSectionsInPropertiesPanel[] = "krasko/expandShowMoreSectionsInPropertiesPanel";
 
-static constexpr char KEY_DoNotHighlightDisabledItemsOnHover[] = "krasko/doNotHighlightDisabledItemsOnHover";
-
 static constexpr char KEY_ShowScrollbarOnScrollableDropDownLists[] = "krasko/showScrollbarOnScrollableDropDownLists";
 
 static constexpr char KEY_ActiveGripColor[] = "krasko/activeGripColor";
 
 static constexpr char KEY_ScrollbarColor[] = "krasko/scrollbarColor";
 
-static constexpr char KEY_MainMenuFontFollowsPreferencesFont[] = "krasko/mainMenuFontFollowsPreferencesFont";
+static constexpr char KEY_MainMenuFontSameAsUiFont[] = "krasko/mainMenuFontSameAsUiFont";
 
 static constexpr char KEY_MainMenuFontSizeMultiplier[] = "krasko/mainMenuFontSizeMultiplier";
 
@@ -73,7 +71,7 @@ static constexpr char KEY_ShowSameColorCheckBoxOnSelectMoreDialog[] = "krasko/sh
 
 static constexpr char KEY_VerticalPanelsWidth[] = "krasko/verticalPanelsWidth";
 
-static constexpr char KEY_ScrollDecelerationOfListsAndPanels[] = "krasko/scrollDecelerationOfListsAndPanels";
+static constexpr char KEY_FlickableMaxVelocity[] = "krasko/flickableMaxVelocity";
 
 static constexpr char KEY_StepForSpinControlsOnAppearanceTab[] = "krasko/stepForSpinControlsOnAppearanceTab";
 
@@ -196,7 +194,7 @@ void AppShellConfiguration::createKraskoSettings()
         .setDefaultValue(Val(false))
         .setDescription(muse::trc("krasko", "Tab and Shift+Tab navigate between controls"))
         .setHelpString(muse::trc("krasko",
-            "When enabled, the keys for 'nav-next-panel' and 'nav-prev-panel' (Tab and Shift+Tab "
+            "When enabled, the keys for 'Next panel' and 'Prev panel' (Tab and Shift+Tab "
             "by default) will navigate between controls instead of panels."))
         .withoutValueChangedNotifications();
 
@@ -206,8 +204,8 @@ void AppShellConfiguration::createKraskoSettings()
         .setHelpString(muse::trc("krasko",
             "When enabled, pressing the 'Edit Element' key (F2 by default) will cycle through "
 			"an element's grips (just like the Tab key) if the grips are already displayed. "
-			"This lets you press the 'Edit Element' key once to display the grips (the element "
-			"must be selected first) and then continue pressing the same key (instead of Tab) "
+			"This lets you press the 'Edit Element' key once to display the grips (provided "
+            "the element is selected) and then continue pressing the same key (instead of Tab) "
 			"to activate a particular grip."))
         .withoutValueChangedNotifications();
 
@@ -226,19 +224,9 @@ void AppShellConfiguration::createKraskoSettings()
         .setDefaultValue(Val(false))
         .setDescription(muse::trc("krasko", "Expand 'Show more' sections in Properties panel"))
         .setHelpString(muse::trc("krasko",
-            "When enabled, 'Show more' sections in the Properties panel will be initially expanded."))
+            "When enabled, 'Show more' sections in the Properties panel will initially be expanded."))
         .valueChanged().onReceive(this, [this](const Val& val) {
             m_expandShowMoreSectionsInPropertiesPanelChanged.send(val.toBool());
-        });
-
-    sc.createSetting(krasko_module_name, KEY_DoNotHighlightDisabledItemsOnHover)
-        .setDefaultValue(Val(false))
-        .setDescription(muse::trc("krasko", "Do not highlight disabled items on hover"))
-        .setHelpString(muse::trc("krasko",
-            "Determines whether disabled menu and list items will be highlighted on mouse hover or not. "
-            "Not highlighting them emphasizes their disabled state."))
-        .valueChanged().onReceive(this, [this](const Val& val) {
-            m_doNotHighlightDisabledItemsOnHoverChanged.send(val.toBool());
         });
 
     sc.createSetting(krasko_module_name, KEY_ShowScrollbarOnScrollableDropDownLists)
@@ -268,25 +256,24 @@ void AppShellConfiguration::createKraskoSettings()
             m_scrollbarColorChanged.send(mu::engraving::Color::fromQColor(val.toQColor()));
         });
 
-    sc.createSetting(krasko_module_name, KEY_MainMenuFontFollowsPreferencesFont)
+    sc.createSetting(krasko_module_name, KEY_MainMenuFontSameAsUiFont)
         .setDefaultValue(Val(false))
-        .setDescription(muse::trc("krasko", "Main menu font follows preferences font"))
+        .setDescription(muse::trc("krasko", "Main menu font same as UI font"))
         .setHelpString(muse::trc("krasko",
             "When enabled, the font face of the main menu will be the same as that "
-			"of all other UI elements (set under 'Preferences' –> 'Appearance')."))
+			"of all other UI elements selectable under 'Preferences' –> 'Appearance'."))
         .valueChanged().onReceive(this, [this](const Val& val) {
-            m_mainMenuFontFollowsPreferencesFontChanged.send(val.toBool());
+            m_mainMenuFontSameAsUiFontChanged.send(val.toBool());
         });
 
     sc.createSetting(krasko_module_name, KEY_MainMenuFontSizeMultiplier)
         .setDefaultValue(Val(0.9))
         .setDescription(muse::trc("krasko", "Main menu font size multiplier"))
         .setHelpString(muse::trc("krasko",
-            "Specifies a multiplier, e.g. '1.0' or '0.9' that will be multiplied by the font size "
-			"set in the preferences ('Preferences' –> 'Appearance') to obtain the size of the main "
+            "Specifies a number, e.g. '1.0' or '0.9' that will be multiplied by the font size "
+			"set on the 'Appearance' page of preferences to obtain the size of the main "
             "menu. For instance, a multiplier of 1.0 will make the main menu font size the same as "
-            "that of the other UI elements. A multiplier of 0.9 will make the main menu font size "
-            "90% of it, etc. Valid values are from 0.5 to 2.0."))
+            "that of the other UI elements. Valid values are from 0.5 to 2.0."))
 		.setMinValue(Val(0.5))
 		.setMaxValue(Val(2.0))
         .valueChanged().onReceive(this, [this](const Val& val) {
@@ -323,18 +310,16 @@ void AppShellConfiguration::createKraskoSettings()
             m_verticalPanelsWidthChanged.send(val.toInt());
         });
 
-    sc.createSetting(krasko_module_name, KEY_ScrollDecelerationOfListsAndPanels)
-        .setDefaultValue(Val(1500))
-        .setDescription(muse::trc("krasko", "Scroll deceleration of lists and panels"))
+    sc.createSetting(krasko_module_name, KEY_FlickableMaxVelocity)
+        .setDefaultValue(Val(4000))
+        .setDescription(muse::trc("krasko", "Max velocity of flickable elements"))
         .setHelpString(muse::trc("krasko",
-            "Determines how fast the scrolling of lists and panels stops. The higher the value, "
-            "the sooner the scrolling will stop when the user stops scrolling. Lower values "
-            "on the other hand will make the scrolling accelerate more and last longer "
-            "decreasing the scrolling precision. Valid values are between 1000 and 50000."))
+            "Determines the velocity that the scrolling of lists and panels can reach. The higher the value, "
+            "the quicker the scrolling. Valid values are between 1000 and 15000."))
         .setMinValue(Val(1000))
-        .setMaxValue(Val(50000))
+        .setMaxValue(Val(15000))
         .valueChanged().onReceive(this, [this](const Val& val) {
-            m_scrollDecelerationOfListsAndPanelsChanged.send(val.toInt());
+            m_flickableMaxVelocityChanged.send(val.toInt());
         });
 
     sc.createSetting(krasko_module_name, KEY_StepForSpinControlsOnAppearanceTab)
@@ -441,7 +426,7 @@ void AppShellConfiguration::notifyAboutChangedKraskoSettings()
     // Once krasko's settings have been created, we need to manually send out
     // few notifications to force dependent settings in other modules that were created
     // BEFORE krasko's settings to update. An example is the default font in uiconfiguration.
-    m_mainMenuFontFollowsPreferencesFontChanged.send(mainMenuFontFollowsPreferencesFont());
+    m_mainMenuFontSameAsUiFontChanged.send(mainMenuFontSameAsUiFont());
     m_mainMenuFontSizeMultiplierChanged.send(mainMenuFontSizeMultiplier());
 }
 
@@ -543,16 +528,6 @@ muse::async::Channel<bool> AppShellConfiguration::expandShowMoreSectionsInProper
     return m_expandShowMoreSectionsInPropertiesPanelChanged;
 }
 
-bool AppShellConfiguration::doNotHighlightDisabledItemsOnHover() const
-{
-	return kraskoSettingValue(KEY_DoNotHighlightDisabledItemsOnHover).toBool();
-}
-
-muse::async::Channel<bool> AppShellConfiguration::doNotHighlightDisabledItemsOnHoverChanged() const
-{
-    return m_doNotHighlightDisabledItemsOnHoverChanged;
-}
-
 bool AppShellConfiguration::showScrollbarOnScrollableDropDownLists() const
 {
     return kraskoSettingValue(KEY_ShowScrollbarOnScrollableDropDownLists).toBool();
@@ -583,14 +558,14 @@ muse::async::Channel<mu::engraving::Color> AppShellConfiguration::scrollbarColor
     return m_scrollbarColorChanged;
 }
 
-bool AppShellConfiguration::mainMenuFontFollowsPreferencesFont() const
+bool AppShellConfiguration::mainMenuFontSameAsUiFont() const
 {
-    return kraskoSettingValue(KEY_MainMenuFontFollowsPreferencesFont).toBool();
+    return kraskoSettingValue(KEY_MainMenuFontSameAsUiFont).toBool();
 }
 
-muse::async::Channel<bool> AppShellConfiguration::mainMenuFontFollowsPreferencesFontChanged() const
+muse::async::Channel<bool> AppShellConfiguration::mainMenuFontSameAsUiFontChanged() const
 {
-    return m_mainMenuFontFollowsPreferencesFontChanged;
+    return m_mainMenuFontSameAsUiFontChanged;
 }
 
 double AppShellConfiguration::mainMenuFontSizeMultiplier() const
@@ -623,14 +598,14 @@ muse::async::Channel<int> AppShellConfiguration::verticalPanelsWidthChanged() co
     return m_verticalPanelsWidthChanged;
 }
 
-int AppShellConfiguration::scrollDecelerationOfListsAndPanels() const
+int AppShellConfiguration::flickableMaxVelocity() const
 {
-    return kraskoSettingValue(KEY_ScrollDecelerationOfListsAndPanels).toInt();
+    return kraskoSettingValue(KEY_FlickableMaxVelocity).toInt();
 }
 
-muse::async::Channel<int> AppShellConfiguration::scrollDecelerationOfListsAndPanelsChanged() const
+muse::async::Channel<int> AppShellConfiguration::flickableMaxVelocityChanged() const
 {
-    return m_scrollDecelerationOfListsAndPanelsChanged;
+    return m_flickableMaxVelocityChanged;
 }
 
 double AppShellConfiguration::stepForSpinControlsOnAppearanceTab() const

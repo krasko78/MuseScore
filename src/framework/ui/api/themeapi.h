@@ -265,8 +265,8 @@ class ThemeApi : public api::ApiObject, public async::Asyncable
     Q_PROPERTY(qreal defaultButtonSize READ defaultButtonSize NOTIFY themeChanged)
 
     // internal
-    Q_PROPERTY(int flickableMaxVelocity READ flickableMaxVelocity CONSTANT)
-    Q_PROPERTY(int flickableDeceleration READ flickableDeceleration NOTIFY themeChanged) // krasko
+    Q_PROPERTY(int flickableMaxVelocity READ flickableMaxVelocity NOTIFY themeChanged) // krasko
+    Q_PROPERTY(int flickableDeceleration READ flickableDeceleration CONSTANT)
 
     Q_PROPERTY(int tooltipDelay READ tooltipDelay CONSTANT)
 

@@ -41,9 +41,6 @@ class AppShellConfigurationProxy : public QObject, muse::async::Asyncable
 	Q_PROPERTY(bool expandShowMoreSectionsInPropertiesPanel READ expandShowMoreSectionsInPropertiesPanel NOTIFY expandShowMoreSectionsInPropertiesPanelChanged)
     bool expandShowMoreSectionsInPropertiesPanel() { return appshellConfiguration()->expandShowMoreSectionsInPropertiesPanel(); }
 
-	Q_PROPERTY(bool doNotHighlightDisabledItemsOnHover READ doNotHighlightDisabledItemsOnHover NOTIFY doNotHighlightDisabledItemsOnHoverChanged)
-	bool doNotHighlightDisabledItemsOnHover() { return appshellConfiguration()->doNotHighlightDisabledItemsOnHover(); }
-
 	Q_PROPERTY(bool showScrollbarOnScrollableDropDownLists READ showScrollbarOnScrollableDropDownLists NOTIFY showScrollbarOnScrollableDropDownListsChanged)
 	bool showScrollbarOnScrollableDropDownLists() { return appshellConfiguration()->showScrollbarOnScrollableDropDownLists(); }
 
@@ -57,8 +54,6 @@ signals:
     void focusExportButtonOnExportDialogChanged(bool newValue);
 
     void expandShowMoreSectionsInPropertiesPanelChanged(bool newValue);
-
-    void doNotHighlightDisabledItemsOnHoverChanged(bool newValue);
 
     void showScrollbarOnScrollableDropDownListsChanged(bool newValue);
 

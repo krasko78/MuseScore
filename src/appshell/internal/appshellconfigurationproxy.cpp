@@ -33,10 +33,6 @@ void AppShellConfigurationProxy::init()
         emit expandShowMoreSectionsInPropertiesPanelChanged(newValue);
     });
 
-    appshellConfiguration()->doNotHighlightDisabledItemsOnHoverChanged().onReceive(this, [this](bool newValue) {
-        emit doNotHighlightDisabledItemsOnHoverChanged(newValue);
-    });
-
     appshellConfiguration()->showScrollbarOnScrollableDropDownListsChanged().onReceive(this, [this](bool newValue) {
         emit showScrollbarOnScrollableDropDownListsChanged(newValue);
     });

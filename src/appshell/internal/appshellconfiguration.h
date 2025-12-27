@@ -68,9 +68,6 @@ public:
     bool expandShowMoreSectionsInPropertiesPanel() const override;
     muse::async::Channel<bool> expandShowMoreSectionsInPropertiesPanelChanged() const override;
 
-    bool doNotHighlightDisabledItemsOnHover() const override;
-    muse::async::Channel<bool> doNotHighlightDisabledItemsOnHoverChanged() const override;
-
     bool showScrollbarOnScrollableDropDownLists() const override;
     muse::async::Channel<bool> showScrollbarOnScrollableDropDownListsChanged() const override;
 
@@ -80,8 +77,8 @@ public:
     mu::engraving::Color scrollbarColor() const override;
     muse::async::Channel<mu::engraving::Color> scrollbarColorChanged() const override;
 
-    bool mainMenuFontFollowsPreferencesFont() const override;
-    muse::async::Channel<bool> mainMenuFontFollowsPreferencesFontChanged() const override;
+    bool mainMenuFontSameAsUiFont() const override;
+    muse::async::Channel<bool> mainMenuFontSameAsUiFontChanged() const override;
 
     double mainMenuFontSizeMultiplier() const override;
     muse::async::Channel<double> mainMenuFontSizeMultiplierChanged() const override;
@@ -93,8 +90,8 @@ public:
     int verticalPanelsWidth() const override;
     muse::async::Channel<int> verticalPanelsWidthChanged() const override;
 
-    int scrollDecelerationOfListsAndPanels() const override;
-    muse::async::Channel<int> scrollDecelerationOfListsAndPanelsChanged() const override;
+    int flickableMaxVelocity() const override;
+    muse::async::Channel<int> flickableMaxVelocityChanged() const override;
 
     double stepForSpinControlsOnAppearanceTab() const override;
     muse::async::Channel<double> stepForSpinControlsOnAppearanceTabChanged() const override;
@@ -114,14 +111,13 @@ public:
 private:
     muse::async::Channel<bool> m_focusExportButtonOnExportDialogChanged;
     muse::async::Channel<bool> m_expandShowMoreSectionsInPropertiesPanelChanged;
-    muse::async::Channel<bool> m_doNotHighlightDisabledItemsOnHoverChanged;
     muse::async::Channel<bool> m_showScrollbarOnScrollableDropDownListsChanged;
     muse::async::Channel<mu::engraving::Color> m_activeGripColorChanged;
     muse::async::Channel<mu::engraving::Color> m_scrollbarColorChanged;
-    muse::async::Channel<bool> m_mainMenuFontFollowsPreferencesFontChanged;
+    muse::async::Channel<bool> m_mainMenuFontSameAsUiFontChanged;
     muse::async::Channel<double> m_mainMenuFontSizeMultiplierChanged;
     muse::async::Channel<int> m_verticalPanelsWidthChanged;
-    muse::async::Channel<int> m_scrollDecelerationOfListsAndPanelsChanged;
+    muse::async::Channel<int> m_flickableMaxVelocityChanged;
     muse::async::Channel<double> m_stepForSpinControlsOnAppearanceTabChanged;
     muse::async::Channel<std::string> m_textStylesToUseFullFontHeightChanged;
     muse::async::Channel<bool> m_fixFingeringTooCloseToStaffOnBeamedNotesChanged;

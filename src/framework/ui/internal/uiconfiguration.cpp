@@ -129,7 +129,7 @@ void UiConfiguration::init()
         m_iconsFontChanged.notify();
     });
 
-    appshellConfiguration()->mainMenuFontFollowsPreferencesFontChanged().onReceive(this, [this](bool) { // krasko start
+    appshellConfiguration()->mainMenuFontSameAsUiFontChanged().onReceive(this, [this](bool) { // krasko start
         m_defaultFontChanged.notify();
     });
 
@@ -658,7 +658,7 @@ Notification UiConfiguration::musicalTextFontChanged() const
 
 std::string UiConfiguration::defaultFontFamily() const
 {
-    if (appshellConfiguration()->mainMenuFontFollowsPreferencesFont()) { // krasko
+    if (appshellConfiguration()->mainMenuFontSameAsUiFont()) { // krasko
         return fontFamily();
     }
 

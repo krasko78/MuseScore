@@ -111,7 +111,7 @@ void ThemeApi::init()
         update();
     });
 
-    appshellConfiguration()->scrollDecelerationOfListsAndPanelsChanged().onReceive(this, [this](int) { // krasko
+    appshellConfiguration()->flickableMaxVelocityChanged().onReceive(this, [this](int) { // krasko
         notifyAboutThemeChanged();
     });
 
@@ -373,12 +373,12 @@ qreal ThemeApi::itemOpacityDisabled() const
 
 int ThemeApi::flickableMaxVelocity() const // krasko: not used
 {
-    return configuration()->flickableMaxVelocity();
+    return appshellConfiguration()->flickableMaxVelocity(); //configuration()->flickableMaxVelocity(); // krasko
 }
 
 int ThemeApi::flickableDeceleration() const
 {
-    return appshellConfiguration()->scrollDecelerationOfListsAndPanels(); ///return configuration()->flickableDeceleration();
+    return configuration()->flickableDeceleration();
 }
 
 int ThemeApi::tooltipDelay() const
