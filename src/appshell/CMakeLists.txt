@@ -76,6 +76,8 @@ set(MODULE_SRC
     )
 
 set(MODULE_LINK
+    engraving # krasko
+	muse_workspace_qml # krasko
     muse::ui
     muse::uicomponents
     muse::uicomponents_qml
@@ -112,7 +114,5 @@ if (NOT OS_IS_MAC)
     find_package(Qt6 REQUIRED COMPONENTS GuiPrivate)
     set(MODULE_LINK ${MODULE_LINK} Qt6::GuiPrivate)
 endif(NOT OS_IS_MAC)
-
-set(MODULE_LINK ${MODULE_LINK} engraving) # krasko
 
 setup_module()

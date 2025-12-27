@@ -30,7 +30,6 @@ set(MODULE_TEST_DATA_ROOT "${CMAKE_CURRENT_LIST_DIR}/data")
 
 set(MODULE_TEST_LINK project
     appshell # krasko
-    muse_workspace # krasko
 )
 
 include(SetupGTest)

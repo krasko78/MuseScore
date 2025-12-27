@@ -33,7 +33,6 @@ set(MODULE_TEST_LINK
     appshell # krasko
     muse_actions
     muse_ui
-    muse_workspace # krasko
     # Linking a non-qml module (or its tests) to its qml counterpart should 
     # generally be avoided, but for the ui module we have to make an exception.
     muse_ui_qml 
