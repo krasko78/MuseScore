@@ -66,7 +66,9 @@ Item {
     FlatButton {
         id: paletteExpandArrow
         z: 1000
-        width: height
+        width: 25 // krasko
+        anchors.left: parent.left // krasko
+        anchors.leftMargin: 2 // krasko
         visible: !root.unresolved // TODO: make a separate palette placeholder component
         activeFocusOnTab: false // same focus object as parent palette
         icon: root.expanded ? IconCode.SMALL_ARROW_DOWN : IconCode.SMALL_ARROW_RIGHT
@@ -90,7 +92,7 @@ Item {
         height: parent.height
         horizontalAlignment: Text.AlignHLeft
         anchors {
-            left: paletteExpandArrow.right; leftMargin: 4;
+            left: paletteExpandArrow.right; leftMargin: 2; // krasko
             right: deleteButton.visible ? deleteButton.left : (menuButton.visible ? menuButton.left : parent.right)
         }
 
@@ -153,8 +155,8 @@ Item {
 
         z: 1000
 
-        height: 20
-        width: height
+        height: paletteExpandArrow.height // krasko
+        width: 25 // krasko
 
         anchors.verticalCenter: parent.verticalCenter
 
