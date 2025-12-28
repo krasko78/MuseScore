@@ -83,7 +83,8 @@ Rectangle {
 
             text: titleTextmetrics.elidedText
             textFormat: Text.RichText
-            font: ui.theme.defaultFont
+            font.family: ui.theme.defaultFont.family // krasko
+            font.bold: true // krasko
 
             visible: root.windowVisibility !== Window.FullScreen
 
