@@ -396,6 +396,7 @@ struct FilterElementsOptions
     Fraction durationTicks{ -1, 1 };
     Fraction beat{ 0, 0 };
     const mu::engraving::Measure* measure = nullptr;
+    muse::draw::Color color;
 
     bool bySubtype = false;
     int subtype = -1;

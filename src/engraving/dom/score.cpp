@@ -3780,6 +3780,10 @@ void Score::collectMatch(void* data, EngravingItem* e)
         return;
     }
 
+    if ((p->color.isValid()) && (p->color != e->color())) {
+        return;
+    }
+
     p->el.push_back(e);
 }
 
@@ -3829,6 +3833,9 @@ void Score::collectNoteMatch(void* data, EngravingItem* e)
         return;
     }
     if ((p->beat.isValid()) && (p->beat != n->beat())) {
+        return;
+    }
+    if ((p->color.isValid()) && (p->color != e->color())) {
         return;
     }
     p->el.push_back(n);

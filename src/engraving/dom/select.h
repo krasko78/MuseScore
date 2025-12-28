@@ -57,6 +57,7 @@ struct ElementPattern {
     Fraction beat { 0, 0 };
     const Measure* measure = nullptr;
     const System* system = nullptr;
+    muse::draw::Color color;
 };
 
 //---------------------------------------------------------

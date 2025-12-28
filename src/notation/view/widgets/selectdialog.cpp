@@ -126,6 +126,10 @@ FilterElementsOptions SelectDialog::elementOptions() const
         options.system = elementSystem(m_element);
     }
 
+    if (sameColor->isChecked()) {
+        options.color = m_element->color();
+    }
+
     return options;
 }
 

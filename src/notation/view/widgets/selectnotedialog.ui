@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>403</width>
-    <height>454</height>
+    <height>478</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -111,10 +111,10 @@
           </property>
          </widget>
         </item>
-        <item row="7" column="1">
-         <widget class="QCheckBox" name="inSelection">
+        <item row="9" column="1">
+         <widget class="QCheckBox" name="sameColor">
           <property name="text">
-           <string>In selection</string>
+           <string>Same color</string>
           </property>
          </widget>
         </item>
@@ -132,7 +132,7 @@
           </property>
          </widget>
         </item>
-        <item row="8" column="1" colspan="2">
+        <item row="7" column="1" colspan="2">
          <widget class="QCheckBox" name="sameSystem">
           <property name="text">
            <string>Same system</string>
@@ -167,10 +167,24 @@
           </property>
          </widget>
         </item>
-        <item row="9" column="1">
+        <item row="8" column="1">
          <widget class="QCheckBox" name="sameMeasure">
           <property name="text">
            <string>Same measure</string>
+          </property>
+         </widget>
+        </item>
+        <item row="10" column="0" colspan="3">
+         <widget class="Line" name="line2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="11" column="0">
+         <widget class="QCheckBox" name="inSelection">
+          <property name="text">
+           <string>In selection</string>
           </property>
          </widget>
         </item>
@@ -249,11 +263,12 @@
   <tabstop>sameDurationTicks</tabstop>
   <tabstop>sameName</tabstop>
   <tabstop>sameStaff</tabstop>
-  <tabstop>inSelection</tabstop>
-  <tabstop>sameVoice</tabstop>
   <tabstop>sameSystem</tabstop>
-  <tabstop>sameBeat</tabstop>
+  <tabstop>sameVoice</tabstop>
   <tabstop>sameMeasure</tabstop>
+  <tabstop>sameBeat</tabstop>
+  <tabstop>sameColor</tabstop>
+  <tabstop>inSelection</tabstop>
   <tabstop>replace</tabstop>
   <tabstop>add</tabstop>
   <tabstop>subtract</tabstop>
