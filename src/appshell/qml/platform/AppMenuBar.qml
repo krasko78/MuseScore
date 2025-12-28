@@ -170,12 +170,61 @@ ListView {
             }
         }
 
-        contentItem: StyledTextLabel {
-            id: textLabel
+        contentItem: Item {
+            implicitWidth: Math.max(textLabel.implicitWidth, textLabel2.implicitWidth)
+            implicitHeight: Math.max(textLabel.implicitHeight, textLabel2.implicitHeight)
 
-            text: appMenuModel.isNavigationStarted ? radioButtonDelegate.titleWithMnemonicUnderline : radioButtonDelegate.title
-            textFormat: Text.RichText
-            font: ui.theme.defaultFont
+            // FIX #1
+            StyledTextLabel {
+                id: textLabel
+
+                // these appear not to be needed but probably could/should be added?
+                //anchors.left: 0
+                //anchors.top: 0
+
+                text: radioButtonDelegate.title
+                textFormat: Text.RichText
+                font: ui.theme.defaultFont
+                visible: !appMenuModel.isNavigationStarted
+            }
+
+            StyledTextLabel {
+                id: textLabel2
+
+                //anchors.left: 0
+                //anchors.top: 0
+
+                text: radioButtonDelegate.titleWithMnemonicUnderline
+                textFormat: Text.RichText
+                font: ui.theme.defaultFont
+                visible: appMenuModel.isNavigationStarted
+            }
+
+            /* FIX #2:
+            // textLabel2 is always invisible and is used only to calculate the width.
+            // note that if textLabel1 displays underlined letters, then textLabel2 does not and vice versa.
+            StyledTextLabel {
+                id: textLabel
+
+                //anchors.left: 0
+                //anchors.top: 0
+
+                text: appMenuModel.isNavigationStarted ? radioButtonDelegate.titleWithMnemonicUnderline : radioButtonDelegate.title
+                textFormat: Text.RichText
+                font: ui.theme.defaultFont
+            }
+
+            StyledTextLabel {
+                id: textLabel2
+
+                //anchors.left: 0
+                //anchors.top: 0
+
+                text: appMenuModel.isNavigationStarted ? radioButtonDelegate.title : radioButtonDelegate.titleWithMnemonicUnderline
+                textFormat: Text.RichText
+                font: ui.theme.defaultFont
+                visible: false
+            }*/
         }
 
         backgroundItem: AppButtonBackground {
