@@ -368,6 +368,7 @@ void PageSettings::otmChanged(double val)
 
 void PageSettings::olmChanged(double val)
 {
+    double f = mmUnit ? 1.0 / INCH : 1.0; // krasko
     if (mmUnit) {
         val /= INCH;
     }
@@ -383,7 +384,7 @@ void PageSettings::olmChanged(double val)
     }
 
     setStyleValue(Sid::pageOddLeftMargin, val);
-    setStyleValue(Sid::pagePrintableWidth, styleValueDouble(Sid::pageWidth) - styleValueDouble(Sid::pageEvenLeftMargin) - val);
+    setStyleValue(Sid::pagePrintableWidth, styleValueDouble(Sid::pageWidth) - oddPageRightMargin->value() * f - val); // krasko
 }
 
 void PageSettings::ormChanged(double val)
