@@ -92,8 +92,10 @@ Item {
         height: parent.height
         horizontalAlignment: Text.AlignHLeft
         anchors {
-            left: paletteExpandArrow.right; leftMargin: 2; // krasko
+            left: paletteExpandArrow.right
+            leftMargin: 2 // krasko
             right: deleteButton.visible ? deleteButton.left : (menuButton.visible ? menuButton.left : parent.right)
+            rightMargin: 8 // krasko
         }
 
         text: root.text
@@ -152,6 +154,7 @@ Item {
         id: menuButton
 
         anchors.right: parent.right
+        anchors.rightMargin: 8 // krasko
 
         z: 1000
 
