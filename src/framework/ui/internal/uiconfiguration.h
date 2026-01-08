@@ -41,8 +41,8 @@ class UiConfiguration : public IUiConfiguration, public Injectable, public async
 {
     Inject<IMainWindow> mainWindow = { this };
     Inject<IPlatformTheme> platformTheme = { this };
-    Inject<IGlobalConfiguration> globalConfiguration = { this };
-    Inject<mu::appshell::IAppShellConfiguration> appshellConfiguration = { this }; // krasko
+    GlobalInject<IGlobalConfiguration> globalConfiguration;
+    GlobalInject<mu::appshell::IAppShellConfiguration> appshellConfiguration; // krasko
 
 public:
 

@@ -53,7 +53,7 @@ static const std::unordered_map<PercussionPanelPadModel::PadAction, NoteAddingMo
 };
 
 PercussionPanelModel::PercussionPanelModel(QObject* parent)
-    : QObject(parent)
+    : QObject(parent), muse::Injectable(muse::iocCtxForQmlObject(this))
 {
     m_padListModel = new PercussionPanelPadListModel(this);
     qApp->installEventFilter(this);
@@ -500,7 +500,7 @@ void PercussionPanelModel::onDefinePadShortcutRequested(int pitch)
     }
 
     Drumset updatedDrumset = *m_padListModel->drumset();
-    if (!PercussionUtilities::editPercussionShortcut(updatedDrumset, pitch)) {
+    if (!PercussionUtilities(iocContext()).editPercussionShortcut(updatedDrumset, pitch)) {
         return;
     }
 
@@ -531,7 +531,7 @@ void PercussionPanelModel::playPitch(int pitch)
     }
 
     const NoteInputState& inputState = interaction()->noteInput()->state();
-    std::shared_ptr<Chord> chord = PercussionUtilities::getDrumNoteForPreview(m_padListModel->drumset(), pitch);
+    std::shared_ptr<Chord> chord = PercussionUtilities(iocContext()).getDrumNoteForPreview(m_padListModel->drumset(), pitch);
 
     chord->setParent(inputState.segment());
     chord->setTrack(inputState.track());
@@ -602,7 +602,7 @@ Drumset PercussionPanelModel::museSamplerDefaultDrumset() const
     }
 
     Drumset defaultDrumset;
-    PercussionUtilities::readDrumset(drumMapping, defaultDrumset);
+    PercussionUtilities(iocContext()).readDrumset(drumMapping, defaultDrumset);
 
     return defaultDrumset;
 }

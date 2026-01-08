@@ -26,6 +26,7 @@
 
 #include "abstractinspectormodel.h"
 
+#include "modularity/ioc.h"
 #include "notation/inotationconfiguration.h"
 #include "appshell/iappshellconfiguration.h" // krasko
 
@@ -36,7 +37,6 @@ class AppearanceSettingsModel : public AbstractInspectorModel
     QML_ELEMENT;
     QML_UNCREATABLE("Not creatable from QML")
 
-    INJECT(notation::INotationConfiguration, notationConfiguration)
     INJECT(appshell::IAppShellConfiguration, appshellConfiguration) // krasko
 
     Q_PROPERTY(mu::inspector::PropertyItem * leadingSpace READ leadingSpace CONSTANT)
@@ -48,6 +48,8 @@ class AppearanceSettingsModel : public AbstractInspectorModel
     Q_PROPERTY(bool isSnappedToGrid READ isSnappedToGrid WRITE setIsSnappedToGrid NOTIFY isSnappedToGridChanged)
     Q_PROPERTY(bool isVerticalOffsetAvailable READ isVerticalOffsetAvailable NOTIFY isVerticalOffsetAvailableChanged)
     Q_PROPERTY(double step READ step NOTIFY stepChanged) // krasko
+
+    muse::GlobalInject<notation::INotationConfiguration> notationConfiguration;
 
 public:
     explicit AppearanceSettingsModel(QObject* parent, IElementRepositoryService* repository);

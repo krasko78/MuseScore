@@ -69,7 +69,7 @@ elseif(OS_IS_MAC)
     set(MACOSX_BUNDLE_LONG_VERSION_STRING ${MUSE_APP_VERSION})
     set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${MUSE_APP_VERSION})
     set(MACOSX_BUNDLE_BUNDLE_VERSION ${CMAKE_BUILD_NUMBER})
-    set(MACOSX_BUNDLE_COPYRIGHT "Copyright © 1999-2025 MuseScore Limited. Published under the GNU General Public License version 3.")
+    set(MACOSX_BUNDLE_COPYRIGHT "Copyright © 1999-2026 MuseScore Limited. Published under the GNU General Public License version 3.")
 
     set(CMAKE_INSTALL_RPATH ${QT_INSTALL_LIBS})
     if (MUE_COMPILE_MACOS_PRECOMPILED_DEPS_PATH)
@@ -114,7 +114,6 @@ set(LINK_LIB
     muse::mpe
     muse::midi
     muse::learn
-    muse::learn_qml
     muse::tours
     muse::multiinstances
     muse::cloud
@@ -123,19 +122,15 @@ set(LINK_LIB
 
     braille
     engraving
-    engraving_qml
     context
     notation
     notationscene
-    notationscene_qml
     project
     palette
     inspector
-    inspector_qml
     playback
     instrumentsscene
     musesounds
-    musesounds_qml
     )
 
 macro(add_to_link_if_enabled opt lib)
@@ -148,7 +143,11 @@ add_to_link_if_enabled(${MUSE_MODULE_ACTIONS} muse::actions)
 add_to_link_if_enabled(${MUSE_MODULE_AUTOBOT} muse::autobot)
 add_to_link_if_enabled(${MUSE_MODULE_AUTOBOT_QML} muse::autobot_qml)
 add_to_link_if_enabled(${MUSE_MODULE_AUDIOPLUGINS} muse::audioplugins)
+add_to_link_if_enabled(${MUSE_MODULE_CLOUD_QML} muse::cloud_qml)
 add_to_link_if_enabled(${MUSE_MODULE_DIAGNOSTICS} muse::diagnostics)
+add_to_link_if_enabled(${MUSE_MODULE_DIAGNOSTICS_QML} muse::diagnostics_qml)
+add_to_link_if_enabled(${MUSE_MODULE_EXTENSIONS_QML} muse::extensions_qml)
+add_to_link_if_enabled(${MUSE_MODULE_LEARN_QML} muse::learn_qml)
 add_to_link_if_enabled(${MUSE_MODULE_MUSESAMPLER} muse::musesampler)
 add_to_link_if_enabled(${MUSE_MODULE_UI} muse::ui)
 add_to_link_if_enabled(${MUSE_MODULE_UI_QML} muse::ui_qml)
@@ -157,16 +156,28 @@ add_to_link_if_enabled(${MUSE_MODULE_UI} muse::uicomponents)
 add_to_link_if_enabled(${MUSE_MODULE_UI_QML} muse::uicomponents_qml)
 add_to_link_if_enabled(${MUSE_MODULE_UI_QML} muse::uicomponents_qmlapi)
 add_to_link_if_enabled(${MUSE_MODULE_UI_QML} muse::graphicaleffects_qml)
+add_to_link_if_enabled(${MUSE_MODULE_UI_QML} muse::legacytreeview_qml)
 add_to_link_if_enabled(${MUSE_MODULE_DOCKWINDOW} muse::dockwindow)
 add_to_link_if_enabled(${MUSE_MODULE_DOCKWINDOW_QML} muse::dockwindow_qml)
 add_to_link_if_enabled(${MUSE_MODULE_MPE_QML} muse::mpe_qml)
 add_to_link_if_enabled(${MUSE_MODULE_MULTIINSTANCES_QML} muse::multiinstances_qml)
 add_to_link_if_enabled(${MUSE_MODULE_SHORTCUTS_QML} muse::shortcuts_qml)
+add_to_link_if_enabled(${MUSE_MODULE_TOURS_QML} muse::tours_qml)
+add_to_link_if_enabled(${MUSE_MODULE_UPDATE_QML} muse::update_qml)
+add_to_link_if_enabled(${MUSE_MODULE_VST_QML} muse::vst_qml)
 add_to_link_if_enabled(${MUSE_MODULE_WORKSPACE_QML} muse::workspace_qml)
 
-add_to_link_if_enabled(${MUE_BUILD_BRAILLE_QML} braille_qml)
 add_to_link_if_enabled(${MUE_BUILD_APPSHELL_MODULE} appshell)
+add_to_link_if_enabled(${MUE_BUILD_APPSHELL_QML} appshell_qml)
+add_to_link_if_enabled(${MUE_BUILD_BRAILLE_QML} braille_qml)
 add_to_link_if_enabled(${MUE_BUILD_CONVERTER_MODULE} converter)
+add_to_link_if_enabled(${MUE_BUILD_ENGRAVING_QML} engraving_qml)
+add_to_link_if_enabled(${MUE_BUILD_INSPECTOR_QML} inspector_qml)
+add_to_link_if_enabled(${MUE_BUILD_INSTRUMENTSSCENE_QML} instrumentsscene_qml)
+add_to_link_if_enabled(${MUE_BUILD_MUSESOUNDS_QML} musesounds_qml)
+add_to_link_if_enabled(${MUE_BUILD_NOTATIONSCENE_QML} notationscene_qml)
+add_to_link_if_enabled(${MUE_BUILD_PALETTE_QML} palette_qml)
+add_to_link_if_enabled(${MUE_BUILD_PLAYBACK_QML} playback_qml)
 add_to_link_if_enabled(${MUE_BUILD_PREFERENCES_MODULE} preferences)
 add_to_link_if_enabled(${MUE_BUILD_PREFERENCES_MODULE} preferences_qml)
 add_to_link_if_enabled(${MUE_BUILD_PRINT_MODULE} print)
@@ -477,7 +488,7 @@ endif()
 #################################################
 if (MSVC)
     # Add a post-build event to deploy the application to the output folder. Same as building the INSTALL target.
-    STRING(TOUPPER ${CMAKE_GENERATOR} UPPER_CMAKE_GENERATOR)
+    string(TOUPPER ${CMAKE_GENERATOR} UPPER_CMAKE_GENERATOR)
     if (${UPPER_CMAKE_GENERATOR} MATCHES "VISUAL STUDIO")
         # We want $(Configuration) passed verbatim. Note the round brackets.
         set(CONFIG_STR "$(Configuration)")

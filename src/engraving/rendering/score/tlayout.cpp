@@ -86,6 +86,7 @@
 #include "dom/ledgerline.h"
 #include "dom/letring.h"
 #include "dom/line.h"
+#include "dom/linkedobjects.h"
 #include "dom/lyrics.h"
 
 #include "dom/marker.h"
@@ -487,6 +488,8 @@ void TLayout::layoutItem(EngravingItem* item, LayoutContext& ctx)
     case ElementType::VOLTA:            layoutVolta(item_cast<Volta*>(item), ctx);
         break;
     case ElementType::VOLTA_SEGMENT:    layoutVoltaSegment(item_cast<VoltaSegment*>(item), ctx);
+        break;
+    case ElementType::WHAMMY_BAR:       layoutLine(item_cast<WhammyBar*>(item), ctx);
         break;
     case ElementType::WHAMMY_BAR_SEGMENT: layoutWhammyBarSegment(item_cast<WhammyBarSegment*>(item), ctx);
         break;
@@ -2664,6 +2667,24 @@ void TLayout::layoutGlissandoSegment(GlissandoSegment* item, LayoutContext&)
 
 void TLayout::layoutGraceNotesGroup(GraceNotesGroup* item, LayoutContext& ctx)
 {
+    const StaffType* staffType = item->parent()->staffType();
+    if (staffType->isTabStaff() && !item->empty()) {
+        const Staff* staff = item->parent()->staff();
+        if (staff->links()) {
+            for (EngravingObject* linkedSt : *staff->links()) {
+                Staff* linkedStaff = toStaff(linkedSt);
+                if (linkedStaff->score() == staff->score() && !linkedStaff->staffType()->isTabStaff()
+                    && linkedStaff->idx() < staff->idx()) {
+                    // HACK: align grace notes in TAB to their linked notation staff.
+                    // CAUTION: Works only if notation staff is above the TAB.
+                    // TODO: refactor grace notes to allow doing this properly.
+                    alignTabGraceNotesToMainStave(item, linkedStaff);
+                    return;
+                }
+            }
+        }
+    }
+
     LAYOUT_CALL_ITEM(item);
     Shape _shape;
     for (size_t i = item->size() - 1; i != muse::nidx; --i) {
@@ -2726,11 +2747,6 @@ void TLayout::layoutGraceNotesGroup(GraceNotesGroup* item, LayoutContext& ctx)
     // Safety net in case the shape checks don't succeed
     xPos = std::min(xPos, -double(ctx.conf().styleMM(Sid::graceToMainNoteDist) + firstGN->notes().front()->headWidth() / 2));
 
-    // Exceptions for bends in TAB staves
-    if (firstGN->preOrGraceBendSpacingExceptionInTab()) {
-        xPos = 0.0;
-    }
-
     item->setPos(xPos, 0.0);
 
     if (isTabStaff) {
@@ -2752,6 +2768,21 @@ void TLayout::layoutGraceNotesGroup2(const GraceNotesGroup* item, GraceNotesGrou
         shape.add(grace->shape(LD_ACCESS::PASS).translate(grace->pos() - item->pos()));
     }
     ldata->setShape(shape);
+}
+
+void TLayout::alignTabGraceNotesToMainStave(GraceNotesGroup* graceNotes, const Staff* notationStaff)
+{
+    // HACK: align grace notes in TAB to their linked notation staff.
+    // CAUTION: Works only if notation staff is above the TAB.
+    // TODO: refactor grace notes to allow doing this properly.
+
+    for (Chord* grace : *graceNotes) {
+        Chord* linkedGrace = toChord(grace->findLinkedInStaff(notationStaff));
+        PointF linkedGracePos = linkedGrace->ldata()->pos();
+        if (linkedGrace) {
+            grace->setPos(linkedGracePos);
+        }
+    }
 }
 
 void TLayout::manageTempoChangeSnapping(GradualTempoChangeSegment* item, LayoutContext& ctx)
@@ -2844,18 +2875,15 @@ void TLayout::layoutGuitarBend(GuitarBend* item, LayoutContext& ctx)
 
     GuitarBendLayout::updateSegmentsAndLayout(item, ctx);
 
-    if (item->staffType()->isTabStaff()) {
-        item->updateHoldLine();
-        if (item->holdLine()) {
-            GuitarBendLayout::updateSegmentsAndLayout(item->holdLine(), ctx);
-        }
+    item->updateHoldLine();
+    if (item->holdLine()) {
+        GuitarBendLayout::updateSegmentsAndLayout(item->holdLine(), ctx);
     }
 }
 
 void TLayout::layoutGuitarBendSegment(GuitarBendSegment* item, LayoutContext& ctx)
 {
     LAYOUT_CALL_ITEM(item);
-    GuitarBendSegment::LayoutData* ldata = item->mutldata();
     bool tabStaff = item->staffType()->isTabStaff();
     if (tabStaff) {
         GuitarBendLayout::layoutTabStaff(item, ctx);
@@ -2868,7 +2896,7 @@ void TLayout::layoutGuitarBendSegment(GuitarBendSegment* item, LayoutContext& ct
     SkylineLine& skylineLine = tabStaff ? skyline.north() : (item->guitarBend()->ldata()->up() ? skyline.north() : skyline.south());
     skylineLine.add(item->shape().translate(item->pos()));
 
-    fillGuitarBendSegmentShape(item, ldata);
+    fillGuitarBendSegmentShape(item, item->mutldata());
 }
 
 void TLayout::fillGuitarBendSegmentShape(const GuitarBendSegment* item, GuitarBendSegment::LayoutData* ldata)
@@ -3119,7 +3147,7 @@ void TLayout::layoutHairpin(Hairpin* item, LayoutContext& ctx)
 
 void TLayout::layoutHammerOnPullOff(HammerOnPullOff* item, LayoutContext& ctx)
 {
-    layoutSlur(static_cast<Slur*>(item), ctx);
+    layoutSlur(toSlur(item), ctx);
 }
 
 void TLayout::layoutHammerOnPullOffSegment(HammerOnPullOffSegment* item, LayoutContext& ctx)
@@ -3782,10 +3810,10 @@ void TLayout::layoutLyrics(Lyrics* item, LayoutContext& ctx)
     LyricsLayout::layout(item, ctx);
 }
 
-void TLayout::layoutLyricsLine(LyricsLine* item, LayoutContext& ctx)
+void TLayout::layoutLyricsLine(LyricsLine* item)
 {
     LAYOUT_CALL_ITEM(item);
-    LyricsLayout::layout(item, ctx);
+    LyricsLayout::layout(item);
 }
 
 void TLayout::layoutLyricsLineSegment(LyricsLineSegment* item, LayoutContext& ctx)
@@ -4191,13 +4219,19 @@ void TLayout::fillNoteShape(const Note* item, Note::LayoutData* ldata)
     Part* part = item->part();
     if (part && part->instrument()->hasStrings()) {
         GuitarBend* bend = item->bendFor();
-        if (bend && bend->addToSkyline() && bend->type() == GuitarBendType::SLIGHT_BEND && !bend->segmentsEmpty()) {
+        if (bend && bend->addToSkyline() && bend->bendType() == GuitarBendType::SLIGHT_BEND && !bend->segmentsEmpty()) {
             GuitarBendSegment* bendSeg = toGuitarBendSegment(bend->frontSegment());
             // Semi-hack: the relative position of note and bend
             // isn't fully known yet, so we use an approximation
             double sp = item->spatium();
             PointF approxRelPos(noteBBox.width() + 0.25 * sp, -0.25 * sp);
             shape.add(bendSeg->shape().translate(approxRelPos));
+        }
+        GuitarBend* bendBack = item->bendBack();
+        if (bendBack && bendBack->bendType() == GuitarBendType::SCOOP && !bendBack->segmentsEmpty()
+            && item->findAncestor(ElementType::SYSTEM)) {
+            GuitarBendSegment* seg = toGuitarBendSegment(bendBack->frontSegment());
+            shape.add(seg->shape().translated(seg->pos() - item->systemPos()));
         }
     }
 
@@ -4767,7 +4801,7 @@ void TLayout::layoutLine(SLine* item, LayoutContext& ctx)
             double len = p2.x() - p1.x();
             // enforcing a minimum length would be possible but inadvisable
             // the line length calculations are tuned well enough that this should not be needed
-            //if (anchor() == Anchor::SEGMENT && type() != ElementType::PEDAL)
+            //if (anchor() == Anchor::SEGMENT && !isPedal())
             //      len = std::max(1.0 * spatium(), len);
             lineSegm->setPos(p1);
             lineSegm->setPos2(PointF(len, p2.y() - p1.y()));
@@ -5087,10 +5121,6 @@ void TLayout::layoutForWidth(StaffLines* item, double w, LayoutContext& ctx)
         y += dist;
     }
     item->setLines(ll);
-
-    if (s && s->staffType(item->measure()->tick())->isTabStaff()) {
-        MaskLayout::maskTABStringLinesForFrets(item, ctx);
-    }
 }
 
 void TLayout::layoutStaffState(const StaffState* item, StaffState::LayoutData* ldata)
@@ -6425,6 +6455,8 @@ void TLayout::layoutVibratoSegment(VibratoSegment* item, LayoutContext& ctx)
     case VibratoType::VIBRATO_SAWTOOTH_WIDE:
         item->symbolLine(SymId::wiggleSawtoothWide, SymId::wiggleSawtoothWide);
         break;
+    default:
+        break;
     }
 
     if (item->isStyled(Pid::OFFSET)) {
@@ -6683,7 +6715,7 @@ SpannerSegment* TLayout::layoutSystem(LyricsLine* line, System* system, LayoutCo
 
     SpannerSegmentType sst;
     if (line->tick() >= stick) {
-        TLayout::layoutLyricsLine(line, ctx);
+        TLayout::layoutLyricsLine(line);
         if (line->ticks().isZero() && line->isEndMelisma()) {
             return nullptr;
         }

@@ -272,8 +272,8 @@ class ThemeApi : public api::ApiObject, public async::Asyncable
 
 public:
 
-    Inject<ui::IUiConfiguration> configuration = { this };
-    Inject<mu::appshell::IAppShellConfiguration> appshellConfiguration; // krasko
+    GlobalInject<ui::IUiConfiguration> configuration;
+    GlobalInject<mu::appshell::IAppShellConfiguration> appshellConfiguration; // krasko
 
 public:
     ThemeApi(IApiEngine* e);

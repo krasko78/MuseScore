@@ -52,7 +52,7 @@ Column {
         step: 1
         minValue: 1
 
-        navigationName: "SpanFrom"
+        navigationName: "Verse"
         navigationPanel: root.navigationPanel
         navigationRowStart: root.navigationRowStart
     }

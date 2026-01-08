@@ -38,7 +38,7 @@
 #include "uicomponents/qml/Muse/UiComponents/quickpaintedview.h"
 
 namespace mu::inspector {
-class BendGridCanvas : public muse::uicomponents::QuickPaintedView, public muse::async::Asyncable
+class BendGridCanvas : public muse::uicomponents::QuickPaintedView, public muse::async::Asyncable, public muse::Injectable
 {
     Q_OBJECT
     QML_ELEMENT;
@@ -49,12 +49,14 @@ class BendGridCanvas : public muse::uicomponents::QuickPaintedView, public muse:
     Q_PROPERTY(int columnCount READ columnCount WRITE setColumnCount NOTIFY columnCountChanged)
     Q_PROPERTY(int rowSpacing READ rowSpacing WRITE setRowSpacing NOTIFY rowSpacingChanged)
     Q_PROPERTY(int columnSpacing READ columnSpacing WRITE setColumnSpacing NOTIFY columnSpacingChanged)
-    Q_PROPERTY(bool shouldShowNegativeRows READ shouldShowNegativeRows WRITE setShouldShowNegativeRows NOTIFY shouldShowNegativeRowsChanged)
+    Q_PROPERTY(int topLineValue READ topLineValue WRITE setTopLineValue NOTIFY topLineValueChanged FINAL)
+    Q_PROPERTY(bool showHalfs READ showHalfs WRITE setShowHalfs NOTIFY showHalfsChanged FINAL)
+    Q_PROPERTY(bool straightLines READ straightLines WRITE setStraightLines NOTIFY straightLinesChanged FINAL)
 
     Q_PROPERTY(muse::ui::AccessibleItem
                * accessibleParent READ accessibleParent WRITE setAccessibleParent NOTIFY accessibleParentChanged)
 
-    muse::Inject<muse::ui::IUiConfiguration> uiConfig;
+    muse::GlobalInject<muse::ui::IUiConfiguration> uiConfig;
 
 public:
     explicit BendGridCanvas(QQuickItem* parent = nullptr);
@@ -66,8 +68,9 @@ public:
     int columnCount() const;
     int rowSpacing() const;
     int columnSpacing() const;
-
-    bool shouldShowNegativeRows() const;
+    int topLineValue() const;
+    bool showHalfs() const;
+    bool straightLines() const;
 
     Q_INVOKABLE bool focusOnFirstPoint();
     Q_INVOKABLE bool resetFocus();
@@ -87,8 +90,9 @@ public slots:
     void setColumnCount(int columnCount);
     void setRowSpacing(int rowSpacing);
     void setColumnSpacing(int columnSpacing);
-
-    void setShouldShowNegativeRows(bool shouldShowNegativeRows);
+    void setTopLineValue(int topLineValue);
+    void setShowHalfs(bool showHalfs);
+    void setStraightLines(bool straightLines);
 
 signals:
     void canvasChanged();
@@ -99,12 +103,15 @@ signals:
     void columnCountChanged(int columnCount);
     void rowSpacingChanged(int rowSpacing);
     void columnSpacingChanged(int columnSpacing);
-
-    void shouldShowNegativeRowsChanged(bool shouldShowNegativeRows);
+    void topLineValueChanged(int topLineValue);
+    void showHalfsChanged(bool showHalfs);
+    void straightLinesChanged(bool straightLines);
 
     void accessibleParentChanged();
 
 private:
+    void classBegin() override;
+
     void paint(QPainter* painter) override;
 
     void mousePressEvent(QMouseEvent* event) override;
@@ -154,9 +161,9 @@ private:
     /// Moving from a primary line to another means changing the pitch of a semitone.
     int m_primaryColumnsInterval = 0;
     int m_primaryRowsInterval    = 0;
-
-    /// Show negative pitch values. Happens in tremoloBarCanvas.
-    bool m_showNegativeRows = false;
+    int m_topLineValue = 0;
+    bool m_showHalfs = true;
+    bool m_straightLines = false;
 
     std::optional<int> m_currentPointIndex;
     std::optional<int> m_focusedPointIndex;

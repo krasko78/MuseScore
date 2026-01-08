@@ -285,11 +285,11 @@ void ChordLayout::layoutPitched(Chord* item, LayoutContext& ctx)
     }
 
     for (EngravingItem* e : item->el()) {
-        if (e->type() == ElementType::SLUR) {       // we cannot at this time as chordpositions are not fixed
+        if (e->isSlur()) {       // we cannot at this time as chordpositions are not fixed
             continue;
         }
         TLayout::layoutItem(e, ctx);
-        if (e->type() == ElementType::CHORDLINE) {
+        if (e->isChordLine()) {
             RectF tbbox = e->ldata()->bbox().translated(e->pos());
             double lx = tbbox.left() + chordX;
             double rx = tbbox.right() + chordX;
@@ -349,7 +349,7 @@ void ChordLayout::layoutTablature(Chord* item, LayoutContext& ctx)
     const Staff* st    = item->staff();
     const StaffType* tab = st->staffTypeForElement(item);
     double lineDist    = tab->lineDistance().val() * _spatium;
-    double stemX       = StemLayout::tabStemPosX() * _spatium;
+    double stemX       = 0.5 * headWidth;
     int ledgerLines = 0;
     double llY         = 0.0;
 
@@ -521,7 +521,7 @@ void ChordLayout::layoutTablature(Chord* item, LayoutContext& ctx)
                        || prevCR->durationType().type() != item->durationType().type()
                        || prevCR->dots() != item->dots()
                        || prevCR->tuplet() != item->tuplet()
-                       || prevCR->type() == ElementType::REST) {
+                       || prevCR->isRest()) {
                 needTabDur = true;
             } else if (tab->symRepeat() == TablatureSymbolRepeat::ALWAYS
                        || ((tab->symRepeat() == TablatureSymbolRepeat::MEASURE
@@ -663,7 +663,7 @@ void ChordLayout::layoutTablature(Chord* item, LayoutContext& ctx)
     }
     for (EngravingItem* e : item->el()) {
         TLayout::layoutItem(e, ctx);
-        if (e->type() == ElementType::CHORDLINE) {
+        if (e->isChordLine()) {
             RectF tbbox = e->ldata()->bbox().translated(e->pos());
             double lx = tbbox.left();
             double rx = tbbox.right();
@@ -2965,7 +2965,11 @@ void ChordLayout::updateLineAttachPoints(Chord* chord, bool isFirstInMeasure, La
                 if (sp->isGlissando()) {
                     TLayout::layoutGlissando(toGlissando(sp), ctx);
                 } else if (sp->isGuitarBend()) {
-                    TLayout::layoutGuitarBend(toGuitarBend(sp), ctx);
+                    const StaffType* staffType = chord->staffType();
+                    bool isDiveOnTab = toGuitarBend(sp)->isDive() && staffType && staffType->isTabStaff();
+                    if (!isDiveOnTab) {
+                        TLayout::layoutGuitarBend(toGuitarBend(sp), ctx);
+                    }
                 } else if (sp->isNoteLine()) {
                     TLayout::layoutNoteLine(toNoteLine(sp), ctx);
                 }
@@ -3254,13 +3258,13 @@ void ChordLayout::fillShape(const ChordRest* item, Chord::LayoutData* ldata, con
 {
     switch (item->type()) {
     case ElementType::CHORD:
-        fillShape(static_cast<const Chord*>(item), static_cast<Chord::LayoutData*>(ldata));
+        fillShape(toChord(item), static_cast<Chord::LayoutData*>(ldata));
         break;
     case ElementType::MEASURE_REPEAT:
-        fillShape(static_cast<const MeasureRepeat*>(item), static_cast<MeasureRepeat::LayoutData*>(ldata), conf);
+        fillShape(toMeasureRepeat(item), static_cast<MeasureRepeat::LayoutData*>(ldata), conf);
         break;
     default:
-        RestLayout::fillShape(static_cast<const Rest*>(item), static_cast<Rest::LayoutData*>(ldata), conf);
+        RestLayout::fillShape(toRest(item), static_cast<Rest::LayoutData*>(ldata), conf);
         break;
     }
 }

@@ -877,6 +877,7 @@ enum class TextStyleType : unsigned char {
     PEDAL,
     BEND,
     LET_RING,
+    WHAMMY_BAR,
     PALM_MUTE,
 
     // User styles
@@ -1017,13 +1018,6 @@ constexpr bool operator&(FontStyle a1, FontStyle a2)
 {
     return static_cast<bool>(static_cast<char>(a1) & static_cast<char>(a2));
 }
-
-enum class AnnotationCategory : signed char {
-    Undefined = -1,
-    TempoAnnotation,
-    PlayingAnnotation,
-    Other,
-};
 
 enum class PlayingTechniqueType : signed char {
     Undefined = -1,
@@ -1265,8 +1259,12 @@ enum class TrillType : unsigned char {
     TRILL_LINE, UPPRALL_LINE, DOWNPRALL_LINE, PRALLPRALL_LINE,
 };
 
-enum class VibratoType : unsigned char {
-    GUITAR_VIBRATO, GUITAR_VIBRATO_WIDE, VIBRATO_SAWTOOTH, VIBRATO_SAWTOOTH_WIDE
+enum class VibratoType : signed char {
+    NONE = -1,
+    GUITAR_VIBRATO,
+    GUITAR_VIBRATO_WIDE,
+    VIBRATO_SAWTOOTH,
+    VIBRATO_SAWTOOTH_WIDE
 };
 
 enum class ArticulationTextType : unsigned char {

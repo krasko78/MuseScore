@@ -45,7 +45,7 @@ class LineSegment : public SpannerSegment
 protected:
     virtual bool isEditAllowed(EditData&) const override;
     virtual bool edit(EditData&) override;
-    std::vector<LineF> gripAnchorLines(Grip) const override;
+    virtual std::vector<LineF> gripAnchorLines(Grip) const override;
     virtual void startDragGrip(EditData&) override;
     virtual void dragGrip(EditData&) override;
     void startDrag(EditData&) override;
@@ -79,6 +79,7 @@ public:
 
 protected:
     virtual void rebaseOffsetsOnAnchorChanged(Grip grip, const PointF& oldPos, System* sys);
+    virtual void rebaseAnchors(EditData&, Grip);
 
 private:
     void undoMoveStartEndAndSnappedItems(EditData& ed, bool moveStart, bool moveEnd, Segment* s1, Segment* s2);
@@ -90,7 +91,6 @@ private:
     static PointF deltaRebaseRight(const Segment* oldSeg, const Segment* newSeg);
     static Fraction lastSegmentEndTick(const Segment* lastSeg, const Spanner* s);
     LineSegment* rebaseAnchor(Grip grip, Segment* newSeg);
-    void rebaseAnchors(EditData&, Grip);
 };
 
 //---------------------------------------------------------

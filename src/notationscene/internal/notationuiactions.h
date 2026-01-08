@@ -31,14 +31,14 @@
 #include "notationactioncontroller.h"
 
 namespace mu::notation {
-class NotationUiActions : public muse::ui::IUiActionsModule, public muse::async::Asyncable
+class NotationUiActions : public muse::ui::IUiActionsModule, public muse::async::Asyncable, public muse::Injectable
 {
-    INJECT(context::IUiContextResolver, uicontextResolver)
-    INJECT(engraving::IEngravingConfiguration, engravingConfiguration)
+    muse::GlobalInject<engraving::IEngravingConfiguration> engravingConfiguration;
+    muse::Inject<context::IUiContextResolver> uicontextResolver = { this };
 
 public:
 
-    NotationUiActions(std::shared_ptr<NotationActionController> controller);
+    NotationUiActions(std::shared_ptr<NotationActionController> controller, const muse::modularity::ContextPtr& iocCtx);
 
     void init();
 

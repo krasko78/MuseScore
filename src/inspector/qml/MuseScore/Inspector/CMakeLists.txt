@@ -120,14 +120,10 @@ qt_add_qml_module(inspector_qml
         notation/lines/hairpinlinesettingsmodel.h
         notation/lines/hairpinsettingsmodel.cpp
         notation/lines/hairpinsettingsmodel.h
-        notation/lines/letringsettingsmodel.cpp
-        notation/lines/letringsettingsmodel.h
         notation/lines/notelinesettingsmodel.cpp
         notation/lines/notelinesettingsmodel.h
         notation/lines/ottavasettingsmodel.cpp
         notation/lines/ottavasettingsmodel.h
-        notation/lines/palmmutesettingsmodel.cpp
-        notation/lines/palmmutesettingsmodel.h
         notation/lines/pedalsettingsmodel.cpp
         notation/lines/pedalsettingsmodel.h
         notation/lines/slurandtiesettingsmodel.cpp
@@ -138,6 +134,8 @@ qt_add_qml_module(inspector_qml
         notation/lines/vibratosettingsmodel.h
         notation/lines/voltasettingsmodel.cpp
         notation/lines/voltasettingsmodel.h
+        notation/lines/lyricslinesettingsmodel.cpp
+        notation/lines/lyricslinesettingsmodel.h
         notation/lyrics/lyricssettingsmodel.cpp
         notation/lyrics/lyricssettingsmodel.h
         notation/markers/markersettingsmodel.cpp
@@ -325,6 +323,7 @@ qt_add_qml_module(inspector_qml
         notation/lines/LineSettings.qml
         notation/lines/SlurAndTieSettings.qml
         notation/lines/VibratoSettings.qml
+        notation/lines/LyricsLineSettings.qml
         notation/lyrics/LyricsSettings.qml
         notation/markers/MarkerSettings.qml
         notation/measurerepeats/MeasureRepeatSettings.qml

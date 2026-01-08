@@ -437,7 +437,7 @@ void Score::setUpTempoMap()
     auto tempoPrimo = std::optional<BeatsPerSecond> {};
 
     for (MeasureBase* mb = first(); mb; mb = mb->next()) {
-        if (mb->type() != ElementType::MEASURE) {
+        if (!mb->isMeasure()) {
             mb->setTick(tick);
             continue;
         }
@@ -1505,7 +1505,8 @@ void Score::addElement(EngravingItem* element)
     case ElementType::GUITAR_BEND:
     {
         GuitarBend* bend = toGuitarBend(element);
-        if (bend->type() == GuitarBendType::GRACE_NOTE_BEND || bend->type() == GuitarBendType::PRE_BEND) {
+        if (bend->bendType() == GuitarBendType::GRACE_NOTE_BEND || bend->bendType() == GuitarBendType::PRE_BEND
+            || bend->bendType() == GuitarBendType::PRE_DIVE) {
             Note* startNote = bend->startNote();
             Chord* startChord = startNote ? startNote->chord() : nullptr;
             if (startChord) {
@@ -1743,7 +1744,7 @@ bool Score::canReselectItem(const EngravingItem* item) const
 Measure* Score::firstMeasure() const
 {
     MeasureBase* mb = m_measures.first();
-    while (mb && mb->type() != ElementType::MEASURE) {
+    while (mb && !mb->isMeasure()) {
         mb = mb->next();
     }
 
@@ -1771,7 +1772,7 @@ MeasureBase* Score::firstMM() const
 {
     MeasureBase* m = m_measures.first();
     if (m
-        && m->type() == ElementType::MEASURE
+        && m->isMeasure()
         && style().styleB(Sid::createMultiMeasureRests)
         && toMeasure(m)->hasMMRest()) {
         return toMeasure(m)->mmRest();
@@ -1827,7 +1828,7 @@ Measure* Score::lastMeasure() const
         return nullptr;
     }
 
-    while (mb && mb->type() != ElementType::MEASURE) {
+    while (mb && !mb->isMeasure()) {
         mb = mb->prev();
     }
     return toMeasure(mb);
@@ -2344,7 +2345,7 @@ void Score::splitStaff(staff_idx_t staffIdx, int splitPoint)
                     if (chord->notes().empty()) {
                         for (auto sp : spanner()) {
                             Slur* slur = toSlur(sp.second);
-                            if (slur->type() != ElementType::SLUR) {
+                            if (!slur->isSlur()) {
                                 continue;
                             }
                             if (slur->startCR() == chord) {
@@ -3399,7 +3400,7 @@ void Score::selectSingle(EngravingItem* e, staff_idx_t staffIdx)
         m_selection.add(e);
         m_is.setTrack(e->track());
         selState = SelState::LIST;
-        if (e->type() == ElementType::NOTE) {
+        if (e->isNote()) {
             e = e->parentItem();
         }
         if (e->isChordRest()) {
@@ -3759,7 +3760,7 @@ void Score::collectMatch(ElementPattern* p, EngravingItem* e)
     if (p->system) {
         EngravingItem* ee = e;
         do {
-            if (ee->type() == ElementType::SYSTEM) {
+            if (ee->isSystem()) {
                 if (p->system != ee) {
                     return;
                 }
@@ -3862,20 +3863,19 @@ void Score::collectNoteMatch(NotePattern* p, EngravingItem* e)
 
 void Score::selectSimilar(EngravingItem* e, bool sameStaff)
 {
-    ElementType type = e->type();
     Score* score = e->score();
 
     ElementPattern pattern;
-    pattern.type = int(type);
+    pattern.type = int(e->type());
     pattern.subtype = 0;
     pattern.subtypeValid = false;
-    if (type == ElementType::NOTE) {
+    if (e->isNote()) {
         if (toNote(e)->chord()->isGrace()) {
             pattern.subtype = -1;       // hack
         } else {
             pattern.subtype = e->subtype();
         }
-    } else if (e->type() == ElementType::HAIRPIN_SEGMENT) {
+    } else if (e->isHairpinSegment()) {
         pattern.subtype = e->subtype();
         pattern.subtypeValid = true;
     }
@@ -3895,21 +3895,20 @@ void Score::selectSimilar(EngravingItem* e, bool sameStaff)
 
 void Score::selectSimilarInRange(EngravingItem* e)
 {
-    ElementType type = e->type();
     Score* score = e->score();
 
     ElementPattern pattern;
-    pattern.type    = int(type);
+    pattern.type    = int(e->type());
     pattern.subtype = 0;
     pattern.subtypeValid = false;
-    if (type == ElementType::NOTE) {
+    if (e->isNote()) {
         if (toNote(e)->chord()->isGrace()) {
             pattern.subtype = -1;       //hack
         } else {
             pattern.subtype = e->subtype();
         }
         pattern.subtypeValid = true;
-    } else if (e->type() == ElementType::HAIRPIN_SEGMENT) {
+    } else if (e->isHairpinSegment() || e->isHarmony()) {
         pattern.subtype = e->subtype();
         pattern.subtypeValid = true;
     }
@@ -4104,7 +4103,7 @@ void Score::lassoSelect(const RectF& bbox)
 
         for (EngravingItem* item : items) {
             if (frr.contains(item->pageBoundingRect())) {
-                if (item->type() != ElementType::MEASURE && item->selectable()) {
+                if (!item->isMeasure() && item->selectable()) {
                     itemsToSelect.push_back(item);
                 }
             }
@@ -4135,20 +4134,20 @@ void Score::lassoSelectEnd()
     m_selection.setState(SelState::LIST);
 
     for (const EngravingItem* e : m_selection.elements()) {
-        if (e->type() != ElementType::NOTE && e->type() != ElementType::REST) {
+        if (!e->isNote() && !e->isRest()) {
             continue;
         }
         ++noteRestCount;
-        if (e->type() == ElementType::NOTE) {
+        if (e->isNote()) {
             e = e->parentItem();
         }
-        Segment* seg = static_cast<const ChordRest*>(e)->segment();
+        Segment* seg = toChordRest(e)->segment();
         if ((startSegment == 0) || (*seg < *startSegment)) {
             startSegment = seg;
         }
         if ((endSegment == 0) || (*seg > *endSegment)) {
             endSegment = seg;
-            endCR = static_cast<const ChordRest*>(e);
+            endCR = toChordRest(e);
         }
         staff_idx_t idx = e->staffIdx();
         if (idx < startStaff) {
@@ -4337,10 +4336,10 @@ void Score::cmdSelectSection()
         }
         em = em->next();
     }
-    while (sm && sm->type() != ElementType::MEASURE) {
+    while (sm && !sm->isMeasure()) {
         sm = sm->next();
     }
-    while (em && em->type() != ElementType::MEASURE) {
+    while (em && !em->isMeasure()) {
         em = em->next();
     }
     if (sm == 0 || em == 0) {
@@ -4980,7 +4979,7 @@ bool Score::hasHarmonies() const
     SegmentType st = SegmentType::ChordRest;
     for (Segment* seg = firstMeasure()->first(st); seg; seg = seg->next1(st)) {
         for (EngravingItem* e : seg->annotations()) {
-            if (e->type() == ElementType::HARMONY) {
+            if (e->isHarmony()) {
                 return true;
             }
         }
@@ -5097,7 +5096,7 @@ int Score::harmonyCount() const
     SegmentType st = SegmentType::ChordRest;
     for (Segment* seg = firstMeasure()->first(st); seg; seg = seg->next1(st)) {
         for (EngravingItem* e : seg->annotations()) {
-            if (e->type() == ElementType::HARMONY) {
+            if (e->isHarmony()) {
                 count++;
             }
         }
@@ -5165,7 +5164,7 @@ String Score::createRehearsalMarkText(RehearsalMark* current) const
     RehearsalMark* after = 0;
     for (Segment* s = firstSegment(SegmentType::All); s; s = s->next1()) {
         for (EngravingItem* e : s->annotations()) {
-            if (e && e->type() == ElementType::REHEARSAL_MARK) {
+            if (e && e->isRehearsalMark()) {
                 if (s->tick() < tick) {
                     before = toRehearsalMark(e);
                 } else if (s->tick() > tick) {
@@ -5370,7 +5369,7 @@ void Score::changeSelectedElementsVoice(voice_idx_t voice)
                     if (voice && !dstCR) {
                         score->expandVoice(s, /*m->first(SegmentType::ChordRest,*/ dstTrack);
                     }
-                    score->makeGapVoice(s, dstTrack, chord->actualTicks(), s->tick());
+                    score->makeGapVoice(s, dstTrack, chord->ticks(), s->tick());
                 }
             }
 
@@ -5802,7 +5801,7 @@ void Score::scanElements(std::function<void(EngravingItem*)> func)
 {
     for (MeasureBase* mb = first(); mb; mb = mb->next()) {
         mb->scanElements(func);
-        if (mb->type() == ElementType::MEASURE) {
+        if (mb->isMeasure()) {
             Measure* m = toMeasure(mb);
             Measure* mmr = m->mmRest();
             if (mmr) {
@@ -6155,7 +6154,7 @@ void Score::updateChannel()
                     continue;
                 }
                 EngravingItem* e = s->element(track);
-                if (e->type() != ElementType::CHORD) {
+                if (!e->isChord()) {
                     continue;
                 }
                 Chord* c = toChord(e);

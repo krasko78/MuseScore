@@ -21,8 +21,8 @@
  */
 #include "uimodule.h"
 
-#include <QQmlEngine>
 #include <QFontDatabase>
+#include <qqml.h>
 
 #include "modularity/ioc.h"
 
@@ -34,6 +34,7 @@
 #include "internal/navigationcontroller.h"
 #include "internal/navigationuiactions.h"
 #include "internal/dragcontroller.h"
+#include "view/iconcodes.h"
 
 #ifdef Q_OS_MAC
 #include "internal/platform/macos/macosplatformtheme.h"
@@ -78,7 +79,7 @@ void UiModule::registerExports()
     m_windowsController = std::make_shared<WindowsController>();
     #elif defined(Q_OS_WIN)
     m_platformTheme = std::make_shared<WindowsPlatformTheme>();
-    m_windowsController = std::make_shared<WinWindowsController>();
+    m_windowsController = std::make_shared<WinWindowsController>(iocContext());
     #elif defined(Q_OS_LINUX)
     m_platformTheme = std::make_shared<LinuxPlatformTheme>();
     m_windowsController = std::make_shared<WindowsController>();
@@ -114,7 +115,7 @@ void UiModule::resolveImports()
         ir->registerQmlUri(Uri("muse://interactive/selectdir"), "Muse.Ui.Dialogs", "FolderDialog");
 
         ir->registerWidgetUri<TestDialog>(Uri("muse://devtools/interactive/testdialog"));
-        ir->registerQmlUri(Uri("muse://devtools/interactive/sample"), "DevTools/Interactive/SampleDialog.qml");
+        ir->registerQmlUri(Uri("muse://devtools/interactive/sample"), "Muse.Ui.Dialogs", "SampleDialog");
     }
 }
 
@@ -128,7 +129,8 @@ void UiModule::registerApi()
         api->regApiCreator(moduleName(), "MuseInternal.Keyboard", new ApiCreator<muse::api::KeyboardApi>());
         api->regApiSingltone(moduleName(), "MuseApi.Theme", m_uiengine->theme());
 
-        qmlRegisterUncreatableType<IconCode>("MuseApi.Controls", 1, 0, "IconCode", "Cannot create an IconCode");
+        qmlRegisterUncreatableMetaObject(IconCode::staticMetaObject, "MuseApi.Controls", 1, 0, "IconCode",
+                                         "Not creatable as it is an enum type");
     }
 }
 

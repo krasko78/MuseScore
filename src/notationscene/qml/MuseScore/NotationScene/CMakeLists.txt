@@ -20,6 +20,14 @@
 
 muse_create_qml_module(notationscene_qml FOR notationscene)
 
+if (MUE_BUILD_BRAILLE_QML)
+    set(MAYBE_BRAILLE_QML
+        TARGET braille_qml
+    )
+else()
+    set(MAYBE_BRAILLE_QML)
+endif()
+
 qt_add_qml_module(notationscene_qml
     URI MuseScore.NotationScene
     VERSION 1.0
@@ -113,8 +121,8 @@ qt_add_qml_module(notationscene_qml
         styledialog/accidentalspagemodel.h
         styledialog/beamspagemodel.cpp
         styledialog/beamspagemodel.h
-        styledialog/bendstyleselector.cpp
-        styledialog/bendstyleselector.h
+        styledialog/bendspagemodel.cpp
+        styledialog/bendspagemodel.h
         styledialog/chordsymbolspagemodel.cpp
         styledialog/chordsymbolspagemodel.h
         styledialog/clefkeytimesigpagemodel.cpp
@@ -192,11 +200,11 @@ qt_add_qml_module(notationscene_qml
         SelectMeasuresCountDialog.qml
         styledialog/AccidentalsPage.qml
         styledialog/BeamsPage.qml
+        styledialog/BendsPage.qml
         styledialog/ChordSymbolsPage.qml
         styledialog/ClefKeyTimeSigPage.qml
         styledialog/ComboBoxDropdown.qml
         styledialog/FretboardsPage.qml
-        styledialog/FullBendStyleSelector.qml
         styledialog/GlissandoSection.qml
         styledialog/HammerOnPullOffTappingPage.qml
         styledialog/IconAndTextButtonSelector.qml
@@ -276,6 +284,7 @@ qt_add_qml_module(notationscene_qml
     IMPORTS
         TARGET muse_ui_qml
         TARGET muse_uicomponents_qml
+        ${MAYBE_BRAILLE_QML}
 )
 
 fixup_qml_module_dependencies(notationscene_qml)

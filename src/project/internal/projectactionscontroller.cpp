@@ -34,7 +34,7 @@
 #include "translation.h"
 
 #include "cloud/clouderrors.h"
-#include "cloud/cloudqmltypes.h"
+#include "cloud/qml/Muse/Cloud/enums.h"
 #include "engraving/infrastructure/mscio.h"
 #include "engraving/engravingerrors.h"
 
@@ -883,14 +883,11 @@ void ProjectActionsController::shareAudio(const AudioFile& existingAudio)
 
 void ProjectActionsController::uploadAudioToAudioCom(const AudioFile& audio, const INotationProjectPtr& project, const CloudAudioInfo& info)
 {
-    m_uploadingAudioProgress = audioComService()->uploadAudio(*audio.device, audio.format, info.name,
+    m_uploadingAudioProgress = audioComService()->uploadAudio(audio.device, audio.format, info.name,
                                                               project->cloudAudioInfo().url, info.visibility,
                                                               info.replaceExisting);
-
-    m_uploadingAudioProgress->started().onNotify(this, [this]() {
-        LOGD() << "Uploading audio started";
-        showUploadProgressDialog();
-    });
+    LOGD() << "Uploading audio started";
+    showUploadProgressDialog();
 
     m_uploadingAudioProgress->progressChanged().onReceive(this, [](int64_t current, int64_t total, const std::string&) {
         if (total > 0) {
@@ -898,9 +895,8 @@ void ProjectActionsController::uploadAudioToAudioCom(const AudioFile& audio, con
         }
     });
 
-    m_uploadingAudioProgress->finished().onReceive(this, [this, audio, project, info](const ProgressResult& res) {
+    m_uploadingAudioProgress->finished().onReceive(this, [this, project, info](const ProgressResult& res) {
         LOGD() << "Uploading audio finished";
-        (void)audio; // make sure it lives long enough
 
         if (!res.ret) {
             LOGE() << res.ret.toString();
@@ -1030,7 +1026,7 @@ bool ProjectActionsController::saveProjectToCloud(CloudProjectInfo info, SaveMod
             return false;
         }
 
-        using Response = muse::cloud::QMLSaveToCloudResponse::SaveToCloudResponse;
+        using Response = muse::cloud::SaveToCloudResponse::SaveToCloudResponse;
         bool saveLocally = static_cast<Response>(retVal.val.toInt()) == Response::SaveLocallyInstead;
         if (saveLocally && project) {
             RetVal<muse::io::path_t> rv = openSaveProjectScenario()->askLocalPath(project, saveMode);

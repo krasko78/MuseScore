@@ -842,7 +842,7 @@ int chromaticPitchSteps(const Note* noteL, const Note* noteR, const int nominalD
     bool done = false;
     for (track_idx_t track = startTrack; track < endTrack; ++track) {
         EngravingItem* e = segment->element(track);
-        if (!e || e->type() != ElementType::CHORD) {
+        if (!e || !e->isChord()) {
             continue;
         }
         Chord* chord = toChord(e);
@@ -1459,22 +1459,41 @@ bool isFirstSystemKeySig(const KeySig* ks)
     return ks->tick() == sys->firstMeasure()->tick();
 }
 
-String bendAmountToString(int fulls, int quarts)
+String bendAmountToString(int fulls, int quarts, bool useFractions)
 {
-    String string = (fulls != 0 || quarts == 0) ? String::number(fulls) : String();
+    String string = fulls != 0 ? String::number(fulls) : String();
 
-    switch (quarts) {
-    case 1:
-        string += u"\u00BC";
-        break;
-    case 2:
-        string += u"\u00BD";
-        break;
-    case 3:
-        string += u"\u00BE";
-        break;
-    default:
-        break;
+    if (useFractions) {
+        switch (std::abs(quarts)) {
+        case 1:
+            string += u"\u00BC";
+            break;
+        case 2:
+            string += u"\u00BD";
+            break;
+        case 3:
+            string += u"\u00BE";
+            break;
+        default:
+            break;
+        }
+    } else {
+        if (!string.empty()) {
+            string += u" ";
+        }
+        switch (std::abs(quarts)) {
+        case 1:
+            string += u"1/4";
+            break;
+        case 2:
+            string += u"1/2";
+            break;
+        case 3:
+            string += u"3/4";
+            break;
+        default:
+            break;
+        }
     }
 
     return string;
@@ -1846,5 +1865,34 @@ std::vector<EngravingItem*> filterTargetElements(const Selection& sel, Engraving
         }
     }
     return result;
+}
+
+Lyrics* searchNextLyrics(Segment* s, staff_idx_t staffIdx, int verse, PlacementV p)
+{
+    Lyrics* l = nullptr;
+    const Segment* originalSeg = s;
+    while ((s = s->next1(SegmentType::ChordRest))) {
+        if (!segmentsAreAdjacentInRepeatStructure(originalSeg, s)) {
+            return nullptr;
+        }
+
+        track_idx_t strack = staffIdx * VOICES;
+        track_idx_t etrack = strack + VOICES;
+        // search through all tracks of current staff looking for a lyric in specified verse
+        for (track_idx_t track = strack; track < etrack; ++track) {
+            ChordRest* cr = toChordRest(s->element(track));
+            if (cr) {
+                // cr with lyrics found, but does it have a syllable in specified verse?
+                l = cr->lyrics(verse, p);
+                if (l) {
+                    break;
+                }
+            }
+        }
+        if (l) {
+            break;
+        }
+    }
+    return l;
 }
 }

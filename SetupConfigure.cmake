@@ -72,14 +72,14 @@ endif()
 # Setup paths
 ###########################################
 if (OS_IS_MAC)
-    SET(Mscore_INSTALL_NAME    "Contents/Resources/")
-    SET(Mscore_SHARE_NAME      "mscore.app/")
+    set(Mscore_INSTALL_NAME    "Contents/Resources/")
+    set(Mscore_SHARE_NAME      "mscore.app/")
 elseif (OS_IS_WIN)
-    SET(Mscore_INSTALL_NAME  "")
-    SET(Mscore_SHARE_NAME    "./")
+    set(Mscore_INSTALL_NAME  "")
+    set(Mscore_SHARE_NAME    "./")
 else()
-    SET(Mscore_INSTALL_NAME  "mscore${MUSE_APP_INSTALL_SUFFIX}-${MUSE_APP_VERSION_MAJ_MIN}/")
-    SET(Mscore_SHARE_NAME    "share/")
+    set(Mscore_INSTALL_NAME  "mscore${MUSE_APP_INSTALL_SUFFIX}-${MUSE_APP_VERSION_MAJ_MIN}/")
+    set(Mscore_SHARE_NAME    "share/")
 endif()
 
 ###########################################
@@ -205,6 +205,7 @@ if(BUILD_CONFIGURATION STREQUAL "VTEST")
     set(MUSE_MODULE_AUDIOPLUGINS OFF)
     set(MUSE_MODULE_AUTOBOT OFF)
     set(MUSE_MODULE_CLOUD OFF)
+    set(MUSE_MODULE_DIAGNOSTICS OFF)
     set(MUSE_MODULE_DOCKWINDOW OFF)
     set(MUSE_MODULE_EXTENSIONS OFF)
     set(MUSE_MODULE_LANGUAGES OFF)
@@ -215,7 +216,10 @@ if(BUILD_CONFIGURATION STREQUAL "VTEST")
     set(MUSE_MODULE_MUSESAMPLER OFF)
     set(MUSE_MODULE_NETWORK OFF)
     set(MUSE_MODULE_SHORTCUTS OFF)
+    set(MUSE_MODULE_TOURS OFF)
     set(MUSE_MODULE_UI ON)
+    set(MUSE_MODULE_UI_QML OFF)
+    set(MUSE_MODULE_UI_API OFF)
     set(MUSE_MODULE_UPDATE OFF)
     set(MUSE_MODULE_VST OFF)
     set(MUSE_MODULE_WORKSPACE OFF)
@@ -277,6 +281,7 @@ if(BUILD_CONFIGURATION STREQUAL "UTEST")
     set(MUSE_MODULE_MUSESAMPLER OFF)
     set(MUSE_MODULE_NETWORK OFF)
     set(MUSE_MODULE_SHORTCUTS OFF)
+    set(MUSE_MODULE_TOURS OFF)
     set(MUSE_MODULE_VST OFF)
     set(MUSE_MODULE_WORKSPACE OFF)
 
@@ -289,6 +294,16 @@ if(BUILD_CONFIGURATION STREQUAL "UTEST")
     set(MUE_BUILD_PLAYBACK_MODULE OFF)
     set(MUE_BUILD_PREFERENCES_MODULE OFF)
 endif()
+
+###########################################
+# Configure framework
+###########################################
+set(MUSE_APP_REVISION ${MUSESCORE_REVISION})
+set(MUSE_APP_BUILD_NUMBER ${CMAKE_BUILD_NUMBER})
+set(MUSE_APP_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+set(MUSE_APP_INSTALL_NAME ${Mscore_INSTALL_NAME})
+
+include(${MUSE_FRAMEWORK_SRC_PATH}/cmake/MuseSetupConfiguration.cmake)
 
 ###########################################
 # Subsystem
@@ -318,6 +333,28 @@ if (NOT MUSE_MODULE_UI)
     set(MUE_BUILD_APPSHELL_MODULE OFF) # hard dependency
 endif()
 
+if (NOT MUSE_MODULE_UI_QML)
+    set(MUE_BUILD_APPSHELL_QML OFF) # hard dependency
+    set(MUE_BUILD_BRAILLE_QML OFF) # hard dependency
+    set(MUE_BUILD_ENGRAVING_QML OFF) # hard dependency
+    set(MUE_BUILD_INSPECTOR_QML OFF) # hard dependency
+    set(MUE_BUILD_INSTRUMENTSSCENE_QML OFF) # hard dependency
+    set(MUE_BUILD_MUSESOUNDS_QML OFF) # hard dependency
+    set(MUE_BUILD_NOTATIONSCENE_QML OFF) # hard dependency
+    set(MUE_BUILD_PALETTE_QML OFF) # hard dependency
+    set(MUE_BUILD_PLAYBACK_QML OFF) # hard dependency
+    set(MUE_BUILD_PREFERENCES OFF) # hard dependency
+    set(MUE_BUILD_PROJECT_QML OFF) # hard dependency
+endif()
+
+if (NOT MUE_BUILD_APPSHELL_MODULE)
+    set(MUE_BUILD_APPSHELL_QML OFF) # stub does not have QML
+endif()
+
+if (NOT MUE_BUILD_INSTRUMENTSSCENE_MODULE)
+    set(MUE_BUILD_INSTRUMENTSSCENE_QML OFF) # stub does not have QML
+endif()
+
 if (NOT QT_ADD_LINGUISTTOOLS)
     set(MUE_RUN_LRELEASE OFF) # hard dependency
 endif()
@@ -341,20 +378,6 @@ if (NOT MUSE_ENABLE_UNIT_TESTS)
     set(MUE_BUILD_CONVERTER_TESTS OFF)
 
 endif()
-
-###########################################
-# Configure framework
-###########################################
-set(MUSE_APP_REVISION ${MUSESCORE_REVISION})
-set(MUSE_APP_BUILD_NUMBER ${CMAKE_BUILD_NUMBER})
-set(MUSE_APP_INSTALL_PREFIX "\"${CMAKE_INSTALL_PREFIX}\"")
-set(MUSE_APP_INSTALL_NAME "\"${Mscore_INSTALL_NAME}\"")
-
-include(${MUSE_FRAMEWORK_SRC_PATH}/cmake/MuseSetupConfiguration.cmake)
-
-###########################################
-# Global definitions
-###########################################
 
 if (MUE_GENERAL_APP)
     if (BUILD_IS_DEBUG)

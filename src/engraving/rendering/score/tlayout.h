@@ -280,7 +280,7 @@ public:
     static void layoutLetRingSegment(LetRingSegment* item, LayoutContext& ctx);
     static void layoutLineSegment(LineSegment* item, LayoutContext& ctx);  // factory
     static void layoutLyrics(Lyrics* item, LayoutContext& ctx);
-    static void layoutLyricsLine(LyricsLine* item, LayoutContext& ctx);
+    static void layoutLyricsLine(LyricsLine* item);
     static void layoutLyricsLineSegment(LyricsLineSegment* item, LayoutContext& ctx);
 
     static void layoutMarker(Marker* item, Marker::LayoutData* ldata, LayoutContext& ctx);
@@ -399,6 +399,8 @@ private:
 
     static void manageTempoChangeSnapping(GradualTempoChangeSegment* item, LayoutContext& ctx);
     static void doLayoutGradualTempoChangeSegment(GradualTempoChangeSegment* item, LayoutContext& ctx);
+
+    static void alignTabGraceNotesToMainStave(GraceNotesGroup* graceNotes, const Staff* notationStaff);
 };
 }
 

@@ -40,20 +40,24 @@
 #include "notation/inotation.h"
 
 namespace mu::notation {
-class NotationActionController : public muse::actions::Actionable, public muse::async::Asyncable
+class NotationActionController : public muse::actions::Actionable, public muse::async::Asyncable, public muse::Injectable
 {
-    INJECT(muse::actions::IActionsDispatcher, dispatcher)
-    INJECT(muse::ui::INavigationController, navigationController)
-    INJECT(muse::ui::IUiActionsRegister, actionRegister)
-    INJECT(context::IGlobalContext, globalContext)
-    INJECT(context::IUiContextResolver, uiContextResolver)
-    INJECT(muse::IInteractive, interactive)
-    INJECT(playback::IPlaybackController, playbackController)
-    INJECT(INotationConfiguration, configuration)
-    INJECT(engraving::IEngravingConfiguration, engravingConfiguration)
-    INJECT(appshell::IAppShellConfiguration, appshellConfiguration) // krasko
+    muse::GlobalInject<INotationConfiguration> configuration;
+    muse::GlobalInject<engraving::IEngravingConfiguration> engravingConfiguration;
+    muse::Inject<muse::actions::IActionsDispatcher> dispatcher = { this };
+    muse::Inject<muse::ui::INavigationController> navigationController = { this };
+    muse::Inject<muse::ui::IUiActionsRegister> actionRegister = { this };
+    muse::Inject<context::IGlobalContext> globalContext = { this };
+    muse::Inject<context::IUiContextResolver> uiContextResolver = { this };
+    muse::Inject<muse::IInteractive> interactive = { this };
+    muse::Inject<playback::IPlaybackController> playbackController = { this };
+    muse::Inject(appshell::IAppShellConfiguration, appshellConfiguration) // krasko
 
 public:
+
+    NotationActionController(const muse::modularity::ContextPtr& iocCtx)
+        : muse::Injectable(iocCtx) {}
+
     void init();
 
     bool canReceiveAction(const muse::actions::ActionCode& code) const override;

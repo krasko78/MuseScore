@@ -47,7 +47,7 @@
 namespace mu::inspector {
 using MeasurementUnits = CommonTypes::MeasurementUnits;
 
-class AbstractInspectorModel : public QObject, public muse::async::Asyncable
+class AbstractInspectorModel : public QObject, public muse::async::Asyncable, public muse::Injectable
 {
     Q_OBJECT
     QML_ELEMENT;
@@ -63,10 +63,10 @@ class AbstractInspectorModel : public QObject, public muse::async::Asyncable
     Q_PROPERTY(mu::inspector::CommonTypes::MeasurementUnits measurementUnits READ measurementUnits NOTIFY measurementUnitsChanged)
 
 public:
-    muse::Inject<context::IGlobalContext> context;
-    muse::Inject<muse::actions::IActionsDispatcher> dispatcher;
-    muse::Inject<muse::ui::IUiActionsRegister> uiActionsRegister;
-    muse::Inject<muse::shortcuts::IShortcutsRegister> shortcutsRegister;
+    muse::Inject<context::IGlobalContext> context = { this };
+    muse::Inject<muse::actions::IActionsDispatcher> dispatcher = { this };
+    muse::Inject<muse::ui::IUiActionsRegister> uiActionsRegister = { this };
+    muse::Inject<muse::shortcuts::IShortcutsRegister> shortcutsRegister = { this };
 
 public:
     enum class InspectorSectionType {
@@ -110,8 +110,6 @@ public:
         TYPE_CLEF,
         TYPE_HAIRPIN,
         TYPE_OTTAVA,
-        TYPE_PALM_MUTE,
-        TYPE_LET_RING,
         TYPE_VOLTA,
         TYPE_VIBRATO,
         TYPE_SLUR,
@@ -148,6 +146,8 @@ public:
         TYPE_GRADUAL_TEMPO_CHANGE,
         TYPE_INSTRUMENT_NAME,
         TYPE_LYRICS,
+        TYPE_LYRICS_LINE,
+        TYPE_PARTIAL_LYRICS_LINE,
         TYPE_REST,
         TYPE_REST_BEAM,
         TYPE_REST_REST,
@@ -192,6 +192,7 @@ public:
     MeasurementUnits measurementUnits() const;
 
     bool shouldUpdateOnScoreChange() const;
+    virtual bool shouldUpdateWhenEmpty() const;
     virtual bool shouldUpdateOnEmptyPropertyAndStyleIdSets() const;
 
     mu::engraving::PropertyIdSet propertyIdSetFromStyleIdSet(const mu::engraving::StyleIdSet& styleIdSet) const;

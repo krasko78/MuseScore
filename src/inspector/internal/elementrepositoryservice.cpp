@@ -96,6 +96,7 @@ QList<mu::engraving::EngravingItem*> ElementRepositoryService::findElementsByTyp
     case mu::engraving::ElementType::LET_RING:
     case mu::engraving::ElementType::OTTAVA:
     case mu::engraving::ElementType::TEXTLINE:
+    case mu::engraving::ElementType::TEXTLINE_BASE:
     case mu::engraving::ElementType::NOTELINE:
     case mu::engraving::ElementType::SLUR:
     case mu::engraving::ElementType::HAMMER_ON_PULL_OFF:
@@ -103,7 +104,11 @@ QList<mu::engraving::EngravingItem*> ElementRepositoryService::findElementsByTyp
     case mu::engraving::ElementType::LAISSEZ_VIB:
     case mu::engraving::ElementType::PARTIAL_TIE:
     case mu::engraving::ElementType::GRADUAL_TEMPO_CHANGE:
-    case mu::engraving::ElementType::PALM_MUTE: return findLines(elementType);
+    case mu::engraving::ElementType::LYRICSLINE:
+    case mu::engraving::ElementType::PARTIAL_LYRICSLINE:
+    case mu::engraving::ElementType::WHAMMY_BAR:
+    case mu::engraving::ElementType::PALM_MUTE:
+        return findLines(elementType);
     default:
         QList<mu::engraving::EngravingItem*> resultList;
 
@@ -316,13 +321,16 @@ QList<mu::engraving::EngravingItem*> ElementRepositoryService::findLines(mu::eng
         { mu::engraving::ElementType::PALM_MUTE, mu::engraving::ElementType::PALM_MUTE_SEGMENT },
         { mu::engraving::ElementType::OTTAVA, mu::engraving::ElementType::OTTAVA_SEGMENT },
         { mu::engraving::ElementType::TEXTLINE, mu::engraving::ElementType::TEXTLINE_SEGMENT },
+        { mu::engraving::ElementType::TEXTLINE_BASE, mu::engraving::ElementType::TEXTLINE_SEGMENT },
         { mu::engraving::ElementType::NOTELINE, mu::engraving::ElementType::NOTELINE_SEGMENT },
         { mu::engraving::ElementType::SLUR, mu::engraving::ElementType::SLUR_SEGMENT },
         { mu::engraving::ElementType::HAMMER_ON_PULL_OFF, mu::engraving::ElementType::HAMMER_ON_PULL_OFF_SEGMENT },
         { mu::engraving::ElementType::TIE, mu::engraving::ElementType::TIE_SEGMENT },
         { mu::engraving::ElementType::LAISSEZ_VIB, mu::engraving::ElementType::LAISSEZ_VIB_SEGMENT },
         { mu::engraving::ElementType::PARTIAL_TIE, mu::engraving::ElementType::PARTIAL_TIE_SEGMENT },
-        { mu::engraving::ElementType::GRADUAL_TEMPO_CHANGE, mu::engraving::ElementType::GRADUAL_TEMPO_CHANGE_SEGMENT }
+        { mu::engraving::ElementType::GRADUAL_TEMPO_CHANGE, mu::engraving::ElementType::GRADUAL_TEMPO_CHANGE_SEGMENT },
+        { mu::engraving::ElementType::LYRICSLINE, mu::engraving::ElementType::LYRICSLINE_SEGMENT },
+        { mu::engraving::ElementType::PARTIAL_LYRICSLINE, mu::engraving::ElementType::PARTIAL_LYRICSLINE_SEGMENT }
     };
 
     QList<mu::engraving::EngravingItem*> resultList;
@@ -334,7 +342,7 @@ QList<mu::engraving::EngravingItem*> ElementRepositoryService::findLines(mu::eng
     mu::engraving::ElementType segmentType = lineTypeToSegmentType[lineType];
 
     for (mu::engraving::EngravingItem* element : m_exposedElementList) {
-        if (element->type() == segmentType) {
+        if (element->type() == segmentType || (lineType == ElementType::TEXTLINE_BASE && element->isTextLineBaseSegment())) {
             const mu::engraving::SpannerSegment* segment = mu::engraving::toSpannerSegment(element);
             mu::engraving::Spanner* line = segment ? segment->spanner() : nullptr;
 
@@ -487,10 +495,6 @@ QList<EngravingItem*> ElementRepositoryService::findLyrics() const
     for (mu::engraving::EngravingItem* element : m_exposedElementList) {
         if (element->isLyrics()) {
             resultList << element;
-        } else if (element->isPartialLyricsLine()) {
-            resultList << element;
-        } else if (element->isPartialLyricsLineSegment()) {
-            resultList << toPartialLyricsLineSegment(element)->lyricsLine();
         }
     }
 

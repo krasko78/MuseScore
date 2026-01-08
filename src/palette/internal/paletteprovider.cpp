@@ -29,13 +29,9 @@
 #include <QMimeData>
 #include <QStandardPaths>
 
-#include "engraving/dom/keysig.h"
 #include "engraving/dom/mscore.h"
-#include "engraving/dom/timesig.h"
 
 #include "palettecreator.h"
-#include "view/widgets/keyedit.h"
-#include "view/widgets/timedialog.h"
 
 #include "io/path.h"
 
@@ -210,8 +206,9 @@ PaletteElementEditor* AbstractPaletteController::elementEditor(const QModelIndex
         return ed;
     }
 
-    PaletteElementEditor* ed = new PaletteElementEditor(this, paletteIndex,
-                                                        paletteIndex.data(PaletteTreeModel::PaletteTypeRole).value<Palette::Type>(), this);
+    PaletteElementEditor* ed = new PaletteElementEditor(
+        this, paletteIndex, paletteIndex.data(PaletteTreeModel::PaletteTypeRole).value<Palette::Type>(),
+        iocContext(), this);
 
     m_paletteElementEditorMap.insert(paletteType, ed);
     return ed;
@@ -233,7 +230,7 @@ Qt::DropAction UserPaletteController::dropAction(const QVariantMap& mimeData, Qt
     }
 
     if (mimeData.contains(PaletteCell::mimeDataFormat) && proposedAction == Qt::MoveAction) {
-        const auto cell = PaletteCell::fromMimeData(mimeData[PaletteCell::mimeDataFormat].toByteArray());
+        const auto cell = PaletteCell::fromMimeData(mimeData[PaletteCell::mimeDataFormat].toByteArray(), iocContext());
         if (!cell) {
             return Qt::IgnoreAction;
         }
@@ -265,7 +262,7 @@ bool UserPaletteController::insert(const QModelIndex& parent, int row, const QVa
     PaletteCellPtr cell;
 
     if (mimeData.contains(PaletteCell::mimeDataFormat)) {
-        cell = PaletteCell::fromMimeData(mimeData[PaletteCell::mimeDataFormat].toByteArray());
+        cell = PaletteCell::fromMimeData(mimeData[PaletteCell::mimeDataFormat].toByteArray(), iocContext());
 
         if (!cell) {
             return false;
@@ -284,7 +281,7 @@ bool UserPaletteController::insert(const QModelIndex& parent, int row, const QVa
             }
         }
     } else if (mimeData.contains(mimeSymbolFormat) && (action == Qt::CopyAction)) {
-        cell = PaletteCell::fromElementMimeData(mimeData[mimeSymbolFormat].toByteArray());
+        cell = PaletteCell::fromElementMimeData(mimeData[mimeSymbolFormat].toByteArray(), iocContext());
     }
 
     if (!cell) {
@@ -602,11 +599,10 @@ bool UserPaletteController::applyPaletteElement(const QModelIndex& index, Qt::Ke
 
 void PaletteProvider::init()
 {
-    m_userPaletteModel = new PaletteTreeModel(std::make_shared<PaletteTree>(), this);
+    m_userPaletteModel = new PaletteTreeModel(std::make_shared<PaletteTree>(), iocContext(), this);
     connect(m_userPaletteModel, &PaletteTreeModel::treeChanged, this, &PaletteProvider::notifyAboutUserPaletteChanged);
 
-    m_masterPaletteModel = new PaletteTreeModel(PaletteCreator::newMasterPaletteTree());
-    m_masterPaletteModel->setParent(this);
+    m_masterPaletteModel = new PaletteTreeModel(PaletteCreator(iocContext()).newMasterPaletteTree(), iocContext(), this);
 
     m_searchFilterModel = new PaletteCellFilterProxyModel(this);
     m_searchFilterModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
@@ -686,7 +682,7 @@ QAbstractItemModel* PaletteProvider::mainPaletteModel()
 AbstractPaletteController* PaletteProvider::mainPaletteController()
 {
     if (!m_mainPaletteController) {
-        m_mainPaletteController = new UserPaletteController(mainPaletteModel(), m_userPaletteModel, this);
+        m_mainPaletteController = new UserPaletteController(mainPaletteModel(), m_userPaletteModel, iocContext(), this);
     }
     return m_mainPaletteController;
 }
@@ -714,7 +710,7 @@ FilterPaletteTreeModel* PaletteProvider::customElementsPaletteModel()
 AbstractPaletteController* PaletteProvider::customElementsPaletteController()
 {
     if (!m_customElementsPaletteController) {
-        m_customElementsPaletteController = new UserPaletteController(customElementsPaletteModel(), m_userPaletteModel, this);
+        m_customElementsPaletteController = new UserPaletteController(customElementsPaletteModel(), m_userPaletteModel, iocContext(), this);
         m_customElementsPaletteController->setCustom(true);
     }
 
@@ -748,7 +744,7 @@ AbstractPaletteController* PaletteProvider::poolPaletteController(FilterPaletteT
                                                                   const QModelIndex& rootIndex) const
 {
     Q_UNUSED(rootIndex);
-    UserPaletteController* c = new UserPaletteController(poolPaletteModel, m_userPaletteModel);
+    UserPaletteController* c = new UserPaletteController(poolPaletteModel, m_userPaletteModel, iocContext());
     c->setVisible(false);
     c->setCustom(false);
     c->setUserEditable(false);
@@ -957,7 +953,7 @@ bool PaletteProvider::loadPalette(const QModelIndex& index)
         return false;
     }
 
-    PalettePtr pp = std::make_shared<Palette>();
+    PalettePtr pp = std::make_shared<Palette>(iocContext());
     if (!pp->readFromFile(path)) {
         return false;
     }
@@ -978,7 +974,7 @@ void PaletteProvider::setUserPaletteTree(PaletteTreePtr tree)
         m_userPaletteModel->setPaletteTree(tree);
         connect(m_userPaletteModel, &PaletteTreeModel::treeChanged, this, &PaletteProvider::notifyAboutUserPaletteChanged);
     } else {
-        m_userPaletteModel = new PaletteTreeModel(tree, /* parent */ this);
+        m_userPaletteModel = new PaletteTreeModel(tree, iocContext(), /* parent */ this);
         connect(m_userPaletteModel, &PaletteTreeModel::treeChanged, this, &PaletteProvider::notifyAboutUserPaletteChanged);
     }
 }
@@ -988,7 +984,7 @@ void PaletteProvider::setDefaultPaletteTree(PaletteTreePtr tree)
     if (m_defaultPaletteModel) {
         m_defaultPaletteModel->setPaletteTree(tree);
     } else {
-        m_defaultPaletteModel = new PaletteTreeModel(tree, /* parent */ this);
+        m_defaultPaletteModel = new PaletteTreeModel(tree, iocContext(), /* parent */ this);
     }
 }
 
@@ -1010,7 +1006,7 @@ void PaletteProvider::write(XmlWriter& xml, bool pasteMode) const
 bool PaletteProvider::read(XmlReader& e, bool pasteMode)
 {
     PaletteTreePtr tree = std::make_shared<PaletteTree>();
-    if (!tree->read(e, pasteMode)) {
+    if (!tree->read(e, pasteMode, iocContext())) {
         return false;
     }
 

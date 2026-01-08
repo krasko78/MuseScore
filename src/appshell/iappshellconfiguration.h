@@ -32,7 +32,7 @@
 #include "engraving/types/types.h" // krasko
 
 namespace mu::appshell {
-class IAppShellConfiguration : MODULE_EXPORT_INTERFACE
+class IAppShellConfiguration : MODULE_GLOBAL_EXPORT_INTERFACE
 {
     INTERFACE_ID(IAppshellConfiguration)
 

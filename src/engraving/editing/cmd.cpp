@@ -567,7 +567,7 @@ void Score::cmdAddSpanner(Spanner* spanner, const PointF& pos, bool systemStaves
         staffIdx = 0;
     }
     // ignore if we do not have a measure
-    if (mb == 0 || mb->type() != ElementType::MEASURE) {
+    if (mb == 0 || !mb->isMeasure()) {
         LOGD("cmdAddSpanner: cannot put object here");
         delete spanner;
         return;
@@ -736,7 +736,7 @@ void Score::addInterval(int val, const std::vector<Note*>& nl)
     std::vector<EngravingItem*> notesToSelect;
     int deltaLine = val < 0 ? val + 1 : val - 1;
     bool accidental = m_is.noteEntryMode() && m_is.accidentalType() != AccidentalType::NONE;
-    bool useOctaveRule = std::abs(deltaLine) == 7 && !accidental;
+    bool useOctaveRule = (deltaLine % STEP_DELTA_OCTAVE == 0) && !accidental;  // Both octaves and unison
 
     for (Note* on : tmpnl) {
         Chord* chord = on->chord();
@@ -752,11 +752,8 @@ void Score::addInterval(int val, const std::vector<Note*>& nl)
             noteValid = ds->isValid(nval.pitch) && nval.headGroup != NoteHeadGroup::HEAD_INVALID;
         } else {
             if (useOctaveRule) {
-                Interval interval(7, 12);
-                if (val < 0) {
-                    interval.flip();
-                }
-                nval.pitch = on->pitch() + interval.chromatic;
+                int octaves = deltaLine / STEP_DELTA_OCTAVE;
+                nval.pitch = on->pitch() + octaves * PITCH_DELTA_OCTAVE;
                 nval.tpc1 = on->tpc1();
                 nval.tpc2 = on->tpc2();
             } else {
@@ -769,9 +766,9 @@ void Score::addInterval(int val, const std::vector<Note*>& nl)
                     AccidentalVal acci = Accidental::subtype2value(m_is.accidentalType());
                     int step = absStep(line, clef);
                     int octave = step / 7;
-                    nval.pitch = step2pitch(step) + octave * 12 + int(acci);
+                    nval.pitch = step2pitch(step) + octave * PITCH_DELTA_OCTAVE + int(acci);
                     forceAccidental = (nval.pitch == line2pitch(line, clef, key));
-                    ntpc = step2tpc(step % 7, acci);
+                    ntpc = step2tpc(step % STEP_DELTA_OCTAVE, acci);
                 } else {
                     nval.pitch = line2pitch(line, clef, key);
                     ntpc = pitch2tpc(nval.pitch, key, Prefer::NEAREST);
@@ -923,11 +920,21 @@ GuitarBend* Score::addGuitarBend(GuitarBendType type, Note* note, Note* endNote)
         return nullptr;
     }
 
-    Chord* chord = note->chord();
+    if (type == GuitarBendType::DIP) {
+        for (Note* n : note->chord()->notes()) {
+            if (GuitarBend* bendFor = n->bendFor(); bendFor && bendFor->bendType() == GuitarBendType::DIP) {
+                return nullptr; // Only one dip per chord
+            }
+        }
+    }
 
-    if (type == GuitarBendType::BEND) {
+    Chord* chord = note->chord();
+    bool isDive = static_cast<int>(type) >= static_cast<int>(GuitarBendType::DIVE)
+                  && static_cast<int>(type) <= static_cast<int>(GuitarBendType::SCOOP);
+
+    if (type == GuitarBendType::BEND || type == GuitarBendType::DIVE) {
         for (Spanner* sp : note->spannerFor()) {
-            if (sp->isGuitarBend() || sp->isGlissando()) {
+            if ((sp->isGuitarBend() && toGuitarBend(sp)->isDive() == isDive) || sp->isGlissando()) {
                 return nullptr;
             }
         }
@@ -939,7 +946,7 @@ GuitarBend* Score::addGuitarBend(GuitarBendType type, Note* note, Note* endNote)
         bool suitableEndNote = endNote;
         if (endNote) {
             for (Spanner* sp : endNote->spannerBack()) {
-                if (sp->isTie() || sp->isGlissando() || sp->isGuitarBend()) {
+                if (sp->isTie() || sp->isGlissando() || (sp->isGuitarBend() && toGuitarBend(sp)->isDive() == isDive)) {
                     suitableEndNote = false;
                     break;
                 }
@@ -947,7 +954,7 @@ GuitarBend* Score::addGuitarBend(GuitarBendType type, Note* note, Note* endNote)
         }
 
         if (!suitableEndNote) {
-            endNote = GuitarBend::createEndNote(note);
+            endNote = GuitarBend::createEndNote(note, type);
         }
 
         if (!endNote) {
@@ -960,27 +967,29 @@ GuitarBend* Score::addGuitarBend(GuitarBendType type, Note* note, Note* endNote)
     bend->setTick(chord->tick());
     bend->setTrack(chord->track());
 
-    if (type == GuitarBendType::BEND) {
-        bend->setType(chord->isGrace() ? GuitarBendType::GRACE_NOTE_BEND : type);
+    if (type == GuitarBendType::BEND || type == GuitarBendType::DIVE) {
+        bend->setBendType(chord->isGrace() && type == GuitarBendType::BEND ? GuitarBendType::GRACE_NOTE_BEND : type);
         bend->setStartElement(note);
         bend->setTick2(endNote->tick());
         bend->setTrack2(endNote->track());
         bend->setEndElement(endNote);
         bend->setParent(note);
-        GuitarBend::fixNotesFrettingForStandardBend(note, endNote);
+        if (type == GuitarBendType::BEND) {
+            GuitarBend::fixNotesFrettingForStandardBend(note, endNote);
+        }
     } else {
-        bend->setType(type);
+        bend->setBendType(type);
         bend->setTick2(chord->tick());
         bend->setTrack2(chord->track());
 
-        if (type == GuitarBendType::PRE_BEND || type == GuitarBendType::GRACE_NOTE_BEND) {
+        if (type == GuitarBendType::PRE_BEND || type == GuitarBendType::GRACE_NOTE_BEND || type == GuitarBendType::PRE_DIVE) {
             const GraceNotesGroup& gracesBefore = chord->graceNotesBefore();
 
             // Create grace note
             Note* graceNote = gracesBefore.empty()
                               ? setGraceNote(chord, note->pitch(), NoteType::APPOGGIATURA, Constants::DIVISION / 2)
                               : addNote(gracesBefore.back(), note->noteVal());
-            graceNote->transposeDiatonic(-1, true, false);
+            graceNote->transposeDiatonic(type == GuitarBendType::PRE_DIVE ? 1 : -1, true, false);
             GuitarBend::fixNotesFrettingForGraceBend(graceNote, note);
 
             Chord* graceChord = graceNote->chord();
@@ -994,16 +1003,12 @@ GuitarBend* Score::addGuitarBend(GuitarBendType type, Note* note, Note* endNote)
             bend->setParent(graceNote);
             bend->setStartElement(graceNote);
             bend->setEndElement(note);
-        } else if (type == GuitarBendType::SLIGHT_BEND) {
+        } else if (type == GuitarBendType::SLIGHT_BEND || type == GuitarBendType::DIP || type == GuitarBendType::SCOOP) {
             bend->setParent(note);
             bend->setStartElement(note);
             // Slight bends don't end on another note
             bend->setEndElement(note);
         }
-    }
-
-    if (bend->type() == GuitarBendType::GRACE_NOTE_BEND) {
-        bend->setEndTimeFactor(GuitarBend::GRACE_NOTE_BEND_DEFAULT_END_TIME_FACTOR);
     }
 
     Chord* startChord = bend->startNote()->chord();
@@ -1221,7 +1226,7 @@ Segment* Score::setNoteRest(Segment* segment, track_idx_t track, NoteVal nval, F
         connectTies();
     }
     if (nr) {
-        if (is.slur() && nr->type() == ElementType::NOTE) {
+        if (is.slur() && nr->isNote()) {
             // If the start element was the same as the end element when the slur was created,
             // the end grip of the front slur segment was given an x-offset of 3.0 * spatium().
             // Now that the slur is about to be given a new end element, this should be reset.
@@ -1955,7 +1960,7 @@ void Score::upDown(bool up, UpDownMode mode)
                     return;                                 // no next string to move to
                 }
                 string = stt->visualStringToPhys(string);
-                fret = stringData->fret(pitch + pitchOffset, string, staff, tick);
+                fret = stringData->fret(pitch, string, staff, tick);
                 if (fret == -1) {                            // can't have that note on that string
                     return;
                 }
@@ -2744,11 +2749,11 @@ void Score::cmdResetBeamMode()
             if (!cr) {
                 continue;
             }
-            if (cr->type() == ElementType::CHORD) {
+            if (cr->isChord()) {
                 if (cr->beamMode() != BeamMode::AUTO) {
                     cr->undoChangeProperty(Pid::BEAM_MODE, BeamMode::AUTO);
                 }
-            } else if (cr->type() == ElementType::REST) {
+            } else if (cr->isRest()) {
                 if (cr->beamMode() != BeamMode::NONE) {
                     cr->undoChangeProperty(Pid::BEAM_MODE, BeamMode::NONE);
                 }
@@ -3001,7 +3006,7 @@ EngravingItem* Score::move(const String& cmd)
         // if something found and command is forward, the element found is the destination
         if (trg && cmd == u"next-chord") {
             // if chord, go to topmost note
-            if (trg->type() == ElementType::CHORD) {
+            if (trg->isChord()) {
                 trg = toChord(trg)->upNote();
             }
             setPlayNote(true);
@@ -3174,7 +3179,7 @@ EngravingItem* Score::move(const String& cmd)
     }
 
     if (el) {
-        if (el->type() == ElementType::CHORD) {
+        if (el->isChord()) {
             el = toChord(el)->upNote();             // originally downNote
         }
         setPlayNote(true);
@@ -3387,7 +3392,7 @@ void Score::cmdIncDecDuration(int nSteps, bool stepDotted)
 void Score::cmdAddBracket()
 {
     for (EngravingItem* el : selection().elements()) {
-        if (el->type() == ElementType::ACCIDENTAL) {
+        if (el->isAccidental()) {
             Accidental* acc = toAccidental(el);
             acc->undoChangeProperty(Pid::ACCIDENTAL_BRACKET, int(AccidentalBracket::BRACKET));
         }
@@ -3407,7 +3412,7 @@ void Score::cmdAddParentheses()
 
 void Score::cmdAddParentheses(EngravingItem* el)
 {
-    if (el->type() == ElementType::ACCIDENTAL) {
+    if (el->isAccidental()) {
         Accidental* acc = toAccidental(el);
         acc->undoChangeProperty(Pid::ACCIDENTAL_BRACKET, int(AccidentalBracket::PARENTHESIS));
     } else if (el->type() == ElementType::TIMESIG) {
@@ -3426,7 +3431,7 @@ void Score::cmdAddParentheses(EngravingItem* el)
 void Score::cmdAddBraces()
 {
     for (EngravingItem* el : selection().elements()) {
-        if (el->type() == ElementType::ACCIDENTAL) {
+        if (el->isAccidental()) {
             Accidental* acc = toAccidental(el);
             acc->undoChangeProperty(Pid::ACCIDENTAL_BRACKET, int(AccidentalBracket::BRACE));
         }
@@ -3541,7 +3546,7 @@ void Score::cmdAddGrace(NoteType graceType, int duration)
 {
     const std::vector<EngravingItem*> copyOfElements = selection().elements();
     for (EngravingItem* e : copyOfElements) {
-        if (e->type() == ElementType::NOTE) {
+        if (e->isNote()) {
             Note* n = toNote(e);
             Note* graceNote = setGraceNote(n->chord(), n->pitch(), graceType, duration);
             select(graceNote, SelectType::SINGLE, 0);
@@ -3712,7 +3717,7 @@ bool Score::cmdExplode()
             int n = 0;
             for (Segment* s = startSegment; s && s != endSegment; s = s->next1()) {
                 EngravingItem* e = s->element(srcTrack);
-                if (e && e->type() == ElementType::CHORD) {
+                if (e && e->isChord()) {
                     Chord* c = toChord(e);
                     n = std::max(n, int(c->notes().size()));
                     for (Chord* graceChord : c->graceNotes()) {
@@ -3771,7 +3776,7 @@ bool Score::cmdExplode()
             track_idx_t track = (srcStaff + i) * VOICES;
             for (Segment* s = startSegment; s && s != endSegment; s = s->next1()) {
                 EngravingItem* e = s->element(track);
-                if (e && e->type() == ElementType::CHORD) {
+                if (e && e->isChord()) {
                     Chord* c = toChord(e); //chord, laststaff, srcstaff
                     doExplode(c, lastStaff, srcStaff, i);
                     for (Chord* graceChord : c->graceNotes()) {
@@ -4073,7 +4078,7 @@ void Score::cmdSlashFill()
                         needGap[voice] = true;
                     }
                     // chord == keep looking for an available voice
-                    else if (cr->type() == ElementType::CHORD) {
+                    else if (cr->isChord()) {
                         continue;
                     }
                     // full measure rest == OK to use voice
@@ -4085,7 +4090,7 @@ void Score::cmdSlashFill()
                     bool ok = true;
                     for (Segment* ns = s->next(SegmentType::ChordRest); ns && ns != endSegment; ns = ns->next(SegmentType::ChordRest)) {
                         ChordRest* ncr = toChordRest(ns->element(track + voice));
-                        if (ncr && ncr->type() == ElementType::CHORD) {
+                        if (ncr && ncr->isChord()) {
                             ok = false;
                             break;
                         }

@@ -39,20 +39,22 @@ class NetworkManager : public QObject, public INetworkManager, public Injectable
 {
     Q_OBJECT
 
-    Inject<INetworkConfiguration> configuration = { this };
+    GlobalInject<INetworkConfiguration> configuration;
 
 public:
     explicit NetworkManager(QObject* parent = nullptr);
 
-    RetVal<Progress> get(const QUrl& url, IncomingDevicePtr incomingData, const RequestHeaders& headers = RequestHeaders()) override;
-    RetVal<Progress> head(const QUrl& url, const RequestHeaders& headers = RequestHeaders()) override;
-    RetVal<Progress> post(const QUrl& url, OutgoingDeviceVar outgoingData, IncomingDevicePtr incomingData,
-                          const RequestHeaders& headers = RequestHeaders()) override;
-    RetVal<Progress> put(const QUrl& url, OutgoingDeviceVar outgoingData, IncomingDevicePtr incomingData,
+    RetVal<Progress> get(const QUrl& url, IncomingDevicePtr incomingData = nullptr,
                          const RequestHeaders& headers = RequestHeaders()) override;
-    RetVal<Progress> patch(const QUrl& url, OutgoingDeviceVar outgoingData, IncomingDevicePtr incomingData,
+    RetVal<Progress> head(const QUrl& url, const RequestHeaders& headers = RequestHeaders()) override;
+    RetVal<Progress> post(const QUrl& url, OutgoingDeviceVar outgoingData, IncomingDevicePtr incomingData = nullptr,
+                          const RequestHeaders& headers = RequestHeaders()) override;
+    RetVal<Progress> put(const QUrl& url, OutgoingDeviceVar outgoingData, IncomingDevicePtr incomingData = nullptr,
+                         const RequestHeaders& headers = RequestHeaders()) override;
+    RetVal<Progress> patch(const QUrl& url, OutgoingDeviceVar outgoingData, IncomingDevicePtr incomingData = nullptr,
                            const RequestHeaders& headers = RequestHeaders()) override;
-    RetVal<Progress> del(const QUrl& url, IncomingDevicePtr incomingData, const RequestHeaders& headers = RequestHeaders()) override;
+    RetVal<Progress> del(const QUrl& url, IncomingDevicePtr incomingData = nullptr,
+                         const RequestHeaders& headers = RequestHeaders()) override;
 
 private:
     enum RequestType {

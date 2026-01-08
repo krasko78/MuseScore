@@ -44,8 +44,6 @@
 #include "notation/lines/hairpinlinesettingsmodel.h"
 #include "notation/lines/ottavasettingsmodel.h"
 #include "notation/lines/voltasettingsmodel.h"
-#include "notation/lines/letringsettingsmodel.h"
-#include "notation/lines/palmmutesettingsmodel.h"
 #include "notation/lines/vibratosettingsmodel.h"
 #include "notation/lines/slurandtiesettingsmodel.h"
 #include "notation/lines/gradualtempochangesettingsmodel.h"
@@ -72,6 +70,7 @@
 #include "notation/tuplets/tupletsettingsmodel.h"
 #include "notation/instrumentname/instrumentnamesettingsmodel.h"
 #include "notation/lyrics/lyricssettingsmodel.h"
+#include "notation/lines/lyricslinesettingsmodel.h"
 #include "notation/rests/beams/restbeamsettingsmodel.h"
 #include "notation/rests/restsettingsmodel.h"
 #include "notation/rests/restsettingsproxymodel.h"
@@ -139,10 +138,6 @@ AbstractInspectorModel* InspectorModelCreator::newInspectorModel(InspectorModelT
         return new OttavaSettingsModel(parent, repository);
     case InspectorModelType::TYPE_VOLTA:
         return new VoltaSettingsModel(parent, repository);
-    case InspectorModelType::TYPE_PALM_MUTE:
-        return new PalmMuteSettingsModel(parent, repository);
-    case InspectorModelType::TYPE_LET_RING:
-        return new LetRingSettingsModel(parent, repository);
     case InspectorModelType::TYPE_TEXT_LINE:
         return new TextLineSettingsModel(parent, repository);
     case mu::inspector::InspectorModelType::TYPE_NOTELINE:
@@ -207,6 +202,10 @@ AbstractInspectorModel* InspectorModelCreator::newInspectorModel(InspectorModelT
         return new InstrumentNameSettingsModel(parent, repository);
     case InspectorModelType::TYPE_LYRICS:
         return new LyricsSettingsModel(parent, repository);
+    case InspectorModelType::TYPE_LYRICS_LINE:
+        return new LyricsLineSettingsModel(parent, repository, LyricsLineSettingsModel::LyricsLine);
+    case InspectorModelType::TYPE_PARTIAL_LYRICS_LINE:
+        return new LyricsLineSettingsModel(parent, repository, LyricsLineSettingsModel::PartialLyricsLine);
     case InspectorModelType::TYPE_REST:
         return new RestSettingsProxyModel(parent, repository);
     case InspectorModelType::TYPE_REST_BEAM:

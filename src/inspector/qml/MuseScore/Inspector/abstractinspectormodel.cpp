@@ -26,6 +26,7 @@
 #include "engraving/dom/property.h"
 #include "engraving/dom/tempotext.h"
 
+#include "modularity/ioc.h"
 #include "shortcuts/shortcutstypes.h"
 
 #include "types/texttypes.h"
@@ -79,10 +80,6 @@ static const QMap<mu::engraving::ElementType, InspectorModelType> NOTATION_ELEME
     { mu::engraving::ElementType::OTTAVA_SEGMENT, InspectorModelType::TYPE_OTTAVA },
     { mu::engraving::ElementType::VOLTA, InspectorModelType::TYPE_VOLTA },
     { mu::engraving::ElementType::VOLTA_SEGMENT, InspectorModelType::TYPE_VOLTA },
-    { mu::engraving::ElementType::PALM_MUTE, InspectorModelType::TYPE_PALM_MUTE },
-    { mu::engraving::ElementType::PALM_MUTE_SEGMENT, InspectorModelType::TYPE_PALM_MUTE },
-    { mu::engraving::ElementType::LET_RING, InspectorModelType::TYPE_LET_RING },
-    { mu::engraving::ElementType::LET_RING_SEGMENT, InspectorModelType::TYPE_LET_RING },
     { mu::engraving::ElementType::STAFFTYPE_CHANGE, InspectorModelType::TYPE_STAFF_TYPE_CHANGES },
     { mu::engraving::ElementType::TBOX, InspectorModelType::TYPE_TEXT_FRAME },// text frame
     { mu::engraving::ElementType::VBOX, InspectorModelType::TYPE_VERTICAL_FRAME },// vertical frame
@@ -112,14 +109,22 @@ static const QMap<mu::engraving::ElementType, InspectorModelType> NOTATION_ELEME
     { mu::engraving::ElementType::TUPLET, InspectorModelType::TYPE_TUPLET },
     { mu::engraving::ElementType::TEXTLINE, InspectorModelType::TYPE_TEXT_LINE },
     { mu::engraving::ElementType::TEXTLINE_SEGMENT, InspectorModelType::TYPE_TEXT_LINE },
+    { mu::engraving::ElementType::PALM_MUTE, InspectorModelType::TYPE_TEXT_LINE },
+    { mu::engraving::ElementType::PALM_MUTE_SEGMENT, InspectorModelType::TYPE_TEXT_LINE },
+    { mu::engraving::ElementType::LET_RING, InspectorModelType::TYPE_TEXT_LINE },
+    { mu::engraving::ElementType::LET_RING_SEGMENT, InspectorModelType::TYPE_TEXT_LINE },
+    { mu::engraving::ElementType::WHAMMY_BAR, InspectorModelType::TYPE_TEXT_LINE },
+    { mu::engraving::ElementType::WHAMMY_BAR_SEGMENT, InspectorModelType::TYPE_TEXT_LINE },
     { mu::engraving::ElementType::NOTELINE, InspectorModelType::TYPE_NOTELINE },
     { mu::engraving::ElementType::NOTELINE_SEGMENT, InspectorModelType::TYPE_NOTELINE },
     { mu::engraving::ElementType::GRADUAL_TEMPO_CHANGE, InspectorModelType::TYPE_GRADUAL_TEMPO_CHANGE },
     { mu::engraving::ElementType::GRADUAL_TEMPO_CHANGE_SEGMENT, InspectorModelType::TYPE_GRADUAL_TEMPO_CHANGE },
     { mu::engraving::ElementType::INSTRUMENT_NAME, InspectorModelType::TYPE_INSTRUMENT_NAME },
     { mu::engraving::ElementType::LYRICS, InspectorModelType::TYPE_LYRICS },
-    { mu::engraving::ElementType::PARTIAL_LYRICSLINE, InspectorModelType::TYPE_LYRICS },
-    { mu::engraving::ElementType::PARTIAL_LYRICSLINE_SEGMENT, InspectorModelType::TYPE_LYRICS },
+    { mu::engraving::ElementType::LYRICSLINE, InspectorModelType::TYPE_LYRICS_LINE },
+    { mu::engraving::ElementType::LYRICSLINE_SEGMENT, InspectorModelType::TYPE_LYRICS_LINE },
+    { mu::engraving::ElementType::PARTIAL_LYRICSLINE, InspectorModelType::TYPE_PARTIAL_LYRICS_LINE },
+    { mu::engraving::ElementType::PARTIAL_LYRICSLINE_SEGMENT, InspectorModelType::TYPE_PARTIAL_LYRICS_LINE },
     { mu::engraving::ElementType::REST, InspectorModelType::TYPE_REST },
     { mu::engraving::ElementType::DYNAMIC, InspectorModelType::TYPE_DYNAMIC },
     { mu::engraving::ElementType::EXPRESSION, InspectorModelType::TYPE_EXPRESSION },
@@ -153,7 +158,7 @@ QString AbstractInspectorModel::shortcutsForActionCode(std::string code) const
 
 AbstractInspectorModel::AbstractInspectorModel(QObject* parent, IElementRepositoryService* repository,
                                                mu::engraving::ElementType elementType)
-    : QObject(parent), m_repository(repository), m_elementType(elementType)
+    : QObject(parent), muse::Injectable(muse::iocCtxForQmlObject(this)), m_repository(repository), m_elementType(elementType)
 {
     if (!m_repository) {
         return;
@@ -184,6 +189,11 @@ MeasurementUnits AbstractInspectorModel::measurementUnits() const
 bool AbstractInspectorModel::shouldUpdateOnScoreChange() const
 {
     return m_shouldUpdateOnScoreChange;
+}
+
+bool AbstractInspectorModel::shouldUpdateWhenEmpty() const
+{
+    return false;
 }
 
 bool AbstractInspectorModel::shouldUpdateOnEmptyPropertyAndStyleIdSets() const
@@ -256,7 +266,7 @@ ElementKey AbstractInspectorModel::makeKey(const EngravingItem* item)
 {
     switch (item->type()) {
     case ElementType::TEMPO_TEXT: {
-        const auto tempoText = static_cast<const TempoText*>(item);
+        const auto tempoText = toTempoText(item);
         return ElementKey{ ElementType::TEMPO_TEXT, static_cast<int>(tempoText->tempoTextType()) };
     }
     default:

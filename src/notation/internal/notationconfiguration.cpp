@@ -136,6 +136,11 @@ static const std::map<NoteInputMethod, std::string> NOTE_INPUT_METHOD_TO_STR {
     { NoteInputMethod::TIMEWISE, "TIMEWISE" },
 };
 
+NotationConfiguration::NotationConfiguration(const muse::modularity::ContextPtr& ctx)
+    : muse::Injectable(ctx)
+{
+}
+
 void NotationConfiguration::init()
 {
     settings()->setDefaultValue(BACKGROUND_USE_COLOR, Val(true));

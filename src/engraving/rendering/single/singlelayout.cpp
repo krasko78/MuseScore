@@ -97,6 +97,7 @@
 #include "dom/trill.h"
 #include "dom/vibrato.h"
 #include "dom/volta.h"
+#include "dom/whammybar.h"
 
 #include "dom/utils.h"
 
@@ -247,6 +248,8 @@ void SingleLayout::layoutItem(EngravingItem* item)
         break;
     case ElementType::VOLTA:        layout(toVolta(item), ctx);
         break;
+    case ElementType::WHAMMY_BAR:   layout(toWhammyBar(item), ctx);
+        break;
     // drumset
     case ElementType::CHORD:        layout(toChord(item), ctx);
         break;
@@ -284,6 +287,8 @@ void SingleLayout::layoutLineSegment(LineSegment* item, const Context& ctx)
     case ElementType::VIBRATO_SEGMENT:   layout(toVibratoSegment(item), ctx);
         break;
     case ElementType::VOLTA_SEGMENT:     layout(toVoltaSegment(item), ctx);
+        break;
+    case ElementType::WHAMMY_BAR_SEGMENT: layout(toWhammyBarSegment(item), ctx);
         break;
     default:
         UNREACHABLE;
@@ -1354,7 +1359,7 @@ void SingleLayout::layout(LetRingSegment* item, const Context& ctx)
 
 void SingleLayout::layout(Lyrics* item, const Context& ctx)
 {
-    layoutTextBase(static_cast<TextBase*>(item), ctx, item->mutldata());
+    layoutTextBase(toTextBase(item), ctx, item->mutldata());
 }
 
 void SingleLayout::layout(NoteHead* item, const Context& ctx)
@@ -1631,7 +1636,7 @@ void SingleLayout::layout(Stem* item, const Context& ctx)
 
 void SingleLayout::layout(Sticking* item, const Context& ctx)
 {
-    layoutTextBase(static_cast<TextBase*>(item), ctx, item->mutldata());
+    layoutTextBase(toTextBase(item), ctx, item->mutldata());
 }
 
 void SingleLayout::layout(TempoText* item, const Context& ctx)
@@ -1882,12 +1887,19 @@ void SingleLayout::layout(VibratoSegment* item, const Context&)
     case VibratoType::VIBRATO_SAWTOOTH_WIDE:
         item->symbolLine(SymId::wiggleSawtoothWide, SymId::wiggleSawtoothWide);
         break;
+    default:
+        break;
     }
 
     item->setOffset(PointF());
 }
 
 void SingleLayout::layout(Volta* item, const Context& ctx)
+{
+    layoutLine(item, ctx);
+}
+
+void SingleLayout::layout(WhammyBar* item, const Context& ctx)
 {
     layoutLine(item, ctx);
 }
@@ -1908,9 +1920,15 @@ void SingleLayout::layout(VoltaSegment* item, const Context& ctx)
     }
 }
 
+void SingleLayout::layout(WhammyBarSegment* item, const Context& ctx)
+{
+    layoutTextLineBaseSegment(item, ctx);
+    item->setOffset(PointF());
+}
+
 void SingleLayout::layout(Text* item, const Context& ctx)
 {
-    layoutTextBase(static_cast<TextBase*>(item), ctx, item->mutldata());
+    layoutTextBase(toTextBase(item), ctx, item->mutldata());
 }
 
 void SingleLayout::layoutTextBase(const TextBase* item, const Context& ctx, TextBase::LayoutData* ldata)

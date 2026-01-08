@@ -38,8 +38,14 @@ using namespace mu::inspector;
 using namespace mu::notation;
 
 InspectorListModel::InspectorListModel(QObject* parent)
-    : QAbstractListModel(parent)
+    : QAbstractListModel(parent), muse::Injectable(muse::iocCtxForQmlObject(this))
     , m_repository{std::make_unique<ElementRepositoryService>()}
+{
+}
+
+InspectorListModel::~InspectorListModel() = default;
+
+void InspectorListModel::classBegin()
 {
     listenSelectionChanged();
     listenScoreChanges();
@@ -51,8 +57,6 @@ InspectorListModel::InspectorListModel(QObject* parent)
         notifyModelsAboutNotationChanged();
     });
 }
-
-InspectorListModel::~InspectorListModel() = default;
 
 void InspectorListModel::buildModelsForSelectedElements(const ElementKeySet& selectedElementKeySet, bool isRangeSelection,
                                                         const QList<mu::engraving::EngravingItem*>& selectedElementList)
@@ -400,7 +404,11 @@ void InspectorListModel::onScoreChanged(const mu::engraving::PropertyIdSet& chan
                                         const mu::engraving::StyleIdSet& changedStyleIdSet)
 {
     for (AbstractInspectorModel* model : m_modelList) {
-        if (!model->shouldUpdateOnScoreChange() || model->isEmpty()) {
+        if (!model->shouldUpdateOnScoreChange()) {
+            continue;
+        }
+
+        if (!model->shouldUpdateWhenEmpty() && model->isEmpty()) {
             continue;
         }
 

@@ -542,6 +542,11 @@ void NotationActionController::init()
     registerAction("grace-note-bend",  [this]() { addGuitarBend(GuitarBendType::GRACE_NOTE_BEND); });
     registerAction("slight-bend",  [this]() { addGuitarBend(GuitarBendType::SLIGHT_BEND); });
 
+    registerAction("dive", [this]() { addGuitarBend(GuitarBendType::DIVE); });
+    registerAction("pre-dive",  [this]() { addGuitarBend(GuitarBendType::PRE_DIVE); });
+    registerAction("dip",  [this]() { addGuitarBend(GuitarBendType::DIP); });
+    registerAction("scoop",  [this]() { addGuitarBend(GuitarBendType::SCOOP); });
+
     for (int i = 0; i < MAX_FRET; ++i) {
         registerAction("fret-" + std::to_string(i), [i, this]() { addFret(i); }, &Controller::isTablatureStaff);
     }
@@ -1925,14 +1930,14 @@ FilterElementsOptions NotationActionController::elementsFilterOptions(const Engr
     FilterElementsOptions options;
     options.elementType = element->type();
 
-    if (element->type() == ElementType::NOTE) {
+    if (element->isNote()) {
         const mu::engraving::Note* note = dynamic_cast<const mu::engraving::Note*>(element);
         if (note->chord()->isGrace()) {
             options.subtype = -1;
         } else {
             options.subtype = element->subtype();
         }
-    } else if (element->type() == ElementType::HAIRPIN_SEGMENT) {
+    } else if (element->isHairpinSegment()) {
         options.subtype = element->subtype();
         options.bySubtype = true;
     }
