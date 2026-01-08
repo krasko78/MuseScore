@@ -37,7 +37,7 @@ class AppearanceSettingsModel : public AbstractInspectorModel
     QML_ELEMENT;
     QML_UNCREATABLE("Not creatable from QML")
 
-    INJECT(appshell::IAppShellConfiguration, appshellConfiguration) // krasko
+    muse::GlobalInject<appshell::IAppShellConfiguration> appshellConfiguration; // krasko
 
     Q_PROPERTY(mu::inspector::PropertyItem * leadingSpace READ leadingSpace CONSTANT)
     Q_PROPERTY(mu::inspector::PropertyItem * measureWidth READ measureWidth CONSTANT)

@@ -103,7 +103,7 @@ class ExportDialogModel : public QAbstractListModel, public muse::async::Asyncab
     muse::Inject<context::IGlobalContext> context = { this };
     muse::Inject<INotationWritersRegister> writers = { this };
     muse::Inject<IExportProjectScenario> exportProjectScenario = { this };
-    muse::Inject(appshell::IAppShellConfiguration, appshellConfiguration) // krasko
+    muse::GlobalInject<appshell::IAppShellConfiguration> appshellConfiguration; // krasko
 
 public:
     explicit ExportDialogModel(QObject* parent = nullptr);

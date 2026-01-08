@@ -199,7 +199,7 @@ class WhammyBarSegment;
 namespace mu::engraving::rendering::score {
 class TLayout
 {
-    INJECT_STATIC(appshell::IAppShellConfiguration, appshellConfiguration) // krasko
+    inline static muse::GlobalInject<mu::appshell::IAppShellConfiguration> appshellConfiguration; // krasko
 
 public:
 

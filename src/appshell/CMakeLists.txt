@@ -31,6 +31,8 @@ target_sources(appshell PRIVATE
     internal/applicationuiactions.h
     internal/appshellconfiguration.cpp
     internal/appshellconfiguration.h
+    internal/appshellconfigurationproxy.cpp # krasko
+    internal/appshellconfigurationproxy.h # krasko
     internal/iappmenumodelhook.h
     internal/isessionsmanager.h
     internal/istartupscenario.h
@@ -73,8 +75,6 @@ qt_add_resources(appshell appshell_resources
 )
 
 target_link_libraries(appshell PRIVATE
-    engraving # krasko
-	muse_workspace_qml # krasko
     muse::ui
     muse::uicomponents
     Qt::Quick

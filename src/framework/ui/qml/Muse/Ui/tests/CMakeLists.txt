@@ -26,6 +26,7 @@ set(MODULE_TEST_SRC
 
 set(MODULE_TEST_LINK
     appshell # krasko
+	muse_uicomponents_qml # krasko
     muse_ui_qml
     Qt::Quick
 )

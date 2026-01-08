@@ -39,7 +39,7 @@ namespace muse::ui {
 class NavigationController : public QObject, public INavigationController, public Injectable, public actions::Actionable,
     public async::Asyncable
 {
-    INJECT(mu::appshell::IAppShellConfiguration, appshellConfiguration) // krasko
+    GlobalInject<mu::appshell::IAppShellConfiguration> appshellConfiguration; // krasko
 public:
     Inject<actions::IActionsDispatcher> dispatcher = { this };
     Inject<IInteractive> interactive = { this };

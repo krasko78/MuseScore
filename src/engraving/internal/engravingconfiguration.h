@@ -40,7 +40,7 @@ class EngravingConfiguration : public IEngravingConfiguration, public muse::Inje
     muse::GlobalInject<muse::ui::IUiConfiguration> uiConfiguration;
     muse::GlobalInject<muse::accessibility::IAccessibilityConfiguration> accessibilityConfiguration;
     muse::GlobalInject<iex::guitarpro::IGuitarProConfiguration> guitarProConfiguration;
-    muse::GlobalInject<mu::appshell::IAppShellConfiguration> appShellConfiguration; // krasko
+    muse::GlobalInject<appshell::IAppShellConfiguration> appShellConfiguration; // krasko
 
 public:
     EngravingConfiguration(const muse::modularity::ContextPtr& iocCtx)

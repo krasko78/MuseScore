@@ -31,7 +31,7 @@ static const QString NOTATION_PAGE("musescore://notation");
 static const QString PUBLISH_PAGE("musescore://publish");
 static const QString DEVTOOLS_PAGE("musescore://devtools");
 
-//static const QString TITLE_KEY("title"); // krasko: redefined in notationstatusbarmodel.cpp
+static const QString TITLE_KEY("title");
 static const QString URI_KEY("uri");
 static const QString IS_TITLE_BOLD_KEY("isTitleBold");
 

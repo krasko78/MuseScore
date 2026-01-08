@@ -51,7 +51,7 @@ class NotationActionController : public muse::actions::Actionable, public muse::
     muse::Inject<context::IUiContextResolver> uiContextResolver = { this };
     muse::Inject<muse::IInteractive> interactive = { this };
     muse::Inject<playback::IPlaybackController> playbackController = { this };
-    muse::Inject(appshell::IAppShellConfiguration, appshellConfiguration) // krasko
+    muse::GlobalInject<appshell::IAppShellConfiguration> appshellConfiguration; // krasko
 
 public:
 

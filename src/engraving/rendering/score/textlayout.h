@@ -29,7 +29,7 @@
 namespace mu::engraving::rendering::score {
 class TextLayout
 {
-    INJECT_STATIC(appshell::IAppShellConfiguration, appshellConfiguration) // krasko
+    inline static muse::GlobalInject<mu::appshell::IAppShellConfiguration> appshellConfiguration; // krasko
 
 public:
     static void layoutBaseTextBase(const TextBase* item, TextBase::LayoutData* data);

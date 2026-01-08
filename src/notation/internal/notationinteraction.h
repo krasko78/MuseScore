@@ -62,7 +62,7 @@ class NotationInteraction : public INotationInteraction, public muse::Injectable
     muse::Inject<muse::IInteractive> interactive = { this };
     muse::Inject<engraving::rendering::ISingleRenderer> engravingRenderer = { this };
     muse::Inject<engraving::rendering::IEditModeRenderer> editModeRenderer = { this };
-    muse::Inject<appshell::IAppShellConfiguration> appshellConfiguration = { this }; // krasko
+    muse::GlobalInject<appshell::IAppShellConfiguration> appshellConfiguration; // krasko
 
 public:
     NotationInteraction(Notation* notation, INotationUndoStackPtr undoStack);

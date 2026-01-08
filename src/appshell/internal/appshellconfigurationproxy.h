@@ -33,7 +33,7 @@ class AppShellConfigurationProxy : public QObject, muse::async::Asyncable
 {
     Q_OBJECT
 
-    muse::Inject<mu::appshell::IAppShellConfiguration> appshellConfiguration;
+    muse::GlobalInject<mu::appshell::IAppShellConfiguration> appshellConfiguration;
 
     Q_PROPERTY(bool focusExportButtonOnExportDialog READ focusExportButtonOnExportDialog NOTIFY focusExportButtonOnExportDialogChanged)
     bool focusExportButtonOnExportDialog() { return appshellConfiguration()->focusExportButtonOnExportDialog(); }

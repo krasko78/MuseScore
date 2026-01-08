@@ -63,8 +63,9 @@ FocusableControl {
 
     focusBorder.drawOutsideParent: false
 
-    mouseArea.hoverEnabled: root.visible
-    mouseArea.onHoveredChanged: root.hovered(mouseArea.containsMouse && root.enabled, mouseArea.mouseX, mouseArea.mouseY)
+    mouseArea.enabled: root.visible && root.enabled
+    mouseArea.hoverEnabled: true
+    mouseArea.onHoveredChanged: root.hovered(mouseArea.containsMouse, mouseArea.mouseX, mouseArea.mouseY)
 
     mouseArea.onClicked: function(mouse) {
         navigation.requestActiveByInteraction()
