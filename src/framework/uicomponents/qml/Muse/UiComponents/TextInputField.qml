@@ -53,7 +53,7 @@ FocusScope {
     readonly property alias background: background
 
     readonly property alias mouseArea: clickableArea
-    property bool containsMouse: clickableArea.containsMouse && root.enabled
+    property bool containsMouse: clickableArea.containsMouse
 
     readonly property alias navigation: navCtrl
     readonly property alias accessible: navCtrl.accessible
@@ -335,6 +335,7 @@ FocusScope {
         height: parent.height
         width: clearTextButtonItem.visible ? parent.width - clearTextButtonItem.width : parent.width
 
+        enabled: root.enabled
         propagateComposedEvents: true
         hoverEnabled: true
         cursorShape: root.readOnly ? Qt.ArrowCursor : Qt.IBeamCursor

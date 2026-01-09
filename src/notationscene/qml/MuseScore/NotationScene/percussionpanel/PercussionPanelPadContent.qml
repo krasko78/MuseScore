@@ -73,6 +73,7 @@ Column {
             id: mouseArea
             anchors.fill: parent
 
+            enabled: mainContentArea.enabled
             hoverEnabled: true
 
             acceptedButtons: Qt.LeftButton | Qt.RightButton
@@ -148,7 +149,7 @@ Column {
         states: [
             State {
                 name: "MOUSE_HOVERED"
-                when: mouseArea.containsMouse && !mouseArea.pressed && mainContentArea.enabled && !root.padSwapActive
+                when: mouseArea.containsMouse && !mouseArea.pressed && !root.padSwapActive
                 PropertyChanges {
                     target: padBackground
                     color: Utils.colorWithAlpha(prv.currentColor, prv.currentOpacityHover)
@@ -156,7 +157,7 @@ Column {
             },
             State {
                 name: "MOUSE_HIT"
-                when: (mouseArea.pressed && mainContentArea.enabled) || root.padSwapActive
+                when: mouseArea.pressed || root.padSwapActive
                 PropertyChanges {
                     target: padBackground
                     color: Utils.colorWithAlpha(prv.currentColor, prv.currentOpacityHit)

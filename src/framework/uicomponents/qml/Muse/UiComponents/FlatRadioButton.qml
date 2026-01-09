@@ -71,7 +71,7 @@ RadioDelegate {
         }
     }
 
-    hoverEnabled: true
+    hoverEnabled: root.enabled
 
     onClicked: {
         navigation.requestActiveByInteraction()
@@ -124,7 +124,7 @@ RadioDelegate {
         states: [
             State {
                 name: "HOVERED"
-                when: root.hovered && !root.pressed && root.enabled
+                when: root.hovered && !root.pressed
 
                 PropertyChanges {
                     target: backgroundRect
@@ -135,7 +135,7 @@ RadioDelegate {
 
             State {
                 name: "PRESSED"
-                when: root.pressed && root.enabled
+                when: root.pressed
 
                 PropertyChanges {
                     target: backgroundRect

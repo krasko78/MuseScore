@@ -111,7 +111,7 @@ Item {
     states: [
         State {
             name: "HOVERED"
-            when: mouseArea.containsMouse && !mouseArea.pressed && root.enabled
+            when: mouseArea.containsMouse && !mouseArea.pressed
 
             PropertyChanges {
                 target: thumbnail
@@ -121,7 +121,7 @@ Item {
 
         State {
             name: "PRESSED"
-            when: mouseArea.pressed && root.enabled
+            when: mouseArea.pressed
 
             PropertyChanges {
                 target: thumbnail
@@ -134,6 +134,7 @@ Item {
         id: mouseArea
         anchors.fill: parent
 
+        enabled: root.enabled
         hoverEnabled: true
 
         onClicked: {

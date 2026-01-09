@@ -234,7 +234,7 @@ ListItemBlank {
     }
 
     onHovered: function(isHovered, mouseX, mouseY) {
-        if (isHovered && root.enabled) {
+        if (isHovered) {
             root.openSubMenuRequested(true)
         }
     }

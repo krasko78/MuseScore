@@ -43,7 +43,7 @@ FocusScope {
     readonly property alias background: background
 
     readonly property alias mouseArea: clickableArea
-    property bool containsMouse: clickableArea.containsMouse && root.enabled
+    property bool containsMouse: clickableArea.containsMouse
 
     property alias scrollableContentHeight: contentView.contentHeight
 
@@ -288,6 +288,7 @@ FocusScope {
         id: clickableArea
         anchors.fill: parent
 
+        enabled: root.enabled
         propagateComposedEvents: true
         hoverEnabled: true
         cursorShape: Qt.IBeamCursor

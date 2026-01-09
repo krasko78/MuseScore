@@ -82,6 +82,7 @@ FocusScope {
         id: mouseArea
         anchors.fill: parent
 
+        enabled: root.enabled
         hoverEnabled: true
 
         onClicked: {
@@ -109,7 +110,7 @@ FocusScope {
     states: [
         State {
             name: "HOVERED"
-            when: mouseArea.containsMouse && !mouseArea.pressed && root.enabled
+            when: mouseArea.containsMouse && !mouseArea.pressed
 
             PropertyChanges {
                 target: backgroundRect
@@ -120,7 +121,7 @@ FocusScope {
 
         State {
             name: "PRESSED"
-            when: mouseArea.pressed && root.enabled
+            when: mouseArea.pressed
 
             PropertyChanges {
                 target: backgroundRect

@@ -53,7 +53,7 @@ FlatButton {
         states: [
             State {
                 name: "HOVERED"
-                when: root.mouseArea.containsMouse && !root.mouseArea.pressed && root.enabled
+                when: root.mouseArea.containsMouse && !root.mouseArea.pressed
 
                 PropertyChanges {
                     target: background

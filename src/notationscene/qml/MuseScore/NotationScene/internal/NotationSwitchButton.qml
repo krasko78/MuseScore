@@ -155,7 +155,7 @@ FlatRadioButton {
 
             State {
                 name: "HOVERED"
-                when: root.hovered && !root.pressed && root.enabled
+                when: root.hovered && !root.pressed
 
                 PropertyChanges {
                     target: background
@@ -165,7 +165,7 @@ FlatRadioButton {
 
             State {
                 name: "PRESSED"
-                when: root.pressed && root.enabled
+                when: root.pressed
 
                 PropertyChanges {
                     target: background

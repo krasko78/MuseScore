@@ -297,7 +297,7 @@ FocusableControl {
     background.states: [
         State {
             name: "HOVERED"
-            when: root.mouseArea.containsMouse && !root.mouseArea.pressed && root.enabled && !root.isSelected && !prv.dragged
+            when: root.mouseArea.containsMouse && !root.mouseArea.pressed && !root.isSelected && !prv.dragged
 
             PropertyChanges {
                 target: root.background
@@ -308,7 +308,7 @@ FocusableControl {
 
         State {
             name: "PRESSED"
-            when: root.mouseArea.pressed && root.enabled && !root.isSelected && !prv.dragged
+            when: root.mouseArea.pressed && !root.isSelected && !prv.dragged
 
             PropertyChanges {
                 target: root.background
@@ -319,7 +319,7 @@ FocusableControl {
 
         State {
             name: "SELECTED"
-            when: root.isSelected && ((!root.mouseArea.containsMouse && !root.mouseArea.pressed) || !root.enabled)
+            when: root.isSelected && !root.mouseArea.containsMouse && !root.mouseArea.pressed
 
             PropertyChanges {
                 target: root.background
@@ -330,7 +330,7 @@ FocusableControl {
 
         State {
             name: "SELECTED_HOVERED"
-            when: root.isSelected && root.mouseArea.containsMouse && !root.mouseArea.pressed && root.enabled
+            when: root.isSelected && root.mouseArea.containsMouse && !root.mouseArea.pressed
 
             PropertyChanges {
                 target: root.background
@@ -341,7 +341,7 @@ FocusableControl {
 
         State {
             name: "SELECTED_PRESSED"
-            when: root.isSelected && root.mouseArea.pressed && root.enabled
+            when: root.isSelected && root.mouseArea.pressed
 
             PropertyChanges {
                 target: root.background

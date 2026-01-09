@@ -182,6 +182,7 @@ Item {
             id: mouseAreaItem
             anchors.fill: parent
 
+            enabled: mainItem.enabled
             hoverEnabled: true
 
             onClicked: mainItem.clicked()
@@ -234,7 +235,7 @@ Item {
 
             State {
                 name: "HOVERED"
-                when: mouseAreaItem.containsMouse && !mouseAreaItem.pressed && mainItem.enabled
+                when: mouseAreaItem.containsMouse && !mouseAreaItem.pressed
 
                 PropertyChanges {
                     target: backgroundItem
@@ -245,7 +246,7 @@ Item {
 
             State {
                 name: "PRESSED"
-                when: mouseAreaItem.pressed && mainItem.enabled
+                when: mouseAreaItem.pressed
 
                 PropertyChanges {
                     target: backgroundItem

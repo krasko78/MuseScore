@@ -62,6 +62,7 @@ ListView {
                 id: thumbnailMouseArea
 
                 anchors.fill: parent
+                enabled: thumbnailPlot.enabled
                 hoverEnabled: true
 
                 onClicked: {
@@ -79,7 +80,7 @@ ListView {
 
             mouseArea.anchors.margins: -4
             enabled: root.model.isAbleToRemoveCurrentSegment()
-            visible: (thumbnailMouseArea.containsMouse && thumbnailPlot.enabled) || (deleteButton.mouseArea.containsMouse && deleteButton.enabled)
+            visible: thumbnailMouseArea.containsMouse || deleteButton.mouseArea.containsMouse
 
             transparent: true
 
@@ -100,7 +101,7 @@ ListView {
             anchors.leftMargin: 4
 
             mouseArea.anchors.margins: -4
-            visible: (thumbnailMouseArea.containsMouse && thumbnailPlot.enabled) || (createButton.mouseArea.containsMouse && createButton.enabled)
+            visible: thumbnailMouseArea.containsMouse || createButton.mouseArea.containsMouse
 
             transparent: true
 
@@ -114,10 +115,7 @@ ListView {
         states: [
             State {
                 name: "HOVERED"
-                when: ((thumbnailMouseArea.containsMouse && thumbnailPlot.enabled)
-                            || (createButton.mouseArea.containsMouse && createButton.enabled)
-                            || (deleteButton.mouseArea.containsMouse && deleteButton.enabled)
-                            || delegateItem.isSelected)
+                when: (thumbnailMouseArea.containsMouse || createButton.mouseArea.containsMouse || deleteButton.mouseArea.containsMouse || delegateItem.isSelected)
                       && !thumbnailMouseArea.containsPress
 
                 PropertyChanges {
@@ -128,7 +126,7 @@ ListView {
 
             State {
                 name: "SELECTED"
-                when: thumbnailMouseArea.containsPress && thumbnailPlot.enabled
+                when: thumbnailMouseArea.containsPress
 
                 PropertyChanges {
                     target: thumbnailPlot

@@ -85,6 +85,7 @@ Rectangle {
         id: clickableArea
         anchors.fill: parent
 
+        enabled: root.enabled
         hoverEnabled: true
 
         onClicked: {
@@ -97,14 +98,14 @@ Rectangle {
     states: [
         State {
             name: "HOVERED"
-            when: clickableArea.containsMouse && !clickableArea.pressed && root.enabled
+            when: clickableArea.containsMouse && !clickableArea.pressed
 
             PropertyChanges { target: root; border.color: ui.theme.accentColor }
         },
 
         State {
             name: "PRESSED"
-            when: clickableArea.pressed && root.enabled
+            when: clickableArea.pressed
 
             PropertyChanges { target: root; border.color: ui.theme.fontPrimaryColor }
         }

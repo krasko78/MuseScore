@@ -27,8 +27,7 @@ import Muse.UiComponents
 Column {
     id: root
 
-    readonly property bool containsMouse: (increaseMouseArea.containsMouse && increaseButton.enabled)
-                                          || (decreaseMouseArea.containsMouse && decreaseButton.enabled)
+    readonly property bool containsMouse: increaseMouseArea.containsMouse || decreaseMouseArea.containsMouse
 
     property alias canIncrease: increaseButton.enabled
     property alias canDecrease: decreaseButton.enabled
@@ -66,6 +65,7 @@ Column {
             id: increaseMouseArea
             anchors.fill: parent
 
+            enabled: increaseButton.enabled
             hoverEnabled: true
             preventStealing: true
 
@@ -86,7 +86,7 @@ Column {
         states: [
             State {
                 name: "hovered"
-                when: increaseMouseArea.containsMouse && !increaseMouseArea.pressed && increaseButton.enabled
+                when: increaseMouseArea.containsMouse && !increaseMouseArea.pressed
 
                 PropertyChanges {
                     target: increaseButton
@@ -96,7 +96,7 @@ Column {
 
             State {
                 name: "pressed"
-                when: increaseMouseArea.pressed && increaseButton.enabled
+                when: increaseMouseArea.pressed
 
                 PropertyChanges {
                     target: increaseButton
@@ -131,6 +131,7 @@ Column {
             id: decreaseMouseArea
             anchors.fill: parent
 
+            enabled: decreaseButton.enabled
             hoverEnabled: true
             preventStealing: true
 
@@ -151,7 +152,7 @@ Column {
         states: [
             State {
                 name: "hovered"
-                when: decreaseMouseArea.containsMouse && !decreaseMouseArea.pressed && decreaseButton.enabled
+                when: decreaseMouseArea.containsMouse && !decreaseMouseArea.pressed
 
                 PropertyChanges {
                     target: decreaseButton
@@ -161,7 +162,7 @@ Column {
 
             State {
                 name: "pressed"
-                when: decreaseMouseArea.pressed && decreaseButton.enabled
+                when: decreaseMouseArea.pressed
 
                 PropertyChanges {
                     target: decreaseButton

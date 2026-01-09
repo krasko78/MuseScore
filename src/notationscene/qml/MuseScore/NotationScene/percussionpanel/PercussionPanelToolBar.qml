@@ -98,7 +98,7 @@ Item {
                 states: [
                     State {
                         name: "PRESSED"
-                        when: writeButton.mouseArea.pressed && writeButton.enabled
+                        when: writeButton.mouseArea.pressed
 
                         PropertyChanges {
                             target: writeButtonBackground
@@ -108,7 +108,7 @@ Item {
 
                     State {
                         name: "HOVERED"
-                        when: !writeButton.mouseArea.pressed && writeButton.mouseArea.containsMouse && writeButton.enabled
+                        when: !writeButton.mouseArea.pressed && writeButton.mouseArea.containsMouse
 
                         PropertyChanges {
                             target: writeButtonBackground
@@ -165,7 +165,7 @@ Item {
                 states: [
                     State {
                         name: "PRESSED"
-                        when: previewButton.mouseArea.pressed && previewButton.enabled
+                        when: previewButton.mouseArea.pressed
 
                         PropertyChanges {
                             target: previewButtonBackground
@@ -175,7 +175,7 @@ Item {
 
                     State {
                         name: "HOVERED"
-                        when: !previewButton.mouseArea.pressed && previewButton.mouseArea.containsMouse && previewButton.enabled
+                        when: !previewButton.mouseArea.pressed && previewButton.mouseArea.containsMouse
 
                         PropertyChanges {
                             target: previewButtonBackground

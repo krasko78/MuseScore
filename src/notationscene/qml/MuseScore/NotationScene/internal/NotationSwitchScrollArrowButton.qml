@@ -43,7 +43,7 @@ FlatButton {
         states: [
             State {
                 name: "pressed"
-                when: root.mouseArea.pressed && root.enabled
+                when: root.mouseArea.pressed
 
                 PropertyChanges {
                     target: background
@@ -54,7 +54,7 @@ FlatButton {
 
             State {
                 name: "hovered"
-                when: root.mouseArea.containsMouse && root.enabled
+                when: root.mouseArea.containsMouse
 
                 PropertyChanges {
                     target: background

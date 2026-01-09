@@ -85,6 +85,7 @@ MixerPanelSection {
             id: mouseArea
             anchors.fill: parent
 
+            enabled: parent.enabled
             hoverEnabled: true
 
             onContainsMouseChanged: {
