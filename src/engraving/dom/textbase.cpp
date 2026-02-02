@@ -285,11 +285,16 @@ RectF TextCursor::cursorRect() const
         _font.setPointSizeF(fragment->format.fontSize());
     }
 
-    double ascent = FontMetrics::ascent(_font);
-    double h = ascent;
+    const FontMetrics fm(_font); // krasko start
+    double ascent = fm.ascent();
+    double descent = fm.descent();
+    double capHeight = fm.capHeight();
+    const double coef = 0.8; // should be 1.0 but smaller values shorten the cursor which looks better visually
+    double w = 12.0 + capHeight / 20.0;
+    double h = std::max(coef * (ascent + descent), capHeight + 2 * coef * descent);
     double x = tline.xpos(column(), m_text);
-    double y = tline.y() - ascent * .9;
-    return RectF(x, y, 4.0, h);
+    double y = tline.y() + coef * descent - h;
+    return RectF(x - w / 2, y, w, h); // krasko end
 }
 
 //---------------------------------------------------------
