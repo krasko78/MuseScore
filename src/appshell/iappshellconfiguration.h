@@ -68,8 +68,6 @@ public:
 
     virtual bool enableHighPrecisionNudging() const = 0;
 
-    virtual bool showSameColorCheckBoxOnSelectMoreDialog() const = 0;
-
     virtual int verticalPanelsWidth() const = 0;
     virtual muse::async::Channel<int> verticalPanelsWidthChanged() const = 0;
 

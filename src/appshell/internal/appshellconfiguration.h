@@ -83,8 +83,6 @@ public:
 
     bool enableHighPrecisionNudging() const override;
 
-    bool showSameColorCheckBoxOnSelectMoreDialog() const override;
-
     int verticalPanelsWidth() const override;
     muse::async::Channel<int> verticalPanelsWidthChanged() const override;
 

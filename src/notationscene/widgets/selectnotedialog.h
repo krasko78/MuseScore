@@ -25,7 +25,6 @@
 
 #include "modularity/ioc.h"
 #include "context/iglobalcontext.h"
-#include "appshell/iappshellconfiguration.h" // krasko
 
 namespace mu::engraving {
 struct NotePattern;
@@ -37,7 +36,6 @@ class SelectNoteDialog : public QDialog, Ui::SelectNoteDialog, public muse::Cont
 {
     Q_OBJECT
 
-    muse::GlobalInject<appshell::IAppShellConfiguration> appshellConfiguration; // krasko
     muse::ContextInject<context::IGlobalContext> globalContext = { this };
 
 public:

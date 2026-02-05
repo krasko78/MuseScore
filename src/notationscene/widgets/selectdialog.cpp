@@ -69,8 +69,6 @@ SelectDialog::SelectDialog(QWidget* parent)
 
     sameDuration->setEnabled(m_element->isRest());
 
-    sameColor->setVisible(appshellConfiguration()->showSameColorCheckBoxOnSelectMoreDialog()); // krasko
-
     connect(buttonBox, &QDialogButtonBox::clicked, this, &SelectDialog::buttonClicked);
 
     //! NOTE: It is necessary for the correct start of navigation in the dialog

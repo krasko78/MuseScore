@@ -65,8 +65,6 @@ static constexpr char KEY_MainMenuFontSizeMultiplier[] = "krasko/mainMenuFontSiz
 
 static constexpr char KEY_EnableHighPrecisionNudging[] = "krasko/enableHighPrecisionNudging";
 
-static constexpr char KEY_ShowSameColorCheckBoxOnSelectMoreDialog[] = "krasko/showSameColorCheckBoxOnSelectMoreDialog";
-
 static constexpr char KEY_VerticalPanelsWidth[] = "krasko/verticalPanelsWidth";
 
 static constexpr char KEY_FlickableMaxVelocity[] = "krasko/flickableMaxVelocity";
@@ -275,15 +273,6 @@ void AppShellConfiguration::createKraskoSettings()
             "amount allowing for better control and precision. Does not affect nudging with "
             "Ctrl+arrow keys and Alt+arrow keys."))
         .withoutValueChangedNotifications();
-
-	sc.createSetting(krasko_module_name, KEY_ShowSameColorCheckBoxOnSelectMoreDialog)
-		.setDefaultValue(Val(false))
-		.setDescription(muse::trc("krasko", "Show 'Same Color' checkbox on 'Select more' dialog"))
-		.setHelpString(muse::trc("krasko",
-			"When enabled, will display a 'Same color' checkbox on the 'Select' –> 'More...' dialog "
-			"so that the selection can be limited to the elements having the same color "
-			"as the selected element."))
-		.withoutValueChangedNotifications();
 
     sc.createSetting(krasko_module_name, KEY_VerticalPanelsWidth)
         .setDefaultValue(Val(300))
@@ -563,11 +552,6 @@ muse::async::Channel<double> AppShellConfiguration::mainMenuFontSizeMultiplierCh
 bool AppShellConfiguration::enableHighPrecisionNudging() const
 {
     return kraskoSettingValue(KEY_EnableHighPrecisionNudging).toBool();
-}
-
-bool AppShellConfiguration::showSameColorCheckBoxOnSelectMoreDialog() const
-{
-    return kraskoSettingValue(KEY_ShowSameColorCheckBoxOnSelectMoreDialog).toBool();
 }
 
 int AppShellConfiguration::verticalPanelsWidth() const
