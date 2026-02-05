@@ -43,7 +43,6 @@
 #include "iexportprojectscenario.h"
 #include "inotationwritersregister.h"
 #include "iprojectconfiguration.h"
-#include "appshell/iappshellconfiguration.h" // krasko
 
 class QItemSelectionModel;
 
@@ -108,7 +107,6 @@ class ExportDialogModel : public QAbstractListModel, public QQmlParserStatus, pu
     muse::GlobalInject<iex::mnxio::IMnxConfiguration> mnxConfiguration;
     muse::GlobalInject<IProjectConfiguration> configuration;
     muse::GlobalInject<iex::imagesexport::IImagesExportConfiguration> imageExportConfiguration;
-    muse::GlobalInject<appshell::IAppShellConfiguration> appshellConfiguration; // krasko
     muse::ContextInject<muse::IInteractive> interactive = { this };
     muse::ContextInject<context::IGlobalContext> context = { this };
     muse::ContextInject<INotationWritersRegister> writers = { this };
