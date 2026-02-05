@@ -24,7 +24,6 @@
 #include "async/asyncable.h"
 #include "actions/actionable.h"
 #include "actions/actiontypes.h"
-#include "appshell/iappshellconfiguration.h" // krasko
 
 #include "modularity/ioc.h"
 #include "iinteractive.h"
@@ -44,7 +43,6 @@ class NotationActionController : public muse::actions::Actionable, public muse::
 {
     muse::GlobalInject<INotationConfiguration> configuration;
     muse::GlobalInject<engraving::IEngravingConfiguration> engravingConfiguration;
-    muse::GlobalInject<appshell::IAppShellConfiguration> appshellConfiguration; // krasko
     muse::ContextInject<muse::actions::IActionsDispatcher> dispatcher = { this };
     muse::ContextInject<muse::ui::INavigationController> navigationController = { this };
     muse::ContextInject<muse::ui::IUiActionsRegister> actionRegister = { this };

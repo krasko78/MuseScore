@@ -725,9 +725,7 @@ void NotationActionController::resetState()
         return;
     } else if (interaction->isEditingElement()) {
         interaction->endEditElement();
-        if (appshellConfiguration()->escKeyPreservesSelectionWhenEditing()) { // krasko
-            return;
-        }
+        return; // krasko: exit edit mode but leave the element selected (e.g. for elements with grips)
     }
 
     if (!interaction->selection()->isNone()) {

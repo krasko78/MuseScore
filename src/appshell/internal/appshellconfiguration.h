@@ -63,8 +63,6 @@ public:
 
     bool changeActiveGripWithEditElementKey() const override;
 
-    bool escKeyPreservesSelectionWhenEditing() const override;
-
     bool expandShowMoreSectionsInPropertiesPanel() const override;
     muse::async::Channel<bool> expandShowMoreSectionsInPropertiesPanelChanged() const override;
 

@@ -51,8 +51,6 @@ static constexpr char KEY_TabAndShiftTabNavigateBetweenControls[] = "krasko/tabA
 
 static constexpr char KEY_ChangeActiveGripWithEditElementKey[] = "krasko/changeActiveGripWithEditElementKey";
 
-static constexpr char KEY_EscKeyPreservesSelectionWhenEditing[] = "krasko/escKeyPreservesSelectionWhenEditing";
-
 static constexpr char KEY_ExpandShowMoreSectionsInPropertiesPanel[] = "krasko/expandShowMoreSectionsInPropertiesPanel";
 
 static constexpr char KEY_ShowScrollbarOnScrollableDropDownLists[] = "krasko/showScrollbarOnScrollableDropDownLists";
@@ -207,17 +205,6 @@ void AppShellConfiguration::createKraskoSettings()
 			"This lets you press the 'Edit Element' key once to display the grips (provided "
             "the element is selected) and then continue pressing the same key (instead of Tab) "
 			"to activate a particular grip."))
-        .withoutValueChangedNotifications();
-
-    sc.createSetting(krasko_module_name, KEY_EscKeyPreservesSelectionWhenEditing)
-        .setDefaultValue(Val(false))
-        .setDescription(muse::trc("krasko", "Esc key preserves selection when editing"))
-        .setHelpString(muse::trc("krasko",
-            "When enabled, pressing the Esc key while editing an element will end the editing "
-            "but not deselect the element. This allows you to press the 'Edit Element' key "
-            "and continue editing until you are happy with the result. Useful for example "
-            "for elements with grips. When disabled, the element will be deselected after "
-            "pressing Esc and won't be editable until re-selected."))
         .withoutValueChangedNotifications();
 
     sc.createSetting(krasko_module_name, KEY_ExpandShowMoreSectionsInPropertiesPanel)
@@ -511,11 +498,6 @@ bool AppShellConfiguration::tabAndShiftTabNavigateBetweenControls() const
 bool AppShellConfiguration::changeActiveGripWithEditElementKey() const
 {
     return kraskoSettingValue(KEY_ChangeActiveGripWithEditElementKey).toBool();
-}
-
-bool AppShellConfiguration::escKeyPreservesSelectionWhenEditing() const
-{
-    return kraskoSettingValue(KEY_EscKeyPreservesSelectionWhenEditing).toBool();
 }
 
 bool AppShellConfiguration::expandShowMoreSectionsInPropertiesPanel() const

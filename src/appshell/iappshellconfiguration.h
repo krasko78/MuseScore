@@ -48,8 +48,6 @@ public:
 
     virtual bool changeActiveGripWithEditElementKey() const = 0;
 
-    virtual bool escKeyPreservesSelectionWhenEditing() const = 0;
-
     virtual bool expandShowMoreSectionsInPropertiesPanel() const = 0;
     virtual muse::async::Channel<bool> expandShowMoreSectionsInPropertiesPanelChanged() const = 0;
 
