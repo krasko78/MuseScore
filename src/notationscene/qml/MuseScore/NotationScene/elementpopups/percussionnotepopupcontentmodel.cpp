@@ -28,7 +28,7 @@
 using namespace mu::notation;
 
 PercussionNotePopupContentModel::PercussionNotePopupContentModel(QObject* parent)
-    : QObject{parent}
+    : QObject{parent}, muse::Contextable(muse::iocCtxForQmlObject(this))
 {
 }
 

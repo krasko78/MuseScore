@@ -29,14 +29,17 @@
 #include "../inotationconfiguration.h"
 
 namespace mu::notation {
-class MScoreErrorsController : public muse::Injectable, public muse::async::Asyncable
+class MScoreErrorsController : public muse::Contextable, public muse::async::Asyncable
 {
     muse::GlobalInject<INotationConfiguration> configuration;
-    muse::Inject<muse::IInteractive> interactive = { this };
+    muse::ContextInject<muse::IInteractive> interactive = { this };
 
 public:
     MScoreErrorsController(const muse::modularity::ContextPtr& iocCtx);
 
     void checkAndShowMScoreError();
+
+private:
+    mu::engraving::MsError m_currentDialogError = mu::engraving::MsError::MS_NO_ERROR;
 };
 }

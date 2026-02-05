@@ -6,21 +6,21 @@
         <source>Wind section notated on a grand staff.</source>
         <comment>winds description</comment>
         <extracomment>description for Winds; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>在大谱表上记谱的木管组。</translation>
+        <translation>在大谱表上记谱的管乐分部。</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="208"/>
         <source>Winds</source>
         <comment>winds trackName</comment>
         <extracomment>trackName for Winds; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>木管组</translation>
+        <translation>管乐器</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="210"/>
         <source>Winds</source>
         <comment>winds longName</comment>
         <extracomment>longName for Winds; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>木管组</translation>
+        <translation>管乐器</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="212"/>
@@ -5865,7 +5865,7 @@
         <source>Brass section notated on a grand staff.</source>
         <comment>brass description</comment>
         <extracomment>description for Brass; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>在大谱表上记谱的铜管组。</translation>
+        <translation>在大谱表上记谱的铜管分部。</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="2082"/>
@@ -13383,7 +13383,7 @@
         <source>Log drum or slit drum.</source>
         <comment>log-drum description</comment>
         <extracomment>description for Log Drum; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation type="unfinished"/>
+        <translation>原木鼓或裂槽鼓。</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="4462"/>
@@ -14083,14 +14083,14 @@
         <source>Marching show-style tenor drum.</source>
         <comment>marching-show-tenors description</comment>
         <extracomment>description for Show-Style Tenors; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation type="unfinished"/>
+        <translation>行进表演风格的男高音鼓。</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="4690"/>
         <source>Show-Style Tenors</source>
         <comment>marching-show-tenors trackName</comment>
         <extracomment>trackName for Show-Style Tenors; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation type="unfinished"/>
+        <translation>表演型男高音</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="4692"/>
@@ -19039,7 +19039,7 @@
         <source>String section notated on a grand staff.</source>
         <comment>strings description</comment>
         <extracomment>description for Strings; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>在大谱表上记谱的弦乐组。</translation>
+        <translation>在大谱表上记谱的弦乐分部。</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="6286"/>
@@ -19165,14 +19165,14 @@
         <source>Violin section.</source>
         <comment>violins description</comment>
         <extracomment>description for Violins (section); Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>小提琴组。</translation>
+        <translation>小提琴分部。</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="6325"/>
         <source>Violins (section)</source>
         <comment>violins trackName</comment>
         <extracomment>trackName for Violins (section); Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>小提琴（组）</translation>
+        <translation>小提琴（分部）</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="6327"/>
@@ -19263,14 +19263,14 @@
         <source>Viola section.</source>
         <comment>violas description</comment>
         <extracomment>description for Violas (section); Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>中提琴组。</translation>
+        <translation>中提琴分部。</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="6355"/>
         <source>Violas (section)</source>
         <comment>violas trackName</comment>
         <extracomment>trackName for Violas (section); Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>中提琴（组）</translation>
+        <translation>中提琴（分部）</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="6357"/>
@@ -19361,14 +19361,14 @@
         <source>Violoncello section.</source>
         <comment>violoncellos description</comment>
         <extracomment>description for Violoncellos (section); Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>大提琴组。</translation>
+        <translation>大提琴分部。</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="6385"/>
         <source>Violoncellos (section)</source>
         <comment>violoncellos trackName</comment>
         <extracomment>trackName for Violoncellos (section); Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>大提琴（组）</translation>
+        <translation>大提琴（分部）</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="6387"/>
@@ -19459,14 +19459,14 @@
         <source>Contrabass (double bass) section.</source>
         <comment>contrabasses description</comment>
         <extracomment>description for Contrabasses (section); Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>低音提琴组。</translation>
+        <translation>低音提琴分部。</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="6415"/>
         <source>Contrabasses (section)</source>
         <comment>contrabasses trackName</comment>
         <extracomment>trackName for Contrabasses (section); Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>低音提琴（组）</translation>
+        <translation>低音提琴（分部）</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="6417"/>
@@ -20090,7 +20090,7 @@
     <message>
         <location filename="../instruments/instrumentsxml.h" line="88"/>
         <source>Winds</source>
-        <translation>木管乐器</translation>
+        <translation>管乐器</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="89"/>
@@ -20716,7 +20716,7 @@
     <message>
         <location filename="../instruments/instrumentsxml.h" line="2077"/>
         <source>Brass</source>
-        <translation>铜管</translation>
+        <translation>铜管乐器</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="3410"/>
@@ -20746,7 +20746,7 @@
     <message>
         <location filename="../instruments/instrumentsxml.h" line="4927"/>
         <source>Keyboards</source>
-        <translation>键盘</translation>
+        <translation>键盘乐器</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="5092"/>
@@ -20756,12 +20756,12 @@
     <message>
         <location filename="../instruments/instrumentsxml.h" line="5382"/>
         <source>Strings - Plucked</source>
-        <translation>弦乐 - 拨弦乐器</translation>
+        <translation>拨弦乐器</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="6281"/>
         <source>Strings - Bowed</source>
-        <translation>弦乐 - 弓弦乐器</translation>
+        <translation>弓弦乐器</translation>
     </message>
 </context>
 <context>

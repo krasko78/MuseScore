@@ -47,11 +47,9 @@
 namespace mu::inspector {
 using MeasurementUnits = CommonTypes::MeasurementUnits;
 
-class AbstractInspectorModel : public QObject, public muse::async::Asyncable, public muse::Injectable
+class AbstractInspectorModel : public QObject, public muse::async::Asyncable, public muse::Contextable
 {
     Q_OBJECT
-    QML_ELEMENT;
-    QML_UNCREATABLE("Not creatable as it is abstract base class")
 
     Q_PROPERTY(QString title READ title NOTIFY titleChanged)
     Q_PROPERTY(int icon READ icon CONSTANT)
@@ -62,11 +60,14 @@ class AbstractInspectorModel : public QObject, public muse::async::Asyncable, pu
     Q_PROPERTY(bool isSystemObjectBelowBottomStaff READ isSystemObjectBelowBottomStaff NOTIFY isSystemObjectBelowBottomStaffChanged)
     Q_PROPERTY(mu::inspector::CommonTypes::MeasurementUnits measurementUnits READ measurementUnits NOTIFY measurementUnitsChanged)
 
+    QML_ELEMENT;
+    QML_UNCREATABLE("Not creatable as it is abstract base class")
+
 public:
-    muse::Inject<context::IGlobalContext> context = { this };
-    muse::Inject<muse::actions::IActionsDispatcher> dispatcher = { this };
-    muse::Inject<muse::ui::IUiActionsRegister> uiActionsRegister = { this };
-    muse::Inject<muse::shortcuts::IShortcutsRegister> shortcutsRegister = { this };
+    muse::ContextInject<context::IGlobalContext> context = { this };
+    muse::ContextInject<muse::actions::IActionsDispatcher> dispatcher = { this };
+    muse::ContextInject<muse::ui::IUiActionsRegister> uiActionsRegister = { this };
+    muse::ContextInject<muse::shortcuts::IShortcutsRegister> shortcutsRegister = { this };
 
 public:
     enum class InspectorSectionType {
@@ -76,7 +77,6 @@ public:
         SECTION_EMPTY_STAVES,
         SECTION_NOTATION,
         SECTION_TEXT,
-        SECTION_TEXT_LINES,
         SECTION_SCORE_DISPLAY,
         SECTION_SCORE_APPEARANCE,
         SECTION_PARTS,
@@ -104,6 +104,7 @@ public:
         TYPE_KEYSIGNATURE,
         TYPE_ACCIDENTAL,
         TYPE_ARPEGGIO,
+        TYPE_CHORD_BRACKET,
         TYPE_FRET_DIAGRAM,
         TYPE_PEDAL,
         TYPE_SPACER,
@@ -154,11 +155,12 @@ public:
         TYPE_STRING_TUNINGS,
         TYPE_SYMBOL,
         TYPE_NOTELINE,
-        TYPE_PLAY_COUNT_TEXT
+        TYPE_PLAY_COUNT_TEXT,
     };
     Q_ENUM(InspectorModelType)
 
-    explicit AbstractInspectorModel(QObject* parent, IElementRepositoryService* repository = nullptr,
+    explicit AbstractInspectorModel(QObject* parent, const muse::modularity::ContextPtr& iocCtx,
+                                    IElementRepositoryService* repository = nullptr,
                                     mu::engraving::ElementType elementType = mu::engraving::ElementType::INVALID);
 
     void init();

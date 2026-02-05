@@ -35,10 +35,11 @@ class InstrumentNameSettingsModel : public AbstractInspectorModel
     QML_ELEMENT;
     QML_UNCREATABLE("Not creatable from QML")
 
-    muse::Inject<muse::actions::IActionsDispatcher> dispatcher = { this };
+    muse::ContextInject<muse::actions::IActionsDispatcher> dispatcher = { this };
 
 public:
-    explicit InstrumentNameSettingsModel(QObject* parent, IElementRepositoryService* repository);
+    explicit InstrumentNameSettingsModel(QObject* parent, const muse::modularity::ContextPtr& iocCtx,
+                                         IElementRepositoryService* repository);
 
     Q_INVOKABLE void openStyleSettings();
     Q_INVOKABLE void openStaffAndPartProperties();

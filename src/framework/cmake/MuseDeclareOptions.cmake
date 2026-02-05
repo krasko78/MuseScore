@@ -2,9 +2,13 @@ include(CMakeDependentOption)
 
 macro(declare_muse_module_opt name def)
     option(MUSE_MODULE_${name} "Build ${name} module" ${def})
-    option(MUSE_MODULE_${name}_API "Build ${name} api" ${MUSE_MODULE_${name}})
-    option(MUSE_MODULE_${name}_QML "Build ${name} QML" ${MUSE_MODULE_${name}})
-    option(MUSE_MODULE_${name}_TESTS "Build ${name} tests" ${MUSE_MODULE_${name}})
+
+    # 1. if we disable the module, the submodule values are irrelevant, as they will be ignored
+    # 2. if we enable the module, all its submodules are enabled by default
+    # 3. we can disable some submodules manually
+    option(MUSE_MODULE_${name}_API "Build ${name} api" ON)
+    option(MUSE_MODULE_${name}_QML "Build ${name} QML" ON)
+    option(MUSE_MODULE_${name}_TESTS "Build ${name} tests" ON)
 endmacro()
 
 # Modules framework (alphabetical order please)
@@ -29,7 +33,7 @@ option(MUSE_MODULE_AUDIO_EXPORT "Enable audio export" ON)
 # 1 - worker
 # 2 - driver callback
 # 3 - worker - RPC, driver callback - process
-set(MUSE_MODULE_AUDIO_WORKMODE 1 CACHE INT "Audio subsystem work mode")
+set(MUSE_MODULE_AUDIO_WORKMODE 1 CACHE STRING "Audio subsystem work mode")
 
 declare_muse_module_opt(AUDIOPLUGINS ON)
 
@@ -58,7 +62,7 @@ declare_muse_module_opt(LANGUAGES ON)
 declare_muse_module_opt(LEARN ON)
 declare_muse_module_opt(MIDI ON)
 declare_muse_module_opt(MPE ON)
-declare_muse_module_opt(MULTIINSTANCES ON)
+declare_muse_module_opt(MULTIWINDOWS ON)
 
 declare_muse_module_opt(MUSESAMPLER ON)
 option(MUSE_MODULE_MUSESAMPLER_LOAD_IN_DEBUG "Load MuseSampler module in debug builds" OFF)
@@ -92,6 +96,7 @@ option(MUSE_COMPILE_BUILD_64 "Build 64 bit version" ON)
 option(MUSE_COMPILE_ASAN "Enable Address Sanitizer" OFF)
 option(MUSE_COMPILE_USE_PCH "Use precompiled headers." ON)
 option(MUSE_COMPILE_STRING_DEBUG_HACK "Enable string debug hack (only clang)" ON)
+option(MUSE_MULTICONTEXT_WIP "Enable transition code to support multi-context" OFF)
 
 # === Tests ===
 option(MUSE_ENABLE_UNIT_TESTS "Build framework unit tests" ON)

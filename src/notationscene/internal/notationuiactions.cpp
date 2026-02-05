@@ -451,6 +451,12 @@ const UiActionList NotationUiActions::s_actions = {
              TranslatableString("action", "Realize &chord symbols"),
              TranslatableString("action", "Realize chord symbols")
              ),
+    UiAction("extend-to-next-note",
+             mu::context::UiCtxProjectOpened,
+             mu::context::CTX_NOTATION_OPENED,
+             TranslatableString("action", "Extend to next note"),
+             TranslatableString("action", "Extend to next note")
+             ),
     UiAction("time-delete",
              mu::context::UiCtxProjectOpened,
              mu::context::CTX_NOTATION_OPENED,
@@ -2576,8 +2582,8 @@ const UiActionList NotationUiActions::s_actions = {
              mu::context::UiCtxProjectFocused,
              mu::context::CTX_NOTATION_OPENED,
              //: Pre-dive, i.e. a movement of the tremolo bar prepared before picking the note
-             TranslatableString("action", "Pre-Dive"),
-             TranslatableString("action", "Pre-Dive"),
+             TranslatableString("action", "Pre-dive"),
+             TranslatableString("action", "Pre-dive"),
              IconCode::Code::GUITAR_PRE_DIVE
              ),
     UiAction("dip",
@@ -2754,7 +2760,7 @@ const UiActionList NotationUiActions::s_engravingDebuggingActions = {
 };
 
 NotationUiActions::NotationUiActions(std::shared_ptr<NotationActionController> controller, const muse::modularity::ContextPtr& iocCtx)
-    : muse::Injectable(iocCtx), m_controller(controller)
+    : muse::Contextable(iocCtx), m_controller(controller)
 {
 }
 
@@ -2771,6 +2777,9 @@ void NotationUiActions::init()
             actions.push_back(action.code);
         }
         m_actionCheckedChanged.send(actions);
+
+        m_actionEnabledMap.reserve(actionsList().size());
+        updateActionsEnabled(actionsList());
 
         const INotationInteractionPtr interaction = m_controller->currentNotationInteraction();
 
@@ -2823,11 +2832,6 @@ void NotationUiActions::init()
         }
         m_actionCheckedChanged.send(actions);
     });
-
-    m_actionEnabledMap.reserve(s_actions.size());
-    for (const UiAction& action : s_actions) {
-        m_actionEnabledMap.insert({ action.code, false });
-    }
 }
 
 const UiActionList& NotationUiActions::actionsList() const

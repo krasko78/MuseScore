@@ -54,8 +54,8 @@ qt_add_qml_module(inspector_qml
         inspectormodelcreator.h
         inspectormodelwithvoiceandpositionoptions.cpp
         inspectormodelwithvoiceandpositionoptions.h
-        inspectorpopupcontroller.cpp
-        inspectorpopupcontroller.h
+        inspectorpopupcontrollermodel.cpp
+        inspectorpopupcontrollermodel.h
         measures/measuressettingsmodel.cpp
         measures/measuressettingsmodel.h
         notation/accidentals/accidentalsettingsmodel.cpp
@@ -128,6 +128,8 @@ qt_add_qml_module(inspector_qml
         notation/lines/pedalsettingsmodel.h
         notation/lines/slurandtiesettingsmodel.cpp
         notation/lines/slurandtiesettingsmodel.h
+        notation/lines/chordbracketsettingsmodel.cpp
+        notation/lines/chordbracketsettingsmodel.h
         notation/lines/textlinesettingsmodel.cpp
         notation/lines/textlinesettingsmodel.h
         notation/lines/vibratosettingsmodel.cpp
@@ -208,6 +210,9 @@ qt_add_qml_module(inspector_qml
         text/textsettingsmodel.h
         text/textstylepopup/textstylepopupmodel.cpp
         text/textstylepopup/textstylepopupmodel.h
+        internal/iinspectorpopupcontroller.h
+        internal/inspectorpopupcontroller.cpp
+        internal/inspectorpopupcontroller.h
         types/accidentaltypes.h
         types/ambitustypes.h
         types/articulationtypes.h
@@ -314,6 +319,7 @@ qt_add_qml_module(inspector_qml
         notation/lines/internal/HairpinPositionSettingsTab.qml
         notation/lines/internal/HairpinStyleSettings.qml
         notation/lines/internal/HooksSection.qml
+        notation/lines/internal/HooksAndArrowsSection.qml
         notation/lines/internal/LineStyleSection.qml
         notation/lines/internal/LineTextSettingsTab.qml
         notation/lines/internal/LineWithHooksCommonStyleSettings.qml
@@ -322,6 +328,7 @@ qt_add_qml_module(inspector_qml
         notation/lines/internal/VoltaStyleSettings.qml
         notation/lines/LineSettings.qml
         notation/lines/SlurAndTieSettings.qml
+        notation/lines/ChordBracketSettings.qml
         notation/lines/VibratoSettings.qml
         notation/lines/LyricsLineSettings.qml
         notation/lyrics/LyricsSettings.qml

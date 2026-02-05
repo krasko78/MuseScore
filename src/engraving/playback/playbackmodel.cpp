@@ -326,10 +326,9 @@ void PlaybackModel::triggerEventsForItems(const std::vector<const EngravingItem*
     dynamic_level_t dynamicLevel = dynamicLevelFromType(muse::mpe::DynamicType::Natural);
 
     for (const EngravingItem* item : items) {
-        const int utick = repeats.tick2utick(item->tick().ticks());
-
         if (m_useScoreDynamicsForOffstreamPlayback) {
             if (!item->isNote() || toNote(item)->userVelocity() == 0) {
+                const int utick = repeats.tick2utick(item->tick().ticks());
                 dynamicLevel = ctx->appliableDynamicLevel(item->track(), utick);
             }
             dynamics[static_cast<muse::mpe::layer_idx_t>(item->track())][timestamp] = dynamicLevel;
@@ -852,10 +851,6 @@ void mu::engraving::PlaybackModel::removeEventsFromRange(const track_idx_t track
 
         removeTrackEvents(chordSymbolsTrackId(part->id()), timestampFrom, timestampTo, trackChanges);
     }
-
-    if (m_metronomeEnabled) {
-        removeTrackEvents(METRONOME_TRACK_ID, timestampFrom, timestampTo, trackChanges);
-    }
 }
 
 void PlaybackModel::clearExpiredEvents(const int tickFrom, const int tickTo, const track_idx_t trackFrom, const track_idx_t trackTo,
@@ -874,13 +869,14 @@ void PlaybackModel::clearExpiredEvents(const int tickFrom, const int tickTo, con
 
     if (tickFrom == 0 && lastMeasure->endTick().ticks() == tickTo) {
         removeEventsFromRange(trackFrom, trackTo);
+        removeTrackEvents(METRONOME_TRACK_ID);
         return;
     }
 
     for (const RepeatSegment* repeatSegment : repeatList()) {
-        int tickPositionOffset = repeatSegment->utick - repeatSegment->tick;
-        int repeatStartTick = repeatSegment->tick;
-        int repeatEndTick = repeatSegment->endTick();
+        const int tickPositionOffset = repeatSegment->utick - repeatSegment->tick;
+        const int repeatStartTick = repeatSegment->tick;
+        const int repeatEndTick = repeatSegment->endTick();
 
         if (repeatStartTick > tickTo || repeatEndTick <= tickFrom) {
             continue;
@@ -895,6 +891,24 @@ void PlaybackModel::clearExpiredEvents(const int tickFrom, const int tickTo, con
         timestamp_t removeEventsTo = timestampFromTicks(m_score, removeEventsToTick + tickPositionOffset);
 
         removeEventsFromRange(trackFrom, trackTo, removeEventsFrom, removeEventsTo, trackChanges);
+
+        if (!m_metronomeEnabled) {
+            continue;
+        }
+
+        for (const Measure* measure : repeatSegment->measureList()) {
+            const int measureStartTick = measure->tick().ticks();
+            const int measureEndTick = measure->endTick().ticks();
+
+            if (measureStartTick > tickTo || measureEndTick <= tickFrom) {
+                continue;
+            }
+
+            removeEventsFrom = timestampFromTicks(m_score, measureStartTick + tickPositionOffset);
+            removeEventsTo = timestampFromTicks(m_score, measureEndTick + tickPositionOffset - 1);
+
+            removeTrackEvents(METRONOME_TRACK_ID, removeEventsFrom, removeEventsTo, trackChanges);
+        }
     }
 }
 

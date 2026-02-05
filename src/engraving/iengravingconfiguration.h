@@ -30,7 +30,7 @@
 #include "engraving/types/types.h"
 
 namespace mu::engraving {
-class IEngravingConfiguration : MODULE_GLOBAL_EXPORT_INTERFACE
+class IEngravingConfiguration : MODULE_GLOBAL_INTERFACE
 {
     INTERFACE_ID(IEngravingConfiguration)
 public:
@@ -140,7 +140,6 @@ public:
 
     /// these configurations will be removed after solving https://github.com/musescore/MuseScore/issues/14294
     virtual bool guitarProImportExperimental() const = 0;
-    virtual bool shouldAddParenthesisOnStandardStaff() const = 0;
     virtual bool negativeFretsAllowed() const = 0;
     virtual void setGuitarProMultivoiceEnabled(bool multiVoice) = 0;
     virtual bool guitarProMultivoiceEnabled() const = 0;

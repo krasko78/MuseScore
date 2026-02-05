@@ -33,7 +33,6 @@
 #include "io/buffer.h"
 #include "translation.h"
 
-#include "draw/types/pen.h"
 #include "iengravingfont.h"
 
 #include "rw/rwregister.h"
@@ -449,7 +448,20 @@ track_idx_t EngravingItem::track() const
 
 void EngravingItem::setTrack(track_idx_t val)
 {
+    IF_ASSERT_FAILED(val < m_score->ntracks() || val == 0 || val == muse::nidx || m_score->isPaletteScore()) {
+        // Zero and muse::nidx have special use cases.
+        // In all other cases the track can't be larger than the total track count.
+        return;
+    }
+
     m_track = val;
+
+    if (m_leftParenthesis) {
+        m_leftParenthesis->setTrack(val);
+    }
+    if (m_rightParenthesis) {
+        m_rightParenthesis->setTrack(val);
+    }
 }
 
 //---------------------------------------------------------
@@ -477,7 +489,7 @@ staff_idx_t EngravingItem::staffIdx() const
 void EngravingItem::setStaffIdx(staff_idx_t val)
 {
     voice_idx_t voiceIdx = voice();
-    m_track = staff2track(val, voiceIdx == muse::nidx ? 0 : voiceIdx);
+    setTrack(staff2track(val, voiceIdx == muse::nidx ? 0 : voiceIdx));
 }
 
 staff_idx_t EngravingItem::effectiveStaffIdx() const
@@ -562,7 +574,7 @@ voice_idx_t EngravingItem::voice() const
 
 void EngravingItem::setVoice(voice_idx_t v)
 {
-    m_track = (m_track / VOICES) * VOICES + v;
+    setTrack((m_track / VOICES) * VOICES + v);
 }
 
 //---------------------------------------------------------
@@ -847,7 +859,7 @@ PointF EngravingItem::canvasPos() const
             System* system = toSystem(parent);
             p.ry() += systemStaffY(system, idx);
         } else {
-            return p + parent->pagePos();
+            return p + parent->canvasPos();
         }
         p.rx() = canvasX();
     } else {
@@ -1481,8 +1493,10 @@ PropertyPropagation EngravingItem::propertyPropagation(const EngravingItem* dest
         const bool diffStaff = sourceStaff != destinationStaff;
         const bool visiblePositionOrColor = propertyId == Pid::VISIBLE || propertyId == Pid::COLOR
                                             || propertyGroup(propertyId) == PropertyGroup::POSITION;
+        const bool hasParens = propertyId == Pid::HAS_PARENTHESES && isNote() && toNote(this)->ghost()
+                               && !toNote(this)->hideGeneratedParens();
         const bool linkSameScore = propertyLinkSameScore(propertyId);
-        if ((diffStaff && visiblePositionOrColor) || !linkSameScore) {
+        if ((diffStaff && (visiblePositionOrColor || hasParens)) || !linkSameScore) {
             // Allow visibility and position to stay independent
             return PropertyPropagation::NONE;
         }
@@ -2838,10 +2852,10 @@ Shape EngravingItem::LayoutData::shape(LD_ACCESS mode) const
             return m_shape.value(LD_ACCESS::CHECK);
         } break;
         case ElementType::HAIRPIN_SEGMENT: {
-            //! NOTE Temporary fix
-            //! We can remove it the moment we figure out the layout order of the elements
-            TLayout::fillHairpinSegmentShape(toHairpinSegment(m_item),
-                                             static_cast<HairpinSegment::LayoutData*>(const_cast<LayoutData*>(this)));
+            //! To be removed when we're confident enough...
+            IF_ASSERT_FAILED(m_shape.has_value()) {
+                const_cast<LayoutData*>(this)->setShape(TLayout::recalculateTextLineBaseSegmentShape(toHairpinSegment(m_item)));
+            }
             return m_shape.value(LD_ACCESS::CHECK);
         } break;
         case ElementType::TRILL_SEGMENT: {

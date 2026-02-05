@@ -30,13 +30,23 @@ using namespace mu::inspector;
 
 using IconCode = muse::ui::IconCode::Code;
 
-VoltaSettingsModel::VoltaSettingsModel(QObject* parent, IElementRepositoryService* repository)
-    : TextLineSettingsModel(parent, repository, mu::engraving::ElementType::VOLTA)
+VoltaSettingsModel::VoltaSettingsModel(QObject* parent, const muse::modularity::ContextPtr& iocCtx, IElementRepositoryService* repository)
+    : TextLineSettingsModel(parent, iocCtx, repository, mu::engraving::ElementType::VOLTA)
 {
     setModelType(InspectorModelType::TYPE_VOLTA);
     setTitle(muse::qtrc("inspector", "Volta"));
     setIcon(muse::ui::IconCode::Code::VOLTA);
 
+    createProperties();
+}
+
+PropertyItem* VoltaSettingsModel::repeatCount() const
+{
+    return m_repeatCount;
+}
+
+void VoltaSettingsModel::updateStartAndEndHookTypes()
+{
     setPossibleStartHookTypes({});
 
     static const QList<HookTypeInfo> endHookTypes {
@@ -46,13 +56,6 @@ VoltaSettingsModel::VoltaSettingsModel(QObject* parent, IElementRepositoryServic
     };
 
     setPossibleEndHookTypes(endHookTypes);
-
-    createProperties();
-}
-
-PropertyItem* VoltaSettingsModel::repeatCount() const
-{
-    return m_repeatCount;
 }
 
 void VoltaSettingsModel::createProperties()
@@ -71,6 +74,7 @@ void VoltaSettingsModel::loadProperties()
     TextLineSettingsModel::loadProperties();
 
     loadPropertyItem(m_repeatCount);
+    updateStartAndEndHookTypes();
 }
 
 void VoltaSettingsModel::resetProperties()

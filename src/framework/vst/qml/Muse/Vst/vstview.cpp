@@ -31,10 +31,6 @@
 #include "platform/linux/runloop.h"
 #endif
 
-#ifdef Q_OS_WIN
-#include "platform/windows/flickeringworkaround.h"
-#endif
-
 #include "global/types/number.h"
 #include "log.h"
 
@@ -84,7 +80,7 @@ static FIDString currentPlatformUiType()
 }
 
 VstView::VstView(QQuickItem* parent)
-    : QQuickItem(parent)
+    : QQuickItem(parent), muse::Contextable(muse::iocCtxForQmlObject(this))
 {
     FUNKNOWN_CTOR; // IPlugFrame
 
@@ -106,10 +102,6 @@ void VstView::init()
     IF_ASSERT_FAILED(m_instance) {
         return;
     }
-
-#ifdef Q_OS_WIN
-    FlickeringWorkaround::preventFlickering(window());
-#endif
 
     m_title = QString::fromStdString(m_instance->name());
     emit titleChanged();
@@ -140,7 +132,11 @@ void VstView::init()
     // Do not rely on `QWindow::screenChanged` signal, which often does not get emitted though it should.
     // Proactively check for screen resolution changes instead.
     connect(&m_screenMetricsTimer, &QTimer::timeout, this, [this]() {
-        const QScreen* const screen = window()->screen();
+        QWindow* win = window();
+        if (!win) {
+            return;
+        }
+        const QScreen* const screen = win->screen();
         if (m_currentScreen != screen || m_screenMetrics.availableSize != screen->availableSize()
             || !is_equal(m_screenMetrics.devicePixelRatio, screen->devicePixelRatio())) {
             updateScreenMetrics();
@@ -156,6 +152,8 @@ void VstView::init()
 
 void VstView::deinit()
 {
+    m_screenMetricsTimer.stop();
+
     if (m_view) {
         m_view->setFrame(nullptr);
         m_view->removed();

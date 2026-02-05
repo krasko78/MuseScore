@@ -32,9 +32,11 @@
 
 #include "accidental.h"
 #include "arpeggio.h"
+#include "chordbracket.h"
 #include "articulation.h"
 #include "beam.h"
 #include "chordline.h"
+#include "dom/parenthesis.h"
 #include "drumset.h"
 #include "factory.h"
 #include "guitarbend.h"
@@ -64,6 +66,7 @@
 #include "tremolotwochord.h"
 #include "trill.h"
 #include "tuplet.h"
+#include "utils.h"
 
 #ifndef ENGRAVING_NO_ACCESSIBILITY
 #include "accessibility/accessibleitem.h"
@@ -325,7 +328,7 @@ Chord::Chord(const Chord& c, bool link)
         add(Factory::copyStemSlash(*(c.m_stemSlash)));
     }
     if (c.m_arpeggio) {
-        Arpeggio* a = new Arpeggio(*(c.m_arpeggio));
+        Arpeggio* a = c.m_arpeggio->isChordBracket() ? new ChordBracket(*toChordBracket(c.m_arpeggio)) : new Arpeggio(*(c.m_arpeggio));
         add(a);
         if (link) {
             score()->undo(new Link(a, const_cast<Arpeggio*>(c.m_arpeggio)));
@@ -360,6 +363,36 @@ Chord::Chord(const Chord& c, bool link)
             if (link) {
                 score()->undo(new Link(ncl, cl));
             }
+        }
+    }
+
+    for (EngravingItem* e : c.el()) {
+        if (e->isChordBracket()) {
+            EngravingItem* clonedChordBracket = e->linkedClone();
+            add(clonedChordBracket);
+        }
+    }
+
+    if (!c.noteParens().empty()) {
+        for (const NoteParenthesisInfo& info : c.noteParens()) {
+            Parenthesis* newLeftParen = toParenthesis(info.leftParen->clone());
+            newLeftParen->setParent(this);
+            Parenthesis* newRightParen = toParenthesis(info.rightParen->clone());
+            newRightParen->setParent(this);
+
+            if (link && !info.leftParen->generated()) {
+                score()->undo(new Link(newLeftParen, info.leftParen));
+            }
+            if (link && !info.rightParen->generated()) {
+                score()->undo(new Link(newRightParen, info.rightParen));
+            }
+
+            std::vector<Note*> newNotes;
+            for (Note* note : info.notes) {
+                newNotes.push_back(findNote(note->pitch()));
+            }
+
+            m_noteParens.push_back(NoteParenthesisInfo(newLeftParen, newRightParen, newNotes));
         }
     }
 }
@@ -604,6 +637,9 @@ void Chord::add(EngravingItem* e)
     case ElementType::ARPEGGIO:
         m_arpeggio = toArpeggio(e);
         break;
+    case ElementType::CHORD_BRACKET:
+        addEl(e);
+        break;
     case ElementType::TREMOLO_TWOCHORD:
         setTremoloTwoChord(item_cast<TremoloTwoChord*>(e));
         break;
@@ -707,6 +743,9 @@ void Chord::remove(EngravingItem* e)
             m_spanArpeggio = nullptr;
         }
         m_arpeggio = nullptr;
+        break;
+    case ElementType::CHORD_BRACKET:
+        removeEl(e);
         break;
     case ElementType::TREMOLO_TWOCHORD:
         setTremoloTwoChord(nullptr);
@@ -1252,7 +1291,99 @@ void Chord::scanElements(std::function<void(EngravingItem*)> func)
     for (EngravingItem* e : el()) {
         e->scanElements(func);
     }
+
+    for (auto& p : m_noteParens) {
+        p.leftParen->scanElements(func);
+        p.rightParen->scanElements(func);
+    }
     ChordRest::scanElements(func);
+}
+
+const NoteParenthesisInfo* Chord::findNoteParenInfo(const Parenthesis* paren) const
+{
+    for (NoteParenthesisInfoList::const_iterator it = m_noteParens.begin(); it != m_noteParens.end(); ++it) {
+        const NoteParenthesisInfo& noteParenInfo = *it;
+        if (paren == noteParenInfo.leftParen || paren == noteParenInfo.rightParen) {
+            return &noteParenInfo;
+        }
+    }
+
+    return nullptr;
+}
+
+NoteParenthesisInfo* Chord::findNoteParenInfo(const Parenthesis* paren)
+{
+    for (NoteParenthesisInfoList::iterator it = m_noteParens.begin(); it != m_noteParens.end(); ++it) {
+        NoteParenthesisInfo& noteParenInfo = *it;
+        if (paren == noteParenInfo.leftParen || paren == noteParenInfo.rightParen) {
+            return &noteParenInfo;
+        }
+    }
+
+    return nullptr;
+}
+
+const NoteParenthesisInfo* Chord::findNoteParenInfo(const Note* note) const
+{
+    for (NoteParenthesisInfoList::const_iterator it = m_noteParens.begin(); it != m_noteParens.end(); ++it) {
+        const NoteParenthesisInfo& noteParenInfo = *it;
+        for (const Note* parenNote : noteParenInfo.notes) {
+            if (parenNote == note) {
+                return &noteParenInfo;
+            }
+        }
+    }
+
+    DO_ASSERT(u"Parentheses are not in chord");
+
+    return nullptr;
+}
+
+void Chord::addNoteParenInfo(Parenthesis* leftParen, Parenthesis* rightParen, std::vector<Note*> notes)
+{
+    m_noteParens.emplace_back(NoteParenthesisInfo(leftParen, rightParen, notes));
+}
+
+void Chord::removeNoteParenInfo(const NoteParenthesisInfo* noteParenInfo)
+{
+    if (m_noteParens.empty()) {
+        return;
+    }
+
+    Parenthesis* paren = noteParenInfo->leftParen;
+
+    NoteParenthesisInfoList::iterator itToRemove = m_noteParens.end();
+
+    for (NoteParenthesisInfoList::iterator it = m_noteParens.begin(); it != m_noteParens.end(); ++it) {
+        NoteParenthesisInfo& info = *it;
+        if (paren == info.leftParen) {
+            itToRemove = it;
+        }
+    }
+
+    m_noteParens.erase(itToRemove);
+}
+
+void Chord::addNoteToParenInfo(Note* note, const Parenthesis* paren)
+{
+    NoteParenthesisInfo* noteParenInfo = findNoteParenInfo(paren);
+
+    if (!noteParenInfo) {
+        return;
+    }
+
+    noteParenInfo->notes.push_back(note);
+}
+
+void Chord::removeNoteFromParenInfo(Note* note, const Parenthesis* paren)
+{
+    NoteParenthesisInfo* noteParenInfo = findNoteParenInfo(paren);
+
+    if (!noteParenInfo) {
+        return;
+    }
+
+    muse::remove(noteParenInfo->notes, note);
 }
 
 //---------------------------------------------------------
@@ -1468,9 +1599,10 @@ EngravingItem* Chord::drop(EditData& data)
         break;
 
     case ElementType::ARPEGGIO:
+    case ElementType::CHORD_BRACKET:
     {
         Arpeggio* a = toArpeggio(e);
-        if (arpeggio()) {
+        if (arpeggio() && a->isArpeggio()) {
             score()->undoRemoveElement(arpeggio());
         }
         a->setTrack(track());
@@ -2105,36 +2237,6 @@ void Chord::requestShowStemSlash(bool show)
 //   sortNotes
 //---------------------------------------------------------
 
-static bool noteIsBefore(const Note* n1, const Note* n2)
-{
-    const int l1 = n1->line();
-    const int l2 = n2->line();
-    if (l1 != l2) {
-        return l1 > l2;
-    }
-
-    const int p1 = n1->pitch();
-    const int p2 = n2->pitch();
-    if (p1 != p2) {
-        return p1 < p2;
-    }
-
-    if (n1->tieBack()) {
-        if (n2->tieBack() && !n2->incomingPartialTie()) {
-            const Note* sn1 = n1->tieBack()->startNote();
-            const Note* sn2 = n2->tieBack()->startNote();
-            if (sn1->chord() == sn2->chord()) {
-                return sn1->unisonIndex() < sn2->unisonIndex();
-            }
-            return sn1->chord()->isBefore(sn2->chord());
-        } else {
-            return true;       // place tied notes before
-        }
-    }
-
-    return false;
-}
-
 void Chord::sortNotes()
 {
     std::sort(notes().begin(), notes().end(), noteIsBefore);
@@ -2331,6 +2433,7 @@ EngravingItem* Chord::nextElement()
         break;
     }
     case ElementType::ARPEGGIO:
+    case ElementType::CHORD_BRACKET:
         if (m_tremoloTwoChord) {
             return m_tremoloTwoChord;
         } else if (m_tremoloSingleChord) {
@@ -2437,7 +2540,9 @@ EngravingItem* Chord::prevElement()
             return m_arpeggio;
         }
     // fall through
-    case ElementType::ARPEGGIO: {
+    case ElementType::ARPEGGIO:
+    case ElementType::CHORD_BRACKET:
+    {
         Note* n = m_notes.front();
         EngravingItem* elN = n->lastElementBeforeSegment();
         assert(elN != NULL);

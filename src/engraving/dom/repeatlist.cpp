@@ -134,6 +134,25 @@ const std::vector<const Measure*>& RepeatSegment::measureList() const
     return m_measureList;
 }
 
+bool operator==(const RepeatSegment& lhs, const RepeatSegment& rhs)
+{
+    if (lhs.m_measureList.size() != rhs.m_measureList.size()) {
+        return false;
+    }
+    for (size_t i = 0; i < lhs.m_measureList.size(); i++) {
+        if (lhs.m_measureList.at(i) != rhs.m_measureList.at(i)) {
+            return false;
+        }
+    }
+    return lhs.tick == rhs.tick
+           && lhs.utick == rhs.utick
+           && muse::RealIsEqual(lhs.utime, rhs.utime)
+           && muse::RealIsEqual(lhs.timeOffset, rhs.timeOffset)
+           && muse::RealIsEqual(lhs.pause, rhs.pause)
+           && lhs.playbackCount == rhs.playbackCount;
+    return false;
+}
+
 //---------------------------------------------------------
 //   RepeatList
 //---------------------------------------------------------
@@ -177,15 +196,30 @@ void RepeatList::update(bool expand, bool updateTies)
         return;
     }
 
+    std::vector<RepeatSegment> oldSegments;
+    for (RepeatSegment* rs : *this) {
+        oldSegments.push_back(*rs);
+    }
+
     if (expand) {
         unwind();
     } else {
         flatten();
     }
 
+    bool structureChanged = (oldSegments.size() != size());
+    if (!structureChanged) {
+        for (size_t i = 0; i < size(); ++i) {
+            if (!(oldSegments[i] == *at(i))) {
+                structureChanged = true;
+                break;
+            }
+        }
+    }
+
     m_scoreChanged = false;
 
-    if (updateTies) {
+    if (updateTies && structureChanged) {
         m_score->undoRemoveStaleTieJumpPoints();
     }
 }
@@ -948,7 +982,9 @@ void RepeatList::unwind()
 
                         // Execute
                         if (jumpTo.first != m_rlElements.cend()) {
-                            push_back(rs);
+                            if (rs && !rs->isEmpty()) {
+                                push_back(rs);
+                            }
                             rs = nullptr;
 
                             activeJump = jumpOccurrence.first;
@@ -1028,8 +1064,11 @@ void RepeatList::unwind()
                     && ((playbackCount == startRepeatReference->getRepeatCount())
                         || ((activeVolta != nullptr) && (playbackCount == activeVolta->lastEnding()))
                         )
-                    ) {               // Found final playThrough of this Marker
-                    push_back(rs);
+                    ) {
+                    // Found final playThrough of this Marker
+                    if (rs && !rs->isEmpty()) {
+                        push_back(rs);
+                    }
                     rs = nullptr;
                     playUntil.first = m_rlElements.cend();                 // Clear this reference - processed
                     forceFinalRepeat = false;

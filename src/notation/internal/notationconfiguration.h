@@ -33,13 +33,13 @@
 #include "../inotationconfiguration.h"
 
 namespace mu::notation {
-class NotationConfiguration : public INotationConfiguration, public muse::async::Asyncable, public muse::Injectable
+class NotationConfiguration : public INotationConfiguration, public muse::async::Asyncable, public muse::Contextable
 {
     muse::GlobalInject<muse::IGlobalConfiguration> globalConfiguration;
     muse::GlobalInject<muse::io::IFileSystem> fileSystem;
     muse::GlobalInject<muse::ui::IUiConfiguration> uiConfiguration;
     muse::GlobalInject<engraving::IEngravingConfiguration> engravingConfiguration;
-    muse::Inject<context::IGlobalContext> context = { this };
+    muse::ContextInject<context::IGlobalContext> context = { this };
 
 public:
 
@@ -166,9 +166,11 @@ public:
 
     bool isAutomaticallyPanEnabled() const override;
     void setIsAutomaticallyPanEnabled(bool enabled) override;
+    muse::async::Notification isAutomaticallyPanEnabledChanged() const override;
 
     bool isSmoothPanning() const override;
     void setIsSmoothPanning(bool value) override;
+    muse::async::Notification isSmoothPanningChanged() const override;
 
     bool isPlayRepeatsEnabled() const override;
     void setIsPlayRepeatsEnabled(bool enabled) override;
@@ -241,15 +243,6 @@ public:
 
     int gridSizeSpatium(muse::Orientation gridOrientation) const override;
     void setGridSize(muse::Orientation gridOrientation, int sizeSpatium) override;
-
-    bool needToShowAddTextErrorMessage() const override;
-    void setNeedToShowAddTextErrorMessage(bool show) override;
-
-    bool needToShowAddFiguredBassErrorMessage() const override;
-    void setNeedToShowAddFiguredBassErrorMessage(bool show) override;
-
-    bool needToShowAddGuitarBendErrorMessage() const override;
-    void setNeedToShowAddGuitarBendErrorMessage(bool show) override;
 
     bool needToShowMScoreError(const std::string& errorKey) const override;
     void setNeedToShowMScoreError(const std::string& errorKey, bool show) override;
@@ -336,6 +329,9 @@ private:
     muse::async::Notification m_autoClosePercussionPanelChanged;
     muse::async::Notification m_showPercussionPanelPadSwapDialogChanged;
     muse::async::Notification m_percussionPanelMoveMidiNotesAndShortcutsChanged;
+
+    muse::async::Notification m_isAutomaticallyPanEnabledChanged;
+    muse::async::Notification m_isSmoothPanningChanged;
 
     int m_styleDialogLastPageIndex = 0;
     int m_styleDialogLastSubPageIndex = 0;

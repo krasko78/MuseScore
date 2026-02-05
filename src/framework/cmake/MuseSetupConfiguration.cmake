@@ -2,7 +2,6 @@
 # hard dependencies
 if (NOT MUSE_MODULE_AUDIO)
     set(MUSE_MODULE_MUSESAMPLER OFF)
-    set(MUSE_MODULE_VST OFF)
 endif()
 
 include(${CMAKE_CURRENT_LIST_DIR}/MuseModules.cmake)
@@ -46,8 +45,8 @@ if (NOT MUSE_MODULE_DIAGNOSTICS)
     set(MUSE_MODULE_DIAGNOSTICS_QML OFF) # Does not have stub that has QML
 endif()
 
-if (NOT MUSE_MODULE_MULTIINSTANCES)
-    set(MUSE_MODULE_MULTIINSTANCES_QML OFF) # Stub does not have QML
+if (NOT MUSE_MODULE_MULTIWINDOWS)
+    set(MUSE_MODULE_MULTIWINDOWS_QML OFF) # Stub does not have QML
 endif()
 
 if (NOT MUSE_MODULE_UPDATE)

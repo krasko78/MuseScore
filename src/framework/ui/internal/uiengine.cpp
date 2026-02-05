@@ -38,7 +38,7 @@
 using namespace muse::ui;
 
 UiEngine::UiEngine(const modularity::ContextPtr& iocCtx)
-    : Injectable(iocCtx)
+    : Contextable(iocCtx)
 {
     m_engine = new QQmlApplicationEngine(this);
     m_apiEngine = new muse::api::JsApiEngine(m_engine, iocContext());
@@ -72,7 +72,7 @@ void UiEngine::init()
 
     QmlIoCContext* qmlIoc = new QmlIoCContext(this);
     qmlIoc->ctx = iocContext();
-    m_engine->setProperty("ioc_context", QVariant::fromValue(qmlIoc));
+    m_engine->rootContext()->setContextProperty("ioc_context", QVariant::fromValue(qmlIoc));
 
     QJSValue translator = m_engine->newQObject(m_translation);
     QJSValue translateFn = translator.property("translate");

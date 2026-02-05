@@ -24,6 +24,7 @@
 
 #include <QAbstractListModel>
 #include <qqmlintegration.h>
+#include <QQmlParserStatus>
 
 #include "modularity/ioc.h"
 
@@ -37,6 +38,7 @@
 #include "importexport/audioexport/iaudioexportconfiguration.h"
 #include "importexport/mei/imeiconfiguration.h"
 #include "importexport/lyricsexport/ilyricsexportconfiguration.h"
+#include "importexport/mnx/imnxconfiguration.h"
 
 #include "iexportprojectscenario.h"
 #include "inotationwritersregister.h"
@@ -46,9 +48,10 @@
 class QItemSelectionModel;
 
 namespace mu::project {
-class ExportDialogModel : public QAbstractListModel, public muse::async::Asyncable, public muse::Injectable
+class ExportDialogModel : public QAbstractListModel, public QQmlParserStatus, public muse::async::Asyncable, public muse::Contextable
 {
     Q_OBJECT
+    Q_INTERFACES(QQmlParserStatus)
 
     Q_PROPERTY(int selectionLength READ selectionLength NOTIFY selectionChanged)
 
@@ -87,6 +90,11 @@ class ExportDialogModel : public QAbstractListModel, public muse::async::Asyncab
 
     Q_PROPERTY(int lrcUseEnhancedFormat READ lrcUseEnhancedFormat WRITE setLrcUseEnhancedFormat NOTIFY lrcUseEnhancedFormatChanged)
 
+    Q_PROPERTY(int mnxIndentSpaces READ mnxIndentSpaces WRITE setMnxIndentSpaces NOTIFY mnxIndentSpacesChanged)
+    Q_PROPERTY(bool mnxExportBeams READ mnxExportBeams WRITE setMnxExportBeams NOTIFY mnxExportBeamsChanged)
+    Q_PROPERTY(bool mnxExportRestPositions READ mnxExportRestPositions WRITE setMnxExportRestPositions
+               NOTIFY mnxExportRestPositionsChanged)
+
     Q_PROPERTY(bool shouldDestinationFolderBeOpenedOnExport READ shouldDestinationFolderBeOpenedOnExport
                WRITE setShouldDestinationFolderBeOpenedOnExport NOTIFY shouldDestinationFolderBeOpenedOnExportChanged)
 
@@ -97,13 +105,14 @@ class ExportDialogModel : public QAbstractListModel, public muse::async::Asyncab
     muse::GlobalInject<iex::audioexport::IAudioExportConfiguration> audioExportConfiguration;
     muse::GlobalInject<iex::mei::IMeiConfiguration> meiConfiguration;
     muse::GlobalInject<iex::lrcexport::ILyricsExportConfiguration> lrcConfiguration;
+    muse::GlobalInject<iex::mnxio::IMnxConfiguration> mnxConfiguration;
     muse::GlobalInject<IProjectConfiguration> configuration;
     muse::GlobalInject<iex::imagesexport::IImagesExportConfiguration> imageExportConfiguration;
-    muse::Inject<muse::IInteractive> interactive = { this };
-    muse::Inject<context::IGlobalContext> context = { this };
-    muse::Inject<INotationWritersRegister> writers = { this };
-    muse::Inject<IExportProjectScenario> exportProjectScenario = { this };
     muse::GlobalInject<appshell::IAppShellConfiguration> appshellConfiguration; // krasko
+    muse::ContextInject<muse::IInteractive> interactive = { this };
+    muse::ContextInject<context::IGlobalContext> context = { this };
+    muse::ContextInject<INotationWritersRegister> writers = { this };
+    muse::ContextInject<IExportProjectScenario> exportProjectScenario = { this };
 
 public:
     explicit ExportDialogModel(QObject* parent = nullptr);
@@ -112,8 +121,6 @@ public:
     QVariant data(const QModelIndex& index, int role) const override;
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     QHash<int, QByteArray> roleNames() const override;
-
-    Q_INVOKABLE void load();
 
     Q_INVOKABLE void setSelected(int scoreIndex, bool selected = true);
     Q_INVOKABLE void setAllSelected(bool selected);
@@ -183,6 +190,15 @@ public:
     bool lrcUseEnhancedFormat() const;
     void setLrcUseEnhancedFormat(bool useEnhancedFormat);
 
+    int mnxIndentSpaces() const;
+    void setMnxIndentSpaces(int spaces);
+
+    bool mnxExportBeams() const;
+    void setMnxExportBeams(bool exportBeams);
+
+    bool mnxExportRestPositions() const;
+    void setMnxExportRestPositions(bool exportRestPositions);
+
     enum class MusicXmlLayoutType {
         AllLayout,
         AllBreaks,
@@ -234,9 +250,16 @@ signals:
 
     void lrcUseEnhancedFormatChanged(bool enhancedFormat);
 
+    void mnxIndentSpacesChanged(int spaces);
+    void mnxExportBeamsChanged(bool exportBeams);
+    void mnxExportRestPositionsChanged(bool exportRestPositions);
+
     void shouldDestinationFolderBeOpenedOnExportChanged(bool shouldDestinationFolderBeOpenedOnExport);
 
 private:
+    void classBegin() override;
+    void componentComplete() override {}
+
     enum Roles {
         RoleTitle = Qt::UserRole + 1,
         RoleIsSelected,

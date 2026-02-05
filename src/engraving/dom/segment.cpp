@@ -945,9 +945,11 @@ void Segment::remove(EngravingItem* el)
 
     case ElementType::INSTRUMENT_CHANGE:
     {
-        InstrumentChange* is = toInstrumentChange(el);
-        Part* part = is->part();
-        part->removeInstrument(tick());
+        if (!isMMRestSegment()) {
+            InstrumentChange* is = toInstrumentChange(el);
+            Part* part = is->part();
+            part->removeInstrument(tick());
+        }
     }
         removeAnnotation(el);
         break;
@@ -2275,6 +2277,7 @@ EngravingItem* Segment::prevElement(staff_idx_t activeStaff)
         }
     }
     case ElementType::ARPEGGIO:
+    case ElementType::CHORD_BRACKET:
     case ElementType::TREMOLO_SINGLECHORD:
     case ElementType::TREMOLO_TWOCHORD: {
         EngravingItem* el = this->element(e->track());

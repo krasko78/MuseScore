@@ -90,7 +90,8 @@ static constexpr PropertyMetaData propertyList[] = {
     { Pid::SLUR_DIRECTION,                      P_TYPE::DIRECTION_V,               PropertyGroup::POSITION,   false, "up",                              QT_TRANSLATE_NOOP("engraving/propertyName", "up") },
     { Pid::LEADING_SPACE,                       P_TYPE::SPATIUM,                   PropertyGroup::POSITION,   false, "leadingSpace",                    QT_TRANSLATE_NOOP("engraving/propertyName", "leading space") },
     { Pid::MIRROR_HEAD,                         P_TYPE::DIRECTION_H,               PropertyGroup::POSITION,   false, "mirror",                          QT_TRANSLATE_NOOP("engraving/propertyName", "mirror") },
-    { Pid::HAS_PARENTHESES,                     P_TYPE::PARENTHESES_MODE,          PropertyGroup::APPEARANCE, true , "parentheses",                     QT_TRANSLATE_NOOP("engraving/propertyName", "parentheses") },
+    { Pid::HAS_PARENTHESES,                     P_TYPE::PARENTHESES_MODE,          PropertyGroup::APPEARANCE, false, "parentheses",                     QT_TRANSLATE_NOOP("engraving/propertyName", "parentheses") },
+    { Pid::HIDE_GENERATED_PARENTHESES,          P_TYPE::BOOL,                      PropertyGroup::APPEARANCE, true , "hideGeneratedParentheses",        QT_TRANSLATE_NOOP("engraving/propertyName", "hide generated parentheses") },
     { Pid::DOT_POSITION,                        P_TYPE::DIRECTION_V,               PropertyGroup::POSITION,   false, "dotPosition",                     QT_TRANSLATE_NOOP("engraving/propertyName", "dot position") },
     { Pid::COMBINE_VOICE,                       P_TYPE::AUTO_ON_OFF,               PropertyGroup::POSITION,   true,  "combineVoice",                    QT_TRANSLATE_NOOP("engraving/propertyName", "combine voice") },
     { Pid::TUNING,                              P_TYPE::REAL,                      PropertyGroup::APPEARANCE, false, "tuning",                          QT_TRANSLATE_NOOP("engraving/propertyName", "tuning") },
@@ -347,6 +348,10 @@ static constexpr PropertyMetaData propertyList[] = {
     { Pid::BEGIN_TEXT_PLACE,                    P_TYPE::TEXT_PLACE,                PropertyGroup::APPEARANCE, false, "beginTextPlace",                  QT_TRANSLATE_NOOP("engraving/propertyName", "begin text place") },
     { Pid::BEGIN_HOOK_TYPE,                     P_TYPE::HOOK_TYPE,                 PropertyGroup::APPEARANCE, true,  "beginHookType",                   QT_TRANSLATE_NOOP("engraving/propertyName", "begin hook type") },
     { Pid::BEGIN_HOOK_HEIGHT,                   P_TYPE::SPATIUM,                   PropertyGroup::APPEARANCE, false, "beginHookHeight",                 QT_TRANSLATE_NOOP("engraving/propertyName", "begin hook height") },
+    { Pid::BEGIN_LINE_ARROW_HEIGHT,             P_TYPE::SPATIUM,                   PropertyGroup::APPEARANCE, false, "beginLineArrowHeight",            QT_TRANSLATE_NOOP("engraving/propertyName", "begin line arrow height") },
+    { Pid::BEGIN_LINE_ARROW_WIDTH,              P_TYPE::SPATIUM,                   PropertyGroup::APPEARANCE, false, "beginLineArrowWidth",             QT_TRANSLATE_NOOP("engraving/propertyName", "begin line arrow width") },
+    { Pid::BEGIN_FILLED_ARROW_HEIGHT,           P_TYPE::SPATIUM,                   PropertyGroup::APPEARANCE, false, "beginFilledArrowHeight",          QT_TRANSLATE_NOOP("engraving/propertyName", "begin filled arrow height") },
+    { Pid::BEGIN_FILLED_ARROW_WIDTH,            P_TYPE::SPATIUM,                   PropertyGroup::APPEARANCE, false, "beginFilledArrowWidth",           QT_TRANSLATE_NOOP("engraving/propertyName", "begin filled arrow width") },
     { Pid::BEGIN_FONT_FACE,                     P_TYPE::STRING,                    PropertyGroup::APPEARANCE, false, "beginFontFace",                   QT_TRANSLATE_NOOP("engraving/propertyName", "begin font face") },
     { Pid::BEGIN_FONT_SIZE,                     P_TYPE::REAL,                      PropertyGroup::APPEARANCE, false, "beginFontSize",                   QT_TRANSLATE_NOOP("engraving/propertyName", "begin font size") },
     { Pid::BEGIN_FONT_STYLE,                    P_TYPE::INT,                       PropertyGroup::APPEARANCE, false, "beginFontStyle",                  QT_TRANSLATE_NOOP("engraving/propertyName", "begin font style") },
@@ -368,6 +373,10 @@ static constexpr PropertyMetaData propertyList[] = {
     { Pid::END_TEXT_PLACE,                      P_TYPE::TEXT_PLACE,                PropertyGroup::APPEARANCE, false, "endTextPlace",                    QT_TRANSLATE_NOOP("engraving/propertyName", "end text place") },
     { Pid::END_HOOK_TYPE,                       P_TYPE::HOOK_TYPE,                 PropertyGroup::APPEARANCE, true,  "endHookType",                     QT_TRANSLATE_NOOP("engraving/propertyName", "end hook type") },
     { Pid::END_HOOK_HEIGHT,                     P_TYPE::SPATIUM,                   PropertyGroup::APPEARANCE, false, "endHookHeight",                   QT_TRANSLATE_NOOP("engraving/propertyName", "end hook height") },
+    { Pid::END_LINE_ARROW_HEIGHT,               P_TYPE::SPATIUM,                   PropertyGroup::APPEARANCE, false, "endLineArrowHeight",              QT_TRANSLATE_NOOP("engraving/propertyName", "end line arrow height") },
+    { Pid::END_LINE_ARROW_WIDTH,                P_TYPE::SPATIUM,                   PropertyGroup::APPEARANCE, false, "endLineArrowWidth",               QT_TRANSLATE_NOOP("engraving/propertyName", "end line arrow width") },
+    { Pid::END_FILLED_ARROW_HEIGHT,             P_TYPE::SPATIUM,                   PropertyGroup::APPEARANCE, false, "endFilledArrowHeight",            QT_TRANSLATE_NOOP("engraving/propertyName", "end filled arrow height") },
+    { Pid::END_FILLED_ARROW_WIDTH,              P_TYPE::SPATIUM,                   PropertyGroup::APPEARANCE, false, "endFilledArrowWidth",             QT_TRANSLATE_NOOP("engraving/propertyName", "end filled arrow width") },
     { Pid::END_FONT_FACE,                       P_TYPE::STRING,                    PropertyGroup::APPEARANCE, false, "endFontFace",                     QT_TRANSLATE_NOOP("engraving/propertyName", "end font face") },
     { Pid::END_FONT_SIZE,                       P_TYPE::REAL,                      PropertyGroup::APPEARANCE, false, "endFontSize",                     QT_TRANSLATE_NOOP("engraving/propertyName", "end font size") },
     { Pid::END_FONT_STYLE,                      P_TYPE::INT,                       PropertyGroup::APPEARANCE, false, "endFontStyle",                    QT_TRANSLATE_NOOP("engraving/propertyName", "end font style") },
@@ -418,6 +427,11 @@ static constexpr PropertyMetaData propertyList[] = {
 
     { Pid::ARPEGGIO_SPAN,                       P_TYPE::INT,                       PropertyGroup::NONE,       true,  "arpeggioSpan",                    QT_TRANSLATE_NOOP("engraving/propertyName", "arpeggio span") },
 
+    { Pid::BRACKET_HOOK_LEN,                    P_TYPE::SPATIUM,                   PropertyGroup::APPEARANCE, true,  "bracketHookLen",                  QT_TRANSLATE_NOOP("engraving/propertyName", "bracket hook length") },
+    { Pid::BRACKET_HOOK_POS,                    P_TYPE::DIRECTION_V,               PropertyGroup::NONE,       true,  "bracketHookPos",                  QT_TRANSLATE_NOOP("engraving/propertyName", "bracket hook position") },
+    { Pid::BRACKET_RIGHT_SIDE,                  P_TYPE::BOOL,                      PropertyGroup::NONE,       true,  "bracketRightSide",                QT_TRANSLATE_NOOP("engraving/propertyName", "bracket right side") },
+
+
     { Pid::BEND_TYPE,                           P_TYPE::INT,                       PropertyGroup::APPEARANCE, true,  "bendType",                        QT_TRANSLATE_NOOP("engraving/propertyName", "bend type") },
     { Pid::BEND_CURVE,                          P_TYPE::PITCH_VALUES,              PropertyGroup::APPEARANCE, true,  "bendCurve",                       QT_TRANSLATE_NOOP("engraving/propertyName", "bend curve") },
     { Pid::BEND_VERTEX_OFF,                     P_TYPE::POINT,                     PropertyGroup::POSITION  , false, "bendVertexOffset",                QT_TRANSLATE_NOOP("engraving/propertyName", "bend vertex offset") },
@@ -425,7 +439,7 @@ static constexpr PropertyMetaData propertyList[] = {
     { Pid::BEND_START_TIME_FACTOR,              P_TYPE::REAL,                      PropertyGroup::APPEARANCE, true,  "bendStartTimeFactor",             QT_TRANSLATE_NOOP("engraving/propertyName", "bend start time factor") },
     { Pid::BEND_END_TIME_FACTOR,                P_TYPE::REAL,                      PropertyGroup::APPEARANCE, true,  "bendEndTimeFactor",               QT_TRANSLATE_NOOP("engraving/propertyName", "bend end time factor") },
     { Pid::GUITAR_DIVE_TAB_POS ,                P_TYPE::DIRECTION_V,               PropertyGroup::POSITION,   true,  "guitarDiveTabPos",                QT_TRANSLATE_NOOP("engraving/propertyName", "guitar dive tab pos") },
-    { Pid::GUITAR_BEND_AMOUNT ,                 P_TYPE::INT,                       PropertyGroup::NONE,       true,  "guitarDipAmount",                 QT_TRANSLATE_NOOP("engraving/propertyName", "guitar dip amount") },
+    { Pid::GUITAR_BEND_AMOUNT ,                 P_TYPE::INT,                       PropertyGroup::NONE,       true,  "guitarBendAmount",                QT_TRANSLATE_NOOP("engraving/propertyName", "guitar bend amount") },
     { Pid::VIBRATO_LINE_TYPE ,                  P_TYPE::INT,                       PropertyGroup::NONE,       true,  "guitarDipTremoloLine",            QT_TRANSLATE_NOOP("engraving/propertyName", "guitar dip tremolo line") },
     { Pid::GUITAR_DIVE_IS_SLACK ,               P_TYPE::BOOL,                      PropertyGroup::NONE,       true,  "guitarDiveIsSlack",               QT_TRANSLATE_NOOP("engraving/propertyName", "guitar dive is slack") },
 

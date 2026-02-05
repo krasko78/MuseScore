@@ -30,13 +30,30 @@
 #include "notation/notationtypes.h"
 
 namespace mu::notation {
-class TransposeDialog : public QDialog, Ui::TransposeDialogBase, public muse::Injectable
+struct TransposeDialogState {
+    bool chromaticChecked = true;
+    bool transposeByKeyChecked = true;
+    bool closestKeyChecked = true;
+    bool upKeyChecked = false;
+    int keyListIdx = 7;
+    bool upIntervalChecked = true;
+    int chromaticIntervalIdx = 0;
+    bool upDiatonicChecked = true;
+    int diatonicIntervalIdx = 0;
+    bool keepDegreeAlterationsChecked = true;
+    bool needTransposeKeysChecked = true;
+    bool needTransposeChordNamesChecked = true;
+    int needTransposeDoubleSharpsFlatsIdx = 1;
+};
+
+class TransposeDialog : public QDialog, Ui::TransposeDialogBase, public muse::Contextable
 {
     Q_OBJECT
 
-    muse::Inject<context::IGlobalContext> context = { this };
+    muse::ContextInject<context::IGlobalContext> context = { this };
 
 public:
+
     TransposeDialog(QWidget* parent = 0);
 
 private slots:
@@ -54,7 +71,6 @@ private:
     INotationSelectionPtr selection() const;
     INotationInteractionPtr interaction() const;
 
-    Key firstPitchedStaffKey() const;
     void setEnableTransposeKeys(bool val);
     void setEnableTransposeToKey(bool val);
     void setEnableTransposeChordNames(bool val);
@@ -64,8 +80,12 @@ private:
     int transposeInterval() const;
     TransposeDirection direction() const;
     TransposeMode mode() const;
-    void setKey(Key k);
+
     bool useDoubleSharpsFlats() const;
+
+    static TransposeDialogState& previousState();
+    void saveState();
+    void restorePreviousState();
 
     bool m_allSelected = false;
 };

@@ -202,7 +202,9 @@ Item {
             }
         }
 
-        SeparatorLine {}
+        SeparatorLine {
+            id: headerSeparator
+        }
 
         ValueListHeaderItem {
             Layout.preferredWidth: root.keyColumnWidth != 0 ? -1 : prv.valueItemWidth + prv.sideMargin
@@ -246,8 +248,8 @@ Item {
         anchors.leftMargin: background.border.width
         anchors.right: parent.right
         anchors.rightMargin: background.border.width
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: background.border.width
+
+        height: Math.min(contentHeight, root.height - header.height - background.border.width - 1/*separator*/)
 
         model: sortFilterProxyModel
 
@@ -349,5 +351,10 @@ Item {
                 root.valueEdited(sourceRow, newVal)
             }
         }
+    }
+
+    SeparatorLine {
+        x: headerSeparator.x
+        orientation: Qt.Vertical
     }
 }

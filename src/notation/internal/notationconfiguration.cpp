@@ -107,10 +107,6 @@ static const Settings::Key IS_SNAPPED_TO_HORIZONTAL_GRID_KEY(module_name,  "ui/a
 static const Settings::Key HORIZONTAL_GRID_SIZE_KEY(module_name,  "ui/application/raster/horizontal");
 static const Settings::Key VERTICAL_GRID_SIZE_KEY(module_name,  "ui/application/raster/vertical");
 
-static const Settings::Key NEED_TO_SHOW_ADD_TEXT_ERROR_MESSAGE_KEY(module_name,  "ui/dialogs/needToShowAddTextErrorMessage");
-static const Settings::Key NEED_TO_SHOW_ADD_FIGURED_BASS_ERROR_MESSAGE_KEY(module_name,  "ui/dialogs/needToShowAddFiguredBassErrorMessage");
-static const Settings::Key NEED_TO_SHOW_ADD_GUITAR_BEND_ERROR_MESSAGE_KEY(module_name,  "ui/dialogs/needToShowAddGuitarBendErrorMessage");
-
 static const Settings::Key PIANO_KEYBOARD_NUMBER_OF_KEYS(module_name,  "pianoKeyboard/numberOfKeys");
 
 static const Settings::Key USE_NEW_PERCUSSION_PANEL_KEY(module_name,  "ui/useNewPercussionPanel");
@@ -137,7 +133,7 @@ static const std::map<NoteInputMethod, std::string> NOTE_INPUT_METHOD_TO_STR {
 };
 
 NotationConfiguration::NotationConfiguration(const muse::modularity::ContextPtr& ctx)
-    : muse::Injectable(ctx)
+    : muse::Contextable(ctx)
 {
 }
 
@@ -280,6 +276,10 @@ void NotationConfiguration::init()
     });
 
     settings()->setDefaultValue(IS_AUTOMATICALLY_PAN_ENABLED, Val(true));
+    settings()->valueChanged(IS_AUTOMATICALLY_PAN_ENABLED).onReceive(this, [this](const Val&) {
+        m_isAutomaticallyPanEnabledChanged.notify();
+    });
+
     settings()->setDefaultValue(IS_PLAY_REPEATS_ENABLED, Val(true));
 
     settings()->setDefaultValue(IS_METRONOME_ENABLED, Val(false));
@@ -292,6 +292,9 @@ void NotationConfiguration::init()
     settings()->setDefaultValue(PLAYBACK_SMOOTH_PANNING, Val(false));
     settings()->setDescription(PLAYBACK_SMOOTH_PANNING, muse::trc("notation", "Smooth panning"));
     settings()->setCanBeManuallyEdited(PLAYBACK_SMOOTH_PANNING, true);
+    settings()->valueChanged(PLAYBACK_SMOOTH_PANNING).onReceive(this, [this](const Val&) {
+        m_isSmoothPanningChanged.notify();
+    });
 
     settings()->setDefaultValue(IS_PLAY_CHORD_SYMBOLS_ENABLED, Val(true));
     settings()->valueChanged(IS_PLAY_CHORD_SYMBOLS_ENABLED).onReceive(nullptr, [this](const Val&) {
@@ -353,10 +356,6 @@ void NotationConfiguration::init()
 
     settings()->setDefaultValue(HORIZONTAL_GRID_SIZE_KEY, Val(DEFAULT_GRID_SIZE_SPATIUM));
     settings()->setDefaultValue(VERTICAL_GRID_SIZE_KEY, Val(DEFAULT_GRID_SIZE_SPATIUM));
-
-    settings()->setDefaultValue(NEED_TO_SHOW_ADD_TEXT_ERROR_MESSAGE_KEY, Val(true));
-    settings()->setDefaultValue(NEED_TO_SHOW_ADD_FIGURED_BASS_ERROR_MESSAGE_KEY, Val(true));
-    settings()->setDefaultValue(NEED_TO_SHOW_ADD_GUITAR_BEND_ERROR_MESSAGE_KEY, Val(true));
 
     settings()->setDefaultValue(PIANO_KEYBOARD_NUMBER_OF_KEYS, Val(88));
     m_pianoKeyboardNumberOfKeys.val = settings()->value(PIANO_KEYBOARD_NUMBER_OF_KEYS).toInt();
@@ -903,6 +902,11 @@ void NotationConfiguration::setIsAutomaticallyPanEnabled(bool enabled)
     settings()->setSharedValue(IS_AUTOMATICALLY_PAN_ENABLED, Val(enabled));
 }
 
+Notification NotationConfiguration::isAutomaticallyPanEnabledChanged() const
+{
+    return m_isAutomaticallyPanEnabledChanged;
+}
+
 bool NotationConfiguration::isSmoothPanning() const
 {
     return settings()->value(PLAYBACK_SMOOTH_PANNING).toBool();
@@ -911,6 +915,11 @@ bool NotationConfiguration::isSmoothPanning() const
 void NotationConfiguration::setIsSmoothPanning(bool value)
 {
     settings()->setSharedValue(PLAYBACK_SMOOTH_PANNING, Val(value));
+}
+
+Notification NotationConfiguration::isSmoothPanningChanged() const
+{
+    return m_isSmoothPanningChanged;
 }
 
 bool NotationConfiguration::isPlayRepeatsEnabled() const
@@ -1221,36 +1230,6 @@ void NotationConfiguration::setGridSize(muse::Orientation gridOrientation, int s
         settings()->setSharedValue(VERTICAL_GRID_SIZE_KEY, Val(sizeSpatium));
         break;
     }
-}
-
-bool NotationConfiguration::needToShowAddTextErrorMessage() const
-{
-    return settings()->value(NEED_TO_SHOW_ADD_TEXT_ERROR_MESSAGE_KEY).toBool();
-}
-
-void NotationConfiguration::setNeedToShowAddTextErrorMessage(bool show)
-{
-    settings()->setSharedValue(NEED_TO_SHOW_ADD_TEXT_ERROR_MESSAGE_KEY, Val(show));
-}
-
-bool NotationConfiguration::needToShowAddFiguredBassErrorMessage() const
-{
-    return settings()->value(NEED_TO_SHOW_ADD_FIGURED_BASS_ERROR_MESSAGE_KEY).toBool();
-}
-
-void NotationConfiguration::setNeedToShowAddFiguredBassErrorMessage(bool show)
-{
-    settings()->setSharedValue(NEED_TO_SHOW_ADD_FIGURED_BASS_ERROR_MESSAGE_KEY, Val(show));
-}
-
-bool NotationConfiguration::needToShowAddGuitarBendErrorMessage() const
-{
-    return settings()->value(NEED_TO_SHOW_ADD_GUITAR_BEND_ERROR_MESSAGE_KEY).toBool();
-}
-
-void NotationConfiguration::setNeedToShowAddGuitarBendErrorMessage(bool show)
-{
-    settings()->setSharedValue(NEED_TO_SHOW_ADD_GUITAR_BEND_ERROR_MESSAGE_KEY, Val(show));
 }
 
 bool NotationConfiguration::needToShowMScoreError(const std::string& errorKey) const

@@ -84,6 +84,7 @@ enum class ElementType : unsigned char {
     PARTIAL_TIE_SEGMENT,
     STEM_SLASH,
     ARPEGGIO,
+    CHORD_BRACKET,
     ACCIDENTAL,
     LEDGER_LINE,
     STEM,   // list STEM before NOTE: notes in TAB might 'break' stems
@@ -656,7 +657,7 @@ enum class LineType : unsigned char {
 
 // P_TYPE::HOOK_TYPE
 enum class HookType : unsigned char {
-    NONE, HOOK_90, HOOK_45, HOOK_90T
+    NONE, HOOK_90, HOOK_45, HOOK_90T, ARROW, ARROW_FILLED, ROSETTE
 };
 
 // P_TYPE::KEY_MODE

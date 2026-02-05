@@ -54,6 +54,7 @@
 #include "dom/breath.h"
 
 #include "dom/chord.h"
+#include "dom/chordbracket.h"
 #include "dom/chordline.h"
 #include "dom/chordrest.h"
 #include "dom/clef.h"
@@ -207,6 +208,8 @@ void TWrite::writeItem(const EngravingItem* item, XmlWriter& xml, WriteContext& 
     case ElementType::BREATH:       write(item_cast<const Breath*>(item), xml, ctx);
         break;
     case ElementType::CHORD:        write(item_cast<const Chord*>(item), xml, ctx);
+        break;
+    case ElementType::CHORD_BRACKET:     write(item_cast<const ChordBracket*>(item), xml, ctx);
         break;
     case ElementType::CHORDLINE:    write(item_cast<const ChordLine*>(item), xml, ctx);
         break;
@@ -645,8 +648,32 @@ void TWrite::write(const Arpeggio* item, XmlWriter& xml, WriteContext& ctx)
         return;
     }
     xml.startElement(item);
-    writeItemProperties(item, xml, ctx);
     writeProperty(item, xml, Pid::ARPEGGIO_TYPE);
+    writeProperties(item, xml, ctx);
+
+    xml.endElement();
+}
+
+void TWrite::write(const ChordBracket* item, XmlWriter& xml, WriteContext& ctx)
+{
+    if (!ctx.canWrite(item)) {
+        return;
+    }
+
+    xml.startElement(item);
+
+    writeProperty(item, xml, Pid::BRACKET_HOOK_LEN);
+    writeProperty(item, xml, Pid::BRACKET_HOOK_POS);
+    writeProperty(item, xml, Pid::BRACKET_RIGHT_SIDE);
+
+    writeProperties(item, xml, ctx);
+
+    xml.endElement();
+}
+
+void TWrite::writeProperties(const Arpeggio* item, XmlWriter& xml, WriteContext& ctx)
+{
+    writeItemProperties(item, xml, ctx);
     if (!RealIsNull(item->userLen1())) {
         xml.tag("userLen1", item->userLen1() / item->spatium());
     }
@@ -658,7 +685,6 @@ void TWrite::write(const Arpeggio* item, XmlWriter& xml, WriteContext& ctx)
     }
     writeProperty(item, xml, Pid::PLAY);
     writeProperty(item, xml, Pid::TIME_STRETCH);
-    xml.endElement();
 }
 
 void TWrite::write(const Articulation* item, XmlWriter& xml, WriteContext& ctx)
@@ -1015,8 +1041,28 @@ void TWrite::write(const Chord* item, XmlWriter& xml, WriteContext& ctx)
         write(note, xml, ctx);
     }
 
+    // Write parens
+    for (const NoteParenthesisInfo& parenPair : item->noteParens()) {
+        xml.startElement("NoteParenGroup");
+        if (parenPair.leftParen->isUserModified()) {
+            write(parenPair.leftParen, xml, ctx);
+        }
+        if (parenPair.rightParen->isUserModified()) {
+            write(parenPair.rightParen, xml, ctx);
+        }
+
+        xml.startElement("Notes");
+        for (const Note* note : parenPair.notes) {
+            auto it = std::find(item->notes().begin(), item->notes().end(), note);
+            size_t idx = it - item->notes().begin();
+            xml.tag("NoteIdx", idx);
+        }
+        xml.endElement();
+        xml.endElement();
+    }
+
     if (item->arpeggio()) {
-        write(item->arpeggio(), xml, ctx);
+        writeItem(item->arpeggio(), xml, ctx);
     }
 
     if (item->tremoloSingleChord()) {
@@ -1507,9 +1553,11 @@ void TWrite::write(const GuitarBend* item, XmlWriter& xml, WriteContext& ctx)
     writeProperty(item, xml, Pid::BEND_SHOW_HOLD_LINE);
     if (item->isDive()) {
         writeProperty(item, xml, Pid::GUITAR_DIVE_TAB_POS);
-        writeProperty(item, xml, Pid::GUITAR_BEND_AMOUNT);
         writeProperty(item, xml, Pid::VIBRATO_LINE_TYPE);
         writeProperty(item, xml, Pid::GUITAR_DIVE_IS_SLACK);
+        if (item->bendType() == GuitarBendType::DIP || item->overlappingBendOrDive()) {
+            writeProperty(item, xml, Pid::GUITAR_BEND_AMOUNT);
+        }
     }
 
     writeProperties(static_cast<const SLine*>(item), xml, ctx);
@@ -1553,6 +1601,19 @@ void TWrite::writeProperties(const SLine* item, XmlWriter& xml, WriteContext& ct
     writeProperty(item, xml, Pid::ANCHOR);
     writeProperty(item, xml, Pid::DASH_LINE_LEN);
     writeProperty(item, xml, Pid::DASH_GAP_LEN);
+
+    // TO PREVENT CRASH IN VERSIONS <4.6.5
+    if (item->score()->isPaletteScore()) {
+        const double COMPAT_SCALE = 0.5;
+        // when used as icon
+        if (!item->spannerSegments().empty()) {
+            const LineSegment* s = item->frontSegment();
+            xml.tag("length", s->pos2().x() * COMPAT_SCALE);
+        } else {
+            xml.tag("length", item->spatium() * 4 * COMPAT_SCALE);
+        }
+        return;
+    }
 
     if (!item->isUserModified()) {
         return;
@@ -2327,6 +2388,12 @@ void TWrite::write(const Note* item, XmlWriter& xml, WriteContext& ctx)
             write(toChordLine(e), xml, ctx);
         }
     }
+
+    if (item->overrideBendVisibilityRules()) {
+        xml.tag("overrideBendVisibilityRules", true);
+    }
+
+    writeProperty(item, xml, Pid::HIDE_GENERATED_PARENTHESES);
 
     xml.endElement();
 }

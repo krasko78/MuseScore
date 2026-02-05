@@ -208,6 +208,12 @@ static void createMeasures(MasterScore* masterScore, const ScoreCreateOptions& s
         keySigEvent.setConcertKey(scoreOptions.key);
     }
 
+    // Ensure all key sigs that may have been in the template file are cleared
+    for (Staff* staff : masterScore->staves()) {
+        KeyList* keys = staff->keyList();
+        keys->clear();
+    }
+
     const int totalMeasures = scoreOptions.withPickupMeasure ? scoreOptions.totalMeasures + 1 : scoreOptions.totalMeasures;
     for (int i = 0; i < totalMeasures; ++i) {
         MeasureBase* measureBase = masterScore->insertMeasure();
@@ -506,6 +512,8 @@ void MasterNotation::setExcerpts(const ExcerptNotationList& excerpts)
 
         score->initAndAddExcerpt(excerptNotationImpl->excerpt(), false);
         excerptNotationImpl->init();
+
+        initNotationSoloMuteState(excerptNotationImpl->notation());
     }
 
     score->setExcerptsChanged(false);

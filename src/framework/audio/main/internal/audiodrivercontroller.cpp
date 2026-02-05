@@ -295,10 +295,9 @@ bool AudioDriverController::open(const IAudioDriver::Spec& spec, IAudioDriver::S
 
 void AudioDriverController::close()
 {
-    IF_ASSERT_FAILED(m_audioDriver) {
-        return;
+    if (m_audioDriver) {
+        m_audioDriver->close();
     }
-    m_audioDriver->close();
 }
 
 bool AudioDriverController::isOpened() const
@@ -347,9 +346,10 @@ bool AudioDriverController::selectOutputDevice(const AudioDeviceID& deviceId)
            << " from: " << oldSpec.deviceId
            << ", to: " << deviceId;
 
-    IAudioDriver::Spec spec = defaultSpec();
+    IAudioDriver::Spec spec;
     spec.deviceId = deviceId;
     spec.callback = oldSpec.callback;
+    spec.output = configuration()->desiredOutputSpec();
 
     m_audioDriver->close();
     bool ok = m_audioDriver->open(spec, nullptr);

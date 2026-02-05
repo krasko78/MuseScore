@@ -38,6 +38,7 @@
 #include "engraving/dom/breath.h"
 #include "engraving/dom/capo.h"
 #include "engraving/dom/chord.h"
+#include "engraving/dom/chordbracket.h"
 #include "engraving/dom/chordline.h"
 #include "engraving/dom/chordrest.h"
 #include "engraving/dom/clef.h"
@@ -1008,6 +1009,10 @@ PalettePtr PaletteCreator::newArpeggioPalette()
     sp->setVisible(false);
 
     for (int i = 0; i < 6; ++i) {
+        if (ArpeggioType(i) == ArpeggioType::BRACKET) {
+            // Deprecated, now handled by CHORD_BRACKET
+            continue;
+        }
         auto a = Factory::makeArpeggio(gpaletteScore->dummy()->chord());
         a->setArpeggioType(ArpeggioType(i));
         sp->appendElement(a, a->arpeggioTypeName());
@@ -1291,6 +1296,16 @@ PalettePtr PaletteCreator::newLinesPalette(bool defaultPalette)
     line->setDiagonal(true);
     sp->appendElement(line, QT_TRANSLATE_NOOP("palette", "Line"));
 
+    auto rightArrowLine = makeElement<TextLine>(gpaletteScore);
+    rightArrowLine->setDiagonal(true);
+    rightArrowLine->setEndHookType(HookType::ARROW);
+    sp->appendElement(rightArrowLine, QT_TRANSLATE_NOOP("palette", "Line (right arrowhead)"));
+
+    auto leftArrowLine = makeElement<TextLine>(gpaletteScore);
+    leftArrowLine->setDiagonal(true);
+    leftArrowLine->setBeginHookType(HookType::ARROW);
+    sp->appendElement(leftArrowLine, QT_TRANSLATE_NOOP("palette", "Line (left arrowhead)"));
+
     sp->appendActionIcon(ActionIconType::NOTE_ANCHORED_LINE, "add-noteline", 2);
 
     auto a = Factory::makeAmbitus(gpaletteScore->dummy()->segment());
@@ -1316,6 +1331,16 @@ PalettePtr PaletteCreator::newLinesPalette(bool defaultPalette)
 
     auto pm = makeElement<PalmMute>(gpaletteScore);
     sp->appendElement(pm, QT_TRANSLATE_NOOP("palette", "Palm mute"));
+
+    std::array<QString, 3> names = { QT_TRANSLATE_NOOP("palette", "Chord bracket"),
+                                     QT_TRANSLATE_NOOP("palette", "Chord bracket (play with left hand)"),
+                                     QT_TRANSLATE_NOOP("palette", "Chord bracket (play with right hand)") };
+    for (int i = 0; i < 3; ++i) {
+        DirectionV hookPos = DirectionV(i);
+        auto c = Factory::makeChordBracket(gpaletteScore->dummy()->chord());
+        c->setProperty(Pid::BRACKET_HOOK_POS, hookPos);
+        sp->appendElement(c, names[i]);
+    }
 
     return sp;
 }
@@ -1739,14 +1764,6 @@ PalettePtr PaletteCreator::newGuitarPalette(bool defaultPalette)
     auto whammyBar = makeElement<WhammyBar>(gpaletteScore);
     sp->appendElement(whammyBar, QT_TRANSLATE_NOOP("palette", "Whammy bar"), 0.8);
 
-    if (!defaultPalette) {
-        auto tb = Factory::makeTremoloBar(gpaletteScore->dummy());
-        tb->points().push_back(PitchValue(0,     0, false));       // "Dip"
-        tb->points().push_back(PitchValue(30, -100, false));
-        tb->points().push_back(PitchValue(60,    0, false));
-        sp->appendElement(tb, QT_TRANSLATE_NOOP("palette", "Tremolo bar"), 0.8);
-    }
-
     static const std::vector<VibratoType> vibratos = {
         { VibratoType::GUITAR_VIBRATO, VibratoType::GUITAR_VIBRATO_WIDE }
     };
@@ -1899,6 +1916,16 @@ PalettePtr PaletteCreator::newKeyboardPalette()
     pedal->setContinueText(pedal->propertyDefault(Pid::CONTINUE_TEXT).value<String>());
     pedal->setEndText(pedal->propertyDefault(Pid::END_TEXT).value<String>());
     sp->appendElement(pedal, QT_TRANSLATE_NOOP("palette", "Pedal (angled start hook)"));
+
+    std::array<QString, 3> names = { QT_TRANSLATE_NOOP("palette", "Chord bracket"),
+                                     QT_TRANSLATE_NOOP("palette", "Chord bracket (play with left hand)"),
+                                     QT_TRANSLATE_NOOP("palette", "Chord bracket (play with right hand)") };
+    for (int i = 0; i < 3; ++i) {
+        DirectionV hookPos = DirectionV(i);
+        auto c = Factory::makeChordBracket(gpaletteScore->dummy()->chord());
+        c->setProperty(Pid::BRACKET_HOOK_POS, hookPos);
+        sp->appendElement(c, names[i]);
+    }
 
     return sp;
 }

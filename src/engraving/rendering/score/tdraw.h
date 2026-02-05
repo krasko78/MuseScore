@@ -45,6 +45,7 @@ class Bracket;
 class Breath;
 
 class Chord;
+class ChordBracket;
 class ChordLine;
 class Clef;
 class Capo;
@@ -194,6 +195,7 @@ private:
     static void draw(const ActionIcon* item, muse::draw::Painter* painter, const PaintOptions& opt);
     static void draw(const Ambitus* item, muse::draw::Painter* painter, const PaintOptions& opt);
     static void draw(const Arpeggio* item, muse::draw::Painter* painter, const PaintOptions& opt);
+    static void draw(const ChordBracket* item, muse::draw::Painter* painter, const PaintOptions& opt);
     static void draw(const Articulation* item, muse::draw::Painter* painter, const PaintOptions& opt);
 
     static void draw(const BagpipeEmbellishment* item, muse::draw::Painter* painter, const PaintOptions& opt);
@@ -266,7 +268,6 @@ private:
     static void draw(const Ornament* item, muse::draw::Painter* painter, const PaintOptions& opt);
     static void draw(const OttavaSegment* item, muse::draw::Painter* painter, const PaintOptions& opt);
 
-    static void draw(const Page* item, muse::draw::Painter* painter, const PaintOptions& opt);
     static void draw(const Parenthesis* item, muse::draw::Painter* painter, const PaintOptions& opt);
     static void draw(const PartialTieSegment* item, muse::draw::Painter* painter, const PaintOptions& opt);
     static void draw(const PalmMuteSegment* item, muse::draw::Painter* painter, const PaintOptions& opt);

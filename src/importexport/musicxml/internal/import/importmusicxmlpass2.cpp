@@ -201,6 +201,17 @@ static Fraction lastChordTicks(const Segment* s, const Fraction& tick, const tra
     return Fraction(0, 1);
 }
 
+static bool spannerExists(const std::vector<MusicXmlSpannerDesc>& spanners, int number, engraving::ElementType elementType)
+{
+    for (const MusicXmlSpannerDesc& desc : spanners) {
+        if (desc.nr == number && desc.tp == elementType) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 //---------------------------------------------------------
 //   setExtend
 //---------------------------------------------------------
@@ -523,32 +534,39 @@ static std::pair<String, String> processInstrName(const String& name)
 
 static Instrument createInstrument(const MusicXmlInstrument& mxmlInstr, const Interval interval)
 {
+    // The interval may not match the instrument's default traitName.
+    const auto& [trackName, traitName] = processInstrName(mxmlInstr.name);
+    Trait trait;
+    trait.name = traitName;
+
+    // Initialize instrument with data from MusicXML.
     Instrument instr;
+    InstrChannel* channel = instr.channel(0);
+    instr.setMusicXmlId(mxmlInstr.sound);
+    instr.setTrackName(trackName);
+    instr.setLongName(trackName);
+    instr.setShortName(trackName);
+    instr.setTrait(trait);
+    instr.setTranspose(interval);
+    channel->setBank(0);
+    channel->setProgram(mxmlInstr.midiProgram);
 
-    const InstrumentTemplate* it = nullptr;
-    const std::pair<String, String> nameSplit = processInstrName(mxmlInstr.name);
-    const String name = nameSplit.first;
-    const int transposition = nameSplit.second.isEmpty() ? 0 : string2pitch(nameSplit.second + u"5") % 12;
-
-    it = combinedTemplateSearch(mxmlInstr.sound, name, transposition, 0, mxmlInstr.midiProgram);
-
-    if (it) {
-        // initialize from template with matching MusicXmlId
-        instr = Instrument::fromTemplate(it);
-        // reset transpose, as it is determined later from MusicXML data
-        instr.setTranspose(Interval());
+    // Is it similar to one of our built-in instruments?
+    if (const InstrumentTemplate* templ = combinedTemplateSearch(instr)) {
+        instr = Instrument::fromTemplate(templ); // Re-initialize with built-in data.
+        channel = instr.channel(0);
     } else {
         // set articulations to default (global articulations)
         instr.setArticulation(midiArticulations);
         // set default program
-        instr.channel(0)->setProgram(mxmlInstr.midiProgram >= 0 ? mxmlInstr.midiProgram : 0);
+        channel->setProgram(mxmlInstr.midiProgram < 0 ? 0 : mxmlInstr.midiProgram);
     }
 
-    // add / overrule with values read from MusicXML
-    instr.channel(0)->setPan(mxmlInstr.midiPan);
-    instr.channel(0)->setVolume(mxmlInstr.midiVolume);
+    // (Re-)apply values from MusicXML.
     instr.setTrackName(mxmlInstr.name);
     instr.setTranspose(interval);
+    channel->setPan(mxmlInstr.midiPan);
+    channel->setVolume(mxmlInstr.midiVolume);
 
     return instr;
 }
@@ -5075,6 +5093,12 @@ void MusicXmlParserDirection::bracket(const String& type, const int number,
     const ElementType elementType = isWavy ? ElementType::TRILL : ElementType::TEXTLINE;
     const MusicXmlExtendedSpannerDesc& spdesc = m_pass2.getSpanner({ elementType, number });
     if (type == "start") {
+        if (spannerExists(starts, number, elementType)) {
+            m_logger->logError(String(u"%1 with number %2 already started").arg(TConv::userName(elementType).translated()).arg(number),
+                               &m_e);
+            m_e.skipCurrentElement();
+            return;
+        }
         SLine* sline = spdesc.isStopped ? spdesc.sp : 0;
         if ((sline && sline->isTrill()) || (!sline && isWavy)) {
             if (!sline) {
@@ -5135,6 +5159,12 @@ void MusicXmlParserDirection::bracket(const String& type, const int number,
 
         starts.push_back(MusicXmlSpannerDesc(sline, elementType, number));
     } else if (type == "stop") {
+        if (spannerExists(stops, number, elementType)) {
+            m_logger->logError(String(u"%1 with number %2 already stopped").arg(TConv::userName(elementType).translated()).arg(number),
+                               &m_e);
+            m_e.skipCurrentElement();
+            return;
+        }
         SLine* sline = spdesc.isStarted ? spdesc.sp : 0;
         if ((sline && sline->isTrill()) || (!sline && isWavy)) {
             if (!sline) {
@@ -5186,6 +5216,11 @@ void MusicXmlParserDirection::dashes(const String& type, const int number,
 {
     const MusicXmlExtendedSpannerDesc& spdesc = m_pass2.getSpanner({ ElementType::HAIRPIN, number });
     if (type == u"start") {
+        if (spannerExists(starts, number, ElementType::HAIRPIN)) {
+            m_logger->logError(String(u"hairpin with number %1 already started").arg(number), &m_e);
+            m_e.skipCurrentElement();
+            return;
+        }
         TextLineBase* b = spdesc.isStopped ? toTextLineBase(spdesc.sp) : Factory::createTextLine(m_score->dummy());
         // if (placement.empty()) placement = "above";  // TODO ? set default
 
@@ -5210,6 +5245,11 @@ void MusicXmlParserDirection::dashes(const String& type, const int number,
         // use MusicXML specific type instead
         starts.push_back(MusicXmlSpannerDesc(b, ElementType::TEXTLINE, number));
     } else if (type == u"stop") {
+        if (spannerExists(stops, number, ElementType::HAIRPIN)) {
+            m_logger->logError(String(u"hairpin with number %1 already stopped").arg(number), &m_e);
+            m_e.skipCurrentElement();
+            return;
+        }
         TextLineBase* b = spdesc.isStarted ? toTextLineBase(spdesc.sp) : Factory::createTextLine(m_score->dummy());
         stops.push_back(MusicXmlSpannerDesc(b, ElementType::TEXTLINE, number));
     }
@@ -5230,6 +5270,11 @@ void MusicXmlParserDirection::octaveShift(const String& type, const int number,
 {
     const MusicXmlExtendedSpannerDesc& spdesc = m_pass2.getSpanner({ ElementType::OTTAVA, number });
     if (type == u"up" || type == u"down") {
+        if (spannerExists(starts, number, ElementType::OTTAVA)) {
+            m_logger->logError(String(u"ottava with number %1 already started").arg(number), &m_e);
+            m_e.skipCurrentElement();
+            return;
+        }
         int ottavasize = m_e.intAttribute("size");
         if (!(ottavasize == 8 || ottavasize == 15)) {
             m_logger->logError(String(u"unknown octave-shift size %1").arg(ottavasize), &m_e);
@@ -5257,6 +5302,11 @@ void MusicXmlParserDirection::octaveShift(const String& type, const int number,
             starts.push_back(MusicXmlSpannerDesc(o, ElementType::OTTAVA, number));
         }
     } else if (type == u"stop") {
+        if (spannerExists(stops, number, ElementType::OTTAVA)) {
+            m_logger->logError(String(u"ottava with number %1 already stopped").arg(number), &m_e);
+            m_e.skipCurrentElement();
+            return;
+        }
         Ottava* o = spdesc.isStarted ? toOttava(spdesc.sp) : Factory::createOttava(m_score->dummy());
         stops.push_back(MusicXmlSpannerDesc(o, ElementType::OTTAVA, number));
     }
@@ -5408,6 +5458,11 @@ void MusicXmlParserDirection::wedge(const String& type, const int number,
     AsciiStringView niente = m_e.asciiAttribute("niente");
     const MusicXmlExtendedSpannerDesc& spdesc = m_pass2.getSpanner({ ElementType::HAIRPIN, number });
     if (type == "crescendo" || type == "diminuendo") {
+        if (spannerExists(starts, number, ElementType::HAIRPIN)) {
+            m_logger->logError(String(u"hairpin with number %1 already started").arg(number), &m_e);
+            m_e.skipCurrentElement();
+            return;
+        }
         Hairpin* h = spdesc.isStopped ? toHairpin(spdesc.sp) : Factory::createHairpin(m_score->dummy()->segment());
         h->setHairpinType(type == "crescendo"
                           ? HairpinType::CRESC_HAIRPIN : HairpinType::DIM_HAIRPIN);
@@ -5428,6 +5483,11 @@ void MusicXmlParserDirection::wedge(const String& type, const int number,
         }
         starts.push_back(MusicXmlSpannerDesc(h, ElementType::HAIRPIN, number));
     } else if (type == "stop") {
+        if (spannerExists(stops, number, ElementType::HAIRPIN)) {
+            m_logger->logError(String(u"hairpin with number %1 already stopped").arg(number), &m_e);
+            m_e.skipCurrentElement();
+            return;
+        }
         Hairpin* h = spdesc.isStarted ? toHairpin(spdesc.sp) : Factory::createHairpin(m_score->dummy()->segment());
         if (niente == "yes") {
             h->setHairpinCircledTip(true);
@@ -8290,9 +8350,7 @@ static void addSlur(const Notation& notation, SlurStack& slurs, ChordRest* cr, N
                     newSlur->setSlurDirection(DirectionV::UP);
                 } else if (orientation == u"under" || placement == u"below") {
                     newSlur->setSlurDirection(DirectionV::DOWN);
-                } else if (orientation.empty() || placement.empty()) {
-                    // ignore
-                } else {
+                } else if (!orientation.empty() || !placement.empty()) {
                     logger->logError(String(u"unknown slur orientation/placement: %1/%2").arg(orientation).arg(placement), xmlreader);
                 }
             }
@@ -9020,9 +9078,7 @@ static void addTie(const Notation& notation, Note* note, const track_idx_t track
                 currTie->setSlurDirection(DirectionV::UP);
             } else if (orientation == u"under" || placement == u"below") {
                 currTie->setSlurDirection(DirectionV::DOWN);
-            } else if (orientation.empty() || placement.empty()) {
-                // ignore
-            } else {
+            } else if (!orientation.empty() || !placement.empty()) {
                 logger->logError(String(u"unknown tied orientation/placement: %1/%2").arg(orientation).arg(placement), xmlreader);
             }
         }
@@ -9059,6 +9115,27 @@ static void addTie(const Notation& notation, Note* note, const track_idx_t track
     } else if (type == "let-ring") {
         LaissezVib* lvTie = Factory::createLaissezVib(note);
         lvTie->setParent(note);
+        lvTie->setVisible(notation.visible());
+        colorItem(lvTie, Color::fromString(notation.attribute(u"color")));
+
+        if (configuration()->importLayout()) {
+            if (orientation == u"over" || placement == u"above") {
+                lvTie->setSlurDirection(DirectionV::UP);
+            } else if (orientation == u"under" || placement == u"below") {
+                lvTie->setSlurDirection(DirectionV::DOWN);
+            } else if (!orientation.empty() || !placement.empty()) {
+                logger->logError(String(u"unknown tied orientation/placement: %1/%2").arg(orientation).arg(placement), xmlreader);
+            }
+        }
+
+        if (lineType == u"dashed") {
+            lvTie->setStyleType(SlurStyleType::Dashed);
+        } else if (lineType == u"dotted") {
+            lvTie->setStyleType(SlurStyleType::Dotted);
+        } else if (lineType == u"solid" || lineType.empty()) {
+            lvTie->setStyleType(SlurStyleType::Solid);
+        }
+
         note->score()->undoAddElement(lvTie);
     } else {
         logger->logError(String(u"unknown tied type %1").arg(type), xmlreader);

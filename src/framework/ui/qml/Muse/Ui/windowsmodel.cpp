@@ -27,7 +27,7 @@
 using namespace muse::ui;
 
 WindowsModel::WindowsModel(QObject* parent)
-    : QObject(parent)
+    : QObject(parent), muse::Contextable(muse::iocCtxForQmlObject(this))
 {
 }
 

@@ -31,7 +31,7 @@
 #include "audio/common/audiotypes.h"
 
 namespace muse::audio {
-class IAudioConfiguration : MODULE_GLOBAL_EXPORT_INTERFACE
+class IAudioConfiguration : MODULE_GLOBAL_INTERFACE
 {
     INTERFACE_ID(IAudioConfiguration)
 public:
@@ -57,6 +57,8 @@ public:
     virtual unsigned int sampleRate() const = 0;
     virtual void setSampleRate(unsigned int sampleRate) = 0;
     virtual async::Notification sampleRateChanged() const = 0;
+
+    virtual OutputSpec desiredOutputSpec() const = 0;
 
     // synthesizers
     virtual io::paths_t soundFontDirectories() const = 0;

@@ -21,6 +21,8 @@
  */
 #include "exportdialogmodel.h"
 
+#include <algorithm>
+
 #include <QItemSelectionModel>
 
 #include "async/async.h"
@@ -37,7 +39,7 @@ using UnitType = INotationWriter::UnitType;
 static const UnitType DEFAULT_EXPORT_UNITTYPE = UnitType::PER_PART;
 
 ExportDialogModel::ExportDialogModel(QObject* parent)
-    : QAbstractListModel(parent), muse::Injectable(muse::iocCtxForQmlObject(this))
+    : QAbstractListModel(parent), muse::Contextable(muse::iocCtxForQmlObject(this))
     , m_selectionModel(new QItemSelectionModel(this))
     , m_selectedUnitType(DEFAULT_EXPORT_UNITTYPE)
 {
@@ -103,20 +105,15 @@ ExportDialogModel::ExportDialogModel(QObject* parent)
                                      muse::qtrc("project/export", "MEI"),
                                      muse::qtrc("project/export", "MEI files"),
                                      "MeiSettingsPage.qml"),
+        ExportType::makeWithSuffixes({ "mnx" },
+                                     muse::qtrc("project/export", "MNX (experimental)"),
+                                     muse::qtrc("project/export", "MNX files (experimental)"),
+                                     "MnxSettingsPage.qml"),
         ExportType::makeWithSuffixes({ "lrc" },
                                      muse::qtrc("project/export", "LRC file"),
                                      muse::qtrc("project/export", "LRC files"),
                                      "LrcSettingsPage.qml")
     };
-
-    const ExportInfo& info = exportProjectScenario()->exportInfo();
-    if (info.id.isEmpty()) {
-        setExportType(m_exportTypeList.front());
-    } else {
-        selectExportTypeById(info.id);
-    }
-    m_exportPath = info.exportPath;
-    setUnitType(info.unitType);
 }
 
 ExportDialogModel::~ExportDialogModel()
@@ -124,11 +121,22 @@ ExportDialogModel::~ExportDialogModel()
     m_selectionModel->deleteLater();
 }
 
-void ExportDialogModel::load()
+void ExportDialogModel::classBegin()
 {
     TRACEFUNC;
 
+    const ExportInfo& info = exportProjectScenario()->exportInfo();
+    if (info.id.isEmpty()) {
+        setExportType(m_exportTypeList.front());
+    } else {
+        selectExportTypeById(info.id);
+    }
+
+    m_exportPath = info.exportPath;
+    setUnitType(info.unitType);
+
     beginResetModel();
+    m_notations.clear();
 
     IMasterNotationPtr masterNotation = this->masterNotation();
     if (!masterNotation) {
@@ -654,6 +662,52 @@ void ExportDialogModel::setLrcUseEnhancedFormat(bool useEnhancedFormat)
 
     lrcConfiguration()->setLrcUseEnhancedFormat(useEnhancedFormat);
     emit lrcUseEnhancedFormatChanged(useEnhancedFormat);
+}
+
+int ExportDialogModel::mnxIndentSpaces() const
+{
+    return mnxConfiguration()->mnxIndentSpaces();
+}
+
+void ExportDialogModel::setMnxIndentSpaces(int spaces)
+{
+    spaces = std::clamp(spaces, -1, 8);
+    if (spaces == mnxIndentSpaces()) {
+        return;
+    }
+
+    mnxConfiguration()->setMnxIndentSpaces(spaces);
+    emit mnxIndentSpacesChanged(spaces);
+}
+
+bool ExportDialogModel::mnxExportBeams() const
+{
+    return mnxConfiguration()->mnxExportBeams();
+}
+
+void ExportDialogModel::setMnxExportBeams(bool exportBeams)
+{
+    if (exportBeams == mnxExportBeams()) {
+        return;
+    }
+
+    mnxConfiguration()->setMnxExportBeams(exportBeams);
+    emit mnxExportBeamsChanged(exportBeams);
+}
+
+bool ExportDialogModel::mnxExportRestPositions() const
+{
+    return mnxConfiguration()->mnxExportRestPositions();
+}
+
+void ExportDialogModel::setMnxExportRestPositions(bool exportRestPositions)
+{
+    if (exportRestPositions == mnxExportRestPositions()) {
+        return;
+    }
+
+    mnxConfiguration()->setMnxExportRestPositions(exportRestPositions);
+    emit mnxExportRestPositionsChanged(exportRestPositions);
 }
 
 QVariantList ExportDialogModel::musicXmlLayoutTypes() const

@@ -322,7 +322,7 @@ struct ScoreChanges {
 //    a Score has always an associated MasterScore
 //---------------------------------------------------------------------------------------
 
-class Score : public EngravingObject, public muse::Injectable
+class Score : public EngravingObject, public muse::Contextable
 {
     OBJECT_ALLOCATOR(engraving, Score)
     DECLARE_CLASSOF(ElementType::SCORE)
@@ -330,11 +330,11 @@ class Score : public EngravingObject, public muse::Injectable
     muse::GlobalInject<muse::draw::IImageProvider> imageProvider;
     muse::GlobalInject<IEngravingConfiguration> configuration;
     muse::GlobalInject<IEngravingFontsProvider> engravingFonts;
-    muse::Inject<muse::IApplication> application = { this };
-    muse::Inject<IEngravingElementsProvider> elementsProvider = { this };
+    muse::ContextInject<muse::IApplication> application = { this };
+    muse::ContextInject<IEngravingElementsProvider> elementsProvider = { this };
 
     // internal
-    muse::Inject<rendering::IScoreRenderer> renderer = { this };
+    muse::ContextInject<rendering::IScoreRenderer> renderer = { this };
 
 public:
     Score(const Score&) = delete;
@@ -388,8 +388,10 @@ public:
     void resetCrossBeams();
 
     void cmdAddBracket();
-    void cmdAddParentheses();
-    void cmdAddParentheses(EngravingItem* el);
+    void cmdToggleParentheses();
+    void cmdToggleParentheses(EngravingItem* el);
+    void cmdAddParenthesesToNotes();
+    void cmdRemoveParenthesesFromNotes();
     void cmdAddBraces();
     void cmdAddFret(int fret);
     void cmdSetBeamMode(BeamMode);
@@ -417,6 +419,7 @@ public:
     void cmdIncDurationDotted() { cmdIncDecDuration(-1, true); }
     void cmdDecDurationDotted() { cmdIncDecDuration(1, true); }
     void cmdIncDecDuration(int nSteps, bool stepDotted = false);
+    void cmdExtendToNextNote();
     void cmdToggleLayoutBreak(LayoutBreakType);
     void cmdAddMeasureRepeat(Measure*, int numMeasures, staff_idx_t staffIdx);
     bool makeMeasureRepeatGroup(Measure*, int numMeasures, staff_idx_t staffIdx);
@@ -965,6 +968,7 @@ public:
     void removeUnmanagedSpanner(Spanner*);
 
     Hairpin* addHairpin(HairpinType type, ChordRest* cr1, ChordRest* cr2 = nullptr);
+    Hairpin* addHairpin(HairpinType type, Fraction sTick, Fraction eTick, track_idx_t track);
     void addHairpin(Hairpin* hairpin, ChordRest* cr1, ChordRest* cr2 = nullptr);
     void addHairpinToDynamic(Hairpin* hairpin, Dynamic* dynamic);
     Hairpin* addHairpinToDynamicOnGripDrag(Dynamic* dynamic, bool isLeftGrip, const PointF& pos);
@@ -1043,11 +1047,6 @@ public:
     bool checkTimeDelete(Segment* startSegment, Segment* endSegment);
     void doTimeDelete(Segment* startSegment, Segment* endSegment);
     void doTimeDeleteForMeasure(Measure*, Segment*, const Fraction&);
-
-    Text* headerText(int index) const { return m_headersText[index]; }
-    Text* footerText(int index) const { return m_footersText[index]; }
-    void setHeaderText(Text* t, int index) { m_headersText.at(index) = t; }
-    void setFooterText(Text* t, int index) { m_footersText.at(index) = t; }
 
     void cmdToggleVisible();
     void forAllLyrics(std::function<void(Lyrics*)> f);
@@ -1164,12 +1163,11 @@ private:
 
     FBox* findFretBox() const;
 
+    void cmdToggleParenthesesOnNotes();
+
     MasterScore* m_masterScore = nullptr;
     std::list<MuseScoreView*> m_viewer;
     Excerpt* m_excerpt = nullptr;
-
-    std::vector<Text*> m_headersText;
-    std::vector<Text*> m_footersText;
 
     String m_mscoreVersion;
     int m_mscoreRevision = 0;

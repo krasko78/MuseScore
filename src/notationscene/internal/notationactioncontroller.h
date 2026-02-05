@@ -40,23 +40,23 @@
 #include "notation/inotation.h"
 
 namespace mu::notation {
-class NotationActionController : public muse::actions::Actionable, public muse::async::Asyncable, public muse::Injectable
+class NotationActionController : public muse::actions::Actionable, public muse::async::Asyncable, public muse::Contextable
 {
     muse::GlobalInject<INotationConfiguration> configuration;
     muse::GlobalInject<engraving::IEngravingConfiguration> engravingConfiguration;
-    muse::Inject<muse::actions::IActionsDispatcher> dispatcher = { this };
-    muse::Inject<muse::ui::INavigationController> navigationController = { this };
-    muse::Inject<muse::ui::IUiActionsRegister> actionRegister = { this };
-    muse::Inject<context::IGlobalContext> globalContext = { this };
-    muse::Inject<context::IUiContextResolver> uiContextResolver = { this };
-    muse::Inject<muse::IInteractive> interactive = { this };
-    muse::Inject<playback::IPlaybackController> playbackController = { this };
     muse::GlobalInject<appshell::IAppShellConfiguration> appshellConfiguration; // krasko
+    muse::ContextInject<muse::actions::IActionsDispatcher> dispatcher = { this };
+    muse::ContextInject<muse::ui::INavigationController> navigationController = { this };
+    muse::ContextInject<muse::ui::IUiActionsRegister> actionRegister = { this };
+    muse::ContextInject<context::IGlobalContext> globalContext = { this };
+    muse::ContextInject<context::IUiContextResolver> uiContextResolver = { this };
+    muse::ContextInject<muse::IInteractive> interactive = { this };
+    muse::ContextInject<playback::IPlaybackController> playbackController = { this };
 
 public:
 
     NotationActionController(const muse::modularity::ContextPtr& iocCtx)
-        : muse::Injectable(iocCtx) {}
+        : muse::Contextable(iocCtx) {}
 
     void init();
 
@@ -124,8 +124,6 @@ private:
     void addFret(int num);
 
     void insertClef(mu::engraving::ClefType type);
-
-    muse::async::Promise<muse::IInteractive::Result> showErrorMessage(const std::string& message);
 
     void addText(TextStyleType type);
     void addImage();

@@ -52,7 +52,7 @@ using namespace muse::io;
 using namespace muse::actions;
 
 Palette::Palette(const muse::modularity::ContextPtr& iocCtx, Type t, QObject* parent)
-    : QObject(parent), muse::Injectable(iocCtx), m_type(t)
+    : QObject(parent), muse::Contextable(iocCtx), m_type(t)
 {
     static int id = 0;
     m_id = QString::number(++id);
@@ -456,8 +456,8 @@ bool Palette::readFromFile(const QString& p)
         if (e.name() == "museScore") {
             QString version = e.attribute("version");
             QStringList sl = version.split('.');
-            int versionId = sl[0].toInt() * 100 + sl[1].toInt();
-            gpaletteScore->setMscVersion(versionId); // TODO: what is this?
+            int mscVersion = sl[0].toInt() * 100 + sl[1].toInt();
+            gpaletteScore->setMscVersion(mscVersion);
 
             while (e.readNextStartElement()) {
                 if (e.name() == "Palette") {
@@ -590,6 +590,7 @@ Palette::Type Palette::guessType() const
     case ElementType::BAR_LINE:
         return Type::BarLine;
     case ElementType::ARPEGGIO:
+    case ElementType::CHORD_BRACKET:
     case ElementType::GLISSANDO:
         return Type::Arpeggio;
     case ElementType::TREMOLO_SINGLECHORD:

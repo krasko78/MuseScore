@@ -30,15 +30,15 @@
 #include "audio/common/rpc/irpcchannel.h"
 
 namespace muse::audio {
-class AudioConfiguration : public IAudioConfiguration, public Injectable
+class AudioConfiguration : public IAudioConfiguration, public Contextable
 {
     GlobalInject<IGlobalConfiguration> globalConfiguration;
     GlobalInject<io::IFileSystem> fileSystem;
-    Inject<rpc::IRpcChannel> rpcChannel = { this };
+    ContextInject<rpc::IRpcChannel> rpcChannel = { this };
 
 public:
     AudioConfiguration(const modularity::ContextPtr& iocCtx)
-        : Injectable(iocCtx) {}
+        : Contextable(iocCtx) {}
 
     void init();
 
@@ -62,6 +62,8 @@ public:
     unsigned int sampleRate() const override;
     void setSampleRate(unsigned int sampleRate) override;
     async::Notification sampleRateChanged() const override;
+
+    OutputSpec desiredOutputSpec() const override;
 
     io::paths_t soundFontDirectories() const override;
     io::paths_t userSoundFontDirectories() const override;

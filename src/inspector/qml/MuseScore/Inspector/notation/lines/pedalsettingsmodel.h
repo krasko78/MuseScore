@@ -36,13 +36,16 @@ class PedalSettingsModel : public TextLineSettingsModel
     Q_PROPERTY(bool isChangingLineVisibilityAllowed READ isChangingLineVisibilityAllowed NOTIFY isChangingLineVisibilityAllowedChanged)
 
 public:
-    explicit PedalSettingsModel(QObject* parent, IElementRepositoryService* repository);
+    explicit PedalSettingsModel(QObject* parent, const muse::modularity::ContextPtr& iocCtx, IElementRepositoryService* repository);
 
     PropertyItem* lineType() const;
     bool isChangingLineVisibilityAllowed() const;
 
 signals:
     void isChangingLineVisibilityAllowedChanged();
+
+protected:
+    void updateStartAndEndHookTypes() override;
 
 private:
     bool isStarSymbolVisible() const;

@@ -36,12 +36,12 @@ namespace mu::notation {
 //   SelectDialog
 //---------------------------------------------------------
 
-class SelectDialog : public QDialog, Ui::SelectDialog, public muse::Injectable
+class SelectDialog : public QDialog, Ui::SelectDialog, public muse::Contextable
 {
     Q_OBJECT
 
-    muse::Inject<context::IGlobalContext> globalContext = { this };
     muse::GlobalInject<appshell::IAppShellConfiguration> appshellConfiguration; // krasko
+    muse::ContextInject<context::IGlobalContext> globalContext = { this };
 
 public:
     SelectDialog(QWidget* parent = nullptr);

@@ -23,6 +23,7 @@
 #include "registeraudiopluginsscenario.h"
 
 #include <QCoreApplication>
+#include <map>
 
 #include "global/translation.h"
 
@@ -49,40 +50,71 @@ void RegisterAudioPluginsScenario::init()
     }
 }
 
-io::paths_t RegisterAudioPluginsScenario::scanForNewPluginPaths() const
+PluginScanResult RegisterAudioPluginsScenario::scanPlugins() const
 {
     TRACEFUNC;
 
-    io::paths_t newPluginPaths;
+    PluginScanResult result;
 
-    for (const IAudioPluginsScannerPtr& scanner : scannerRegister()->scanners()) {
-        io::paths_t paths = scanner->scanPlugins();
+    std::map<io::path_t, audio::AudioResourceId> registered;
+    for (const auto& info : knownPluginsRegister()->pluginInfoList()) {
+        registered[info.path] = info.meta.id;
+    }
 
-        for (const io::path_t& path : paths) {
-            if (!knownPluginsRegister()->exists(path)) {
-                newPluginPaths.push_back(path);
+    for (const auto& scanner : scannerRegister()->scanners()) {
+        for (const auto& path : scanner->scanPlugins()) {
+            if (auto it = registered.find(path); it != registered.end()) {
+                registered.erase(it);
+            } else {
+                result.newPluginPaths.push_back(path);
             }
         }
     }
 
-    return newPluginPaths;
+    for (const auto& [path, id] : registered) {
+        result.missingPluginIds.push_back(id);
+    }
+
+    return result;
 }
 
-Ret RegisterAudioPluginsScenario::registerNewPlugins(io::paths_t newPluginPaths)
+Ret RegisterAudioPluginsScenario::updatePluginsRegistry()
 {
     TRACEFUNC;
 
-    if (newPluginPaths.empty()) {
-        newPluginPaths = scanForNewPluginPaths();
+    PluginScanResult result = scanPlugins();
+
+    unregisterRemovedPlugins(result.missingPluginIds);
+    registerNewPlugins(result.newPluginPaths);
+
+    return knownPluginsRegister()->load();
+}
+
+void RegisterAudioPluginsScenario::registerNewPlugins(const io::paths_t& pluginPaths)
+{
+    TRACEFUNC;
+
+    if (pluginPaths.empty()) {
+        return;
     }
 
-    if (newPluginPaths.empty()) {
-        return muse::make_ok();
+    processPluginsRegistration(pluginPaths);
+    knownPluginsRegister()->load();
+}
+
+Ret RegisterAudioPluginsScenario::unregisterRemovedPlugins(const audio::AudioResourceIdList& pluginIds)
+{
+    TRACEFUNC;
+
+    if (pluginIds.empty()) {
+        return make_ok();
     }
 
-    processPluginsRegistration(newPluginPaths);
+    Ret ret = knownPluginsRegister()->unregisterPlugins(pluginIds);
+    if (!ret) {
+        LOGE() << "Failed to unregister removed plugins: " << ret.toString();
+    }
 
-    Ret ret = knownPluginsRegister()->load();
     return ret;
 }
 
@@ -129,16 +161,19 @@ Ret RegisterAudioPluginsScenario::registerPlugin(const io::path_t& pluginPath)
         return false;
     }
 
-    IAudioPluginMetaReaderPtr reader = metaReader(pluginPath);
+    const IAudioPluginMetaReaderPtr reader = metaReader(pluginPath);
     if (!reader) {
         return make_ret(Err::UnknownPluginType);
     }
 
-    RetVal<AudioResourceMetaList> metaList = reader->readMeta(pluginPath);
+    const RetVal<AudioResourceMetaList> metaList = reader->readMeta(pluginPath);
     if (!metaList.ret) {
         LOGE() << metaList.ret.toString();
         return metaList.ret;
     }
+
+    AudioPluginInfoList infoList;
+    infoList.reserve(metaList.val.size());
 
     for (const AudioResourceMeta& meta : metaList.val) {
         AudioPluginInfo info;
@@ -146,14 +181,11 @@ Ret RegisterAudioPluginsScenario::registerPlugin(const io::path_t& pluginPath)
         info.meta = meta;
         info.path = pluginPath;
         info.enabled = true;
-
-        Ret ret = knownPluginsRegister()->registerPlugin(info);
-        if (!ret) {
-            return ret;
-        }
+        infoList.emplace_back(std::move(info));
     }
 
-    return muse::make_ok();
+    Ret ret = knownPluginsRegister()->registerPlugins(infoList);
+    return ret;
 }
 
 Ret RegisterAudioPluginsScenario::registerFailedPlugin(const io::path_t& pluginPath, int failCode)
@@ -166,13 +198,12 @@ Ret RegisterAudioPluginsScenario::registerFailedPlugin(const io::path_t& pluginP
 
     AudioPluginInfo info;
     info.meta.id = io::completeBasename(pluginPath).toStdString();
-
     info.meta.type = metaType(pluginPath);
     info.path = pluginPath;
     info.enabled = false;
     info.errorCode = failCode;
 
-    Ret ret = knownPluginsRegister()->registerPlugin(info);
+    Ret ret = knownPluginsRegister()->registerPlugins({ info });
     return ret;
 }
 

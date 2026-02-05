@@ -34,24 +34,28 @@
 #include "../iaudiopluginmetareaderregister.h"
 
 namespace muse::audioplugins {
-class RegisterAudioPluginsScenario : public IRegisterAudioPluginsScenario, public Injectable, public async::Asyncable
+class RegisterAudioPluginsScenario : public IRegisterAudioPluginsScenario, public Contextable, public async::Asyncable
 {
 public:
     GlobalInject<IGlobalConfiguration> globalConfiguration;
     GlobalInject<IProcess> process;
-    Inject<IKnownAudioPluginsRegister> knownPluginsRegister = { this };
-    Inject<IAudioPluginsScannerRegister> scannerRegister = { this };
-    Inject<IAudioPluginMetaReaderRegister> metaReaderRegister = { this };
-    Inject<IInteractive> interactive = { this };
+    ContextInject<IKnownAudioPluginsRegister> knownPluginsRegister = { this };
+    ContextInject<IAudioPluginsScannerRegister> scannerRegister = { this };
+    ContextInject<IAudioPluginMetaReaderRegister> metaReaderRegister = { this };
+    ContextInject<IInteractive> interactive = { this };
 
 public:
     RegisterAudioPluginsScenario(const modularity::ContextPtr& iocCtx)
-        : Injectable(iocCtx) {}
+        : Contextable(iocCtx) {}
 
     void init();
 
-    io::paths_t scanForNewPluginPaths() const override;
-    Ret registerNewPlugins(io::paths_t newPluginPaths = {}) override;
+    PluginScanResult scanPlugins() const override;
+
+    Ret updatePluginsRegistry() override;
+    void registerNewPlugins(const io::paths_t& pluginPaths) override;
+    Ret unregisterRemovedPlugins(const audio::AudioResourceIdList& pluginIds) override;
+
     Ret registerPlugin(const io::path_t& pluginPath) override;
     Ret registerFailedPlugin(const io::path_t& pluginPath, int failCode) override;
 

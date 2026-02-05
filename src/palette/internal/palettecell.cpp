@@ -65,14 +65,14 @@ static bool needsStaff(ElementPtr e)
 }
 
 PaletteCell::PaletteCell(const muse::modularity::ContextPtr& iocCtx, QObject* parent)
-    : QObject(parent), muse::Injectable(iocCtx)
+    : QObject(parent), muse::Contextable(iocCtx)
 {
     id = makeId();
 }
 
 PaletteCell::PaletteCell(const muse::modularity::ContextPtr& iocCtx, ElementPtr e, const QString& _name, qreal _mag, const QPointF& _offset,
                          const QString& _tag, QObject* parent)
-    : QObject(parent), muse::Injectable(iocCtx), element(e), name(_name), mag(_mag), xoffset(_offset.x()), yoffset(_offset.y()), tag(_tag)
+    : QObject(parent), muse::Contextable(iocCtx), element(e), name(_name), mag(_mag), xoffset(_offset.x()), yoffset(_offset.y()), tag(_tag)
 {
     id = makeId();
     drawStaff = needsStaff(element);
@@ -102,6 +102,7 @@ const char* PaletteCell::translationContext() const
     case ElementType::ACTION_ICON:
         return "action";
     case ElementType::ARPEGGIO:
+    case ElementType::CHORD_BRACKET:
     case ElementType::CHORDLINE:
     case ElementType::GLISSANDO:
     case ElementType::HARMONY:
@@ -221,7 +222,7 @@ bool PaletteCell::read(XmlReader& e, bool pasteMode)
         } else if (s == "Tremolo") {
             compat::TremoloCompat tc;
             tc.parent = gpaletteScore->dummy()->chord();
-            rw::RWRegister::reader()->readTremoloCompat(&tc, e);
+            rw::RWRegister::reader(gpaletteScore->mscVersion())->readTremoloCompat(&tc, e);
             if (tc.single) {
                 element.reset(tc.single);
             } else if (tc.two) {
@@ -238,7 +239,7 @@ bool PaletteCell::read(XmlReader& e, bool pasteMode)
             if (!element) {
                 e.unknown();
             } else {
-                rw::RWRegister::reader()->readItem(element.get(), e);
+                rw::RWRegister::reader(gpaletteScore->mscVersion())->readItem(element.get(), e);
             }
         }
     }

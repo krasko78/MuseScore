@@ -20,17 +20,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.15
+import QtQuick
 import QtQuick.Layouts
 
-import MuseScore.NotationScene 1.0
+import Muse.Ui
 import Muse.UiComponents
-import Muse.Ui 1.0
+import MuseScore.NotationScene
 
 StyledFlickable {
     id: root
 
-    contentWidth: content.implicitWidth
+    contentWidth: Math.max(content.implicitWidth, root.width)
     contentHeight: content.implicitHeight
 
     signal goToTextStylePage(string s)
@@ -41,6 +41,7 @@ StyledFlickable {
 
     ColumnLayout {
         id: content
+        width: parent.width
         spacing: 12
 
         StyledGroupBox {
@@ -201,8 +202,8 @@ StyledFlickable {
                             orientation: Qt.Vertical
                             spacing: 8
                             model: [
-                                { text: qsTrc("notation/editstyle/bends", "On the stave"), value: false },
-                                { text: qsTrc("notation/editstyle/bends", "Above the stave"), value: true }
+                                { text: qsTrc("notation/editstyle/bends", "On the staff"), value: false },
+                                { text: qsTrc("notation/editstyle/bends", "Above the staff"), value: true }
                             ]
 
                             delegate: RoundedRadioButton {

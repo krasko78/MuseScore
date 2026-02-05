@@ -36,12 +36,15 @@ class OttavaSettingsModel : public TextLineSettingsModel
     Q_PROPERTY(mu::inspector::PropertyItem * showNumbersOnly READ showNumbersOnly CONSTANT)
 
 public:
-    explicit OttavaSettingsModel(QObject* parent, IElementRepositoryService* repository);
+    explicit OttavaSettingsModel(QObject* parent, const muse::modularity::ContextPtr& iocCtx, IElementRepositoryService* repository);
 
     PropertyItem* ottavaType() const;
     PropertyItem* showNumbersOnly() const;
 
     Q_INVOKABLE QVariantList possibleOttavaTypes() const;
+
+protected:
+    void updateStartAndEndHookTypes() override;
 
 private:
     void createProperties() override;

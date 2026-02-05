@@ -19,8 +19,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef MUSE_AUDIO_MIXER_H
-#define MUSE_AUDIO_MIXER_H
+
+#pragma once
 
 #include <memory>
 #include <map>
@@ -36,16 +36,17 @@
 
 #include "mixerchannel.h"
 #include "igetplaybackposition.h"
+#include "audiosignalnotifier.h"
 
 namespace muse {
 class TaskScheduler;
 }
 
 namespace muse::audio::engine {
-class Mixer : public AbstractAudioSource, public IGetPlaybackPosition, public Injectable, public async::Asyncable,
+class Mixer : public AbstractAudioSource, public IGetPlaybackPosition, public Contextable, public async::Asyncable,
     public std::enable_shared_from_this<Mixer>
 {
-    Inject<fx::IFxResolver> fxResolver = { this };
+    ContextInject<fx::IFxResolver> fxResolver = { this };
 
 public:
     Mixer(const modularity::ContextPtr& iocCtx);
@@ -125,5 +126,3 @@ private:
 
 using MixerPtr = std::shared_ptr<Mixer>;
 }
-
-#endif // MUSE_AUDIO_MIXER_H

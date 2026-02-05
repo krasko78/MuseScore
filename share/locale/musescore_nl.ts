@@ -1753,7 +1753,7 @@
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="101"/>
         <source>Repeats</source>
-        <translation>Herhalingstekens</translation>
+        <translation>Maatherhalingstekens</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="106"/>
@@ -2776,12 +2776,12 @@ space unit</extracomment>
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="2927"/>
         <source>Last system fill threshold:</source>
-        <translation>Drempelwaarde opvullen laatste systeem:</translation>
+        <translation>Drempelwaarde uitvullen laatste systeem:</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="2962"/>
         <source>Reset &apos;Last system fill threshold&apos; value</source>
-        <translation>Herstel &apos;Opvullen laatste systeem drempelwaarde&apos;</translation>
+        <translation>Herstel &apos;Uitvullen laatste systeem drempelwaarde&apos;</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/editstyle.ui" line="2985"/>
@@ -5052,7 +5052,7 @@ wanneer articulatiemarkeringen aanwezig zijn</translation>
     <message>
         <location filename="../../src/notation/view/widgets/pagesettings.ui" line="108"/>
         <source>Page size</source>
-        <translation>Pagina-afmetingen</translation>
+        <translation>Pagina-formaat</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/widgets/pagesettings.ui" line="114"/>
@@ -7511,12 +7511,12 @@ wanneer articulatiemarkeringen aanwezig zijn</translation>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="767"/>
         <source>&amp;Text frame</source>
-        <translation>&amp;Tekst kader</translation>
+        <translation>&amp;Tekstkader</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="768"/>
         <source>Insert text frame at end of score</source>
-        <translation>Voeg tekst kader toe aan het einde</translation>
+        <translation>Voeg tekstkader toe aan het einde</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="774"/>
@@ -8112,12 +8112,12 @@ wanneer articulatiemarkeringen aanwezig zijn</translation>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1387"/>
         <source>&amp;Nashville number</source>
-        <translation>N&amp;ashville-cijfer</translation>
+        <translation>N&amp;ashville-nummer</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1388"/>
         <source>Add text: Nashville number</source>
-        <translation>Voeg tekst toe: Nashville-cijfer</translation>
+        <translation>Voeg tekst toe: Nashville-nummer</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationuiactions.cpp" line="1393"/>
@@ -9984,7 +9984,7 @@ wanneer articulatiemarkeringen aanwezig zijn</translation>
         <location filename="../../src/playback/internal/playbackuiactions.cpp" line="130"/>
         <location filename="../../src/playback/internal/playbackuiactions.cpp" line="131"/>
         <source>Play chord symbols</source>
-        <translation>Speel akkoordsymbolen</translation>
+        <translation>Speel akkoordsymbolen af</translation>
     </message>
     <message>
         <location filename="../../src/playback/internal/playbackuiactions.cpp" line="138"/>
@@ -11256,7 +11256,7 @@ Gepubliceerd onder de &lt;a href=&quot;%1&quot;&gt;GNU General Public License ve
     <message>
         <location filename="../../src/appshell/qml/Preferences/internal/NoteInput/NotePreviewSection.qml" line="129"/>
         <source>Play chord symbols and Nashville numbers</source>
-        <translation>Speel akkoordsymbolen en Nashville nummers af</translation>
+        <translation>Speel akkoordsymbolen en Nashville-nummers af</translation>
     </message>
     <message>
         <location filename="../../src/appshell/qml/Preferences/internal/NoteInput/NotePreviewSection.qml" line="146"/>
@@ -12320,7 +12320,7 @@ Fret %1 op snaren %2</translation>
         <location filename="../../src/engraving/dom/harmony.cpp" line="1271"/>
         <location filename="../../src/engraving/types/typesconv.cpp" line="1717"/>
         <source>Nashville number</source>
-        <translation>Nashville-cijfer</translation>
+        <translation>Nashville-nummer</translation>
     </message>
     <message>
         <location filename="../../src/engraving/dom/harmony.cpp" line="1321"/>
@@ -14117,12 +14117,12 @@ Fret %1 op snaren %2</translation>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="566"/>
         <source>text frame(s)</source>
-        <translation><numerusform>tekst kader</numerusform><numerusform>tekst kaders</numerusform></translation>
+        <translation><numerusform>tekstkader</numerusform><numerusform>tekstkaders</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="567"/>
         <source>Text frame(s)</source>
-        <translation><numerusform>Tekst kader</numerusform><numerusform>Tekst kaders</numerusform></translation>
+        <translation><numerusform>Tekstkader</numerusform><numerusform>Tekstkaders</numerusform></translation>
     </message>
     <message numerus="yes">
         <location filename="../../src/engraving/types/typesconv.cpp" line="569"/>
@@ -14495,12 +14495,12 @@ Fret %1 op snaren %2</translation>
     <message>
         <location filename="../../src/engraving/types/typesconv.cpp" line="1712"/>
         <source>Lyrics odd lines</source>
-        <translation>Liedtekst oneven lijnen</translation>
+        <translation>Liedtekst oneven regels</translation>
     </message>
     <message>
         <location filename="../../src/engraving/types/typesconv.cpp" line="1713"/>
         <source>Lyrics even lines</source>
-        <translation>Liedtekst even lijnen</translation>
+        <translation>Liedtekst even regels</translation>
     </message>
     <message>
         <location filename="../../src/engraving/types/typesconv.cpp" line="1714"/>
@@ -22292,7 +22292,7 @@ Fret %1 op snaren %2</translation>
         <translation>U kunt deze instelling op elk gewenst moment wijzigen in Voorkeuren.</translation>
     </message>
     <message>
-        <location filename="../../src/project/qml/MuseScore/Project/AskSaveLocationTypeDialog.qml" line="129"/>
+        <location filename="../../src/project/qml/MuseScore/Project/AskSaveLocationTypeDialog.qml" line="128"/>
         <source>Don’t show again</source>
         <translation>Niet meer laten zien</translation>
     </message>
@@ -24121,7 +24121,7 @@ opmaat</translation>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/images/ImageSettings.qml" line="121"/>
         <source>Use staff space units</source>
-        <translation>Gebruik notenbalkafstands-eenheden</translation>
+        <translation>Gebruik notenbalkafstands-eenheid</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/instrumentname/InstrumentNameSettings.qml" line="53"/>
@@ -24959,7 +24959,7 @@ opmaat</translation>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/tremolobars/TremoloBarSettings.qml" line="58"/>
         <source>Tremolo bar type</source>
-        <translation>Tremolo-balk type</translation>
+        <translation>Tremolohendel type</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/tremolobars/TremoloBarSettings.qml" line="65"/>
@@ -24999,7 +24999,7 @@ opmaat</translation>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/tremolobars/TremoloBarSettings.qml" line="150"/>
         <source>You have multiple tremolo bars selected. Select a single one to edit its settings.</source>
-        <translation>U heeft meerdere tremolo-balken geselecteerd. Selecteer een enkele om de instellingen te bewerken.</translation>
+        <translation>U heeft meerdere tremolohendels geselecteerd. Selecteer een enkele om de instellingen te bewerken.</translation>
     </message>
     <message>
         <location filename="../../src/inspector/view/qml/MuseScore/Inspector/notation/tremolos/TremoloSettings.qml" line="49"/>
@@ -26628,7 +26628,7 @@ Daarnaast biedt Mastering MuseScore een ondersteunende gemeenschap van muzikante
     <message>
         <location filename="../../src/notation/qml/MuseScore/NotationScene/internal/EditStyle/ChordSymbolsPage.qml" line="672"/>
         <source>Min. space to fretboard diagram:</source>
-        <translation>Min. afstand tot fretbord diagram:</translation>
+        <translation>Min. afstand tot fretborddiagram:</translation>
     </message>
     <message>
         <location filename="../../src/notation/qml/MuseScore/NotationScene/internal/EditStyle/ChordSymbolsPage.qml" line="711"/>
@@ -26642,7 +26642,7 @@ Daarnaast biedt Mastering MuseScore een ondersteunende gemeenschap van muzikante
     </message>
     <message>
         <source>Minimum space from fretboard diagram:</source>
-        <translation>Minimum afstand van fretbord diagram:</translation>
+        <translation>Minimum afstand van fretborddiagram:</translation>
     </message>
     <message>
         <source>Minimum space between chord symbols:</source>
@@ -28239,7 +28239,7 @@ Daarnaast biedt Mastering MuseScore een ondersteunende gemeenschap van muzikante
     <message>
         <location filename="../../src/playback/view/playbacktoolbarmodel.cpp" line="149"/>
         <source>MIDI input pitch</source>
-        <translation>MIDI toonhoogte-invoer</translation>
+        <translation>MIDI-invoertoonhoogte</translation>
     </message>
 </context>
 <context>
@@ -29523,7 +29523,7 @@ Daarnaast biedt Mastering MuseScore een ondersteunende gemeenschap van muzikante
     <message>
         <location filename="../../src/notation/qml/MuseScore/NotationScene/internal/PercussionPanelPad.qml" line="115"/>
         <source>Empty pad</source>
-        <translation>Leeg blok</translation>
+        <translation>Leeg pad</translation>
     </message>
     <message>
         <location filename="../../src/notation/qml/MuseScore/NotationScene/internal/PercussionPanelPad.qml" line="142"/>
@@ -29607,7 +29607,7 @@ Daarnaast biedt Mastering MuseScore een ondersteunende gemeenschap van muzikante
     <message>
         <location filename="../../src/notation/view/percussionpanel/percussionpanelmodel.cpp" line="175"/>
         <source>Pad names</source>
-        <translation>Bloknamen</translation>
+        <translation>Padnamen</translation>
     </message>
     <message>
         <location filename="../../src/notation/view/percussionpanel/percussionpanelmodel.cpp" line="178"/>
@@ -29627,7 +29627,7 @@ Daarnaast biedt Mastering MuseScore een ondersteunende gemeenschap van muzikante
     <message>
         <location filename="../../src/notation/view/percussionpanel/percussionpanelpadmodel.cpp" line="98"/>
         <source>Delete pad</source>
-        <translation>Verwijder blok</translation>
+        <translation>Verwijder pad</translation>
     </message>
 </context>
 <context>
@@ -34430,7 +34430,7 @@ mislukt: %2</translation>
     <name>project/save</name>
     <message>
         <location filename="../../src/framework/cloud/qml/Muse/Cloud/RequireAuthorizationDialog.qml" line="74"/>
-        <location filename="../../src/project/qml/MuseScore/Project/AskSaveLocationTypeDialog.qml" line="99"/>
+        <location filename="../../src/project/qml/MuseScore/Project/AskSaveLocationTypeDialog.qml" line="98"/>
         <location filename="../../src/project/qml/MuseScore/Project/SaveToCloudDialog.qml" line="248"/>
         <location filename="../../src/project/internal/opensaveprojectscenario.cpp" line="407"/>
         <location filename="../../src/project/internal/opensaveprojectscenario.cpp" line="551"/>
@@ -34443,32 +34443,49 @@ mislukt: %2</translation>
         <translation>Hoe wilt u opslaan?</translation>
     </message>
     <message>
-        <location filename="../../src/project/qml/MuseScore/Project/AskSaveLocationTypeDialog.qml" line="80"/>
         <source>Save files privately on your personal MuseScore.com account, share drafts with others, and publish your finished scores when you’re ready.</source>
         <translation>Bewaar bestanden privé in je persoonlijke MuseScore.com-account, deel conceptversies met anderen en publiceer je partituren wanneer deze voltooid zijn.</translation>
     </message>
     <message>
-        <location filename="../../src/project/qml/MuseScore/Project/AskSaveLocationTypeDialog.qml" line="81"/>
         <source>Save to cloud on MuseScore.com</source>
         <translation>Bewaar in de cloud op MuseScore.com</translation>
     </message>
     <message>
-        <location filename="../../src/project/qml/MuseScore/Project/AskSaveLocationTypeDialog.qml" line="88"/>
         <source>Save to cloud on MuseScore.com (free)</source>
         <translation>Bewaar in de cloud op MuseScore.com (gratis)</translation>
     </message>
     <message>
-        <location filename="../../src/project/qml/MuseScore/Project/AskSaveLocationTypeDialog.qml" line="97"/>
+        <location filename="../../src/project/qml/MuseScore/Project/AskSaveLocationTypeDialog.qml" line="78"/>
+        <source>To the Cloud (free)</source>
+        <translation>In de cloud (gratis)</translation>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/AskSaveLocationTypeDialog.qml" line="79"/>
+        <source>Files are saved privately on your own personal account. You can share drafts with others and publish your finished scores publicly too.</source>
+        <translation>Bestanden worden privé opgeslagen op uw eigen persoonlijke account. U kunt concepten met anderen delen en uw voltooide partituren ook openbaar publiceren.</translation>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/AskSaveLocationTypeDialog.qml" line="81"/>
+        <source>Save to the cloud</source>
+        <translation>Sla op in de cloud</translation>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/AskSaveLocationTypeDialog.qml" line="87"/>
+        <source>Save to the cloud (free)</source>
+        <translation>Sla op in de cloud (gratis)</translation>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/AskSaveLocationTypeDialog.qml" line="96"/>
         <source>On your computer</source>
         <translation>Op uw computer</translation>
     </message>
     <message>
-        <location filename="../../src/project/qml/MuseScore/Project/AskSaveLocationTypeDialog.qml" line="98"/>
+        <location filename="../../src/project/qml/MuseScore/Project/AskSaveLocationTypeDialog.qml" line="97"/>
         <source>If you prefer to save your files on your computer, you can do that here.</source>
         <translation>Als u uw bestanden liever op uw computer opslaat, kunt u dat hier doen.</translation>
     </message>
     <message>
-        <location filename="../../src/project/qml/MuseScore/Project/AskSaveLocationTypeDialog.qml" line="105"/>
+        <location filename="../../src/project/qml/MuseScore/Project/AskSaveLocationTypeDialog.qml" line="104"/>
         <source>Save on your computer</source>
         <translation>Sla op uw computer op</translation>
     </message>
@@ -34506,7 +34523,6 @@ mislukt: %2</translation>
         <translation>Dit kan enkele minuten duren elke keer dat u opslaat, afhankelijk van de grootte van de partituur. Deze instellingen kunnen altijd worden gewijzigd in Voorkeuren.</translation>
     </message>
     <message>
-        <location filename="../../src/project/qml/MuseScore/Project/AskSaveLocationTypeDialog.qml" line="78"/>
         <location filename="../../src/project/qml/MuseScore/Project/SaveToCloudDialog.qml" line="136"/>
         <source>Save to cloud</source>
         <translation>Sla op in de cloud</translation>
@@ -34793,7 +34809,6 @@ mislukt: %2</translation>
         <translation>Om het bestand te behouden, probeer het opnieuw op te slaan. Als deze foutmelding blijft verschijnen, probeer dan een kopie op te slaan op een andere locatie. Voor hulp met dit probleem kunt u terecht op %1. &lt;br/&gt;&lt;br/&gt;Foutdetails (gaarg vermelden bij het vragen om ondersteuning): %2</translation>
     </message>
     <message>
-        <location filename="../../src/project/qml/MuseScore/Project/internal/SaveToCloud/SaveLocationOption.qml" line="102"/>
         <source>Free</source>
         <translation>Gratis</translation>
     </message>
@@ -35667,12 +35682,12 @@ mislukt: %2</translation>
         <translation>Wijzig naam van partij</translation>
     </message>
     <message>
-        <location filename="../../src/notation/internal/masternotation.cpp" line="477"/>
+        <location filename="../../src/notation/internal/masternotation.cpp" line="478"/>
         <source>Add/remove parts</source>
         <translation>Partijen toevoegen/verwijderen</translation>
     </message>
     <message>
-        <location filename="../../src/notation/internal/masternotation.cpp" line="520"/>
+        <location filename="../../src/notation/internal/masternotation.cpp" line="521"/>
         <source>Reset part</source>
         <translation>Herstel partij</translation>
     </message>
@@ -36343,7 +36358,7 @@ mislukt: %2</translation>
     <message>
         <location filename="../../src/notation/internal/notationnoteinput.cpp" line="478"/>
         <source>Pad note</source>
-        <translation>Bloknoot</translation>
+        <translation>Padnoot</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationnoteinput.cpp" line="516"/>

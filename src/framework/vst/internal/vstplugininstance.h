@@ -40,10 +40,11 @@
 
 namespace muse::vst {
 class VstPluginProvider;
-class VstPluginInstance : public IVstPluginInstance, public async::Asyncable, public muse::Injectable
+class VstPluginInstance : public IVstPluginInstance, public async::Asyncable, public muse::Contextable
 {
-    muse::Inject<muse::audio::IAudioThreadSecurer> threadSecurer = { this };
-    muse::Inject<IVstModulesRepository> modulesRepo = { this };
+    muse::GlobalInject<muse::audio::IAudioThreadSecurer> threadSecurer;
+
+    muse::ContextInject<IVstModulesRepository> modulesRepo = { this };
 
 public:
     VstPluginInstance(const muse::audio::AudioResourceId& resourceId, const modularity::ContextPtr& iocCtx);

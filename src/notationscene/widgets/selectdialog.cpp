@@ -38,7 +38,7 @@ using namespace muse::ui;
 //---------------------------------------------------------
 
 SelectDialog::SelectDialog(QWidget* parent)
-    : QDialog(parent), muse::Injectable(muse::iocCtxForQWidget(this))
+    : QDialog(parent), muse::Contextable(muse::iocCtxForQWidget(this))
 {
     setObjectName("SelectDialog");
     setupUi(this);
@@ -58,6 +58,9 @@ SelectDialog::SelectDialog(QWidget* parent)
     subtype->setText(m_element->translatedSubtypeUserName().toQString());
 
     sameSubtype->setEnabled(m_element->subtype() != -1);
+    if (m_element->isHairpinSegment() || m_element->isHarmony()) {
+        sameSubtype->setCheckState(Qt::CheckState::Checked);
+    }
     subtype->setEnabled(m_element->subtype() != -1);
 
     const auto isSingleSelection = m_element->score()->selection().isSingle();

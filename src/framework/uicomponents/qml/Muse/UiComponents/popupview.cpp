@@ -21,6 +21,7 @@
  */
 
 #include "popupview.h"
+#include "modularity/ioc.h"
 
 #if defined(Q_OS_MAC)
 #include "internal/platform/macos/macospopupviewclosecontroller.h"
@@ -83,12 +84,13 @@ void PopupView::initView()
 
 void PopupView::initCloseController()
 {
+    muse::modularity::ContextPtr iocCtx = muse::iocCtxForQmlObject(this)();
 #if defined(Q_OS_MAC)
-    m_closeController = new MacOSPopupViewCloseController(muse::iocCtxForQmlEngine(this->engine()));
+    m_closeController = new MacOSPopupViewCloseController(iocCtx);
 #elif defined(Q_OS_WIN)
-    m_closeController = new WinPopupViewCloseController(muse::iocCtxForQmlEngine(this->engine()));
+    m_closeController = new WinPopupViewCloseController(iocCtx);
 #else
-    m_closeController = new PopupViewCloseController(muse::iocCtxForQmlEngine(this->engine()));
+    m_closeController = new PopupViewCloseController(iocCtx);
 #endif
 
     m_closeController->init();
@@ -138,8 +140,7 @@ void PopupView::onHidden()
 
 bool PopupView::eventFilter(QObject* watched, QEvent* event)
 {
-    if (QEvent::UpdateRequest == event->type()
-        || (event->type() == QEvent::Move && watched == m_parentWindow)) {
+    if (event->type() == QEvent::Move && watched == m_parentWindow) {
         repositionWindowIfNeed();
     }
 

@@ -199,7 +199,7 @@ static void setPitchByOttavaType(mu::engraving::Note* note, mu::engraving::Ottav
 }
 
 GPConverter::GPConverter(Score* score, std::unique_ptr<GPDomModel>&& gpDom, const muse::modularity::ContextPtr& iocCtx)
-    : muse::Injectable(iocCtx), _score(score), _gpDom(std::move(gpDom))
+    : muse::Contextable(iocCtx), _score(score), _gpDom(std::move(gpDom))
 {
     _drumExtension = {
         { 91, 40 }, //Snare(rim shot)
@@ -1448,7 +1448,7 @@ void GPConverter::addTempoMap()
     auto realTempo = [](const GPMasterTracks::Automation& temp) {
         //real tempo - beats per second
         //formula ro convert tempo from GTP tempo values
-        int tempo = temp.value;
+        double tempo = temp.value;
 
         if (temp.tempoUnit == 0) {
             return tempo;
@@ -1476,11 +1476,11 @@ void GPConverter::addTempoMap()
             Fraction tick = m->tick() + Fraction::fromTicks(
                 tempIt->second.position * Constants::DIVISION * 4 * m->ticks().numerator() / m->ticks().denominator());
             Segment* segment = findClosestSegment(m, tick);
-            int realTemp = realTempo(tempIt->second);
+            double realTemp = realTempo(tempIt->second);
             TempoText* tt = Factory::createTempoText(segment);
             tt->setTempo((double)realTemp / 60);
             String& labelText = tempIt->second.text;
-            String tempoText = String(u"<sym>metNoteQuarterUp</sym> = %1").arg(realTemp);
+            String tempoText = String(u"<sym>metNoteQuarterUp</sym> = %1").arg(round(realTemp));
 
             if (!labelText.isEmpty()) {
                 tempoText.prepend(labelText.append(Char(' ')));

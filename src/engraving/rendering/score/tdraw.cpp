@@ -34,6 +34,7 @@
 #include "dom/actionicon.h"
 #include "dom/ambitus.h"
 #include "dom/arpeggio.h"
+#include "dom/chordbracket.h"
 #include "dom/articulation.h"
 
 #include "dom/bagpembell.h"
@@ -184,6 +185,8 @@ void TDraw::drawItem(const EngravingItem* item, Painter* painter, const PaintOpt
         break;
     case ElementType::ARPEGGIO:     draw(item_cast<const Arpeggio*>(item), painter, opt);
         break;
+    case ElementType::CHORD_BRACKET: draw(item_cast<const ChordBracket*>(item), painter, opt);
+        break;
     case ElementType::ARTICULATION: draw(item_cast<const Articulation*>(item), painter, opt);
         break;
 
@@ -314,8 +317,6 @@ void TDraw::drawItem(const EngravingItem* item, Painter* painter, const PaintOpt
     case ElementType::OTTAVA_SEGMENT:       draw(item_cast<const OttavaSegment*>(item), painter, opt);
         break;
 
-    case ElementType::PAGE:                 draw(item_cast<const Page*>(item), painter, opt);
-        break;
     case ElementType::PARENTHESIS:          draw(item_cast<const Parenthesis*>(item), painter, opt);
         break;
     case ElementType::PARTIAL_TIE_SEGMENT:  draw(item_cast<const PartialTieSegment*>(item), painter, opt);
@@ -412,6 +413,7 @@ void TDraw::drawItem(const EngravingItem* item, Painter* painter, const PaintOpt
     case ElementType::WHAMMY_BAR_SEGMENT:   draw(item_cast<const WhammyBarSegment*>(item), painter, opt);
         break;
 
+    case ElementType::PAGE:
     case ElementType::SYSTEM:
     case ElementType::MEASURE:
     case ElementType::SEGMENT:
@@ -554,6 +556,30 @@ void TDraw::draw(const Arpeggio* item, Painter* painter, const PaintOptions& opt
     } break;
     }
     painter->restore();
+}
+
+void TDraw::draw(const ChordBracket* item, muse::draw::Painter* painter, const PaintOptions& opt)
+{
+    const Arpeggio::LayoutData* ldata = item->ldata();
+
+    const double lineWidth = item->style().styleMM(Sid::chordBracketLineWidth);
+    painter->setPen(Pen(item->curColor(opt), lineWidth, PenStyle::SolidLine, PenCapStyle::FlatCap));
+
+    const double halfLineWidth = 0.5 * lineWidth;
+    const double y1 = ldata->bbox().top() + halfLineWidth;
+    const double y2 = ldata->bbox().bottom() - halfLineWidth;
+
+    double w = item->absoluteFromSpatium(item->hookLength());
+
+    if (item->hookPos() != DirectionV::DOWN) {
+        painter->drawLine(LineF(0.0, y1, w, y1));
+    }
+    if (item->hookPos() != DirectionV::UP) {
+        painter->drawLine(LineF(0.0, y2, w, y2));
+    }
+
+    const double x = item->rightSide() ? w - halfLineWidth : halfLineWidth;
+    painter->drawLine(LineF(x, y1, x, y2));
 }
 
 void TDraw::draw(const Articulation* item, Painter* painter, const PaintOptions& opt)
@@ -1725,6 +1751,7 @@ void TDraw::draw(const TextFragment& textFragment, const TextBase* item, muse::d
 void TDraw::drawTextLineBaseSegment(const TextLineBaseSegment* item, Painter* painter, const PaintOptions& opt)
 {
     const TextLineBase* tl = item->textLineBase();
+    const TextLineBaseSegment::LayoutData* ldata = item->ldata();
 
     if (!item->text()->empty()) {
         painter->translate(item->text()->pos());
@@ -1740,7 +1767,7 @@ void TDraw::drawTextLineBaseSegment(const TextLineBaseSegment* item, Painter* pa
         painter->translate(-item->endText()->pos());
     }
 
-    if (item->npoints() == 0
+    if (ldata->npoints == 0
         || ((opt.isPrinting || (item->score() && !item->score()->isShowInvisible()))
             && !tl->lineVisible())) {
         return;
@@ -1769,63 +1796,89 @@ void TDraw::drawTextLineBaseSegment(const TextLineBaseSegment* item, Painter* pa
 
         pen.setJoinStyle(PenJoinStyle::BevelJoin);
         painter->setPen(pen);
-        if (!item->joinedHairpin().empty() && !isNonSolid) {
-            painter->drawPolyline(item->joinedHairpin());
+        if (!ldata->joinedHairpin.empty() && !isNonSolid) {
+            painter->drawPolyline(ldata->joinedHairpin);
         } else {
-            painter->drawLines(&item->points()[0], 2);
+            painter->drawLines(&ldata->points[0], 2);
         }
         return;
     }
 
-    int start = 0, end = item->npoints();
+    int start = 0, end = ldata->npoints;
 
     // Draw begin hook, if it needs to be drawn separately
     if (item->isSingleBeginType() && tl->beginHookType() != HookType::NONE) {
-        bool isTHook = tl->beginHookType() == HookType::HOOK_90T;
+        if (tl->beginHookType() == HookType::ARROW_FILLED) {
+            Brush brush;
+            brush.setStyle(BrushStyle::SolidPattern);
+            brush.setColor(item->curColor(opt));
+            painter->setBrush(brush);
+            painter->setNoPen();
+            painter->drawPolygon(ldata->beginArrow);
+        } else if (tl->beginHookType() == HookType::ARROW) {
+            pen.setJoinStyle(PenJoinStyle::MiterJoin);
+            painter->setPen(pen);
+            painter->drawPolyline(ldata->beginArrow);
+        } else {
+            bool isTHook = tl->beginHookType() == HookType::HOOK_90T;
 
-        if (isNonSolid || isTHook) {
-            const PointF& p1 = item->points()[start++];
-            const PointF& p2 = item->points()[start++];
+            if (isNonSolid || isTHook) {
+                const PointF& p1 = ldata->points[start++];
+                const PointF& p2 = ldata->points[start++];
 
-            if (isTHook) {
-                painter->setPen(solidPen);
-            } else {
-                double hookLength = sqrt(PointF::dotProduct(p2 - p1, p2 - p1));
-                pen.setDashPattern(distributedDashPattern(dash, gap, hookLength / lineWidth));
-                painter->setPen(pen);
+                if (isTHook) {
+                    painter->setPen(solidPen);
+                } else {
+                    double hookLength = sqrt(PointF::dotProduct(p2 - p1, p2 - p1));
+                    pen.setDashPattern(distributedDashPattern(dash, gap, hookLength / lineWidth));
+                    painter->setPen(pen);
+                }
+
+                painter->drawLine(p1, p2);
             }
-
-            painter->drawLine(p1, p2);
         }
     }
 
     // Draw end hook, if it needs to be drawn separately
     if (item->isSingleEndType() && tl->endHookType() != HookType::NONE) {
-        bool isTHook = tl->endHookType() == HookType::HOOK_90T;
+        if (tl->endHookType() == HookType::ARROW_FILLED) {
+            Brush brush;
+            brush.setStyle(BrushStyle::SolidPattern);
+            brush.setColor(item->curColor(opt));
+            painter->setBrush(brush);
+            painter->setNoPen();
+            painter->drawPolygon(ldata->endArrow);
+        } else if (tl->endHookType() == HookType::ARROW) {
+            pen.setJoinStyle(PenJoinStyle::MiterJoin);
+            painter->setPen(pen);
+            painter->drawPolyline(ldata->endArrow);
+        } else {
+            bool isTHook = tl->endHookType() == HookType::HOOK_90T;
 
-        if (isNonSolid || isTHook) {
-            const PointF& p1 = item->points()[--end];
-            const PointF& p2 = item->points()[--end];
+            if (isNonSolid || isTHook) {
+                const PointF& p1 = ldata->points[--end];
+                const PointF& p2 = ldata->points[--end];
 
-            if (isTHook) {
-                painter->setPen(solidPen);
-            } else {
-                double hookLength = sqrt(PointF::dotProduct(p2 - p1, p2 - p1));
-                pen.setDashPattern(distributedDashPattern(dash, gap, hookLength / lineWidth));
-                painter->setPen(pen);
+                if (isTHook) {
+                    painter->setPen(solidPen);
+                } else {
+                    double hookLength = sqrt(PointF::dotProduct(p2 - p1, p2 - p1));
+                    pen.setDashPattern(distributedDashPattern(dash, gap, hookLength / lineWidth));
+                    painter->setPen(pen);
+                }
+
+                painter->drawLine(p1, p2);
             }
-
-            painter->drawLine(p1, p2);
         }
     }
 
     // Draw the rest
     if (isNonSolid) {
-        pen.setDashPattern(distributedDashPattern(dash, gap, item->lineLength() / lineWidth));
+        pen.setDashPattern(distributedDashPattern(dash, gap, ldata->lineLength / lineWidth));
     }
 
     painter->setPen(pen);
-    painter->drawPolyline(&item->points()[start], end - start);
+    painter->drawPolyline(&ldata->points[start], end - start);
 }
 
 void TDraw::draw(const GradualTempoChangeSegment* item, Painter* painter, const PaintOptions& opt)
@@ -2360,69 +2413,6 @@ void TDraw::draw(const OttavaSegment* item, Painter* painter, const PaintOptions
     drawTextLineBaseSegment(item, painter, opt);
 }
 
-void TDraw::draw(const Page* item, Painter* painter, const PaintOptions& opt)
-{
-    TRACE_DRAW_ITEM;
-    bool shouldDraw = item->score()->isLayoutMode(LayoutMode::PAGE) || item->score()->isLayoutMode(LayoutMode::FLOAT);
-    if (!shouldDraw) {
-        return;
-    }
-    //
-    // draw header/footer
-    //
-
-    page_idx_t n = item->no() + 1 + item->score()->pageNumberOffset();
-    painter->setPen(item->curColor(opt));
-
-    auto drawHeaderFooter = [item, &opt](Painter* p, int area, const String& ss)
-    {
-        Text* text = item->layoutHeaderFooter(area, ss);
-        if (!text) {
-            return;
-        }
-        p->translate(text->pos());
-        draw(text, p, opt);
-        p->translate(-text->pos());
-        text->resetExplicitParent();
-    };
-
-    String s1, s2, s3;
-
-    if (item->style().styleB(Sid::showHeader) && (item->no() || item->style().styleB(Sid::headerFirstPage))) {
-        bool odd = (n & 1) || !item->style().styleB(Sid::headerOddEven);
-        if (odd) {
-            s1 = item->style().styleSt(Sid::oddHeaderL);
-            s2 = item->style().styleSt(Sid::oddHeaderC);
-            s3 = item->style().styleSt(Sid::oddHeaderR);
-        } else {
-            s1 = item->style().styleSt(Sid::evenHeaderL);
-            s2 = item->style().styleSt(Sid::evenHeaderC);
-            s3 = item->style().styleSt(Sid::evenHeaderR);
-        }
-
-        drawHeaderFooter(painter, 0, s1);
-        drawHeaderFooter(painter, 1, s2);
-        drawHeaderFooter(painter, 2, s3);
-    }
-
-    if (item->style().styleB(Sid::showFooter) && (item->no() || item->style().styleB(Sid::footerFirstPage))) {
-        bool odd = (n & 1) || !item->style().styleB(Sid::footerOddEven);
-        if (odd) {
-            s1 = item->style().styleSt(Sid::oddFooterL);
-            s2 = item->style().styleSt(Sid::oddFooterC);
-            s3 = item->style().styleSt(Sid::oddFooterR);
-        } else {
-            s1 = item->style().styleSt(Sid::evenFooterL);
-            s2 = item->style().styleSt(Sid::evenFooterC);
-            s3 = item->style().styleSt(Sid::evenFooterR);
-        }
-
-        drawHeaderFooter(painter, 3, s1);
-        drawHeaderFooter(painter, 4, s2);
-        drawHeaderFooter(painter, 5, s3);
-    }
-}
-
 void TDraw::draw(const Parenthesis* item, muse::draw::Painter* painter, const PaintOptions& opt)
 {
     TRACE_DRAW_ITEM;
@@ -2875,24 +2865,21 @@ void TDraw::draw(const StringTunings* item, Painter* painter, const PaintOptions
     if (item->noStringVisible()) {
         const TextBase::LayoutData* data = item->ldata();
 
-        double spatium = item->spatium();
-        double lineWidth = spatium * .15;
+        const double spatium = item->spatium();
+        const double lineWidth = spatium * .15;
 
-        Pen pen(item->curColor(opt), lineWidth, PenStyle::SolidLine, PenCapStyle::RoundCap, PenJoinStyle::RoundJoin);
+        const Pen pen(item->curColor(opt), lineWidth, PenStyle::SolidLine, PenCapStyle::RoundCap, PenJoinStyle::RoundJoin);
         painter->setPen(pen);
         painter->setBrush(Brush(item->curColor(opt)));
 
-        Font f(item->font());
-        painter->setFont(f);
+        const RectF rect = data->bbox();
 
-        RectF rect = data->bbox();
-
-        double x = rect.x();
-        double y = rect.y();
-        double width = rect.width();
-        double height = rect.height();
-        double topPartHeight = height * .66;
-        double cornerRadius = 8.0;
+        const double x = rect.x();
+        const double y = rect.y();
+        const double width = rect.width();
+        const double height = rect.height();
+        const double topPartHeight = height * .66;
+        const double cornerRadius = height * .1;
 
         PainterPath path;
         path.moveTo(x, y);

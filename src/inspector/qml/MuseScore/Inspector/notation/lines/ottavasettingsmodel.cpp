@@ -30,22 +30,12 @@ using namespace mu::inspector;
 
 using IconCode = muse::ui::IconCode::Code;
 
-OttavaSettingsModel::OttavaSettingsModel(QObject* parent, IElementRepositoryService* repository)
-    : TextLineSettingsModel(parent, repository, mu::engraving::ElementType::OTTAVA)
+OttavaSettingsModel::OttavaSettingsModel(QObject* parent, const muse::modularity::ContextPtr& iocCtx, IElementRepositoryService* repository)
+    : TextLineSettingsModel(parent, iocCtx, repository, mu::engraving::ElementType::OTTAVA)
 {
     setTitle(muse::qtrc("inspector", "Ottava"));
     setModelType(InspectorModelType::TYPE_OTTAVA);
     setIcon(muse::ui::IconCode::Code::OTTAVA);
-
-    setPossibleStartHookTypes({});
-
-    static const QList<HookTypeInfo> endHookTypes {
-        { mu::engraving::HookType::NONE, IconCode::LINE_NORMAL, muse::qtrc("inspector", "Normal", "hook type") },
-        { mu::engraving::HookType::HOOK_90, IconCode::LINE_WITH_END_HOOK, muse::qtrc("inspector", "Hooked 90°", "hook type") },
-        { mu::engraving::HookType::HOOK_45, IconCode::LINE_WITH_ANGLED_END_HOOK, muse::qtrc("inspector", "Hooked 45°", "hook type") }
-    };
-
-    setPossibleEndHookTypes(endHookTypes);
 
     createProperties();
 }
@@ -84,6 +74,21 @@ QVariantList OttavaSettingsModel::possibleOttavaTypes() const
     return result;
 }
 
+void OttavaSettingsModel::updateStartAndEndHookTypes()
+{
+    setPossibleStartHookTypes({});
+
+    static const QList<HookTypeInfo> endHookTypes {
+        { mu::engraving::HookType::NONE, IconCode::LINE_NORMAL, muse::qtrc("inspector", "Normal", "hook type") },
+        { mu::engraving::HookType::HOOK_90, IconCode::LINE_WITH_END_HOOK, muse::qtrc("inspector", "Hooked 90°", "hook type") },
+        { mu::engraving::HookType::HOOK_45, IconCode::LINE_WITH_ANGLED_END_HOOK, muse::qtrc("inspector", "Hooked 45°", "hook type") },
+        { mu::engraving::HookType::ARROW, IconCode::LINE_ARROW_RIGHT, muse::qtrc("inspector", "Line arrow", "hook type") },
+        { mu::engraving::HookType::ARROW_FILLED, IconCode::FILLED_ARROW_RIGHT, muse::qtrc("inspector", "Filled arrow", "hook type") }
+    };
+
+    setPossibleEndHookTypes(endHookTypes);
+}
+
 void OttavaSettingsModel::createProperties()
 {
     TextLineSettingsModel::createProperties();
@@ -102,6 +107,7 @@ void OttavaSettingsModel::loadProperties()
 
     loadPropertyItem(m_ottavaType);
     loadPropertyItem(m_showNumbersOnly);
+    updateStartAndEndHookTypes();
 }
 
 void OttavaSettingsModel::resetProperties()

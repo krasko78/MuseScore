@@ -149,9 +149,11 @@ public:
 
     MOCK_METHOD(bool, isAutomaticallyPanEnabled, (), (const, override));
     MOCK_METHOD(void, setIsAutomaticallyPanEnabled, (bool), (override));
+    MOCK_METHOD(muse::async::Notification, isAutomaticallyPanEnabledChanged, (), (const, override));
 
     MOCK_METHOD(bool, isSmoothPanning, (), (const, override));
     MOCK_METHOD(void, setIsSmoothPanning, (bool), (override));
+    MOCK_METHOD(muse::async::Notification, isSmoothPanningChanged, (), (const, override));
 
     MOCK_METHOD(bool, isPlayRepeatsEnabled, (), (const, override));
     MOCK_METHOD(void, setIsPlayRepeatsEnabled, (bool), (override));
@@ -224,15 +226,6 @@ public:
 
     MOCK_METHOD(int, gridSizeSpatium, (muse::Orientation), (const, override));
     MOCK_METHOD(void, setGridSize, (muse::Orientation, int), (override));
-
-    MOCK_METHOD(bool, needToShowAddTextErrorMessage, (), (const, override));
-    MOCK_METHOD(void, setNeedToShowAddTextErrorMessage, (bool), (override));
-
-    MOCK_METHOD(bool, needToShowAddFiguredBassErrorMessage, (), (const, override));
-    MOCK_METHOD(void, setNeedToShowAddFiguredBassErrorMessage, (bool), (override));
-
-    MOCK_METHOD(bool, needToShowAddGuitarBendErrorMessage, (), (const, override));
-    MOCK_METHOD(void, setNeedToShowAddGuitarBendErrorMessage, (bool), (override));
 
     MOCK_METHOD(bool, needToShowMScoreError, (const std::string&), (const, override));
     MOCK_METHOD(void, setNeedToShowMScoreError, (const std::string&, bool), (override));

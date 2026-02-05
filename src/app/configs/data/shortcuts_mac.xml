@@ -12,7 +12,7 @@
         <autorepeat>0</autorepeat>
     </SC>
     <SC>
-        <key>multiinstances-dev-show-info</key>
+        <key>multiwindows-dev-show-info</key>
         <seq>Ctrl+F3</seq>
         <autorepeat>0</autorepeat>
     </SC>
@@ -159,6 +159,10 @@
   <SC>
     <key>notation-paste-double</key>
     <seq>Meta+Shift+W</seq>
+    </SC>
+  <SC>
+    <key>extend-to-next-note</key>
+    <seq>Alt+W</seq>
     </SC>
   <SC>
     <key>notation-swap</key>

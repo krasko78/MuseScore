@@ -34,7 +34,7 @@
 #include "../iengravingconfiguration.h"
 
 namespace mu::engraving {
-class EngravingConfiguration : public IEngravingConfiguration, public muse::Injectable, public muse::async::Asyncable
+class EngravingConfiguration : public IEngravingConfiguration, public muse::Contextable, public muse::async::Asyncable
 {
     muse::GlobalInject<muse::IGlobalConfiguration> globalConfiguration;
     muse::GlobalInject<muse::ui::IUiConfiguration> uiConfiguration;
@@ -44,7 +44,7 @@ class EngravingConfiguration : public IEngravingConfiguration, public muse::Inje
 
 public:
     EngravingConfiguration(const muse::modularity::ContextPtr& iocCtx)
-        : muse::Injectable(iocCtx) {}
+        : muse::Contextable(iocCtx) {}
 
     void init();
 
@@ -121,7 +121,6 @@ public:
     bool allowReadingImagesFromOutsideMscz() const override;
 
     bool guitarProImportExperimental() const override;
-    bool shouldAddParenthesisOnStandardStaff() const override;
     bool negativeFretsAllowed() const override;
     void setGuitarProMultivoiceEnabled(bool multiVoice) override;
     bool guitarProMultivoiceEnabled() const override;

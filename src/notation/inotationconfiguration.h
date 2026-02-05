@@ -33,7 +33,7 @@
 #include "global/globaltypes.h"
 
 namespace mu::notation {
-class INotationConfiguration : MODULE_GLOBAL_EXPORT_INTERFACE
+class INotationConfiguration : MODULE_GLOBAL_INTERFACE
 {
     INTERFACE_ID(INotationConfiguration)
 
@@ -159,9 +159,11 @@ public:
 
     virtual bool isAutomaticallyPanEnabled() const = 0;
     virtual void setIsAutomaticallyPanEnabled(bool enabled) = 0;
+    virtual muse::async::Notification isAutomaticallyPanEnabledChanged() const = 0;
 
     virtual bool isSmoothPanning() const = 0;
     virtual void setIsSmoothPanning(bool value) = 0;
+    virtual muse::async::Notification isSmoothPanningChanged() const = 0;
 
     virtual bool isPlayRepeatsEnabled() const = 0;
     virtual void setIsPlayRepeatsEnabled(bool enabled) = 0;
@@ -234,15 +236,6 @@ public:
 
     virtual int gridSizeSpatium(muse::Orientation gridOrientation) const = 0;
     virtual void setGridSize(muse::Orientation gridOrientation, int sizeSpatium) = 0;
-
-    virtual bool needToShowAddTextErrorMessage() const = 0;
-    virtual void setNeedToShowAddTextErrorMessage(bool show) = 0;
-
-    virtual bool needToShowAddFiguredBassErrorMessage() const = 0;
-    virtual void setNeedToShowAddFiguredBassErrorMessage(bool show) = 0;
-
-    virtual bool needToShowAddGuitarBendErrorMessage() const = 0;
-    virtual void setNeedToShowAddGuitarBendErrorMessage(bool show) = 0;
 
     virtual bool needToShowMScoreError(const std::string& errorKey) const = 0;
     virtual void setNeedToShowMScoreError(const std::string& errorKey, bool show) = 0;

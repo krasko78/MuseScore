@@ -469,11 +469,6 @@ bool EngravingConfiguration::guitarProImportExperimental() const
     return guitarProConfiguration() ? guitarProConfiguration()->experimental() : false;
 }
 
-bool EngravingConfiguration::shouldAddParenthesisOnStandardStaff() const
-{
-    return guitarProImportExperimental();
-}
-
 bool EngravingConfiguration::negativeFretsAllowed() const
 {
     return guitarProImportExperimental();

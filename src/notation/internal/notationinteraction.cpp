@@ -229,7 +229,7 @@ inline QString extractSyllable(const QString& text)
 }
 
 NotationInteraction::NotationInteraction(Notation* notation, INotationUndoStackPtr undoStack)
-    : muse::Injectable(notation->iocContext()), m_notation(notation), m_undoStack(undoStack), m_editData(&m_scoreCallbacks)
+    : muse::Contextable(notation->iocContext()), m_notation(notation), m_undoStack(undoStack), m_editData(&m_scoreCallbacks)
 {
     m_noteInput = std::make_shared<NotationNoteInput>(notation, this, m_undoStack, iocContext());
     m_selection = std::make_shared<NotationSelection>(notation);
@@ -707,18 +707,6 @@ std::vector<EngravingItem*> NotationInteraction::hitElements(const PointF& pos, 
     RectF hitRect(posOnPage.x() - width, posOnPage.y() - width, 3.0 * width, 3.0 * width);
 
     std::vector<EngravingItem*> potentiallyHitElements = page->items(hitRect);
-
-    for (int i = 0; i < engraving::MAX_HEADERS; ++i) {
-        if (score()->headerText(i) != nullptr) { // gives the ability to select the header
-            potentiallyHitElements.push_back(score()->headerText(i));
-        }
-    }
-
-    for (int i = 0; i < engraving::MAX_FOOTERS; ++i) {
-        if (score()->footerText(i) != nullptr) { // gives the ability to select the footer
-            potentiallyHitElements.push_back(score()->footerText(i));
-        }
-    }
 
     auto canHitElement = [](const EngravingItem* element) {
         if (!element->selectable() || element->isPage()) {
@@ -1469,7 +1457,7 @@ void NotationInteraction::startOutgoingDragElement(const EngravingItem* element,
     QPixmap pixmap(qCeil(scaledWidth * devicePixelRatio),
                    qCeil(scaledHeight * devicePixelRatio));
     pixmap.setDevicePixelRatio(devicePixelRatio);
-    pixmap.fill(Qt::yellow);
+    pixmap.fill(Qt::transparent);
 
     QPainter qp(&pixmap);
 
@@ -1687,6 +1675,7 @@ bool NotationInteraction::updateDropSingle(const PointF& pos, Qt::KeyboardModifi
     case ElementType::CLEF:
     case ElementType::BAR_LINE:
     case ElementType::ARPEGGIO:
+    case ElementType::CHORD_BRACKET:
     case ElementType::BREATH:
     case ElementType::GLISSANDO:
     case ElementType::ARTICULATION:
@@ -2039,6 +2028,7 @@ bool NotationInteraction::dropSingle(const PointF& pos, Qt::KeyboardModifiers mo
     case ElementType::TIMESIG:
     case ElementType::BAR_LINE:
     case ElementType::ARPEGGIO:
+    case ElementType::CHORD_BRACKET:
     case ElementType::BREATH:
     case ElementType::GLISSANDO:
     case ElementType::MEASURE_NUMBER:
@@ -4487,12 +4477,14 @@ bool NotationInteraction::handleKeyPress(QKeyEvent* event)
             return false;
         }
         editElem->nextGrip(m_editData);
+        notifyAboutNotationChanged();
         return true;
     case Qt::Key_Backtab:
         if (!editElem->hasGrips()) {
             return false;
         }
         editElem->prevGrip(m_editData);
+        notifyAboutNotationChanged();
         return true;
     case Qt::Key_Left: // krasko start
         raster = appshellConfiguration()->enableHighPrecisionNudging() ? 0 : hRaster;
@@ -5063,29 +5055,6 @@ void NotationInteraction::joinSelectedMeasures()
     checkAndShowError();
 }
 
-Ret NotationInteraction::canAddBoxes() const
-{
-    if (selection()->isRange()) {
-        return muse::make_ok();
-    }
-
-    static const ElementTypeSet BOX_TYPES {
-        ElementType::VBOX, ElementType::HBOX, ElementType::TBOX, ElementType::FBOX
-    };
-
-    for (const EngravingItem* element: selection()->elements()) {
-        if (mu::engraving::toMeasure(element->findMeasure())) {
-            return muse::make_ok();
-        }
-
-        if (muse::contains(BOX_TYPES, element->type())) {
-            return muse::make_ok();
-        }
-    }
-
-    return make_ret(Err::MeasureIsNotSelected);
-}
-
 void NotationInteraction::addBoxes(BoxType boxType, int count, AddBoxesTarget target)
 {
     int beforeBoxIndex = -1;
@@ -5097,6 +5066,8 @@ void NotationInteraction::addBoxes(BoxType boxType, int count, AddBoxesTarget ta
     case AddBoxesTarget::AfterSelection:
     case AddBoxesTarget::BeforeSelection: {
         if (selection()->isNone()) {
+            MScore::setError(MsError::NO_MEASURE_SELECTED);
+            checkAndShowError();
             return;
         }
 
@@ -5114,6 +5085,8 @@ void NotationInteraction::addBoxes(BoxType boxType, int count, AddBoxesTarget ta
         const std::vector<EngravingItem*>& elements = selection()->elements();
         IF_ASSERT_FAILED(!elements.empty()) {
             // This would contradict the fact that selection()->isNone() == false at this point
+            MScore::setError(MsError::NO_MEASURE_SELECTED);
+            checkAndShowError();
             return;
         }
 
@@ -5143,31 +5116,37 @@ void NotationInteraction::addBoxes(BoxType boxType, int count, AddBoxesTarget ta
             }
         }
 
-        // special cases for "between measures elements"
-        if (selectedItem && selectedItemMeasure) { // null check
-            ElementType selectedItemType = selectedItem->type();
-            if (selectedItemType == ElementType::CLEF || selectedItemType == ElementType::BAR_LINE
-                || selectedItemType == ElementType::TIMESIG || selectedItemType == ElementType::KEYSIG) {
-                Fraction itemTick = selectedItem->tick();
-                Fraction measureTick = selectedItemMeasure->tick();
-                Fraction measureLastTick = measureTick + selectedItemMeasure->ticks();
+        const bool selectedIsValid = selectedItem && selectedItemMeasure;
+        const ElementType selectedItemType = selectedIsValid ? selectedItem->type() : ElementType::INVALID;
 
-                if (itemTick == measureTick) {
-                    if (target == AddBoxesTarget::AfterSelection) {
-                        beforeBoxIndex -= 1;
-                    }
-                    moveSignaturesClefs = (target == AddBoxesTarget::AfterSelection);
-                } else if (itemTick == measureLastTick) {
-                    if (target == AddBoxesTarget::BeforeSelection) {
-                        beforeBoxIndex += 1;
-                    }
-                    moveSignaturesClefs = (target == AddBoxesTarget::AfterSelection);
+        // special cases for "between measures elements"
+        switch (selectedItemType) {
+        case ElementType::CLEF:
+        case ElementType::BAR_LINE:
+        case ElementType::TIMESIG:
+        case ElementType::KEYSIG: {
+            const Fraction itemTick = selectedItem->tick();
+            const Fraction measureTick = selectedItemMeasure->tick();
+            const Fraction measureLastTick = measureTick + selectedItemMeasure->ticks();
+
+            if (itemTick == measureTick) {
+                if (target == AddBoxesTarget::AfterSelection) {
+                    beforeBoxIndex -= 1;
                 }
+                moveSignaturesClefs = (target == AddBoxesTarget::AfterSelection);
+            } else if (itemTick == measureLastTick) {
+                if (target == AddBoxesTarget::BeforeSelection) {
+                    beforeBoxIndex += 1;
+                }
+                moveSignaturesClefs = (target == AddBoxesTarget::AfterSelection);
             }
+        }
+        default: break;
         }
 
         if (beforeBoxIndex < 0) {
-            // No suitable element found
+            MScore::setError(MsError::NO_MEASURE_SELECTED);
+            checkAndShowError();
             return;
         }
     } break;
@@ -5416,39 +5395,13 @@ void NotationInteraction::pasteSelection(const Fraction& scale)
 
     bool succeeded = true;
     if (isTextEditingStarted()) {
-        const QMimeData* mimeData = QApplication::clipboard()->mimeData();
-        if (mimeData->hasFormat(TextEditData::mimeRichTextFormat)) {
-            const QString txt = QString::fromUtf8(mimeData->data(TextEditData::mimeRichTextFormat));
-            toTextBase(m_editData.element)->paste(m_editData, txt);
-        } else {
-            QString clipboardText = mimeData->text();
-            QString textForPaste = clipboardText;
-            if ((!clipboardText.startsWith('<') || !clipboardText.contains('>')) && m_editData.element->isLyrics()) {
-                textForPaste = extractSyllable(clipboardText);
-            }
-
-            toTextBase(m_editData.element)->paste(m_editData, textForPaste);
-
-            if (!textForPaste.isEmpty() && m_editData.element->isLyrics()) {
-                if (textForPaste.endsWith('-')) {
-                    navigateToNextSyllable();
-                } else if (textForPaste.endsWith('_')) {
-                    addMelisma();
-                } else {
-                    navigateToLyrics(false, false, false);
-                }
-
-                QString textForNextPaste = clipboardText.remove(0, clipboardText.indexOf(textForPaste) + textForPaste.size());
-                QGuiApplication::clipboard()->setText(textForNextPaste);
-            }
-        }
+        pasteIntoTextEdit();
     } else {
         const QMimeData* mimeData = QApplication::clipboard()->mimeData();
         QMimeDataAdapter ma(mimeData);
         succeeded = score()->cmdPaste(&ma, nullptr, scale);
+        m_editData.element = nullptr;
     }
-
-    m_editData.element = nullptr;
 
     if (succeeded) {
         apply();
@@ -5460,6 +5413,39 @@ void NotationInteraction::pasteSelection(const Fraction& scale)
     }
 
     checkAndShowError();
+}
+
+void NotationInteraction::pasteIntoTextEdit()
+{
+    const QMimeData* mimeData = QApplication::clipboard()->mimeData();
+    if (mimeData->hasFormat(TextEditData::mimeRichTextFormat)) {
+        const QString txt = QString::fromUtf8(mimeData->data(TextEditData::mimeRichTextFormat));
+        toTextBase(m_editData.element)->paste(m_editData, txt);
+        return;
+    }
+
+    QString clipboardText = mimeData->text();
+    QString textForPaste = clipboardText;
+    if ((!clipboardText.startsWith('<') || !clipboardText.contains('>')) && m_editData.element->isLyrics()) {
+        textForPaste = extractSyllable(clipboardText);
+    }
+
+    toTextBase(m_editData.element)->paste(m_editData, textForPaste);
+
+    if (textForPaste.isEmpty() || !m_editData.element->isLyrics()) {
+        return;
+    }
+
+    if (textForPaste.endsWith('-')) {
+        navigateToNextSyllable();
+    } else if (textForPaste.endsWith('_')) {
+        addMelisma();
+    } else {
+        navigateToLyrics(false, false, false);
+    }
+
+    const QString textForNextPaste = clipboardText.remove(0, clipboardText.indexOf(textForPaste) + textForPaste.size());
+    QGuiApplication::clipboard()->setText(textForNextPaste);
 }
 
 void NotationInteraction::swapSelection()
@@ -5705,7 +5691,7 @@ void NotationInteraction::addBracketsToSelection(BracketsType type)
         break;
     case BracketsType::Parentheses:
         startEdit(TranslatableString("undoableAction", "Add parentheses"));
-        score()->cmdAddParentheses();
+        score()->cmdToggleParentheses();
         apply();
         break;
     }
@@ -6179,7 +6165,7 @@ void NotationInteraction::addTextToTopFrame(TextStyleType type)
     addText(type);
 }
 
-Ret NotationInteraction::canAddTextToItem(TextStyleType type, const EngravingItem* item) const
+bool NotationInteraction::canAddTextToItem(TextStyleType type, const EngravingItem* item) const
 {
     if (isVerticalBoxTextStyle(type)) {
         return item && item->isVBox();
@@ -6195,10 +6181,9 @@ Ret NotationInteraction::canAddTextToItem(TextStyleType type, const EngravingIte
         TextStyleType::HARMONY_NASHVILLE,
     };
 
-    if (muse::contains(harmonyTypes, type)) {
-        if (item && item->isFretDiagram()) {
-            return muse::make_ok();
-        }
+    const bool isHarmony = muse::contains(harmonyTypes, type);
+    if (isHarmony && item && item->isFretDiagram()) {
+        return true;
     }
 
     static const std::set<TextStyleType> needSelectNoteOrRestTypes {
@@ -6229,17 +6214,22 @@ Ret NotationInteraction::canAddTextToItem(TextStyleType type, const EngravingIte
             ElementType::CHORD,
         };
 
-        bool isNoteOrRestSelected = item && muse::contains(requiredElementTypes, item->type());
-        return isNoteOrRestSelected ? muse::make_ok() : make_ret(Err::NoteOrRestIsNotSelected);
+        return item && muse::contains(requiredElementTypes, item->type());
     }
 
-    return muse::make_ok();
+    return true;
 }
 
 void NotationInteraction::addTextToItem(TextStyleType type, EngravingItem* item)
 {
     if (!scoreHasMeasure()) {
         LOGE() << "Need to create measure";
+        return;
+    }
+
+    if (!canAddTextToItem(type, item)) {
+        MScore::setError(MsError::NO_NOTE_REST_SELECTED);
+        checkAndShowError();
         return;
     }
 
@@ -6325,7 +6315,7 @@ void NotationInteraction::addImageToItem(const muse::io::path_t& imagePath, Engr
     apply();
 }
 
-Ret NotationInteraction::canAddFiguredBass() const
+void NotationInteraction::addFiguredBass()
 {
     static const ElementTypeSet REQUIRED_TYPES {
         ElementType::NOTE,
@@ -6333,12 +6323,12 @@ Ret NotationInteraction::canAddFiguredBass() const
         ElementType::REST
     };
 
-    bool selected = m_selection->elementsSelected(REQUIRED_TYPES);
-    return selected ? muse::make_ok() : make_ret(Err::NoteOrFiguredBassIsNotSelected);
-}
+    if (!m_selection->elementsSelected(REQUIRED_TYPES)) {
+        MScore::setError(MsError::NO_NOTE_FIGUREDBASS_SELECTED);
+        checkAndShowError();
+        return;
+    }
 
-void NotationInteraction::addFiguredBass()
-{
     startEdit(TranslatableString("undoableAction", "Add figured bass"));
     mu::engraving::FiguredBass* figuredBass = score()->addFiguredBass();
 
@@ -6423,6 +6413,17 @@ void NotationInteraction::realizeSelectedChordSymbols(bool literal, Voicing voic
 
     startEdit(TranslatableString("undoableAction", "Realize chord symbols"));
     score()->cmdRealizeChordSymbols(literal, voicing, durationType);
+    apply();
+}
+
+void NotationInteraction::extendToNextNote()
+{
+    if (selection()->isNone()) {
+        return;
+    }
+
+    startEdit(TranslatableString("undoableAction", "Extend to next note"));
+    score()->cmdExtendToNextNote();
     apply();
 }
 
@@ -6904,7 +6905,7 @@ void NotationInteraction::navigateToNextSyllable()
         }
     }
 
-    if (!segmentsAreAdjacentInRepeatStructure(segment, nextSegment)) {
+    if (!segmentsAreAdjacent(segment, nextSegment)) {
         nextSegment = nullptr;
     }
 
@@ -6918,7 +6919,7 @@ void NotationInteraction::navigateToNextSyllable()
     // we are extending with several dashes
     Lyrics* fromLyrics = nullptr;
     Segment* curSeg = segment;
-    while (segment && segmentsAreAdjacentInRepeatStructure(segment, curSeg)) {
+    while (segment && segmentsAreAdjacent(segment, curSeg)) {
         ChordRest* cr = toChordRest(segment->element(track));
         if (!cr) {
             segment = segment->prev1(SegmentType::ChordRest);
@@ -7762,7 +7763,7 @@ void NotationInteraction::addMelisma()
         }
     }
 
-    if (!segmentsAreAdjacentInRepeatStructure(segment, nextSegment)) {
+    if (!segmentsAreAdjacent(segment, nextSegment)) {
         nextSegment = nullptr;
     }
 
@@ -7771,7 +7772,7 @@ void NotationInteraction::addMelisma()
     Segment* curSeg = segment;
     Lyrics* fromLyrics = nullptr;
     PartialLyricsLine* prevPartialLyricsLine = nullptr;
-    while (segment && segmentsAreAdjacentInRepeatStructure(segment, curSeg)) {
+    while (segment && segmentsAreAdjacent(segment, curSeg)) {
         ChordRest* cr = toChordRest(segment->element(track));
         if (cr) {
             fromLyrics = cr->lyrics(verse, placement);
@@ -7984,28 +7985,20 @@ void NotationInteraction::addLyricsVerse()
     startEditText(lyrics, PointF());
 }
 
-Ret NotationInteraction::canAddGuitarBend() const
-{
-    Score* score = this->score();
-    bool canAdd = score && score->selection().noteList().size() > 0;
-
-    return canAdd ? muse::make_ok() : make_ret(Err::NoteIsNotSelected);
-}
-
 void NotationInteraction::addGuitarBend(GuitarBendType bendType)
 {
     Score* score = this->score();
-    if (!score) {
+    IF_ASSERT_FAILED(score) {
+        MScore::setError(MsError::NO_NOTE_SELECTED);
+        checkAndShowError();
         return;
     }
 
     const Selection& selection = score->selection();
-    if (selection.isNone()) {
-        return;
-    }
-
     const std::vector<Note*>& noteList = selection.noteList();
-    if (noteList.empty()) {
+    if (selection.isNone() || noteList.empty()) {
+        MScore::setError(MsError::NO_NOTE_SELECTED);
+        checkAndShowError();
         return;
     }
 
@@ -8040,45 +8033,41 @@ void NotationInteraction::addGuitarBend(GuitarBendType bendType)
     }
 }
 
-muse::Ret NotationInteraction::canAddFretboardDiagram() const
-{
-    bool canAdd = m_selection->elementsSelected({ ElementType::HARMONY });
-    return canAdd ? muse::make_ok() : make_ret(Err::NoteOrRestOrHarmonyIsNotSelected);
-}
-
 void NotationInteraction::addFretboardDiagram()
 {
     Score* score = this->score();
-    if (!score) {
+    IF_ASSERT_FAILED(score) {
+        MScore::setError(MsError::NO_NOTE_REST_HARMONY_SELECTED);
+        checkAndShowError();
         return;
-    }
+    };
 
     auto selection = this->selection();
-    if (selection->isNone()) {
-        return;
-    }
-
-    std::vector<EngravingItem*> selectedElements;
-
-    if (EngravingItem* element = selection->element()) {
-        selectedElements = { element };
-    } else {
-        selectedElements = selection->elements();
-    }
-
     std::vector<EngravingItem*> filteredElements;
 
-    for (EngravingItem* element : selectedElements) {
-        if (!element || !element->isHarmony()) {
-            continue;
+    if (selection && !selection->isNone()) {
+        std::vector<EngravingItem*> selectedElements;
+
+        if (EngravingItem* element = selection->element()) {
+            selectedElements = { element };
+        } else {
+            selectedElements = selection->elements();
         }
 
-        if (!element->explicitParent()->isFretDiagram()) {
-            filteredElements.emplace_back(element);
+        for (EngravingItem* element : selectedElements) {
+            if (!element || !element->isHarmony()) {
+                continue;
+            }
+
+            if (!element->explicitParent()->isFretDiagram()) {
+                filteredElements.emplace_back(element);
+            }
         }
     }
 
     if (filteredElements.empty()) {
+        MScore::setError(MsError::NO_NOTE_REST_HARMONY_SELECTED);
+        checkAndShowError();
         return;
     }
 

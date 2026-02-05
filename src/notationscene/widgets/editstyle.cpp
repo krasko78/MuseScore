@@ -74,6 +74,7 @@ static const QStringList ALL_PAGE_CODES {
     "beams",
     "tuplets",
     "arpeggios",
+    "chord-brackets",
     "slurs-and-ties",
     "dynamics-hairpins",
     "volta",
@@ -226,7 +227,7 @@ static void fillDynamicHairpinComboBox(QComboBox* comboBox)
 //---------------------------------------------------------
 
 EditStyle::EditStyle(QWidget* parent)
-    : QDialog(parent), muse::Injectable(muse::iocCtxForQWidget(this))
+    : QDialog(parent), muse::Contextable(muse::iocCtxForQWidget(this))
 {
     //! NOTE: suppress all accessibility events causing a long delay when opening the dialog (massive spam from setupUi)
     accessibilityController()->setIgnoreQtAccessibilityEvents(true);
@@ -467,10 +468,14 @@ EditStyle::EditStyle(QWidget* parent)
         { StyleId::ledgerLineLength,        false, ledgerLineLength,        0 },
         { StyleId::shortestStem,            false, shortestStem,            0 },
         { StyleId::combineVoice,            false, combineVoices,           resetCombineVoices },
-        { StyleId::arpeggioNoteDistance,    false, arpeggioNoteDistance,    0 },
-        { StyleId::arpeggioLineWidth,       false, arpeggioLineWidth,       0 },
-        { StyleId::arpeggioHookLen,         false, arpeggioHookLen,         0 },
+
+        { StyleId::arpeggioNoteDistance,    false, arpeggioNoteDistance,    arpeggioNoteDistanceReset },
+        { StyleId::arpeggioLineWidth,       false, arpeggioLineWidth,       arpeggioLineWidthReset },
         { StyleId::arpeggioHiddenInStdIfTab, false, arpeggioHiddenInStdIfTab, 0 },
+
+        { StyleId::chordBracketNoteDistance, false, chordBracketNoteDistance, chordBracketNoteDistanceReset },
+        { StyleId::chordBracketLineWidth,    false, chordBracketLineWidth,    chordBracketLineWidthReset },
+        { StyleId::chordBracketHookLen,      false, chordBracketHookLen,      chordBracketHookLenReset },
 
         { StyleId::bracketWidth,            false, bracketWidth,            resetBracketThickness },
         { StyleId::bracketDistance,         false, bracketDistance,         resetBracketDistance },
@@ -533,7 +538,7 @@ EditStyle::EditStyle(QWidget* parent)
         { StyleId::tupletDirection,         false, tupletDirection,         resetTupletDirection },
         { StyleId::tupletNumberType,        false, tupletNumberType,        resetTupletNumberType },
         { StyleId::tupletBracketType,       false, tupletBracketType,       resetTupletBracketType },
-        { StyleId::tupletMaxSlope,          false, tupletMaxSlope,          resetTupletMaxSlope },
+        { StyleId::tupletMaxSlope,          true,  tupletMaxSlope,          resetTupletMaxSlope },
         { StyleId::tupletOutOfStaff,        false, tupletOutOfStaff,        0 },
         { StyleId::tupletUseSymbols,        false, tupletUseSymbols,        resetTupletUseSymbols },
         { StyleId::tupletExtendToEndOfDuration, false, tupletExtendToEndOfDuration, 0 },
@@ -1250,6 +1255,7 @@ EditStyle::EditStyle(QWidget* parent)
     adjustPagesStackSize(0);
 
     // Consistency checks
+    qDebug() << "codes size:" << ALL_PAGE_CODES.size() << "pageList count:" << pageList->count();
     assert(ALL_PAGE_CODES.size() == pageList->count());
     assert(ALL_TEXT_STYLE_SUBPAGE_CODES.size() == textStyles->count());
 }

@@ -44,7 +44,7 @@ static void compensateFloatPart(RectF& rect)
 }
 
 AbstractNotationPaintView::AbstractNotationPaintView(QQuickItem* parent)
-    : muse::uicomponents::QuickPaintedView(parent), muse::Injectable(muse::iocCtxForQmlObject(this))
+    : muse::uicomponents::QuickPaintedView(parent), muse::Contextable(muse::iocCtxForQmlObject(this))
 {
     setFlag(ItemHasContents, true);
     setFlag(ItemAcceptsDrops, true);
@@ -85,7 +85,7 @@ void AbstractNotationPaintView::load()
     m_inputController = std::make_unique<NotationViewInputController>(this, iocContext());
     m_playbackCursor = std::make_unique<PlaybackCursor>(iocContext());
     m_playbackCursor->setVisible(false);
-    m_noteInputCursor = std::make_unique<NoteInputCursor>(configuration()->thinNoteInputCursor());
+    m_noteInputCursor = std::make_unique<NoteInputCursor>(iocContext(), configuration()->thinNoteInputCursor());
     m_ruler = std::make_unique<NotationRuler>(iocContext());
 
     m_loopInMarker = std::make_unique<LoopMarker>(LoopBoundaryType::LoopIn, iocContext());
@@ -114,6 +114,16 @@ void AbstractNotationPaintView::load()
         emit horizontalScrollChanged();
         emit verticalScrollChanged();
         emit viewportChanged();
+    }, async::Asyncable::Mode::SetReplace);
+
+    m_isAutomaticallyPanEnabled = configuration()->isAutomaticallyPanEnabled();
+    configuration()->isAutomaticallyPanEnabledChanged().onNotify(this, [this]() {
+        m_isAutomaticallyPanEnabled = configuration()->isAutomaticallyPanEnabled();
+    }, async::Asyncable::Mode::SetReplace);
+
+    m_isSmoothPanningEnabled = configuration()->isSmoothPanning();
+    configuration()->isSmoothPanningChanged().onNotify(this, [this]() {
+        m_isSmoothPanningEnabled = configuration()->isSmoothPanning();
     }, async::Asyncable::Mode::SetReplace);
 
     scheduleRedraw();
@@ -1495,8 +1505,8 @@ void AbstractNotationPaintView::movePlaybackCursor(muse::midi::tick_t tick)
         return;
     }
 
-    if (configuration()->isAutomaticallyPanEnabled()) {
-        if ((notation()->viewMode() == engraving::LayoutMode::LINE) && configuration()->isSmoothPanning()
+    if (m_isAutomaticallyPanEnabled) {
+        if ((notation()->viewMode() == engraving::LayoutMode::LINE) && m_isSmoothPanningEnabled
             && adjustCanvasPositionSmoothPan(newCursorRect)) {
             return;
         }

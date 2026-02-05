@@ -58,7 +58,7 @@ static void measureInputLag(const float* buf, const size_t size)
 
 StartAudioController::StartAudioController(std::shared_ptr<rpc::IRpcChannel> rpcChannel,
                                            const muse::modularity::ContextPtr& iocCtx)
-    : muse::Injectable(iocCtx), m_rpcChannel(rpcChannel)
+    : muse::Contextable(iocCtx), m_rpcChannel(rpcChannel)
 {
 #ifndef Q_OS_WASM
     m_engineController = std::make_shared<engine::EngineController>(rpcChannel, iocCtx);
@@ -166,9 +166,7 @@ void StartAudioController::startAudioProcessing(const IApplication::RunMode& mod
 {
     IAudioDriver::Spec requiredSpec;
     requiredSpec.deviceId = configuration()->audioOutputDeviceId();
-    requiredSpec.output.sampleRate = configuration()->sampleRate();
-    requiredSpec.output.audioChannelCount = configuration()->audioChannelsCount();
-    requiredSpec.output.samplesPerChannel = configuration()->driverBufferSize();
+    requiredSpec.output = configuration()->desiredOutputSpec();
 
 #ifndef Q_OS_WASM
 

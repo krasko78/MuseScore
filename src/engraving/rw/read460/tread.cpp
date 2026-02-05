@@ -41,6 +41,7 @@
 #include "../../dom/breath.h"
 #include "../../dom/capo.h"
 #include "../../dom/chord.h"
+#include "../../dom/chordbracket.h"
 #include "../../dom/chordline.h"
 #include "../../dom/chordlist.h"
 #include "../../dom/clef.h"
@@ -74,6 +75,7 @@
 #include "../../dom/ledgerline.h"
 #include "../../dom/letring.h"
 #include "../../dom/line.h"
+#include "../../dom/linkedobjects.h"
 #include "../../dom/lyrics.h"
 #include "../../dom/marker.h"
 #include "../../dom/masterscore.h"
@@ -157,6 +159,8 @@ void TRead::readItem(EngravingItem* item, XmlReader& xml, ReadContext& ctx)
     case ElementType::AMBITUS: read(item_cast<Ambitus*>(item), xml, ctx);
         break;
     case ElementType::ARPEGGIO: read(item_cast<Arpeggio*>(item), xml, ctx);
+        break;
+    case ElementType::CHORD_BRACKET: read(item_cast<ChordBracket*>(item), xml, ctx);
         break;
     case ElementType::ARTICULATION: read(item_cast<Articulation*>(item), xml, ctx);
         break;
@@ -1051,6 +1055,8 @@ bool TRead::readProperties(Instrument* item, XmlReader& e, ReadContext& ctx, Par
     } else if (tag == "transposingClef") {
         int idx = e.intAttribute("staff", 1) - 1;
         item->setClefType(idx, ClefTypeList(item->clefType(idx).concertClef, TConv::fromXml(e.readAsciiText(), ClefType::G)));
+    } else if (tag == "glissandoStyle") {
+        item->setGlissandoStyle(TConv::fromXml(e.readAsciiText(), GlissandoStyle::CHROMATIC));
     } else {
         return false;
     }
@@ -1848,17 +1854,40 @@ void TRead::read(Arpeggio* a, XmlReader& e, ReadContext& ctx)
         const AsciiStringView tag(e.name());
         if (tag == "subtype") {
             a->setArpeggioType(TConv::fromXml(e.readAsciiText(), ArpeggioType::NORMAL));
-        } else if (tag == "userLen1") {
-            a->setUserLen1(e.readDouble() * a->spatium());
-        } else if (tag == "userLen2") {
-            a->setUserLen2(e.readDouble() * a->spatium());
-        } else if (tag == "span") {
-            a->setSpan(e.readInt());
-        } else if (tag == "play") {
-            a->setPlayArpeggio(e.readBool());
-        } else if (tag == "timeStretch") {
-            a->setStretch(e.readDouble());
-        } else if (!readItemProperties(a, e, ctx)) {
+        } else if (!readProperties(a, e, ctx)) {
+            e.unknown();
+        }
+    }
+}
+
+bool TRead::readProperties(Arpeggio* a, XmlReader& e, ReadContext& ctx)
+{
+    const AsciiStringView tag(e.name());
+    if (tag == "userLen1") {
+        a->setUserLen1(e.readDouble() * a->spatium());
+    } else if (tag == "userLen2") {
+        a->setUserLen2(e.readDouble() * a->spatium());
+    } else if (tag == "span") {
+        a->setSpan(e.readInt());
+    } else if (tag == "play") {
+        a->setPlayArpeggio(e.readBool());
+    } else if (tag == "timeStretch") {
+        a->setStretch(e.readDouble());
+    } else if (!readItemProperties(a, e, ctx)) {
+        return false;
+    }
+
+    return true;
+}
+
+void TRead::read(ChordBracket* b, XmlReader& e, ReadContext& ctx)
+{
+    while (e.readNextStartElement()) {
+        const AsciiStringView tag(e.name());
+        if (readProperty(b, tag, e, ctx, Pid::BRACKET_HOOK_LEN)) {
+        } else if (readProperty(b, tag, e, ctx, Pid::BRACKET_HOOK_POS)) {
+        } else if (readProperty(b, tag, e, ctx, Pid::BRACKET_RIGHT_SIDE)) {
+        } else if (!readProperties(b, e, ctx)) {
             e.unknown();
         }
     }
@@ -1895,6 +1924,9 @@ bool TRead::readProperties(Ornament* o, XmlReader& xml, ReadContext& ctx)
         chord->setIsTrillCueNote(true);
         o->setCueNoteChord(chord);
         o->setNoteAbove(chord->notes().front());
+        for (Note* note : chord->notes()) {
+            compat::CompatUtils::doMigrateNoteParens(note);
+        }
     } else {
         return false;
     }
@@ -2489,6 +2521,12 @@ bool TRead::readProperties(Chord* ch, XmlReader& e, ReadContext& ctx)
         TRead::read(arpeggio, e, ctx);
         arpeggio->setParent(ch);
         ch->setArpeggio(arpeggio);
+    } else if (tag == "ChordBracket") {
+        ChordBracket* bracket = Factory::createChordBracket(ch);
+        bracket->setTrack(ch->track());
+        TRead::read(bracket, e, ctx);
+        bracket->setParent(ch);
+        ch->add(bracket);
     } else if (tag == "Tremolo") { // compat
         compat::TremoloCompat tcompat;
         tcompat.parent = ch;
@@ -2524,6 +2562,8 @@ bool TRead::readProperties(Chord* ch, XmlReader& e, ReadContext& ctx)
         ch->add(cl);
     } else if (tag == "combineVoice") {
         readProperty(ch, tag, e, ctx, Pid::COMBINE_VOICE);
+    } else if (tag == "NoteParenGroup") {
+        readNoteParenGroup(ch, e, ctx);
     } else {
         return false;
     }
@@ -3382,6 +3422,9 @@ bool TRead::readProperties(Note* n, XmlReader& e, ReadContext& ctx)
             pt->setEndNote(n);
         }
         n->add(pt);
+    } else if (tag == "overrideBendVisibilityRules") {
+        n->setOverrideBendVisibilityRules(e.readBool());
+    } else if (TRead::readProperty(n, tag, e, ctx, Pid::HIDE_GENERATED_PARENTHESES)) {
     } else if (readItemProperties(n, e, ctx)) {
     } else {
         return false;
@@ -3615,6 +3658,10 @@ void TRead::read(Pedal* p, XmlReader& e, ReadContext& ctx)
     }
     if (ctx.mscVersion() < 470) {
         compat::CompatUtils::setTextLineTextPositionFromAlign(p);
+
+        if (p->endText() == Pedal::STAR_SYMBOL) {
+            p->setEndHookType(HookType::ROSETTE);
+        }
     }
 }
 
@@ -3788,6 +3835,75 @@ void TRead::lineBreakFromTag(String& str)
 {
     // Raw newlines appearing next to tags (<font size="10> or <sym>...) get eaten by XML readers.
     str.replace(u"<br/>", u"\n");
+}
+
+void TRead::readNoteParenGroup(Chord* ch, XmlReader& e, ReadContext& ctx)
+{
+    Parenthesis* leftParen = nullptr;
+    Parenthesis* rightParen = nullptr;
+    std::vector<Note*> notes;
+    while (e.readNextStartElement()) {
+        const AsciiStringView t(e.name());
+
+        if (t == "Parenthesis") {
+            Parenthesis* paren = Factory::createParenthesis(ch);
+            TRead::read(paren, e, ctx);
+            paren->setParent(ch);
+            paren->setTrack(ctx.track());
+
+            if (paren->direction() == DirectionH::LEFT) {
+                leftParen = paren;
+            } else {
+                rightParen = paren;
+            }
+        } else if (t == "Notes") {
+            while (e.readNextStartElement()) {
+                const AsciiStringView noteTag(e.name());
+                if (noteTag == "NoteIdx") {
+                    size_t idx = e.readInt();
+                    if (idx >= ch->notes().size()) {
+                        LOGE() << "Note index " << idx << " out of bounds " << ch->notes().size();
+                        continue;
+                    }
+                    Note* note = ch->notes().at(idx);
+                    notes.push_back(note);
+                } else {
+                    e.unknown();
+                }
+            }
+        } else {
+            e.unknown();
+        }
+    }
+
+    if (!leftParen) {
+        leftParen = Factory::createParenthesis(ch);
+        leftParen->setParent(ch);
+        leftParen->setTrack(ctx.track());
+    }
+
+    if (!rightParen) {
+        rightParen = Factory::createParenthesis(ch);
+        rightParen->setDirection(DirectionH::RIGHT);
+        rightParen->setParent(ch);
+        rightParen->setTrack(ctx.track());
+    }
+
+    if (ch->links() && ch->links()->mainElement() != ch) {
+        Chord* mainChord = toChord(ch->links()->mainElement());
+        Note* firstNote = notes.front();
+        Note* mainNote = firstNote ? toNote(firstNote->findLinkedInStaff(mainChord->staff())) : nullptr;
+        const NoteParenthesisInfo* mainNoteParenInfo = mainChord && mainNote ? mainChord->findNoteParenInfo(mainNote) : nullptr;
+        Parenthesis* mainLeftParen = mainNoteParenInfo ? mainNoteParenInfo->leftParen : nullptr;
+        Parenthesis* mainRightParen = mainNoteParenInfo ? mainNoteParenInfo->rightParen : nullptr;
+
+        if (mainLeftParen && mainRightParen) {
+            leftParen->linkTo(mainLeftParen);
+            rightParen->linkTo(mainRightParen);
+        }
+    }
+
+    ch->addNoteParenInfo(leftParen, rightParen, notes);
 }
 
 bool TRead::readProperties(Spanner* s, XmlReader& e, ReadContext& ctx)

@@ -28,6 +28,8 @@
 #include "thirdparty/KDDockWidgets/src/private/DockRegistry_p.h"
 #include "thirdparty/KDDockWidgets/src/Config.h"
 
+#include "global/async/async.h"
+
 #include "dockcentralview.h"
 #include "dockpageview.h"
 #include "dockpanelview.h"
@@ -36,7 +38,8 @@
 #include "dockingholderview.h"
 #include "dockwindow.h"
 
-#include "async/async.h"
+#include "muse_framework_config.h"
+
 #include "log.h"
 
 using namespace muse::dock;
@@ -67,6 +70,10 @@ static KDDockWidgets::Location locationToKLocation(Location location)
 static void clearRegistry()
 {
     TRACEFUNC;
+
+#ifdef MUSE_MULTICONTEXT_WIP
+    return;
+#endif
 
     auto registry = KDDockWidgets::DockRegistry::self();
 
@@ -103,7 +110,7 @@ private:
 };
 
 DockWindow::DockWindow(QQuickItem* parent)
-    : QQuickItem(parent), muse::Injectable(muse::iocCtxForQmlObject(this)),
+    : QQuickItem(parent), muse::Contextable(muse::iocCtxForQmlObject(this)),
     m_toolBars(this),
     m_pages(this)
 {
@@ -126,7 +133,14 @@ void DockWindow::componentComplete()
 
     QQuickItem::componentComplete();
 
-    m_mainWindow = new KDDockWidgets::MainWindowQuick("mainWindow",
+    QString name = "mainWindow";
+#ifdef MUSE_MULTICONTEXT_WIP
+    if (iocContext()) {
+        name += "_" + QString::number(iocContext()->id);
+    }
+#endif
+
+    m_mainWindow = new KDDockWidgets::MainWindowQuick(name,
                                                       KDDockWidgets::MainWindowOption_None,
                                                       this);
 
@@ -166,11 +180,16 @@ void DockWindow::onQuit()
         return;
     }
 
-    savePageState(m_currentPage->objectName());
+    m_reloadCurrentPageAllowed = false;
+
+    uiConfiguration()->setPageState(m_currentPage->objectName(), windowState());
 
     clearRegistry();
 
-    saveGeometry();
+    /// NOTE: The state of all dock widgets is also saved here,
+    /// since the library does not provide the ability to save
+    /// and restore only the application geometry.
+    uiConfiguration()->setWindowGeometry(windowState());
 }
 
 QString DockWindow::currentPageUri() const
@@ -196,7 +215,6 @@ QQuickWindow* DockWindow::windowProperty() const
 void DockWindow::init()
 {
     clearRegistry();
-
     restoreGeometry();
 
     dockWindowProvider()->init(this);
@@ -223,10 +241,12 @@ void DockWindow::loadPage(const QString& uri, const QVariantMap& params)
         return;
     }
 
-    bool isFirstOpening = (m_currentPage == nullptr);
+    const bool isFirstOpening = (m_currentPage == nullptr);
 
     if (!isFirstOpening) {
-        savePageState(m_currentPage->objectName());
+        const QString pageName = m_currentPage->objectName();
+        uiConfiguration()->pageState(pageName).notification.disconnect(this);
+        savePageState(pageName);
         clearRegistry();
         m_currentPage->setVisible(false);
         m_currentPage->deinit();
@@ -568,20 +588,6 @@ bool DockWindow::doLoadPage(const QString& uri, const QVariantMap& params)
             this, &DockWindow::forceLayout, Qt::UniqueConnection);
 
     return true;
-}
-
-void DockWindow::saveGeometry()
-{
-    TRACEFUNC;
-
-    /// NOTE: The state of all dock widgets is also saved here,
-    /// since the library does not provide the ability to save
-    /// and restore only the application geometry.
-    /// Therefore, for correct operation after saving or restoring geometry,
-    /// it is necessary to apply the appropriate method for the state.
-    m_reloadCurrentPageAllowed = false;
-    uiConfiguration()->setWindowGeometry(windowState());
-    m_reloadCurrentPageAllowed = true;
 }
 
 void DockWindow::restoreGeometry()

@@ -1819,7 +1819,7 @@ void Score::regroupNotesAndRests(const Fraction& startTick, const Fraction& endT
                     if (!cr) {
                         continue;             // this voice is empty here
                     }
-                    if (!cr->isRest() || cr->endTick() > maxTick || toRest(cr)->isGap()) {
+                    if (!cr->isRest() || cr->tuplet() || cr->endTick() > maxTick || toRest(cr)->isGap()) {
                         break;             // next element in the same voice is not a rest, or it exceeds the selection, or it is a gap
                     }
                     lastRest = cr;
@@ -2949,7 +2949,7 @@ void Score::deleteItem(EngravingItem* el)
                         undoRemoveElement(r);
                     }
 
-                    Fraction f = ticks;
+                    Fraction f = ticks * el->staff()->timeStretch(el->tick());
 
                     std::vector<TDuration> dList = toDurationList(f, true);
                     if (dList.empty()) {
@@ -2964,7 +2964,7 @@ void Score::deleteItem(EngravingItem* el)
                         rr->setTrack(track);
                         rr->setGap(true);
                         undoAddCR(rr, m, curTick);
-                        curTick += d.fraction();
+                        curTick += rr->actualTicks();
                     }
                 }
             }
@@ -3683,7 +3683,7 @@ void Score::deleteSlursFromRange(const Fraction& t1, const Fraction& t2, track_i
 
         if (sp->track() >= trackStart && sp->track() < trackEnd) {
             if ((spStartTick >= t1 && spStartTick < t2)
-                || (spEndTick >= t1 && spEndTick <= t2)) {
+                || (spEndTick >= t1 && spEndTick < t2)) {
                 undoRemoveElement(sp);
             }
         }
@@ -4250,7 +4250,11 @@ std::vector<Hairpin*> Score::addHairpins(HairpinType type)
         for (staff_idx_t staffIdx = selection().staffStart(); staffIdx < selection().staffEnd(); ++staffIdx) {
             ChordRest* cr1 = selection().firstChordRest(staffIdx * VOICES);
             ChordRest* cr2 = selection().lastChordRest(staffIdx * VOICES);
-            hairpins.push_back(addHairpin(type, cr1, cr2));
+            Hairpin* h = cr1 ? addHairpin(type, cr1, cr2)
+                         : addHairpin(type, selection().tickStart(), selection().tickEnd(), staff2track(staffIdx));
+            if (h) {
+                hairpins.push_back(h);
+            }
         }
     } else {
         // for single staff range selection, or single selection,
@@ -4258,7 +4262,10 @@ std::vector<Hairpin*> Score::addHairpins(HairpinType type)
         ChordRest* cr1 = nullptr;
         ChordRest* cr2 = nullptr;
         getSelectedStartEndChordRests(cr1, cr2);
-        hairpins.push_back(addHairpin(type, cr1, cr2));
+        Hairpin* h = addHairpin(type, cr1, cr2);
+        if (h) {
+            hairpins.push_back(h);
+        }
     }
 
     for (Hairpin* hairpin : hairpins) {
@@ -4285,6 +4292,27 @@ Hairpin* Score::addHairpin(HairpinType type, ChordRest* cr1, ChordRest* cr2)
     }
 
     addHairpin(hairpin, cr1, cr2);
+
+    return hairpin;
+}
+
+Hairpin* Score::addHairpin(HairpinType type, Fraction sTick, Fraction eTick, track_idx_t track)
+{
+    Hairpin* hairpin = Factory::createHairpin(this->dummy()->segment());
+    hairpin->setHairpinType(type);
+    if (type == HairpinType::CRESC_LINE) {
+        hairpin->setBeginText(u"cresc.");
+        hairpin->setContinueText(u"(cresc.)");
+    } else if (type == HairpinType::DIM_LINE) {
+        hairpin->setBeginText(u"dim.");
+        hairpin->setContinueText(u"(dim.)");
+    }
+
+    hairpin->setTrack(track);
+    hairpin->setTick(sTick);
+    hairpin->setTick2(eTick);
+
+    undoAddElement(hairpin);
 
     return hairpin;
 }
@@ -5551,7 +5579,7 @@ void Score::undoChangeParent(EngravingItem* element, EngravingItem* parent, staf
                     linkedParent = newMeas->getSegment(SegmentType::TimeTick, oldSeg->tick());
                 }
             } else {
-                linkedParent = parent->findLinkedInScore(linkedScore);
+                linkedParent = parent->findLinkedInStaff(linkedDest);
             }
             IF_ASSERT_FAILED(linkedParent) {
                 continue;
@@ -6009,9 +6037,6 @@ void Score::updateInstrumentChangeTranspositions(KeySigEvent& key, Staff* staff,
         while (nextTick != -1) {
             KeySigEvent e = kl->key(nextTick);
             if (e.forInstrumentChange()) {
-                Measure* m = tick2measure(Fraction::fromTicks(nextTick));
-                Segment* s = m->tick2segment(Fraction::fromTicks(nextTick), SegmentType::KeySig);
-                track_idx_t track = staff->idx() * VOICES;
                 if (key.isAtonal() && !e.isAtonal()) {
                     e.setMode(KeyMode::NONE);
                     e.setConcertKey(Key::C);
@@ -6024,6 +6049,9 @@ void Score::updateInstrumentChangeTranspositions(KeySigEvent& key, Staff* staff,
                     e.setConcertKey(ckey);
                     e.setKey(nkey);
                 }
+                Measure* m = tick2measure(Fraction::fromTicks(nextTick));
+                Segment* s = m ? m->tick2segment(Fraction::fromTicks(nextTick), SegmentType::KeySig) : nullptr;
+                track_idx_t track = staff->idx() * VOICES;
                 KeySig* keySig = nullptr;
                 EngravingItem* keySigElem = s ? s->element(track) : nullptr;
                 if (keySigElem && keySigElem->isKeySig()) {
@@ -6475,6 +6503,12 @@ static void undoChangeNoteVisibility(Note* note, bool visible)
 {
     note->undoChangeProperty(Pid::VISIBLE, visible);
 
+    if (note->bendBack() || note->bendFor()) {
+        note->setOverrideBendVisibilityRules(true);
+    } else {
+        note->setOverrideBendVisibilityRules(false);
+    }
+
     for (NoteDot* dot : note->dots()) {
         dot->undoChangeProperty(Pid::VISIBLE, visible);
     }
@@ -6841,6 +6875,7 @@ void Score::undoAddElement(EngravingItem* element, bool addToLinkedStaves, bool 
             && et != ElementType::TREMOLO_SINGLECHORD
             && et != ElementType::TREMOLO_TWOCHORD
             && et != ElementType::ARPEGGIO
+            && et != ElementType::CHORD_BRACKET
             && et != ElementType::SYMBOL
             && et != ElementType::IMAGE
             && et != ElementType::TREMOLOBAR
@@ -7170,7 +7205,7 @@ void Score::undoAddElement(EngravingItem* element, bool addToLinkedStaves, bool 
             Chord* c1 = findLinkedChord(cr, score->staff(staffIdx));
             ne->setParent(c1);
             doUndoAddElement(ne);
-        } else if (element->isArpeggio()) {
+        } else if (element->isArpeggio() || element->isChordBracket()) {
             ChordRest* cr = toChordRest(element->explicitParent());
             Segment* s    = cr->segment();
             Measure* m    = s->measure();

@@ -42,6 +42,8 @@
 #include "dom/parenthesis.h"
 #include "dom/partialtie.h"
 
+#include "editing/editchord.h"
+
 #include "tlayout.h"
 #include "chordlayout.h"
 #include "stemlayout.h"
@@ -1229,7 +1231,8 @@ Shape SlurTieLayout::getSegmentShape(SlurSegment* slurSeg, Segment* seg, ChordRe
         const EngravingItem* item = shapeEl.item();
         const EngravingItem* parent = item->parentItem();
         // Don't remove arpeggio starting on a different voice and ending on the same voice as endCR when slur is on the outside
-        if (item->isArpeggio() && (endCR->track() == toArpeggio(item)->endTrack()) && endCR->tick() == item->tick()
+        if ((item->isArpeggio() || item->isChordBracket()) && (endCR->track() == toArpeggio(item)->endTrack())
+            && endCR->tick() == item->tick()
             && (!slur->up() && toArpeggio(item)->span() > 1)) {
             return false;
         }
@@ -1258,7 +1261,8 @@ Shape SlurTieLayout::getSegmentShape(SlurSegment* slurSeg, Segment* seg, ChordRe
             return true;
         }
         // Remove arpeggios spanning more than 1 voice starting on endCR's voice when the slur is on the inside
-        if (item->isArpeggio() && (endCR->track() != item->track() || (!slur->up() && toArpeggio(item)->span() > 1))) {
+        if ((item->isArpeggio() || item->isChordBracket())
+            && (endCR->track() != item->track() || (!slur->up() && toArpeggio(item)->span() > 1))) {
             return true;
         }
         // Ignore big time signatures
@@ -1907,8 +1911,16 @@ void SlurTieLayout::calculateLaissezVibY(LaissezVibSegment* segment, SlurTiePos&
 
     adjustYforLedgerLines(segment, sPos);
 
-    Parenthesis* paren = lv->parentItem()->leftParen();
-    Chord* chord = lv->startNote()->chord();
+    Note* note = lv->startNote();
+    Chord* chord = note->chord();
+
+    const NoteParenthesisInfo* noteParenInfo = chord->findNoteParenInfo(note);
+
+    Parenthesis* paren = nullptr;
+    if (noteParenInfo) {
+        paren = noteParenInfo->leftParen;
+    }
+
     const bool avoidStem = chord->stem() && chord->stem()->visible() && chord->up() == lv->up();
     if (paren && (!lv->isOuterTieOfChord(Grip::START) || avoidStem)) {
         RectF parenBbox = paren->ldata()->bbox().translated(paren->systemPos());
@@ -2078,7 +2090,11 @@ void SlurTieLayout::layoutLaissezVibChord(Chord* chord, LayoutContext& ctx)
             ldata->setPos(sPos.p1);
         }
 
-        const PointF chordPos = chord->pos() + chord->segment()->pos() + chord->measure()->pos();
+        double yOrigin = sPos.system1->staff(chord->staffIdx())->y();
+        double yMoved = sPos.system1->staff(chord->vStaffIdx())->y();
+        double yDiff = yMoved - yOrigin;
+
+        const PointF chordPos = chord->pos() + chord->segment()->pos() + chord->measure()->pos() + PointF(0.0, yDiff);
         const PointF notePos = chordPos + note->pos();
         ldata->posRelativeToNote = sPos.p1 - notePos;
 
@@ -2236,7 +2252,7 @@ void SlurTieLayout::adjustX(TieSegment* tieSegment, SlurTiePos& sPos, Grip start
                       || (s.item()->isNoteDot() && ignoreDot)
                       || (s.item()->isAccidental() && ignoreAccidental(toAccidental(s.item())))
                       || (s.item()->isLaissezVibSegment() && ignoreLvSeg)
-                      || (s.item()->isArpeggio() && ignoreArpeggio)
+                      || ((s.item()->isArpeggio() || s.item()->isChordBracket()) && ignoreArpeggio)
                       || (s.item()->isParenthesis() && ignoreParen)
                       || !s.item()->addToSkyline();
         return remove;
