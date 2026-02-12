@@ -286,14 +286,55 @@ RectF TextCursor::cursorRect() const
     }
 
     const FontMetrics fm(_font); // krasko start
-    double ascent = fm.ascent();
     double descent = fm.descent();
-    double capHeight = fm.capHeight();
-    const double coef = 0.8; // should be 1.0 but smaller values shorten the cursor which looks better visually
-    double w = 12.0 + capHeight / 20.0;
-    double h = std::max(coef * (ascent + descent), capHeight + 2 * coef * descent);
+
+    // Some fonts such as HaettenSchweiler, Lucida Fax and Maianda GD report
+    // negative descents. Turns out that using the absolute values works well.
+    if (descent < 0) {
+        descent = -descent;
+    }
+
+    // Calculating the cap height seems more reliable than using the font metrics value
+    // as some fonts (such as Bravura Text and Petaluma) report incorrect cap heights.
+    // However, tightBoundingRect() could return an invalid rectangle, e.g. for
+    // the Opus Percussion font, so we must fall back to the font metrics value.
+    // For the bounding rectangle, y = 0 is the text base line so -top returns
+    // the distance above the base line. For example, if the top of the rectangle is -25,
+    // then the letter X extends 25 pixels above the base line. Usually this will equal
+    // the height of the rectangle (i.e. the bottom will be 0) except for the fonts (such as
+    // Matura MT Script Capitals) whose capital letters invade the space below the base line.
+    RectF capHeightBoundingRect = fm.tightBoundingRect('X');
+    double cursorCapHeight = capHeightBoundingRect.isValid() && !capHeightBoundingRect.isEmpty()
+                             ? -capHeightBoundingRect.top() : 0;
+
+    if (cursorCapHeight <= 0) {
+        // Some fonts such as Gotville Text, MScore and MScore Text, report zero capHeight-s.
+        double capHeight = fm.capHeight();
+        cursorCapHeight = capHeight > 0 ? capHeight : fm.ascent();
+    }
+
+    // Calculate the extent of the cursor below the text base line (the descent).
+    // Some fonts like Broadway, Copperplate Gothic Bold, Felix Tilting, Goudy Stout
+    // and Stencil have very small descents so we need a certain minimum. Other fonts
+    // such as Pristina, Viner Hand ITC, Finale Maestro Text, Papyrus and Petaluma
+    // report or do have huge descents so let's impose a maximum as well.
+    // If the cursor does not extend all the way to the bottom of the descenders
+    // but is slightly shorter than them, this looks visually better.
+    double cursorDescent = 0.85 * descent;
+    cursorDescent = std::max(cursorDescent, cursorCapHeight * 0.25);
+    cursorDescent = std::min(cursorDescent, cursorCapHeight * 0.33);
+
+    // For the cursor ascent, aim for symmetry with the descent if possible but impose
+    // a limit to prevent excessively tall cursors when the descenders are very long.
+    double cursorAscent = cursorDescent;
+    cursorAscent = std::min(cursorAscent, cursorCapHeight * 0.33);
+
+    // We can now build the rectange of the cursor. Center it horizontally
+    // with the start of the character for the best visual result.
+    double h = cursorAscent + cursorCapHeight + cursorDescent;
+    double w = 6.0 + h / 32.0;
     double x = tline.xpos(column(), m_text);
-    double y = tline.y() + coef * descent - h;
+    double y = tline.y() + cursorDescent - h;
     return RectF(x - w / 2, y, w, h); // krasko end
 }
 
