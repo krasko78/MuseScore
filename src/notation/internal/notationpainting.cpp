@@ -178,9 +178,9 @@ void NotationPainting::paintPageSheet(Painter* painter, const Page* page, const 
     painter->setPen(Pen(engravingConfiguration()->scoreGreyColor(), strokeWidth));
     painter->drawRect(pageContentRect);
 
-    if (!page->isOdd()) {
-        painter->drawLine(pageContentRect.right(), 0.0, pageContentRect.right(), pageContentRect.bottom());
-    }
+    //if (!page->isOdd()) { // krasko start
+        //painter->drawLine(pageContentRect.right(), 0.0, pageContentRect.right(), pageContentRect.bottom());
+    //} // krasko end
 }
 
 void NotationPainting::paintView(Painter* painter, const RectF& frameRect, bool isPrinting)
