@@ -28,8 +28,8 @@
 #include "modularity/ioc.h"
 #include "async/asyncable.h"
 
-#include "iinteractive.h"
-#include "notation/inotationconfiguration.h"
+#include "interactive/iinteractive.h"
+#include "inotationsceneconfiguration.h"
 
 #include "engraving/dom/drumset.h"
 
@@ -45,7 +45,7 @@ class PercussionPanelPadListModel : public QAbstractListModel, public muse::Cont
 
     QML_ELEMENT
 
-    muse::GlobalInject<INotationConfiguration> configuration;
+    muse::GlobalInject<INotationSceneConfiguration> configuration;
     muse::ContextInject<muse::IInteractive> interactive = { this };
 public:
     explicit PercussionPanelPadListModel(QObject* parent = nullptr);

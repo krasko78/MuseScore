@@ -85,7 +85,7 @@ void AbstractNotationPaintView::load()
     m_inputController = std::make_unique<NotationViewInputController>(this, iocContext());
     m_playbackCursor = std::make_unique<PlaybackCursor>(iocContext());
     m_playbackCursor->setVisible(false);
-    m_noteInputCursor = std::make_unique<NoteInputCursor>(iocContext(), configuration()->thinNoteInputCursor());
+    m_noteInputCursor = std::make_unique<NoteInputCursor>(iocContext(), notationConfiguration()->thinNoteInputCursor());
     m_ruler = std::make_unique<NotationRuler>(iocContext());
 
     m_loopInMarker = std::make_unique<LoopMarker>(LoopBoundaryType::LoopIn, iocContext());
@@ -116,9 +116,9 @@ void AbstractNotationPaintView::load()
         emit viewportChanged();
     }, async::Asyncable::Mode::SetReplace);
 
-    m_isAutomaticallyPanEnabled = configuration()->isAutomaticallyPanEnabled();
-    configuration()->isAutomaticallyPanEnabledChanged().onNotify(this, [this]() {
-        m_isAutomaticallyPanEnabled = configuration()->isAutomaticallyPanEnabled();
+    m_isAutomaticallyPanEnabled = notationConfiguration()->isAutomaticallyPanEnabled();
+    notationConfiguration()->isAutomaticallyPanEnabledChanged().onNotify(this, [this]() {
+        m_isAutomaticallyPanEnabled = notationConfiguration()->isAutomaticallyPanEnabled();
     }, async::Asyncable::Mode::SetReplace);
 
     m_isSmoothPanningEnabled = configuration()->isSmoothPanning();
@@ -131,17 +131,17 @@ void AbstractNotationPaintView::load()
 
 void AbstractNotationPaintView::initBackground()
 {
-    emit backgroundColorChanged(configuration()->backgroundColor());
+    emit backgroundColorChanged(notationConfiguration()->backgroundColor());
 
-    configuration()->backgroundChanged().onNotify(this, [this]() {
-        emit backgroundColorChanged(configuration()->backgroundColor());
+    notationConfiguration()->backgroundChanged().onNotify(this, [this]() {
+        emit backgroundColorChanged(notationConfiguration()->backgroundColor());
         scheduleRedraw();
     }, async::Asyncable::Mode::SetReplace);
 }
 
 void AbstractNotationPaintView::initNavigatorOrientation()
 {
-    configuration()->canvasOrientation().ch.onReceive(this, [this](muse::Orientation) {
+    notationConfiguration()->canvasOrientation().ch.onReceive(this, [this](muse::Orientation) {
         moveCanvasToPosition(PointF(0, 0));
     }, async::Asyncable::Mode::SetReplace);
 }
@@ -252,10 +252,10 @@ void AbstractNotationPaintView::onLoadNotation(INotationPtr)
         m_notation->painting()->setViewMode(m_notation->viewState()->viewMode());
     }
 
-    m_notation->notationChanged().onNotify(this, [this]() {
+    m_notation->notationChanged().onReceive(this, [this](const RectF& updateRect) {
         updateLoopMarkers();
         updateShadowNoteVisibility();
-        scheduleRedraw();
+        scheduleRedraw(updateRect.isValid() ? fromLogical(updateRect) : RectF());
     });
 
     onNoteInputStateChanged();
@@ -304,11 +304,16 @@ void AbstractNotationPaintView::onLoadNotation(INotationPtr)
     interaction->shadowNoteChanged().onReceive(this, [this](bool visible) {
         if (m_shadowNoteRect.isValid()) {
             scheduleRedraw(m_shadowNoteRect);
+        }
 
-            if (!visible) {
-                m_shadowNoteRect = RectF();
-                return;
-            }
+        if (m_previewMeasureRect.isValid()) {
+            scheduleRedraw(m_previewMeasureRect);
+        }
+
+        if (!visible) {
+            m_shadowNoteRect = RectF();
+            m_previewMeasureRect = RectF();
+            return;
         }
 
         RectF shadowNoteRect = fromLogical(notationInteraction()->shadowNoteRect());
@@ -319,16 +324,31 @@ void AbstractNotationPaintView::onLoadNotation(INotationPtr)
         }
 
         m_shadowNoteRect = shadowNoteRect;
+
+        RectF previewMeasureRect = fromLogical(notationInteraction()->previewMeasureRect());
+
+        if (previewMeasureRect.isValid()) {
+            compensateFloatPart(previewMeasureRect);
+            scheduleRedraw(previewMeasureRect);
+        }
+
+        m_previewMeasureRect = previewMeasureRect;
     });
 
     updateLoopMarkers();
     // FIXME: only un-/re-subscribe when master notation changes
     notationPlayback()->loopBoundariesChanged().onNotify(this, [this]() {
         updateLoopMarkers();
+        scheduleRedraw();
     });
 
     m_notation->viewModeChanged().onNotify(this, [this]() {
         ensureViewportInsideScrollableArea();
+    });
+
+    // FIXME: only un-/re-subscribe when master notation changes
+    m_notation->masterNotation()->automation()->automationModeEnabledChanged().onNotify(this, [this]() {
+        scheduleRedraw();
     });
 
     if (isMainView()) {
@@ -376,6 +396,7 @@ void AbstractNotationPaintView::onUnloadNotation(INotationPtr)
     interaction->shadowNoteChanged().disconnect(this);
     notationPlayback()->loopBoundariesChanged().disconnect(this);
     m_notation->viewModeChanged().disconnect(this);
+    m_notation->masterNotation()->automation()->automationModeEnabledChanged().disconnect(this);
 
     if (isMainView()) {
         disconnect(this, &QQuickPaintedItem::focusChanged, this, nullptr);
@@ -415,6 +436,11 @@ void AbstractNotationPaintView::onMatrixChanged(const Transform& oldMatrix, cons
     if (m_shadowNoteRect.isValid()) {
         RectF logicRect = oldMatrixInverted.map(m_shadowNoteRect);
         m_shadowNoteRect = newMatrix.map(logicRect);
+    }
+
+    if (m_previewMeasureRect.isValid()) {
+        RectF logicRect = oldMatrixInverted.map(m_previewMeasureRect);
+        m_previewMeasureRect = newMatrix.map(logicRect);
     }
 
     scheduleRedraw();
@@ -467,8 +493,6 @@ void AbstractNotationPaintView::updateLoopMarkers()
         m_loopInMarker->updatePosition(loop.loopInTick);
         m_loopOutMarker->updatePosition(loop.loopOutTick);
     }
-
-    scheduleRedraw();
 }
 
 void AbstractNotationPaintView::updateShadowNoteVisibility()
@@ -477,6 +501,7 @@ void AbstractNotationPaintView::updateShadowNoteVisibility()
     const engraving::ShadowNote* shadowNote = interaction ? interaction->shadowNote() : nullptr;
     if (!shadowNote || !shadowNote->visible()) {
         m_shadowNoteRect = RectF();
+        m_previewMeasureRect = RectF();
         return;
     }
 
@@ -488,6 +513,7 @@ void AbstractNotationPaintView::updateShadowNoteVisibility()
     } else {
         interaction->hideShadowNote();
         m_shadowNoteRect = RectF();
+        m_previewMeasureRect = RectF();
         return;
     }
 }
@@ -666,22 +692,20 @@ void AbstractNotationPaintView::paint(QPainter* qp)
         return;
     }
 
-    qreal guiScaling = configuration()->guiScaling();
+    qreal guiScaling = notationConfiguration()->guiScaling();
     Transform guiScalingCompensation;
     guiScalingCompensation.scale(guiScaling, guiScaling);
 
     painter->setWorldTransform(m_matrix * guiScalingCompensation);
 
-    bool isPrinting = publishMode() || m_inputController->readonly();
-    notation()->painting()->paintView(painter, toLogical(rect), isPrinting);
-
-    const ui::UiContext& uiCtx = uiContextResolver()->currentUiContext();
-    const bool isOnNotationPage = uiCtx == ui::UiCtxProjectOpened || uiCtx == ui::UiCtxProjectFocused;
+    const bool isPrinting = publishMode() || m_inputController->readonly();
+    const bool isAutomation = notation()->masterNotation()->automation()->isAutomationModeEnabled();
+    notation()->painting()->paintView(painter, toLogical(rect), isPrinting, isAutomation);
 
     const INotationNoteInputPtr noteInput = notationNoteInput();
-    if (noteInput->isNoteInputMode() && isOnNotationPage) {
+    if (noteInput->isNoteInputMode() && !publishMode()) {
         if (noteInput->usingNoteInputMethod(NoteInputMethod::BY_DURATION)
-            && !configuration()->useNoteInputCursorInInputByDuration()) {
+            && !notationConfiguration()->useNoteInputCursorInInputByDuration()) {
             m_ruler->paint(painter, noteInput->state());
         } else {
             m_noteInputCursor->paint(painter);
@@ -699,7 +723,7 @@ void AbstractNotationPaintView::paint(QPainter* qp)
         nvCtx.fromLogical = [this](const PointF& pos) -> PointF { return fromLogical(pos); };
 
         engraving::rendering::PaintOptions opt;
-        opt.invertColors = configuration()->shouldInvertScore();
+        opt.invertColors = notationConfiguration()->shouldInvertScore();
         m_continuousPanel->paint(*painter, nvCtx, opt);
     }
 }
@@ -722,7 +746,7 @@ void AbstractNotationPaintView::onNotationSetup()
         movePlaybackCursor(tick);
     });
 
-    configuration()->foregroundChanged().onNotify(this, [this]() {
+    notationConfiguration()->foregroundChanged().onNotify(this, [this]() {
         scheduleRedraw();
     });
 
@@ -755,10 +779,10 @@ void AbstractNotationPaintView::paintBackground(const RectF& rect, muse::draw::P
 {
     TRACEFUNC;
 
-    const QPixmap& wallpaper = configuration()->backgroundWallpaper();
+    const QPixmap& wallpaper = notationConfiguration()->backgroundWallpaper();
 
-    if (configuration()->backgroundUseColor() || wallpaper.isNull()) {
-        painter->fillRect(rect, configuration()->backgroundColor());
+    if (notationConfiguration()->backgroundUseColor() || wallpaper.isNull()) {
+        painter->fillRect(rect, notationConfiguration()->backgroundColor());
     } else {
         painter->drawTiledPixmap(rect, wallpaper, rect.topLeft() - PointF(m_matrix.m31(), m_matrix.m32()));
     }
@@ -1109,8 +1133,17 @@ bool AbstractNotationPaintView::doMoveCanvas(qreal dx, qreal dy)
 
 void AbstractNotationPaintView::scheduleRedraw(const muse::RectF& rect)
 {
-    QRect qrect = correctDrawRect(rect).toQRect();
-    update(qrect);
+    muse::RectF redrawRect = correctDrawRect(rect);
+
+    // Convert the floating-point rectangle to an integer QRect for the update() call,
+    // ensuring that we cover the entire area of the original rect.
+    int left = floor(redrawRect.left());
+    int right = ceil(redrawRect.right());
+    int top = floor(redrawRect.top());
+    int bottom = ceil(redrawRect.bottom());
+    QRect updateRect = QRect(left, top, right - left, bottom - top);
+
+    update(updateRect);
 }
 
 RectF AbstractNotationPaintView::correctDrawRect(const RectF& rect) const
@@ -1411,6 +1444,7 @@ void AbstractNotationPaintView::clear()
     m_previousHorizontalScrollPosition = 0;
     m_previousVerticalScrollPosition = 0;
     m_shadowNoteRect = RectF();
+    m_previewMeasureRect = RectF();
     onMatrixChanged(oldMatrix, m_matrix, false);
 }
 
@@ -1632,7 +1666,7 @@ void AbstractNotationPaintView::setPlaybackCursorItem(QQuickItem* cursor)
     if (m_playbackCursorItem) {
         m_playbackCursorItem->setVisible(playbackController()->isPlaying());
         m_playbackCursorItem->setEnabled(false); // ignore mouse & keyboard events
-        m_playbackCursorItem->setProperty("color", configuration()->playbackCursorColor());
+        m_playbackCursorItem->setProperty("color", notationConfiguration()->playbackCursorColor());
 
         connect(m_playbackCursorItem, &QObject::destroyed, this, [this]() {
             m_playbackCursorItem = nullptr;

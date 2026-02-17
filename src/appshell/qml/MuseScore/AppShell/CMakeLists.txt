@@ -63,6 +63,7 @@ qt_add_qml_module(appshell_qml
         DevTools/KeyNav/KeyNavSection.qml
         DevTools/KeyNav/KeyNavSubSection.qml
         DevTools/MPE/ArticulationsProfileEditorView.qml
+        DevTools/MuseSounds/MuseSoundsDevTools.qml
         DevTools/Settings/SettingsPage.qml
         FirstLaunchSetup/FirstLaunchSetupDialog.qml
         FirstLaunchSetup/Page.qml
@@ -93,6 +94,7 @@ qt_add_qml_module(appshell_qml
         TARGET muse_dockwindow_qml
         TARGET muse_diagnostics_qml
         TARGET muse_extensions_qml
+        TARGET muse_interactive_qml
         TARGET muse_learn_qml
         TARGET muse_mpe_qml
         TARGET muse_shortcuts_qml

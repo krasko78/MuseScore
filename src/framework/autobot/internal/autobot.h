@@ -32,7 +32,7 @@
 #include "io/ifilesystem.h"
 #include "ui/inavigationcontroller.h"
 #include "shortcuts/ishortcutsregister.h"
-#include "iinteractive.h"
+#include "interactive/iinteractive.h"
 #include "ui/imainwindow.h"
 #include "global/iapplication.h"
 
@@ -46,7 +46,7 @@ class Autobot : public IAutobot, public Contextable, public async::Asyncable
 {
     GlobalInject<IAutobotConfiguration> configuration;
     GlobalInject<io::IFileSystem> fileSystem;
-    ContextInject<IApplication> application = { this };
+    GlobalInject<IApplication> application;
     ContextInject<muse::ui::INavigationController> navigation = { this };
     ContextInject<shortcuts::IShortcutsRegister> shortcutsRegister = { this };
     ContextInject<IInteractive> interactive = { this };

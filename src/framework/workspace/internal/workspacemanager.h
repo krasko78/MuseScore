@@ -26,7 +26,7 @@
 
 #include "modularity/ioc.h"
 #include "io/ifilesystem.h"
-#include "iinteractive.h"
+#include "interactive/iinteractive.h"
 #include "../iworkspaceconfiguration.h"
 
 #include "workspace.h"
@@ -67,6 +67,7 @@ public:
 
 private:
     void load();
+    void reloadWorkspaceFiles();
 
     io::paths_t findWorkspaceFiles() const;
 

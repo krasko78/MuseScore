@@ -24,9 +24,11 @@
 #include <memory>
 #include <vector>
 
+#include <QTimer>
+
 #include "modularity/ioc.h"
 #include "async/asyncable.h"
-#include "iinteractive.h"
+#include "interactive/iinteractive.h"
 #include "engraving/rendering/isinglerenderer.h"
 #include "engraving/rendering/ieditmoderenderer.h"
 
@@ -41,6 +43,7 @@
 #include "engraving/dom/elementgroup.h"
 #include "engraving/rendering/paintoptions.h"
 #include "engraving/types/symid.h"
+#include "previewmeasure.h"
 #include "scorecallbacks.h"
 
 #include "appshell/iappshellconfiguration.h" // krasko
@@ -78,6 +81,7 @@ public:
     void showShadowNoteForMidiPitch(const uint8_t pitch) override;
     void hideShadowNote() override;
     muse::RectF shadowNoteRect() const override;
+    muse::RectF previewMeasureRect() const override;
     muse::async::Channel</*visible*/ bool> shadowNoteChanged() const override;
 
     // Visibility
@@ -343,6 +347,9 @@ public:
 
     void toggleDebugShowGapRests() override;
 
+private slots:
+    void blinkTextCursor();
+
 private:
     mu::engraving::Score* score() const;
     void onScoreInited();
@@ -385,7 +392,7 @@ private:
     void notifyAboutDragChanged();
     void notifyAboutDropChanged();
     void notifyAboutSelectionChangedIfNeed();
-    void notifyAboutNotationChanged();
+    void notifyAboutNotationChanged(const muse::RectF& updateRect = muse::RectF());
     void notifyAboutTextEditingStarted();
     void notifyAboutTextEditingChanged();
     void notifyAboutTextEditingEnded(TextBase* text);
@@ -409,6 +416,10 @@ private:
 
     void startEditText(mu::engraving::TextBase* text);
     bool needEndTextEdit() const;
+    void startTextCursorBlinkTimer();
+    void stopTextCursorBlinkTimer();
+    void onTextEditingChanged();
+    void updateTextCursorVisibility();
     void pasteIntoTextEdit();
 
     mu::engraving::Page* point2page(const muse::PointF& p, bool useNearestPage = false) const;
@@ -532,6 +543,7 @@ private:
 
     INotationNoteInputPtr m_noteInput = nullptr;
 
+    PreviewMeasure m_previewMeasure;
     muse::async::Channel</*visible*/ bool> m_shadowNoteChanged;
 
     std::shared_ptr<NotationSelection> m_selection = nullptr;
@@ -570,5 +582,7 @@ private:
     HitElementContext m_hitElementContext;
 
     muse::async::Channel<ShowItemRequest> m_showItemRequested;
+
+    QTimer m_textCursorBlinkTimer;
 };
 }

@@ -34,7 +34,7 @@
 #include "../iengravingconfiguration.h"
 
 namespace mu::engraving {
-class EngravingConfiguration : public IEngravingConfiguration, public muse::Contextable, public muse::async::Asyncable
+class EngravingConfiguration : public IEngravingConfiguration, public muse::async::Asyncable
 {
     muse::GlobalInject<muse::IGlobalConfiguration> globalConfiguration;
     muse::GlobalInject<muse::ui::IUiConfiguration> uiConfiguration;
@@ -43,8 +43,7 @@ class EngravingConfiguration : public IEngravingConfiguration, public muse::Cont
     muse::GlobalInject<appshell::IAppShellConfiguration> appShellConfiguration; // krasko
 
 public:
-    EngravingConfiguration(const muse::modularity::ContextPtr& iocCtx)
-        : muse::Contextable(iocCtx) {}
+    EngravingConfiguration() {}
 
     void init();
 

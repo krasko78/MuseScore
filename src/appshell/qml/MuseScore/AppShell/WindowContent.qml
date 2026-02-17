@@ -24,9 +24,10 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 
+import Muse.Dock
+import Muse.Interactive
 import Muse.Ui
 import Muse.UiComponents
-import Muse.Dock
 import MuseScore.AppShell
 
 import "./HomePage"
@@ -40,6 +41,7 @@ DockWindow {
     objectName: "WindowContent"
 
     onPageLoaded: {
+        console.log("WindowContent::onPageLoaded")
         interactiveProvider.onPageOpened()
         window.opacity = 1.0
     }
@@ -85,7 +87,7 @@ DockWindow {
                 }
 
                 onSelected: function(uri) {
-                    api.launcher.open(uri)
+                    root.loadPage(uri, {})
                 }
 
                 Component.onCompleted: {

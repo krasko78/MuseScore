@@ -26,7 +26,7 @@
 #include "actions/actiontypes.h"
 
 #include "modularity/ioc.h"
-#include "iinteractive.h"
+#include "interactive/iinteractive.h"
 #include "actions/iactionsdispatcher.h"
 #include "ui/inavigationcontroller.h"
 #include "ui/iuiactionsregister.h"
@@ -71,12 +71,14 @@ public:
     INotationStylePtr currentNotationStyle() const;
     muse::async::Notification currentNotationStyleChanged() const;
 
+    IMasterNotationPtr currentMasterNotation() const;
+    muse::async::Notification currentMasterNotationChanged() const;
+
     using EngravingDebuggingOptions = engraving::IEngravingConfiguration::DebuggingOptions;
     static const std::unordered_map<muse::actions::ActionCode, bool EngravingDebuggingOptions::*> engravingDebuggingActions;
 
 private:
     INotationPtr currentNotation() const;
-    IMasterNotationPtr currentMasterNotation() const;
     INotationElementsPtr currentNotationElements() const;
     INotationSelectionPtr currentNotationSelection() const;
     INotationMidiInputPtr currentNotationMidiInput() const;
@@ -228,6 +230,8 @@ private:
 
     void checkForScoreCorruptions();
 
+    void toggleAutomation();
+
     void registerAction(const muse::actions::ActionCode&, void (NotationActionController::*)(const muse::actions::ActionData& data),
                         bool (NotationActionController::*)() const = &NotationActionController::isNotationPage);
     void registerAction(const muse::actions::ActionCode&, void (NotationActionController::*)(),
@@ -257,6 +261,8 @@ private:
 
     void registerMoveSelectionAction(const muse::actions::ActionCode& code, MoveSelectionType type, MoveDirection direction,
                                      PlayMode playMode = PlayMode::NoPlay);
+    void registerAddToSelectionAction(const muse::actions::ActionCode& code, MoveSelectionType type, MoveDirection direction);
+    void registerExpandSelectionAction(const muse::actions::ActionCode& code, ExpandSelectionMode mode);
 
     void registerAction(const muse::actions::ActionCode&, void (INotationInteraction::*)(), bool (NotationActionController::*)() const);
     void registerAction(const muse::actions::ActionCode&, void (INotationInteraction::*)(), PlayMode = PlayMode::NoPlay,
@@ -275,5 +281,6 @@ private:
 
     using IsActionEnabledFunc = std::function<bool ()>;
     std::map<muse::actions::ActionCode, IsActionEnabledFunc> m_isEnabledMap;
+    std::unordered_set<muse::actions::ActionCode> m_isAllowedDuringPlayback;
 };
 }

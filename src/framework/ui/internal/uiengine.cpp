@@ -22,9 +22,7 @@
 
 #include "uiengine.h"
 
-#include <QApplication>
 #include <QQmlApplicationEngine>
-#include <QStringList>
 #include <QDir>
 #include <QQmlContext>
 #include <QEventLoop>
@@ -32,8 +30,6 @@
 
 #include "global/types/color.h"
 #include "graphicsapiprovider.h"
-
-#include "log.h"
 
 using namespace muse::ui;
 
@@ -43,7 +39,6 @@ UiEngine::UiEngine(const modularity::ContextPtr& iocCtx)
     m_engine = new QQmlApplicationEngine(this);
     m_apiEngine = new muse::api::JsApiEngine(m_engine, iocContext());
     m_translation = new QmlTranslation(this);
-    m_interactiveProvider = std::make_shared<InteractiveProvider>(iocContext());
     m_api = new QmlApi(this, iocContext());
     m_tooltip = new QmlToolTip(this, iocContext());
     m_dataFormatter = new QmlDataFormatter(this);
@@ -64,7 +59,6 @@ UiEngine::~UiEngine()
 void UiEngine::init()
 {
     m_theme->init();
-    m_tooltip->init();
     m_appshellConfigurationProxy->init(); // krasko
     m_engine->rootContext()->setContextProperty("ui", this);
     m_engine->rootContext()->setContextProperty("api", m_api);
@@ -77,6 +71,9 @@ void UiEngine::init()
     QJSValue translator = m_engine->newQObject(m_translation);
     QJSValue translateFn = translator.property("translate");
     m_engine->globalObject().setProperty("qsTrc", translateFn);
+
+    m_networkManagerFactory = new QmlNetworkAccessManagerFactory();
+    m_engine->setNetworkAccessManagerFactory(m_networkManagerFactory);
 
 #ifdef Q_OS_WIN
     QDir dir(QCoreApplication::applicationDirPath() + QString("/../qml"));
@@ -171,16 +168,6 @@ muse::api::ThemeApi* UiEngine::theme() const
 QmlToolTip* UiEngine::tooltip() const
 {
     return m_tooltip;
-}
-
-InteractiveProvider* UiEngine::interactiveProvider_property() const
-{
-    return m_interactiveProvider.get();
-}
-
-std::shared_ptr<InteractiveProvider> UiEngine::interactiveProvider() const
-{
-    return m_interactiveProvider;
 }
 
 Qt::KeyboardModifiers UiEngine::keyboardModifiers() const

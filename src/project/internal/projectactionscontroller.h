@@ -28,7 +28,7 @@
 #include <QString>
 
 #include "modularity/ioc.h"
-#include "iinteractive.h"
+#include "interactive/iinteractive.h"
 #include "context/iglobalcontext.h"
 #include "actions/actionable.h"
 #include "actions/iactionsdispatcher.h"
@@ -64,8 +64,8 @@ class ProjectActionsController : public IProjectFilesController, public muse::mi
     muse::GlobalInject<notation::INotationConfiguration> notationConfiguration;
     muse::GlobalInject<muse::io::IFileSystem> fileSystem;
     muse::GlobalInject<IMscMetaReader> mscMetaReader;
+    muse::GlobalInject<IProjectCreator> projectCreator;
     muse::ContextInject<INotationReadersRegister> readers = { this };
-    muse::ContextInject<IProjectCreator> projectCreator = { this };
     muse::ContextInject<IRecentFilesController> recentFilesController = { this };
     muse::ContextInject<IProjectAutoSaver> projectAutoSaver = { this };
     muse::ContextInject<IOpenSaveProjectScenario> openSaveProjectScenario = { this };

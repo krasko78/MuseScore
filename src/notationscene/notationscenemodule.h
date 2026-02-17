@@ -26,6 +26,7 @@
 #include "modularity/imodulesetup.h"
 
 namespace mu::notation {
+class NotationSceneConfiguration;
 class NotationActionController;
 class NotationUiActions;
 class MidiInputOutputController;
@@ -33,6 +34,21 @@ class NotationSceneModule : public muse::modularity::IModuleSetup
 {
 public:
     std::string moduleName() const override;
+    void registerExports() override;
+    void resolveImports() override;
+    void onInit(const muse::IApplication::RunMode& mode) override;
+
+    muse::modularity::IContextSetup* newContext(const muse::modularity::ContextPtr& ctx) const override;
+
+private:
+    std::shared_ptr<NotationSceneConfiguration> m_configuration;
+};
+
+class NotationSceneContext : public muse::modularity::IContextSetup
+{
+public:
+    NotationSceneContext(const muse::modularity::ContextPtr& ctx)
+        : muse::modularity::IContextSetup(ctx) {}
 
     void registerExports() override;
     void resolveImports() override;

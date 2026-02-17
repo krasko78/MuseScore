@@ -269,6 +269,11 @@ NotationInteraction::NotationInteraction(Notation* notation, INotationUndoStackP
         onViewModeChanged();
     });
 
+    QObject::connect(&m_textCursorBlinkTimer, &QTimer::timeout, [this]() { blinkTextCursor(); });
+    textEditingChanged().onNotify(this, [this]() {
+        onTextEditingChanged();
+    });
+
     auto layoutScore = [this]() // krasko: relayout entire score
     { 
         Score* s = score();
@@ -302,6 +307,7 @@ void NotationInteraction::onScoreInited()
         return;
     }
 
+    m_previewMeasure.setScore(score());
     m_scoreCallbacks.setScore(score());
 
     score()->elementDestroyed().onReceive(this, [this](mu::engraving::EngravingItem* element) {
@@ -365,11 +371,11 @@ void NotationInteraction::notifyAboutDropChanged()
     m_dropChanged.notify();
 }
 
-void NotationInteraction::notifyAboutNotationChanged()
+void NotationInteraction::notifyAboutNotationChanged(const muse::RectF& updateRect)
 {
     TRACEFUNC;
 
-    m_notation->notifyAboutNotationChanged();
+    m_notation->notifyAboutNotationChanged(updateRect);
 }
 
 void NotationInteraction::notifyAboutTextEditingStarted()
@@ -407,6 +413,8 @@ void NotationInteraction::notifyAboutNoteInputStateChanged()
 
 void NotationInteraction::paint(Painter* painter, const engraving::rendering::PaintOptions& opt)
 {
+    m_previewMeasure.paint(painter);
+
     if (shouldDrawInputPreview()) {
         drawInputPreview(painter, opt);
     }
@@ -567,7 +575,7 @@ bool NotationInteraction::doShowShadowNote(ShadowNote& shadowNote, ShadowNotePar
             mu::engraving::gpaletteScore->dummy()->segment(), params.duration.type());
         rest->setTicks(params.duration.fraction());
         symNotehead = rest->getSymbol(params.duration.type(), 0, staff->lines(position.segment->tick()));
-        shadowNote.setState(symNotehead, params.duration, true, segmentSkylineTopY, segmentSkylineBottomY);
+        shadowNote.setState(symNotehead, params.duration, true, segmentSkylineTopY, segmentSkylineBottomY, params.position.beyondScore);
         delete rest;
     } else {
         if (mu::engraving::NoteHeadGroup::HEAD_CUSTOM == noteheadGroup) {
@@ -577,7 +585,7 @@ bool NotationInteraction::doShowShadowNote(ShadowNote& shadowNote, ShadowNotePar
         }
 
         shadowNote.setState(symNotehead, params.duration, false, segmentSkylineTopY, segmentSkylineBottomY,
-                            params.accidentalType, params.articulationIds);
+                            params.position.beyondScore, params.accidentalType, params.articulationIds);
     }
 
     score()->renderer()->layoutItem(&shadowNote);
@@ -612,6 +620,11 @@ RectF NotationInteraction::shadowNoteRect() const
     rect.adjust(-penWidth, -penWidth, penWidth, penWidth);
 
     return rect;
+}
+
+RectF NotationInteraction::previewMeasureRect() const
+{
+    return m_previewMeasure.rect();
 }
 
 muse::async::Channel<bool> NotationInteraction::shadowNoteChanged() const
@@ -3495,7 +3508,12 @@ std::vector<NotationInteraction::ShadowNoteParams> NotationInteraction::previewN
 
         params.accidentalType = accidentalType(is, nval, line);
         params.position.line = line;
-        params.position.pos = PointF(segment->x(), y) + measurePos;
+
+        if (is.beyondScore()) {
+            params.position.pos = PointF(measure->ldata()->bbox().width() + score()->style().spatium(), y) + measurePos;
+        } else {
+            params.position.pos = PointF(segment->x(), y) + measurePos;
+        }
 
         result.push_back(params);
     }
@@ -4372,6 +4390,7 @@ void NotationInteraction::startEditText(EngravingItem* element, const PointF& cu
     m_editData.startMove = bindCursorPosToText(cursorPos, m_editData.element);
 
     m_editData.element->startEdit(m_editData);
+    startTextCursorBlinkTimer();
 
     m_isEditingElementChanged.notify();
     notifyAboutTextEditingStarted();
@@ -4598,6 +4617,8 @@ void NotationInteraction::endEditText()
         return;
     }
 
+    stopTextCursorBlinkTimer();
+
     TextBase* editedElement = toTextBase(m_editData.element);
     doEndEditElement();
 
@@ -4606,6 +4627,79 @@ void NotationInteraction::endEditText()
 
     notifyAboutTextEditingChanged();
     notifyAboutSelectionChangedIfNeed();
+}
+
+void NotationInteraction::blinkTextCursor()
+{
+    if (!isTextEditingStarted()) {
+        stopTextCursorBlinkTimer();
+        return;
+    }
+
+    const TextBase* editedElement = editedText();
+    IF_ASSERT_FAILED(editedElement) {
+        return;
+    }
+    TextCursor* cursor = editedElement->cursor();
+    IF_ASSERT_FAILED(cursor) {
+        return;
+    }
+    cursor->toggleVisible();
+
+    muse::RectF cursorCanvasRect = cursor->cursorCanvasRect();
+    if (cursorCanvasRect.isValid()) {
+        notifyAboutNotationChanged(cursorCanvasRect);
+    }
+}
+
+void NotationInteraction::startTextCursorBlinkTimer()
+{
+    const int cursorFlashTime = QApplication::cursorFlashTime() / 2;
+    if (cursorFlashTime > 0) {
+        m_textCursorBlinkTimer.start(cursorFlashTime);
+    } else {
+        // text cursor flashing is disabled
+        stopTextCursorBlinkTimer();
+    }
+}
+
+void NotationInteraction::stopTextCursorBlinkTimer()
+{
+    if (m_textCursorBlinkTimer.isActive()) {
+        m_textCursorBlinkTimer.stop();
+    }
+}
+
+void NotationInteraction::onTextEditingChanged()
+{
+    updateTextCursorVisibility();
+}
+
+void NotationInteraction::updateTextCursorVisibility()
+{
+    if (!isTextEditingStarted()) {
+        return;
+    }
+
+    const TextBase* editedElement = editedText();
+    IF_ASSERT_FAILED(editedElement) {
+        return;
+    }
+    TextCursor* cursor = editedElement->cursor();
+    IF_ASSERT_FAILED(cursor) {
+        return;
+    }
+
+    // Whenever the cursor moves, we update its visibility.
+    // If it has to be visible, we display it immediately
+    // regardless of the blinking, and restart the blinking.
+    bool showCursor = !cursor->hasSelection();
+    cursor->setVisible(showCursor);
+    if (showCursor) {
+        startTextCursorBlinkTimer();
+    } else {
+        stopTextCursorBlinkTimer();
+    }
 }
 
 void NotationInteraction::changeTextCursorPosition(const PointF& newCursorPos)
@@ -5192,7 +5286,7 @@ void NotationInteraction::addBoxes(BoxType boxType, int count, int beforeBoxInde
         case BoxType::Vertical: return TranslatableString("undoableAction", "Add vertical frame");
         case BoxType::Text: return TranslatableString("undoableAction", "Add text frame");
         case BoxType::Fret: return TranslatableString("undoableAction", "Add fretboard diagram legend");
-        case BoxType::Measure: return TranslatableString("undoableAction", "Add %n measure(s)", nullptr, count);
+        case BoxType::Measure: return TranslatableString("undoableAction", "Add %Ln measure(s)", nullptr, count);
         case BoxType::Unknown: break;
         }
 
@@ -5259,7 +5353,7 @@ void NotationInteraction::repeatSelection()
     if (score()->noteEntryMode() && selection.isSingle()) {
         // Single selections require special handling in note entry mode...
         EngravingItem* el = selection.element();
-        if (!el || score()->inputState().endOfScore()) {
+        if (!el) {
             return;
         }
         Chord* c = nullptr;
@@ -5269,8 +5363,7 @@ void NotationInteraction::repeatSelection()
             Segment* prevSegment = toRest(el)->segment()->prev1WithElemsOnTrack(el->track());
 
             // Looking for the previous Chord
-            while (prevSegment)
-            {
+            while (prevSegment) {
                 if (prevSegment->element(el->track())->isChord()) {
                     c = toChord(prevSegment->element(el->track()));
                     break;
@@ -5307,14 +5400,17 @@ void NotationInteraction::repeatSelection()
     staff_idx_t dStaff = selection.staffStart();
     mu::engraving::Segment* endSegment = selection.endSegment();
 
+    startEdit(TranslatableString("undoableAction", "Repeat selection"));
     if (endSegment && endSegment->segmentType() != SegmentType::ChordRest) {
+        if (!endSegment->next1(SegmentType::ChordRest)) {
+            score()->appendMeasures(1);
+        }
         endSegment = endSegment->next1(SegmentType::ChordRest);
     }
     if (endSegment) {
         for (track_idx_t track = staff2track(dStaff); track < staff2track(dStaff + 1); ++track) {
             EngravingItem* e = endSegment->element(track);
             if (e) {
-                startEdit(TranslatableString("undoableAction", "Repeat selection"));
                 ChordRest* cr = toChordRest(e);
                 if (!score()->pasteStaff(xml, cr->segment(), cr->staffIdx())) {
                     rollback();
@@ -5363,9 +5459,6 @@ void NotationInteraction::repeatListSelection(const Selection& selection)
             // If the note doesn't belong to a chord we've seen before...
             foundChords.emplace(sourceChord);
             is.setSegment(sourceChord->segment());
-            if (score()->inputState().endOfScore()) {
-                continue;
-            }
             is.moveToNextInputPos();
             is.setDuration(sourceChord->durationType());
         }
@@ -6094,11 +6187,27 @@ void NotationInteraction::addIntervalToSelectedNotes(int interval)
     std::vector<Note*> notes;
 
     if (score()->selection().isRange()) {
+        const bool hasMultiNoteChords = score()->selection().rangeContainsMultiNoteChords();
         for (const ChordRest* chordRest : score()->getSelectedChordRests()) {
-            if (chordRest->isChord()) {
-                const Chord* chord = toChord(chordRest);
-                Note* note = interval > 0 ? chord->upNote() : chord->downNote();
-                notes.push_back(note);
+            if (!chordRest->isChord()) {
+                continue;
+            }
+            const Chord* chord = toChord(chordRest);
+            const std::vector<Note*> nl = chord->notes();
+            if (interval > 0) {
+                for (size_t noteIdx = nl.size(); noteIdx > 0; --noteIdx) {
+                    if (score()->selectionFilter().canSelectNoteIdx(noteIdx - 1, nl.size(), hasMultiNoteChords)) {
+                        notes.push_back(nl.at(noteIdx - 1));
+                        break;
+                    }
+                }
+            } else {
+                for (size_t noteIdx = 0; noteIdx < nl.size(); ++noteIdx) {
+                    if (score()->selectionFilter().canSelectNoteIdx(noteIdx, nl.size(), hasMultiNoteChords)) {
+                        notes.push_back(nl.at(noteIdx));
+                        break;
+                    }
+                }
             }
         }
     } else {
@@ -6468,7 +6577,7 @@ void NotationInteraction::removeSelectedMeasures()
 
     int numDeletedMeasures = 1 + lastMeasure->measureIndex() - firstMeasure->measureIndex();
 
-    startEdit(TranslatableString("undoableAction", "Delete %n measure(s)", nullptr, numDeletedMeasures));
+    startEdit(TranslatableString("undoableAction", "Delete %Ln measure(s)", nullptr, numDeletedMeasures));
     score()->cmdTimeDelete();
     apply();
 }

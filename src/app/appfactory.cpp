@@ -123,6 +123,10 @@
 #include "framework/stubs/extensions/extensionsstubmodule.h"
 #endif
 
+#ifdef MUSE_MODULE_INTERACTIVE
+#include "framework/interactive/interactivemodule.h"
+#endif
+
 // Modules
 #include "appshell/appshellmodule.h"
 
@@ -273,7 +277,7 @@ std::shared_ptr<muse::IApplication> AppFactory::newGuiApp(const CmdOptions& opti
 {
     modularity::ContextPtr ctx = std::make_shared<modularity::Context>();
     ++m_lastID;
-    //ctx->id = m_lastID;
+    // ctx->id = m_lastID;
     ctx->id = -1; //! NOTE At the moment global ioc
 
     std::shared_ptr<GuiApp> app = std::make_shared<GuiApp>(options, ctx);
@@ -292,6 +296,9 @@ std::shared_ptr<muse::IApplication> AppFactory::newGuiApp(const CmdOptions& opti
     app->addModule(new muse::audioplugins::AudioPluginsModule());
 #endif
     app->addModule(new muse::draw::DrawModule());
+#ifdef MUSE_MODULE_INTERACTIVE
+    app->addModule(new muse::interactive::InteractiveModule());
+#endif
     app->addModule(new muse::midi::MidiModule());
     app->addModule(new muse::mpe::MpeModule());
 

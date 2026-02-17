@@ -36,6 +36,7 @@ FocusScope {
     property bool hasText: valueInput.text.length > 0
 
     property bool resizeVerticallyWithText: false
+    property bool allowNewLineByEnter: true
 
     property real textSidePadding: 12
 
@@ -176,6 +177,8 @@ FocusScope {
 
                 ShortcutOverrideModel {
                     id: shortcutOverrideModel
+                    // Direction keys should not trigger navigation, override them...
+                    directionKeysForOverride: ShortcutOverrideModel.All
                 }
 
                 Component.onCompleted: {
@@ -184,6 +187,18 @@ FocusScope {
 
                 Keys.onShortcutOverride: function(event) {
                     if (readOnly) {
+                        return
+                    }
+
+                    var finishEdit = function(){
+                        event.accepted = false
+                        root.focus = false
+                        root.textEditingFinished(valueInput.text)
+                    }
+
+                    var isNewLineKey = (event.key === Qt.Key_Enter || event.key === Qt.Key_Return) && !event.modifiers
+                    if (!allowNewLineByEnter && isNewLineKey) {
+                        finishEdit()
                         return
                     }
 
@@ -202,10 +217,7 @@ FocusScope {
                     if (shortcutOverrideModel.isShortcutOverrideAllowed(event.key, event.modifiers)) {
                         event.accepted = true
                     } else {
-                        event.accepted = false
-
-                        root.focus = false
-                        root.textEditingFinished(valueInput.text)
+                        finishEdit()
                     }
                 }
 

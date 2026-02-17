@@ -22,7 +22,6 @@
 
 #include "windowview.h"
 
-#include <QQmlEngine>
 #include <QQuickView>
 #include <QScreen>
 #include <QTimer>
@@ -425,7 +424,8 @@ void WindowView::resolveParentWindow()
             return;
         }
     }
-    setParentWindow(interactiveProvider()->topWindow());
+
+    setParentWindow(interactive()->topWindow());
 }
 
 QScreen* WindowView::resolveScreen() const
@@ -448,7 +448,17 @@ QScreen* WindowView::resolveScreen() const
 QRect WindowView::currentScreenGeometry() const
 {
     QScreen* screen = resolveScreen();
-    return mainWindow()->isFullScreen() ? screen->geometry() : screen->availableGeometry();
+
+    QRect geometry;
+
+    // See PR #10558
+#ifndef Q_OS_MAC
+    geometry = mainWindow()->isFullScreen() ? screen->geometry() : screen->availableGeometry();
+#else
+    geometry = screen->availableGeometry();
+#endif
+
+    return geometry;
 }
 
 QRect WindowView::viewGeometry() const

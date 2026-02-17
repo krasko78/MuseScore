@@ -28,7 +28,7 @@
 #include "global/async/asyncable.h"
 
 #include "modularity/ioc.h"
-#include "global/iinteractive.h"
+#include "interactive/iinteractive.h"
 #include "iapplication.h"
 #include "iworkspacemanager.h"
 
@@ -44,7 +44,7 @@ class WorkspaceListModel : public QAbstractListModel, public Contextable, public
     QML_ELEMENT
 
     ContextInject<IInteractive> interactive = { this };
-    ContextInject<IApplication> application = { this };
+    GlobalInject<IApplication> application;
     ContextInject<IWorkspaceManager> workspacesManager = { this };
 
 public:

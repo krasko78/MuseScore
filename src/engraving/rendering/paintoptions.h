@@ -19,12 +19,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 #pragma once
+
+#include "types/color.h"
+
+namespace mu::engraving {
+class EngravingItem;
+}
 
 namespace mu::engraving::rendering {
 struct PaintOptions
 {
     bool isPrinting = false;
     bool invertColors = false;
+
+    std::function<muse::Color(const EngravingItem* item, muse::Color defaultColor)> overrideItemColor;
 };
 }

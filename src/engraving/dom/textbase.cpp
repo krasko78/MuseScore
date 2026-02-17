@@ -149,6 +149,7 @@ void TextCursor::startEdit()
     setColumn(0);
     clearSelection();
     m_editing = true;
+    m_visible = true;
 }
 
 void TextCursor::endEdit()
@@ -157,6 +158,7 @@ void TextCursor::endEdit()
     setColumn(0);
     clearSelection();
     m_editing = false;
+    m_visible = false;
 }
 
 //---------------------------------------------------------
@@ -336,6 +338,11 @@ RectF TextCursor::cursorRect() const
     double x = tline.xpos(column(), m_text);
     double y = tline.y() + cursorDescent - h;
     return RectF(x - w / 2, y, w, h); // krasko end
+}
+
+RectF TextCursor::cursorCanvasRect() const
+{
+    return cursorRect().translated(m_text->canvasPos());
 }
 
 //---------------------------------------------------------
@@ -957,34 +964,7 @@ Font TextFragment::font(const TextBase* t) const
         font.setNoFontMerging(true);
         FontMetrics fm(font);
 
-        bool fail = false;
-        for (size_t i = 0; i < text.size(); ++i) {
-            const Char& c = text.at(i);
-            if (c.isHighSurrogate()) {
-                if (i + 1 == text.size()) {
-                    ASSERT_X("bad string");
-                }
-                const Char& c2 = text.at(i + 1);
-                ++i;
-                char32_t v = Char::surrogateToUcs4(c, c2);
-                if (!fm.inFont(v)) {
-                    fail = true;
-                    break;
-                }
-            } else {
-                if (!fm.inFont(c.unicode())) {
-                    fail = true;
-                    break;
-                }
-            }
-        }
-        if (fail) {
-            if (fontType == Font::Type::MusicSymbol) {
-                family = String::fromUtf8(FALLBACK_SYMBOL_FONT);
-            } else {
-                family = String::fromUtf8(FALLBACK_SYMBOLTEXT_FONT);
-            }
-        }
+        resolveFallback(fontType, fm, family);
     } else {
         family = format.fontFamily();
         fontType = Font::Type::Unknown;
@@ -999,6 +979,51 @@ Font TextFragment::font(const TextBase* t) const
 
     font.setPointSizeF(m * t->mag());
     return font;
+}
+
+void TextFragment::resolveFallback(muse::draw::Font::Type fontType, const muse::draw::FontMetrics& fm,
+                                   String& family) const
+{
+    std::vector<char32_t> missingChars;
+    for (size_t i = 0; i < text.size(); ++i) {
+        const Char& c = text.at(i);
+        if (c.isHighSurrogate()) {
+            if (i + 1 == text.size()) {
+                ASSERT_X("bad string");
+            }
+            const Char& c2 = text.at(i + 1);
+            ++i;
+            char32_t v = Char::surrogateToUcs4(c, c2);
+            if (!fm.inFont(v)) {
+                missingChars.push_back(v);
+            }
+        } else {
+            if (!fm.inFont(c.unicode())) {
+                missingChars.push_back(c.unicode());
+            }
+        }
+    }
+
+    static String fallbackSymbolFontFamily = String::fromUtf8(FALLBACK_SYMBOL_FONT);
+    static String fallbackSymbolTextFontFamily = String::fromUtf8(FALLBACK_SYMBOLTEXT_FONT);
+    static FontMetrics fallbackSymbolFM(Font(fallbackSymbolFontFamily, Font::Type::MusicSymbol));
+    static FontMetrics fallbackSymbolTextFM(Font(fallbackSymbolTextFontFamily, Font::Type::MusicSymbolText));
+
+    if (fontType == Font::Type::MusicSymbol) {
+        for (char32_t missingChar : missingChars) {
+            if (fallbackSymbolFM.inFont(missingChar)) {
+                family = fallbackSymbolFontFamily;
+                return;
+            }
+        }
+    } else {
+        for (char32_t missingChar : missingChars) {
+            if (fallbackSymbolTextFM.inFont(missingChar)) {
+                family = fallbackSymbolTextFontFamily;
+                return;
+            }
+        }
+    }
 }
 
 //---------------------------------------------------------
@@ -1897,15 +1922,6 @@ void TextBase::layoutFrame(LayoutData* ldata) const
     w = 0.5 * frameWidth().val() * _spatium;
     ldata->setBbox(ldata->frame.adjusted(-w, -w, w, w));
 }
-
-// bool TextBase::positionRelativeToNoteheadRest() const
-// {
-//     if (!parent()) {
-//         return false;
-//     }
-
-//     return true;
-// }
 
 //---------------------------------------------------------
 //   lineSpacing

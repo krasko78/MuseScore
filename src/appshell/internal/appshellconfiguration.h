@@ -49,7 +49,7 @@ class AppShellConfiguration : public IAppShellConfiguration, public muse::Contex
     muse::GlobalInject<notation::INotationConfiguration> notationConfiguration;
     muse::GlobalInject<playback::IPlaybackConfiguration> playbackConfiguration;
     muse::GlobalInject<muse::languages::ILanguagesConfiguration> languagesConfiguration;
-    muse::ContextInject<muse::IApplication> application = { this };
+    muse::GlobalInject<muse::IApplication> application;
 
 // krasko start: KRASKO'S SETTINGS
 
