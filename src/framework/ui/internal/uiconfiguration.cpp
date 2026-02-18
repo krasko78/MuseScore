@@ -457,6 +457,11 @@ QStringList UiConfiguration::possibleFontFamilies() const
     return allFonts;
 }
 
+QStringList UiConfiguration::nonTextFonts() const
+{
+    return m_nonTextFonts;
+}
+
 void UiConfiguration::setNonTextFonts(const QStringList& fontFamilies)
 {
     m_nonTextFonts = fontFamilies;
