@@ -45,8 +45,8 @@ class Interactive : public QObject, public IInteractive, public IInteractiveProv
     Q_OBJECT
 
     GlobalInject<ui::IUiConfiguration> uiConfiguration;
-    ContextInject<interactive::IInteractiveUriRegister> uriRegister = { this };
-    ContextInject<extensions::IExtensionsProvider> extensionsProvider = { this };
+    GlobalInject<interactive::IInteractiveUriRegister> uriRegister;
+    GlobalInject<extensions::IExtensionsProvider> extensionsProvider;
     ContextInject<shortcuts::IShortcutsRegister> shortcutsRegister = { this };
     ContextInject<ui::IMainWindow> mainWindow = { this };
 

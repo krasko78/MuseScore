@@ -37,6 +37,7 @@
 #include "measure.h"
 #include "score.h"
 #include "staff.h"
+#include "system.h"
 #include "stringtunings.h"
 
 #include "log.h"
@@ -66,7 +67,7 @@ Part::Part(Score* s)
 
 void Part::initFromInstrTemplate(const InstrumentTemplate* t)
 {
-    m_partName = t->longName.toString();
+    m_partName = t->instrumentName.longName();
     setInstrument(Instrument::fromTemplate(t));
 }
 
@@ -153,6 +154,18 @@ Part* Part::masterPart()
 size_t Part::nstaves() const
 {
     return m_staves.size();
+}
+
+size_t Part::visibleStavesCount() const
+{
+    size_t result = 0;
+    for (const Staff* staff : m_staves) {
+        if (staff->show()) {
+            ++result;
+        }
+    }
+
+    return result;
 }
 
 const std::vector<Staff*>& Part::staves() const
@@ -460,8 +473,11 @@ void Part::addStringTunings(StringTunings* stringTunings)
 
 void Part::removeStringTunings(StringTunings* stringTunings)
 {
-    if (m_stringTunings[stringTunings->segment()->tick().ticks()] == stringTunings) {
-        m_stringTunings.erase(stringTunings->segment()->tick().ticks());
+    int tick = stringTunings->segment()->tick().ticks();
+    auto it = m_stringTunings.find(tick);
+
+    if (it != m_stringTunings.end() && it->second == stringTunings) {
+        m_stringTunings.erase(it);
     }
 }
 
@@ -480,7 +496,7 @@ String Part::instrumentId(const Fraction& tick) const
 
 String Part::longName(const Fraction& tick) const
 {
-    return instrument(tick)->longName().toString();
+    return instrument(tick)->longName();
 }
 
 //---------------------------------------------------------
@@ -498,7 +514,7 @@ String Part::instrumentName(const Fraction& tick) const
 
 String Part::shortName(const Fraction& tick) const
 {
-    return instrument(tick)->shortName().toString();
+    return instrument(tick)->shortName();
 }
 
 //---------------------------------------------------------
@@ -510,11 +526,6 @@ void Part::setLongName(const String& s, const Fraction& tick)
     instrument(tick)->setLongName(s);
 }
 
-void Part::setLongName(const StaffName& n,  const Fraction& tick)
-{
-    instrument(tick)->setLongName(n);
-}
-
 //---------------------------------------------------------
 //   setShortName
 //---------------------------------------------------------
@@ -522,11 +533,6 @@ void Part::setLongName(const StaffName& n,  const Fraction& tick)
 void Part::setShortName(const String& s, const Fraction& tick)
 {
     instrument(tick)->setShortName(s);
-}
-
-void Part::setShortName(const StaffName& n, const Fraction& tick)
-{
-    instrument(tick)->setShortName(n);
 }
 
 //---------------------------------------------------------
@@ -750,8 +756,11 @@ void Part::addHarpDiagram(HarpPedalDiagram* harpDiagram)
 
 void Part::removeHarpDiagram(HarpPedalDiagram* harpDiagram)
 {
-    if (harpDiagrams[harpDiagram->segment()->tick().ticks()] == harpDiagram) {
-        harpDiagrams.erase(harpDiagram->segment()->tick().ticks());
+    int tick = harpDiagram->segment()->tick().ticks();
+    auto it = harpDiagrams.find(tick);
+
+    if (it != harpDiagrams.end() && it->second == harpDiagram) {
+        harpDiagrams.erase(it);
     }
 }
 

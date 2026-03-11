@@ -50,6 +50,11 @@ StaffVisibilityPopupModel::StaffVisibilityPopupModel(QObject* parent)
 
 void StaffVisibilityPopupModel::classBegin()
 {
+    doInit();
+}
+
+void StaffVisibilityPopupModel::doInit()
+{
     AbstractElementPopupModel::init();
 
     System* system = m_item && m_item->isStaffVisibilityIndicator()

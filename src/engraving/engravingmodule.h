@@ -29,6 +29,7 @@
 namespace mu::engraving {
 class EngravingConfiguration;
 class EngravingFontsProvider;
+class PaletteScoreProvider;
 class EngravingModule : public muse::modularity::IModuleSetup
 {
 public:
@@ -40,12 +41,30 @@ public:
     void registerResources() override;
     void registerUiTypes() override;
     void onInit(const muse::IApplication::RunMode& mode) override;
-    void onDestroy() override;
+    void onDeinit() override;
+
+    muse::modularity::IContextSetup* newContext(const muse::modularity::ContextPtr& ctx) const override;
 
 private:
 
     std::shared_ptr<EngravingConfiguration> m_configuration;
     std::shared_ptr<EngravingFontsProvider> m_engravingfonts;
+};
+
+class EngravingContext : public muse::modularity::IContextSetup
+{
+public:
+
+    EngravingContext(const muse::modularity::ContextPtr& ctx)
+        : muse::modularity::IContextSetup(ctx) {}
+
+    void registerExports() override;
+    void onInit(const muse::IApplication::RunMode& mode) override;
+    void onDeinit() override;
+
+private:
+
+    std::shared_ptr<PaletteScoreProvider> m_paletteScoreProvider;
 };
 }
 

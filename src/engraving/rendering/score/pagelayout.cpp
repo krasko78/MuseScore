@@ -59,6 +59,7 @@
 #include "tlayout.h"
 #include "tupletlayout.h"
 #include "verticalgapdata.h"
+#include "systemheaderlayout.h"
 
 #include "log.h"
 
@@ -127,11 +128,11 @@ void PageLayout::collectPage(LayoutContext& ctx)
 
     HeaderFooterLayout::layoutHeaderFooter(ctx, page);
 
-    const double slb = conf.styleMM(Sid::staffLowerBorder);
+    const double slb = conf.styleAbsolute(Sid::staffLowerBorder);
     const bool breakPages = conf.viewMode() != LayoutMode::SYSTEM;
     const double footerExtension = HeaderFooterLayout::footerExtension(ctx, page);
     const double headerExtension = HeaderFooterLayout::headerExtension(ctx, page);
-    const double headerFooterPadding = conf.styleMM(Sid::staffHeaderFooterPadding);
+    const double headerFooterPadding = conf.styleAbsolute(Sid::staffHeaderFooterPadding);
     const double endY = page->height() - page->bm();
     double y = 0.0;
 
@@ -172,7 +173,7 @@ void PageLayout::collectPage(LayoutContext& ctx)
                 // to avoid collisions
                 distance = headerExtension ? headerExtension + headerFooterPadding : 0.0;
             } else {
-                distance = ctx.conf().styleMM(Sid::staffUpperBorder);
+                distance = ctx.conf().styleAbsolute(Sid::staffUpperBorder);
                 bool fixedDistance = false;
                 for (MeasureBase* mb : ctx.mutState().curSystem()->measures()) {
                     if (mb->isMeasure()) {
@@ -694,7 +695,7 @@ void PageLayout::distributeStaves(LayoutContext& ctx, Page* page, double footerP
         }
     }
     --ngaps;
-    const double staffLowerBorder = ctx.conf().styleMM(Sid::staffLowerBorder);
+    const double staffLowerBorder = ctx.conf().styleAbsolute(Sid::staffLowerBorder);
     const double combinedBottomMargin = page->bm() + footerPadding;
     const double marginToStaff = page->bm() + staffLowerBorder;
     double spaceRemaining{ std::min(page->height() - combinedBottomMargin - yBottom, page->height() - marginToStaff - prevYBottom) };
@@ -753,7 +754,7 @@ void PageLayout::distributeStaves(LayoutContext& ctx, Page* page, double footerP
 
     // If there is still space left, distribute the space of the staves.
     // However, there is a limit on how much space is added per gap.
-    const double maxPageFill = ctx.conf().styleMM(Sid::maxPageFillSpread);
+    const double maxPageFill = ctx.conf().styleAbsolute(Sid::maxPageFillSpread);
     spaceRemaining = std::min(maxPageFill * static_cast<double>(vgdl.size()), spaceRemaining);
     pass = 0;
     ngaps = 1;
@@ -804,7 +805,7 @@ void PageLayout::distributeStaves(LayoutContext& ctx, Page* page, double footerP
     for (System* system : systems) {
         SystemLayout::setMeasureHeight(system, system->height(), ctx);
         SystemLayout::layoutBracketsVertical(system, ctx);
-        SystemLayout::layoutInstrumentNames(system, ctx);
+        SystemHeaderLayout::setInstrumentNamesVerticalPos(system, ctx);
     }
     vgdl.deleteAll();
 }
@@ -862,7 +863,6 @@ void PageLayout::updateSystemDivider(LayoutContext& ctx, System* system, System*
     SystemDivider::LayoutData* ldata = divider->mutldata();
     TLayout::layoutSystemDivider(divider, ldata, ctx);
 
-    double spatium = system->spatium();
     RectF systemBBox = system->ldata()->bbox();
     double xDefault = 0.0;
     if (left) {
@@ -900,10 +900,11 @@ void PageLayout::updateSystemDivider(LayoutContext& ctx, System* system, System*
             xDefault = systemBBox.right() - ldata->bbox().width();
         }
     }
-    double xPos = xDefault + (left ? ctx.conf().styleS(Sid::dividerLeftX) : ctx.conf().styleS(Sid::dividerRightX)).toMM(spatium);
+    double xPos = xDefault
+                  + system->absoluteFromSpatium(left ? ctx.conf().styleS(Sid::dividerLeftX) : ctx.conf().styleS(Sid::dividerRightX));
 
     double yInnerPos = -ldata->bbox().top() - 0.5 * ldata->bbox().height()
-                       + (left ? ctx.conf().styleS(Sid::dividerLeftY) : ctx.conf().styleS(Sid::dividerRightY)).toMM(spatium);
+                       + system->absoluteFromSpatium(left ? ctx.conf().styleS(Sid::dividerLeftY) : ctx.conf().styleS(Sid::dividerRightY));
 
     SysStaff* lastVisibleOfThis = system->staff(system->lastVisibleStaff());
     double bottomOfThisSystem = lastVisibleOfThis->bbox().bottom();

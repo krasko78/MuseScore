@@ -45,7 +45,6 @@
 #include "log.h"
 
 using namespace muse;
-using namespace muse::modularity;
 using namespace muse::audio;
 using namespace muse::audio::engine;
 using namespace muse::audio::fx;
@@ -72,6 +71,11 @@ EngineController::EngineController(std::shared_ptr<rpc::IRpcChannel> rpcChannel,
 
         m_rpcChannel->send(rpc::make_response(msg));
     });
+
+    m_rpcChannel->onMethod(rpc::Method::EngineDeinit, [this](const rpc::Msg& msg) {
+        deinit();
+        m_rpcChannel->send(rpc::make_response(msg));
+    });
 }
 
 void EngineController::registerExports()
@@ -90,12 +94,27 @@ void EngineController::registerExports()
     m_synthResolver = std::make_shared<SynthResolver>();
     m_soundFontRepository = std::make_shared<SoundFontRepository>();
 
-    globalIoc()->registerExport<IAudioEngineConfiguration>(moduleName(), m_configuration);
-    globalIoc()->registerExport<IAudioEngine>(moduleName(), m_audioEngine);
-    globalIoc()->registerExport<IEnginePlayback>(moduleName(), m_playback);
-    globalIoc()->registerExport<IFxResolver>(moduleName(), m_fxResolver);
-    globalIoc()->registerExport<ISynthResolver>(moduleName(), m_synthResolver);
-    globalIoc()->registerExport<ISoundFontRepository>(moduleName(), m_soundFontRepository);
+    modularity::globalIoc()->registerExport<IAudioEngineConfiguration>(moduleName(), m_configuration);
+    modularity::globalIoc()->registerExport<ISynthResolver>(moduleName(), m_synthResolver);
+    modularity::globalIoc()->registerExport<ISoundFontRepository>(moduleName(), m_soundFontRepository);
+    modularity::globalIoc()->registerExport<IFxResolver>(moduleName(), m_fxResolver);
+
+    auto ioc = muse::modularity::ioc(iocContext());
+    ioc->registerExport<IAudioEngine>(moduleName(), m_audioEngine);
+    ioc->registerExport<IEnginePlayback>(moduleName(), m_playback);
+}
+
+void EngineController::unregisterExports()
+{
+    //! MAIN THREAD
+    modularity::globalIoc()->unregister<IAudioEngineConfiguration>(moduleName());
+    modularity::globalIoc()->unregister<ISynthResolver>(moduleName());
+    modularity::globalIoc()->unregister<ISoundFontRepository>(moduleName());
+    modularity::globalIoc()->unregister<IFxResolver>(moduleName());
+
+    auto ioc = muse::modularity::ioc(iocContext());
+    ioc->unregister<IAudioEngine>(moduleName());
+    ioc->unregister<IEnginePlayback>(moduleName());
 }
 
 void EngineController::onStartRunning()
@@ -117,6 +136,7 @@ void EngineController::onStartRunning()
 
 void EngineController::init(const OutputSpec& outputSpec, const AudioEngineConfig& conf)
 {
+    //! AUDIO THREAD
     m_configuration->setConfig(conf);
 
     engine::AudioEngine::RenderConstraints consts;
@@ -135,25 +155,10 @@ void EngineController::init(const OutputSpec& outputSpec, const AudioEngineConfi
 
 void EngineController::deinit()
 {
-    //! NOTE Waiting end of current operation
-    while (m_audioEngine->operation() != OperationType::NoOperation) {
-        std::this_thread::yield();
-        using namespace std::chrono_literals;
-        std::this_thread::sleep_for(10ms);
-    }
-
-    globalIoc()->unregister<IAudioEngineConfiguration>(moduleName());
-    globalIoc()->unregister<IAudioEngine>(moduleName());
-    globalIoc()->unregister<IEnginePlayback>(moduleName());
-    globalIoc()->unregister<IFxResolver>(moduleName());
-    globalIoc()->unregister<ISynthResolver>(moduleName());
-    globalIoc()->unregister<ISoundFontRepository>(moduleName());
-
+    //! AUDIO THREAD
     m_playback->deinit();
     m_rpcController->deinit();
     m_audioEngine->deinit();
-    m_playback.reset();
-    m_rpcController.reset();
 }
 
 OutputSpec EngineController::outputSpec() const

@@ -425,12 +425,12 @@ void TWrite::writeProperty(const EngravingItem* item, XmlWriter& xml, Pid pid, b
     }
 
     P_TYPE type = propertyType(pid);
-    if (P_TYPE::MILLIMETRE == type) {
+    if (P_TYPE::ABSOLUTE == type) {
         double f1 = p.toReal();
         if (d.isValid() && std::abs(f1 - d.toReal()) < 0.0001) {            // fuzzy compare
             return;
         }
-        p = PropertyValue(Spatium::fromMM(f1, item->spatium()));
+        p = PropertyValue(Spatium::fromAbsolute(f1, item->spatium()));
         d = PropertyValue();
     } else if (P_TYPE::POINT == type) {
         PointF p1 = p.value<PointF>();
@@ -692,7 +692,7 @@ void TWrite::write(const Articulation* item, XmlWriter& xml, WriteContext& ctx)
     if (!ctx.canWrite(item)) {
         return;
     }
-    if (toEngravingItem(item)->isOrnament()) {
+    if (item->isOrnament()) {
         write(toOrnament(item), xml, ctx);
         return;
     }
@@ -1042,17 +1042,17 @@ void TWrite::write(const Chord* item, XmlWriter& xml, WriteContext& ctx)
     }
 
     // Write parens
-    for (const NoteParenthesisInfo& parenPair : item->noteParens()) {
+    for (const NoteParenthesisInfo* parenPair : item->noteParentheses()) {
         xml.startElement("NoteParenGroup");
-        if (parenPair.leftParen->isUserModified()) {
-            write(parenPair.leftParen, xml, ctx);
+        if (parenPair->leftParen()->isUserModified()) {
+            write(parenPair->leftParen(), xml, ctx);
         }
-        if (parenPair.rightParen->isUserModified()) {
-            write(parenPair.rightParen, xml, ctx);
+        if (parenPair->rightParen()->isUserModified()) {
+            write(parenPair->rightParen(), xml, ctx);
         }
 
         xml.startElement("Notes");
-        for (const Note* note : parenPair.notes) {
+        for (const Note* note : parenPair->notes()) {
             auto it = std::find(item->notes().begin(), item->notes().end(), note);
             size_t idx = it - item->notes().begin();
             xml.tag("NoteIdx", idx);
@@ -1549,6 +1549,11 @@ void TWrite::write(const GuitarBend* item, XmlWriter& xml, WriteContext& ctx)
     xml.tag("guitarBendType", static_cast<int>(item->bendType()));
     xml.tag("bendStartTimeFactor", item->startTimeFactor());
     xml.tag("bendEndTimeFactor", item->endTimeFactor());
+
+    if (item->targetTimeFactor().has_value()) {
+        xml.tag("bendTargetTimeFactor", item->targetTimeFactor().value());
+    }
+
     writeProperty(item, xml, Pid::DIRECTION);
     writeProperty(item, xml, Pid::BEND_SHOW_HOLD_LINE);
     if (item->isDive()) {
@@ -1910,8 +1915,8 @@ void TWrite::write(const Instrument* item, XmlWriter& xml, WriteContext&, const 
         xml.tag("soundId", item->soundId());
     }
 
-    write(item->longName(), xml, "longName");
-    write(item->shortName(), xml, "shortName");
+    write(item->instrumentName(), xml);
+
 //      if (!_trackName.empty())
     xml.tag("trackName", item->trackName());
     if (item->minPitchP() > MIN_PITCH) {
@@ -2088,19 +2093,18 @@ void TWrite::write(const MidiArticulation* item, XmlWriter& xml)
     xml.endElement();
 }
 
-void TWrite::write(const StaffName& item, XmlWriter& xml, const char* tag)
+void TWrite::write(const StaffName& item, XmlWriter& xml)
 {
-    if (!item.toString().isEmpty()) {
-        String name = item.toString();
-        lineBreakToTag(name);
-        xml.writeXml(String::fromUtf8(tag), name);
+    String longName = item.longName();
+    if (!longName.empty()) {
+        lineBreakToTag(longName);
+        xml.writeXml(u"longName", longName);
     }
-}
 
-void TWrite::write(const StaffNameList& item, XmlWriter& xml, const char* name)
-{
-    for (const StaffName& sn : item) {
-        write(sn, xml, name);
+    String shortName = item.shortName();
+    if (!shortName.empty()) {
+        lineBreakToTag(shortName);
+        xml.writeXml(u"shortName", shortName);
     }
 }
 
@@ -2154,7 +2158,7 @@ void TWrite::write(const KeySig* item, XmlWriter& xml, WriteContext& ctx)
             for (const CustDef& cd : item->customKeyDefs()) {
                 xml.startElement("CustDef");
                 xml.tag("sym", SymNames::nameForSymId(cd.sym));
-                xml.tag("def", { { "degree", cd.degree }, { "xAlt", cd.xAlt }, { "octAlt", cd.octAlt } });
+                xml.tag("def", { { "degree", cd.degree }, { "xAlt", cd.xAlt.val() }, { "octAlt", cd.octAlt } });
                 xml.endElement();
             }
         }
@@ -2896,6 +2900,9 @@ void TWrite::write(const StaffType* item, XmlWriter& xml, WriteContext& ctx)
     xml.startElement("StaffType", { { "group", TConv::toXml(item->group()) } });
     if (!item->xmlName().isEmpty()) {
         xml.tag("name", item->xmlName());
+    }
+    if (!item->staffName().empty()) {
+        write(item->staffName(), xml);
     }
     if (item->lines() != 5) {
         xml.tag("lines", item->lines());

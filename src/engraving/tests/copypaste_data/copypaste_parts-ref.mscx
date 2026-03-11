@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="4.70">
+<museScore version="5.00">
   <Score>
     <eid>B_B</eid>
     <Division>480</Division>
@@ -1240,6 +1240,7 @@
                     <small>1</small>
                     <Note>
                       <eid>tC_tC</eid>
+                      <parentheses>both</parentheses>
                       <Accidental>
                         <subtype>accidentalSharp</subtype>
                         <eid>uC_uC</eid>
@@ -1623,6 +1624,7 @@
                     <small>1</small>
                     <Note>
                       <eid>hD_hD</eid>
+                      <parentheses>both</parentheses>
                       <Accidental>
                         <subtype>accidentalSharp</subtype>
                         <eid>iD_iD</eid>

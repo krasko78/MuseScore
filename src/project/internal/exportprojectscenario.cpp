@@ -21,7 +21,7 @@
  */
 #include "exportprojectscenario.h"
 
-#include "global/io/file.h"
+#include "global/io/buffer.h"
 #include "global/io/fileinfo.h"
 
 #include "translation.h"
@@ -407,9 +407,26 @@ Ret ExportProjectScenario::doExportLoop(const muse::io::path_t& scorePath, std::
     }
 
     while (true) {
-        io::File outputFile(scorePath);
-        outputFile.setMeta("file_path", scorePath.toStdString());
-        if (!outputFile.open(File::WriteOnly)) {
+        //! NOTE Most writers write data to a given device (buffer)
+        //! But there is one atypical case:
+        //! Export score to unpacked directory - creates a directory and writes files to it
+
+        auto outputBuf = Buffer::opened(IODevice::WriteOnly);
+        outputBuf.setMeta("file_path", scorePath.toStdString());
+
+        Ret ret = exportFunction(outputBuf);
+        outputBuf.close();
+
+        const bool isFileMode = fileSystem()->exists(scorePath);
+        if (!ret) {
+            if (ret.code() == static_cast<int>(Ret::Code::Cancel)) {
+                if (isFileMode) {
+                    fileSystem()->remove(scorePath);
+                }
+
+                return ret;
+            }
+
             if (askForRetry(filename)) {
                 continue;
             } else {
@@ -417,15 +434,13 @@ Ret ExportProjectScenario::doExportLoop(const muse::io::path_t& scorePath, std::
             }
         }
 
-        Ret ret = exportFunction(outputFile);
-        outputFile.close();
+        if (isFileMode) {
+            // files were written by writer - we're done
+            break;
+        }
 
+        ret = fileSystem()->writeFile(scorePath, outputBuf.data());
         if (!ret) {
-            if (ret.code() == static_cast<int>(Ret::Code::Cancel)) {
-                fileSystem()->remove(scorePath);
-                return ret;
-            }
-
             if (askForRetry(filename)) {
                 continue;
             } else {

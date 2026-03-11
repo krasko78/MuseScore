@@ -27,6 +27,7 @@
 #include "thirdparty/KDDockWidgets/src/private/quick/MainWindowQuick_p.h"
 #include "thirdparty/KDDockWidgets/src/private/DockRegistry_p.h"
 #include "thirdparty/KDDockWidgets/src/Config.h"
+#include "thirdparty/KDDockWidgets/src/ContextData.h"
 
 #include "global/async/async.h"
 
@@ -67,15 +68,11 @@ static KDDockWidgets::Location locationToKLocation(Location location)
     return KDDockWidgets::Location_None;
 }
 
-static void clearRegistry()
+static void clearRegistry(int ctx)
 {
     TRACEFUNC;
 
-#ifdef MUSE_MULTICONTEXT_WIP
-    return;
-#endif
-
-    auto registry = KDDockWidgets::DockRegistry::self();
+    auto registry = KDDockWidgets::DockRegistry::self(ctx);
 
     registry->clear();
 
@@ -133,14 +130,12 @@ void DockWindow::componentComplete()
 
     QQuickItem::componentComplete();
 
-    QString name = "mainWindow";
-#ifdef MUSE_MULTICONTEXT_WIP
-    if (iocContext()) {
-        name += "_" + QString::number(iocContext()->id);
-    }
-#endif
+    m_ctx = iocContext()->id;
 
-    m_mainWindow = new KDDockWidgets::MainWindowQuick(name,
+    static const QString name = "mainWindow";
+
+    m_mainWindow = new KDDockWidgets::MainWindowQuick(m_ctx,
+                                                      name,
                                                       KDDockWidgets::MainWindowOption_None,
                                                       this);
 
@@ -180,16 +175,12 @@ void DockWindow::onQuit()
         return;
     }
 
+    savePageState(m_currentPage->objectName());
     m_reloadCurrentPageAllowed = false;
 
-    uiConfiguration()->setPageState(m_currentPage->objectName(), windowState());
+    clearRegistry(m_ctx);
 
-    clearRegistry();
-
-    /// NOTE: The state of all dock widgets is also saved here,
-    /// since the library does not provide the ability to save
-    /// and restore only the application geometry.
-    uiConfiguration()->setWindowGeometry(windowState());
+    saveWindowGeometry();
 }
 
 QString DockWindow::currentPageUri() const
@@ -214,7 +205,7 @@ QQuickWindow* DockWindow::windowProperty() const
 
 void DockWindow::init()
 {
-    clearRegistry();
+    clearRegistry(m_ctx);
     restoreGeometry();
 
     dockWindowProvider()->init(this);
@@ -247,7 +238,7 @@ void DockWindow::loadPage(const QString& uri, const QVariantMap& params)
         const QString pageName = m_currentPage->objectName();
         uiConfiguration()->pageState(pageName).notification.disconnect(this);
         savePageState(pageName);
-        clearRegistry();
+        clearRegistry(m_ctx);
         m_currentPage->setVisible(false);
         m_currentPage->deinit();
     }
@@ -438,7 +429,7 @@ void DockWindow::alignTopLevelToolBars(const DockPageView* page)
     int centralToolBarsWidth = 0;
     int rightToolBarsWidth = 0;
 
-    int separatorThickness = KDDockWidgets::Config::self().separatorThickness();
+    int separatorThickness = KDDockWidgets::Config::self(m_ctx).separatorThickness();
 
     for (DockToolBarView* toolBar : topToolBars) {
         if (toolBar->floating() || !toolBar->isVisible()) {
@@ -515,7 +506,7 @@ void DockWindow::registerDock(DockBase* dock)
         return;
     }
 
-    auto registry = KDDockWidgets::DockRegistry::self();
+    auto registry = KDDockWidgets::DockRegistry::self(m_ctx);
     auto dockWidget = dock->dockWidget();
 
     if (!registry->containsDockWidget(dockWidget->uniqueName())) {
@@ -590,6 +581,19 @@ bool DockWindow::doLoadPage(const QString& uri, const QVariantMap& params)
     return true;
 }
 
+void DockWindow::saveWindowGeometry()
+{
+    //! NOTE We save only if one window or the last one is open
+    if (KDDockWidgets::ContextData::contextCount() > 1) {
+        return;
+    }
+
+    /// NOTE: The state of all dock widgets is also saved here,
+    /// since the library does not provide the ability to save
+    /// and restore only the application geometry.
+    uiConfiguration()->setWindowGeometry(windowState());
+}
+
 void DockWindow::restoreGeometry()
 {
     TRACEFUNC;
@@ -608,6 +612,10 @@ void DockWindow::restoreGeometry()
 void DockWindow::savePageState(const QString& pageName)
 {
     TRACEFUNC;
+    //! NOTE We save only if one window or the last one is open
+    if (KDDockWidgets::ContextData::contextCount() > 1) {
+        return;
+    }
 
     m_reloadCurrentPageAllowed = false;
     uiConfiguration()->setPageState(pageName, windowState());
@@ -666,7 +674,7 @@ bool DockWindow::restoreLayout(const QByteArray& layout, bool restoreRelativeToM
     auto option = restoreRelativeToMainWindow ? KDDockWidgets::RestoreOption_RelativeToMainWindow
                   : KDDockWidgets::RestoreOption_None;
 
-    KDDockWidgets::LayoutSaver layoutSaver(option);
+    KDDockWidgets::LayoutSaver layoutSaver(m_ctx, option);
     return layoutSaver.restoreLayout(layout);
 }
 
@@ -696,7 +704,7 @@ QByteArray DockWindow::windowState() const
 {
     TRACEFUNC;
 
-    KDDockWidgets::LayoutSaver layoutSaver;
+    KDDockWidgets::LayoutSaver layoutSaver(m_ctx, KDDockWidgets::RestoreOption_None);
     return layoutSaver.serializeLayout();
 }
 
@@ -708,7 +716,7 @@ void DockWindow::reloadCurrentPage()
 
     TRACEFUNC;
 
-    clearRegistry();
+    clearRegistry(m_ctx);
 
     for (DockBase* dock : m_currentPage->allDocks()) {
         dock->deinit();

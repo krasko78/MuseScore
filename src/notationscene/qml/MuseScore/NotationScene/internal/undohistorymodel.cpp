@@ -32,6 +32,11 @@ UndoHistoryModel::UndoHistoryModel(QObject* parent)
 
 void UndoHistoryModel::classBegin()
 {
+    init();
+}
+
+void UndoHistoryModel::init()
+{
     onCurrentNotationChanged();
 
     context()->currentNotationChanged().onNotify(this, [this] {

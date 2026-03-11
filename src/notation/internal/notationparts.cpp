@@ -154,7 +154,7 @@ bool NotationParts::staffExists(const ID& staffId) const
     return staff(staffId) != nullptr;
 }
 
-StaffConfig NotationParts::staffConfig(const ID& staffId) const
+StaffConfig NotationParts::staffConfig(const ID& staffId, Fraction tick) const
 {
     StaffConfig config;
     Staff* staff = staffModifiable(staffId);
@@ -162,7 +162,7 @@ StaffConfig NotationParts::staffConfig(const ID& staffId) const
         return config;
     }
 
-    mu::engraving::StaffType* staffType = staff->staffType(DEFAULT_TICK);
+    mu::engraving::StaffType* staffType = staff->staffType(tick);
     if (!staffType) {
         return config;
     }
@@ -427,7 +427,7 @@ void NotationParts::setInstrumentName(const InstrumentKey& instrumentKey, const 
         return;
     }
 
-    StaffName newName = StaffName(name);
+    String newName = String::fromQString(name);
     if (instrument->longName() == newName) {
         return;
     }
@@ -461,7 +461,7 @@ void NotationParts::setInstrumentAbbreviature(const InstrumentKey& instrumentKey
 
     startEdit(TranslatableString("undoableAction", "Set abbreviated instrument name"));
 
-    score()->undo(new mu::engraving::ChangeInstrumentShort(instrumentKey.tick, part, StaffName(abbreviature)));
+    score()->undo(new mu::engraving::ChangeInstrumentShort(instrumentKey.tick, part, String::fromQString(abbreviature)));
 
     apply();
 
@@ -563,7 +563,7 @@ void NotationParts::setStaffType(const ID& staffId, StaffTypeId type)
     notifyAboutStaffChanged(staff);
 }
 
-void NotationParts::setStaffConfig(const ID& staffId, const StaffConfig& config)
+void NotationParts::setStaffConfig(const ID& staffId, const StaffConfig& config, Fraction tick)
 {
     TRACEFUNC;
 
@@ -578,7 +578,7 @@ void NotationParts::setStaffConfig(const ID& staffId, const StaffConfig& config)
 
     startEdit(TranslatableString("undoableAction", "Edit staff properties"));
 
-    doSetStaffConfig(staff, config);
+    doSetStaffConfig(staff, config, tick);
 
     apply();
 
@@ -1008,9 +1008,9 @@ void NotationParts::doAppendStaff(Staff* staff, Part* destinationPart, bool crea
     destinationPart->instrument()->setClefType(staffLocalIndex, staff->defaultClefType());
 }
 
-void NotationParts::doSetStaffConfig(Staff* staff, const StaffConfig& config)
+void NotationParts::doSetStaffConfig(Staff* staff, const StaffConfig& config, Fraction tick)
 {
-    mu::engraving::StaffType* staffType = staff->staffType(DEFAULT_TICK);
+    mu::engraving::StaffType* staffType = staff->staffType(tick);
     if (!staffType) {
         return;
     }
@@ -1019,7 +1019,7 @@ void NotationParts::doSetStaffConfig(Staff* staff, const StaffConfig& config)
                                                  config.hideSystemBarline, config.mergeMatchingRests,
                                                  config.reflectTranspositionInLinkedTab));
 
-    score()->undo(new mu::engraving::ChangeStaffType(staff, config.staffType));
+    score()->undo(new mu::engraving::ChangeStaffType(staff, config.staffType, tick));
 }
 
 void NotationParts::doInsertPart(Part* part, size_t index)
@@ -1277,8 +1277,8 @@ void NotationParts::insertNewParts(const PartInstrumentList& parts, const mu::en
         }
 
         Instrument instrument = Instrument::fromTemplate(&pi.instrumentTemplate);
-        const StaffName& longN = instrument.longName();
-        const StaffName& shortN = instrument.shortName();
+        const String& longN = instrument.longName();
+        const String& shortN = instrument.shortName();
 
         Part* part = new Part(score());
         part->setSoloist(pi.isSoloist);
@@ -1286,10 +1286,8 @@ void NotationParts::insertNewParts(const PartInstrumentList& parts, const mu::en
 
         int instrumentNumber = resolveNewInstrumentNumber(pi.instrumentTemplate, parts);
 
-        String longName = !longN.toString().empty() ? longN.toString() : String();
-        String formattedLongName = formatInstrumentTitleOnScore(longName, instrument.trait(), instrumentNumber);
-        String shortName = !shortN.toString().empty() ? shortN.toString() : String();
-        String formattedShortName = formatInstrumentTitleOnScore(shortName, instrument.trait(), instrumentNumber);
+        String formattedLongName = formatInstrumentTitleOnScore(longN, instrument.trait(), instrumentNumber);
+        String formattedShortName = formatInstrumentTitleOnScore(shortN, instrument.trait(), instrumentNumber);
 
         part->setPartName(formattedLongName);
         part->setLongName(formattedLongName);

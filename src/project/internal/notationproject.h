@@ -55,14 +55,16 @@ class NotationProject : public INotationProject, public muse::Contextable, publi
     muse::GlobalInject<IProjectConfiguration> configuration;
     muse::GlobalInject<muse::IGlobalConfiguration> globalConfiguration;
     muse::GlobalInject<notation::INotationConfiguration> notationConfiguration;
-    muse::ContextInject<INotationReadersRegister> readers = { this };
-    muse::ContextInject<INotationWritersRegister> writers = { this };
+    muse::GlobalInject<INotationReadersRegister> readers;
+    muse::GlobalInject<INotationWritersRegister> writers;
     muse::ContextInject<IProjectMigrator> migrator = { this };
 
 public:
     NotationProject(const muse::modularity::ContextPtr& iocCtx)
         : muse::Contextable(iocCtx) {}
     ~NotationProject() override;
+
+    static QString scoreDefaultTitle();
 
     muse::Ret load(const muse::io::path_t& path, const OpenParams& params = {}, const std::string& format = "") override;
     muse::Ret createNew(const ProjectCreateOptions& projectInfo) override;

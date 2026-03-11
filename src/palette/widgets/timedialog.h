@@ -20,8 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef __TIMEDIALOG_H__
-#define __TIMEDIALOG_H__
+#pragma once
 
 #include "ui_timedialog.h"
 
@@ -29,6 +28,7 @@
 #include "ipaletteconfiguration.h"
 #include "internal/ipaletteprovider.h"
 #include "engraving/rendering/isinglerenderer.h"
+#include "engraving/ipalettescoreprovider.h"
 
 namespace mu::palette {
 class PaletteWidget;
@@ -41,8 +41,9 @@ class TimeDialog : public QWidget, Ui::TimeDialogBase, public muse::Contextable
     Q_PROPERTY(bool showTimePalette READ showTimePalette WRITE setShowTimePalette)
 
     muse::GlobalInject<IPaletteConfiguration> configuration;
+    muse::GlobalInject<engraving::rendering::ISingleRenderer> engravingRender;
     muse::ContextInject<IPaletteProvider> paletteProvider = { this };
-    muse::ContextInject<engraving::rendering::ISingleRenderer> engravingRender = { this };
+    muse::ContextInject<engraving::IPaletteScoreProvider> paletteScoreProvider = { this };
 
 public:
     TimeDialog(QWidget* parent = 0);
@@ -69,5 +70,3 @@ private:
     bool _dirty = false;
 };
 }
-
-#endif

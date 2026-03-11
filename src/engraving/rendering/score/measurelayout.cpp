@@ -224,7 +224,7 @@ void MeasureLayout::createMMRest(LayoutContext& ctx, Measure* firstMeasure, Meas
                 cs->setRtick(len);
             }
         }
-        MeasureLayout::removeSystemTrailer(mmrMeasure);
+        MeasureLayout::removeSystemTrailer(mmrMeasure, ctx);
     } else {
         mmrMeasure = Factory::createMeasure(ctx.mutDom().dummyParent()->system());
         mmrMeasure->setTicks(len);
@@ -1261,7 +1261,8 @@ void MeasureLayout::layoutStaffLines(Measure* m, LayoutContext& ctx)
             Segment* clefSeg = m->findSegmentR(SegmentType::Clef, m->ticks());
             double staffMag = ctx.dom().staff(staffIdx)->staffMag(m->tick());
             double partialWidth = clefSeg
-                                  ? m->width() - clefSeg->x() + clefSeg->minLeft() + ctx.conf().styleMM(Sid::clefLeftMargin) * staffMag
+                                  ? m->width() - clefSeg->x() + clefSeg->minLeft() + ctx.conf().styleAbsolute(Sid::clefLeftMargin)
+                                  * staffMag
                                   : 0.0;
             layoutPartialWidth(ms->lines(), ctx, m->width(), partialWidth / (m->spatium() * staffMag), true);
         } else {
@@ -1436,7 +1437,7 @@ MeasureLayout::MeasureStartEndPos MeasureLayout::getMeasureStartEndPos(const Mea
                            && needsHeaderException;
     if (headerException) { //needs this exception on header bar
         // Set x1 to the imaginary barline located the minimum barline->note distance to the left of the rest's segment
-        x1 = firstCrSeg->x() - ctx.conf().styleMM(Sid::barNoteDistance);
+        x1 = firstCrSeg->x() - ctx.conf().styleAbsolute(Sid::barNoteDistance);
     }
 
     return MeasureStartEndPos(x1, x2);
@@ -1484,7 +1485,7 @@ void MeasureLayout::layoutMeasureElements(Measure* m, LayoutContext& ctx)
                 if (e->isMMRest()) {
                     MMRest* mmrest = toMMRest(e);
                     // center multimeasure rest
-                    double d = ctx.conf().styleMM(Sid::multiMeasureRestMargin);
+                    double d = ctx.conf().styleAbsolute(Sid::multiMeasureRestMargin);
                     double w = x2 - x1 - 2 * d;
                     MMRest::LayoutData* mmrestLD = mmrest->mutldata();
                     mmrestLD->restWidth = w;
@@ -2791,13 +2792,14 @@ void MeasureLayout::addSystemTrailer(Measure* m, Measure* nm, LayoutContext& ctx
     }
 
     Segment* courtesyClefSeg = m->findSegmentR(SegmentType::Clef, m->ticks());
-    for (staff_idx_t staffIdx = 0; staffIdx < nstaves; ++staffIdx) {
-        const track_idx_t track = staffIdx * VOICES;
+    if (courtesyClefSeg) {
+        for (staff_idx_t staffIdx = 0; staffIdx < nstaves; ++staffIdx) {
+            const track_idx_t track = staffIdx * VOICES;
 
-        if (courtesyClefSeg) {
             Clef* courtesyClef = toClef(courtesyClefSeg->element(track));
             if (courtesyClef) {
                 courtesyClef->setSmall(true);
+                courtesyClef->setIsTrailer(true);
             }
         }
     }
@@ -2808,12 +2810,25 @@ void MeasureLayout::addSystemTrailer(Measure* m, Measure* nm, LayoutContext& ctx
     m->checkTrailer();
 }
 
-void MeasureLayout::removeSystemTrailer(Measure* m)
+void MeasureLayout::removeSystemTrailer(Measure* m, LayoutContext& ctx)
 {
     for (Segment* seg = m->last(); seg != m->first(); seg = seg->prev()) {
         if (seg->isChordRestType()) {
             break;
         }
+
+        if (seg->isClefType()) {
+            for (EngravingItem* el : seg->elist()) {
+                if (!el) {
+                    continue;
+                }
+                Clef* clef = toClef(el);
+                clef->setIsTrailer(false);
+                TLayout::layoutClef(clef, clef->mutldata(), ctx.conf());
+            }
+            seg->createShapes();
+        }
+
         if (seg->isTimeTickType() || !seg->trailer()) {
             continue;
         }
@@ -2982,7 +2997,7 @@ void MeasureLayout::stretchMeasureInPracticeMode(Measure* m, double targetWidth,
                     //
                     // center multi measure rest
                     //
-                    double d = ctx.conf().styleMM(Sid::multiMeasureRestMargin);
+                    double d = ctx.conf().styleAbsolute(Sid::multiMeasureRestMargin);
                     double w = x2 - x1 - 2 * d;
 
                     mmrest->mutldata()->restWidth = w;
@@ -3114,4 +3129,27 @@ void MeasureLayout::layoutPartialWidth(StaffLines* lines, LayoutContext& ctx, do
         y += dist;
     }
     lines->setLines(ll);
+}
+
+void MeasureLayout::updateKeySignatures(const Measure* measure, LayoutContext& ctx)
+{
+    Measure* prevMeasure = measure->prevMeasure();
+    if (!prevMeasure || !prevMeasure->repeatEnd()) {
+        return;
+    }
+    for (const Segment& seg : measure->segments()) {
+        if (!seg.isType(SegmentType::KeySigType)) {
+            continue;
+        }
+
+        for (EngravingItem* el : seg.elist()) {
+            if (!el) {
+                continue;
+            }
+
+            KeySig* ks = toKeySig(el);
+
+            TLayout::layoutKeySig(ks, ks->mutldata(), ctx.conf());
+        }
+    }
 }

@@ -24,6 +24,7 @@
 
 #include "layoutcontext.h"
 #include "dom/textbase.h"
+#include "draw/types/font.h"
 #include "appshell/iappshellconfiguration.h" // krasko
 
 namespace mu::engraving::rendering::score {
@@ -39,6 +40,9 @@ public:
 
     static void computeTextHighResShape(const TextBase* item, TextBase::LayoutData* ldata);
     static void layoutTextBlock(TextBlock* item, const TextBase* t);
+
+    static void substituteMusicFont(muse::draw::Font& font, double size);
+
 private:
     static void textHorizontalLayout(const TextBase* item, Shape& shape, double maxBlockWidth, TextBase::LayoutData* ldata);
     static void justifyLine(const TextBase* item, TextBlock* textBlock, double maxBlockWidth);

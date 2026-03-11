@@ -77,8 +77,9 @@ signals:
     void rowCountChanged();
 
 private:
-    void classBegin() override;
-    void componentComplete() override {}
+    void classBegin() override {}
+    void componentComplete() override;
+    void init();
 
     enum Roles {
         ChannelItemRole = Qt::UserRole + 1

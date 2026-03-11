@@ -37,7 +37,7 @@
 
 // IWYU pragma: begin_exports
 #include "bps.h"
-#include "dimension.h"
+#include "spatium.h"
 #include "fraction.h"
 #include "groupnode.h"
 #include "pitchvalue.h"
@@ -276,6 +276,14 @@ enum class AlignH : unsigned char {
     RIGHT,
     HCENTER,
     JUSTIFY
+};
+
+enum class InstrumentNamesAlign : unsigned char {
+    // Represents possible INSTRUMENT_STAFF alignment combinations
+    RIGHT_RIGHT,
+    CENTER_RIGHT,
+    CENTER_CENTER,
+    LEFT_RIGHT,
 };
 
 struct Align {

@@ -86,7 +86,7 @@ StaffType::StaffType()
 StaffType::StaffType(StaffGroup sg, const String& xml, const String& name, int lines, int stpOff, double lineDist,
                      bool genClef, bool showBarLines, bool stemless, bool genTimeSig, bool genKeySig, bool showLedgerLines, bool invisible,
                      const Color& color)
-    : m_group(sg), m_xmlName(xml), m_name(name),
+    : m_group(sg), m_xmlName(xml), m_staffTypeName(name),
     m_invisible(invisible),
     m_color(color),
     m_lines(lines),
@@ -113,7 +113,7 @@ StaffType::StaffType(StaffGroup sg, const String& xml, const String& name, int l
     m_color = color;
     m_group   = sg;
     m_xmlName = xml;
-    m_name    = name;
+    m_staffTypeName    = name;
     setLines(lines);
     setStepOffset(stpOff);
     setLineDistance(Spatium(lineDist));
@@ -176,7 +176,8 @@ bool StaffType::operator==(const StaffType& st) const
 
     equal &= (m_group == st.m_group);
     equal &= (m_xmlName == st.m_xmlName);
-    equal &= (m_name == st.m_name);
+    equal &= (m_staffTypeName == st.m_staffTypeName);
+    equal &= (m_staffName == st.m_staffName);
     equal &= (m_userMag == st.m_userMag);
     equal &= (m_yoffset == st.m_yoffset);
     equal &= (m_small == st.m_small);
@@ -731,7 +732,7 @@ int StaffType::visualStringToPhys(int line) const
 //          peculiarities of bass string notations.
 //---------------------------------------------------------
 
-double StaffType::physStringToYOffset(int strg) const
+Spatium StaffType::physStringToYOffset(int strg) const
 {
     double yOffset = strg;                       // the y offset of the visual string, as a multiple of line distance
     if (yOffset < 0) {                          // if above top physical string, limit to top string
@@ -745,7 +746,7 @@ double StaffType::physStringToYOffset(int strg) const
     }
     // if TAB upside down, flip around top line
     yOffset = m_upsideDown ? (double)(m_lines - 1) - yOffset : yOffset;
-    return yOffset * m_lineDistance.val();
+    return yOffset * m_lineDistance;
 }
 
 //---------------------------------------------------------
@@ -866,11 +867,11 @@ bool TablatureDurationFont::read(XmlReader& e, int mscVersion)
         } else if (tag == "defaultYOffset") {
             defYOffset = e.readDouble();
         } else if (tag == "beamWidth") {
-            gridBeamWidth = e.readDouble();
+            gridBeamWidth = Spatium(e.readDouble());
         } else if (tag == "stemHeight") {
-            gridStemHeight = e.readDouble();
+            gridStemHeight = Spatium(e.readDouble());
         } else if (tag == "stemWidth") {
-            gridStemWidth = e.readDouble();
+            gridStemWidth = Spatium(e.readDouble());
         } else if (tag == "zeroBeamValue") {
             String val(e.readText());
             if (val == "longa") {

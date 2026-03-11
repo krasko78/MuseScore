@@ -766,7 +766,7 @@ muse::RectF NotationNoteInput::cursorRect() const
     }
 
     const mu::engraving::track_idx_t track = inputState.track() == muse::nidx ? 0 : inputState.track();
-    const mu::engraving::staff_idx_t staffIdx = track / mu::engraving::VOICES;
+    const mu::engraving::staff_idx_t staffIdx = track2staff(track);
 
     const Staff* staff = score()->staff(staffIdx);
     if (!staff) {
@@ -783,6 +783,12 @@ muse::RectF NotationNoteInput::cursorRect() const
 
     const RectF segmentContentRect = ::segmentContentRect(segment, track);
     double x = segmentContentRect.x() + segment->pagePos().x();
+
+    const double barNoteDist = score()->style().styleAbsolute(Sid::barNoteDistance);
+    if (segment->x() < barNoteDist) {
+        x += barNoteDist - segment->x();
+    }
+
     double y = system->staffCanvasYpage(staffIdx);
     double w = segmentContentRect.width() > 0 ? segmentContentRect.width() : defaultWidth;
     double h = 0.0;
@@ -825,7 +831,7 @@ muse::RectF NotationNoteInput::cursorRect() const
 
     if (isTabStaff && inputStateStringsCount >= 0 && inputStateStringsCount <= instrumentStringsCount) {
         h = lineDist;
-        y += staffType->physStringToYOffset(inputStateStringsCount) * localSpatium;
+        y += staffType->physStringToYOffset(inputStateStringsCount).toAbsolute(localSpatium);
         y -= (staffType->onLines() ? lineDist * 0.5 : lineDist);
     } else {
         const double skylineMargin = 0.75 * localSpatium;

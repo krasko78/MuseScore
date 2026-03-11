@@ -27,6 +27,7 @@
 #include "draw/types/font.h"
 
 #include "engravingitem.h"
+#include "staffname.h"
 
 #include "../types/types.h"
 
@@ -49,9 +50,9 @@ constexpr int NUM_OF_BASSSTRING_SLASHES = 5; // the max number of slashes suppor
                                              // foreseen for future customizability)
 
 // default values for 'grid'-like beaming to use with value symbols in stemless TAB
-constexpr double GRID_BEAM_DEF_WIDTH  = 0.25; // all values in sp
-constexpr double GRID_STEM_DEF_HEIGHT = 1.75;
-constexpr double GRID_STEM_DEF_WIDTH  = 0.125;
+constexpr Spatium GRID_BEAM_DEF_WIDTH  = 0.25_sp; // all values in sp
+constexpr Spatium GRID_STEM_DEF_HEIGHT = 1.75_sp;
+constexpr Spatium GRID_STEM_DEF_WIDTH  = 0.125_sp;
 
 struct TablatureFretFont {
     TablatureFretFont();
@@ -103,9 +104,9 @@ struct TablatureDurationFont {
     String displayName;              // the name to display to the user
     double defSize;                  // the default size of the font
     double defYOffset;               // the default Y displacement
-    double gridBeamWidth  = GRID_BEAM_DEF_WIDTH;       // the width of the 'grid'-style beam (in sp)
-    double gridStemHeight = GRID_STEM_DEF_HEIGHT;      // the height of the 'grid'-style stem (in sp)
-    double gridStemWidth  = GRID_STEM_DEF_WIDTH;       // the width of the 'grid'-style stem (in sp)
+    Spatium gridBeamWidth  = GRID_BEAM_DEF_WIDTH;       // the width of the 'grid'-style beam (in sp)
+    Spatium gridStemHeight = GRID_STEM_DEF_HEIGHT;      // the height of the 'grid'-style stem (in sp)
+    Spatium gridStemWidth  = GRID_STEM_DEF_WIDTH;       // the width of the 'grid'-style stem (in sp)
     // the note value with no beaming in 'grid'-style beaming
     DurationType zeroBeamLevel = DurationType::V_QUARTER;
     Char displayDot;                 // the char to use to draw a dot
@@ -174,11 +175,16 @@ public:
     StaffGroup group() const { return m_group; }
     void setGroup(StaffGroup g) { m_group = g; }
     StaffTypes type() const;
-    const String& name() const { return m_name; }
+    const String& staffTypeName() const { return m_staffTypeName; }
     const String& xmlName() const { return m_xmlName; }
-    void setName(const String& val) { m_name = val; }
     void setXmlName(const String& val) { m_xmlName = val; }
     String translatedGroupName() const;
+
+    const StaffName& staffName() const { return m_staffName; }
+    const String& longName() const { return m_staffName.longName(); }
+    const String& shortName() const { return m_staffName.shortName(); }
+    void setLongName(const String& s) { m_staffName.setLongName(s); }
+    void setShortName(const String& s) { m_staffName.setShortName(s); }
 
     void setLines(int val) { m_lines = val; }
     int lines() const { return m_lines; }
@@ -227,7 +233,7 @@ public:
     // functions to cope with historic TAB's peculiarities, like upside-down, bass string notations
     int     physStringToVisual(int strg) const;                   // return the string in visual order from physical string
     int     visualStringToPhys(int line) const;                   // return the string in physical order from visual string
-    double   physStringToYOffset(int strg) const;                  // return the string Y offset (in sp, chord-relative)
+    Spatium physStringToYOffset(int strg) const;                  // return the string Y offset (in sp, chord-relative)
     String tabBassStringPrefix(int strg, bool* hasFret) const;   // return a string with the prefix, if any, identifying a bass string
     int     numOfTabLedgerLines(int string) const;
 
@@ -327,7 +333,9 @@ private:
     StaffGroup m_group = StaffGroup::STANDARD;
 
     String m_xmlName;         // the name used to reference this preset in instruments.xml
-    String m_name;            // user visible name
+    String m_staffTypeName;            // user visible name
+
+    StaffName m_staffName;
 
     double m_userMag = 1.0;           // allowed 0.1 - 10.0
     Spatium m_yoffset;

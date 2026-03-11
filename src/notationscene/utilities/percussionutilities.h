@@ -22,13 +22,13 @@
 
 #pragma once
 
+#include "global/modularity/ioc.h"
 #include "ui/iuiactionsregister.h"
 #include "shortcuts/ishortcutsregister.h"
-
 #include "interactive/iinteractive.h"
+#include "engraving/ipalettescoreprovider.h"
 
 #include "engraving/rendering/isinglerenderer.h"
-#include "engraving/rw/xmlreader.h"
 
 #include "engraving/dom/chord.h"
 #include "engraving/dom/drumset.h"
@@ -38,12 +38,11 @@
 namespace mu::notation {
 class PercussionUtilities : public muse::Contextable
 {
+    muse::GlobalInject<mu::engraving::rendering::ISingleRenderer> engravingRender;
     muse::ContextInject<muse::ui::IUiActionsRegister> uiactionsRegister = { this };
     muse::ContextInject<muse::shortcuts::IShortcutsRegister> shortcutsRegister = { this };
-
+    muse::ContextInject<mu::engraving::IPaletteScoreProvider> paletteScoreProvider = { this };
     muse::ContextInject<muse::IInteractive> interactive = { this };
-
-    muse::ContextInject<mu::engraving::rendering::ISingleRenderer> engravingRender = { this };
 
 public:
 
@@ -52,7 +51,7 @@ public:
     {
     }
 
-    void readDrumset(const muse::ByteArray& drumMapping, mu::engraving::Drumset& drumset);
+    static void readDrumset(const muse::ByteArray& drumMapping, mu::engraving::Drumset& drumset);
     std::shared_ptr<mu::engraving::Chord> getDrumNoteForPreview(const mu::engraving::Drumset* drumset, int pitch);
     bool editPercussionShortcut(mu::engraving::Drumset& drumset, int originPitch);
 

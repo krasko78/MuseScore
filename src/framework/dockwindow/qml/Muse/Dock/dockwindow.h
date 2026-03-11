@@ -124,10 +124,9 @@ private:
 
     void handleUnknownDock(const DockPageView* page, DockBase* unknownDock);
 
-    void restoreGeometry();
-
     QByteArray windowState() const;
-
+    void saveWindowGeometry();
+    void restoreGeometry();
     void savePageState(const QString& pageName);
     void restorePageState(const DockPageView* page);
 
@@ -144,6 +143,7 @@ private:
 
     QList<DockToolBarView*> topLevelToolBars(const DockPageView* page) const;
 
+    int m_ctx = 0;
     KDDockWidgets::MainWindowBase* m_mainWindow = nullptr;
     DockPageView* m_currentPage = nullptr;
     uicomponents::QmlListProperty<DockToolBarView> m_toolBars;

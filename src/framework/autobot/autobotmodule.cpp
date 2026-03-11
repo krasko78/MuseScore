@@ -62,6 +62,30 @@ void AutobotModule::resolveImports()
         ir->registerQmlUri(Uri("muse://diagnostics/autobot/scripts"), "Muse.Autobot", "ScriptsDialog");
         ir->registerQmlUri(Uri("muse://autobot/selectfile"), "Muse.Autobot", "AutobotSelectFileDialog");
     }
+
+    auto api = globalIoc()->resolve<IApiRegister>(mname);
+    if (api) {
+        api->regApiCreator(mname, "api.autobot", new ApiCreator<api::AutobotApi>());
+        api->regApiCreator(mname, "api.context", new ApiCreator<ContextApi>());
+    }
+}
+
+void AutobotModule::onInit(const IApplication::RunMode&)
+{
+    //! --- Diagnostics ---
+    auto pr = globalIoc()->resolve<muse::diagnostics::IDiagnosticsPathsRegister>(mname);
+    if (pr) {
+        for (const io::path_t& p : m_configuration->scriptsDirPaths()) {
+            pr->reg("autobotScriptsPath", p);
+        }
+        for (const io::path_t& p : m_configuration->testingFilesDirPaths()) {
+            pr->reg("autobotTestingFilesPath", p);
+        }
+        pr->reg("autobotDataPath", m_configuration->dataPath());
+        pr->reg("autobotSavingFilesPath", m_configuration->savingFilesPath());
+        pr->reg("autobotReportsPath", m_configuration->reportsPath());
+        pr->reg("autobotDrawDataPath", m_configuration->drawDataPath());
+    }
 }
 
 IContextSetup* AutobotModule::newContext(const muse::modularity::ContextPtr& ctx) const
@@ -86,32 +110,10 @@ void AutobotContext::resolveImports()
     if (ar) {
         ar->reg(std::make_shared<AutobotActions>());
     }
-
-    auto api = ioc()->resolve<IApiRegister>(mname);
-    if (api) {
-        api->regApiCreator(mname, "api.autobot", new ApiCreator<api::AutobotApi>());
-        api->regApiCreator(mname, "api.context", new ApiCreator<ContextApi>());
-    }
 }
 
 void AutobotContext::onInit(const IApplication::RunMode&)
 {
     m_autobot->init();
     m_actionsController->init();
-
-    //! --- Diagnostics ---
-    auto pr = ioc()->resolve<muse::diagnostics::IDiagnosticsPathsRegister>(mname);
-    if (pr) {
-        auto configuration = globalIoc()->resolve<IAutobotConfiguration>(mname);
-        for (const io::path_t& p : configuration->scriptsDirPaths()) {
-            pr->reg("autobotScriptsPath", p);
-        }
-        for (const io::path_t& p : configuration->testingFilesDirPaths()) {
-            pr->reg("autobotTestingFilesPath", p);
-        }
-        pr->reg("autobotDataPath", configuration->dataPath());
-        pr->reg("autobotSavingFilesPath", configuration->savingFilesPath());
-        pr->reg("autobotReportsPath", configuration->reportsPath());
-        pr->reg("autobotDrawDataPath", configuration->drawDataPath());
-    }
 }

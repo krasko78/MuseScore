@@ -3201,9 +3201,9 @@ void MusicXmlParserPass2::staffDetails(const String& partId, Measure* measure)
         } else if (m_e.name() == "staff-tuning") {
             staffTuning(&stringData);
         } else if (m_e.name() == "staff-size") {
-            const double scale = m_e.doubleAttribute("scale", 1.0);
-            const Spatium val(m_e.readDouble() / 100);
-            m_score->staff(staffIdx)->setProperty(Pid::MAG, scale);
+            const double scaling = m_e.doubleAttribute("scaling", 100.0);
+            const Spatium val(m_e.readDouble() / scaling);
+            m_score->staff(staffIdx)->setProperty(Pid::MAG, scaling / 100.0);
             m_score->staff(staffIdx)->setProperty(Pid::LINE_DISTANCE, val);
         } else {
             skipLogCurrElem();
@@ -3620,7 +3620,7 @@ void MusicXmlParserDirection::direction(const String& partId,
                 t->setFrameType(FrameType::NO_FRAME);
             } else if (m_enclosure == "rectangle") {
                 t->setFrameType(FrameType::SQUARE);
-                t->setFrameRound(0);
+                t->setFrameRound(0_sp);
             }
 
             colorItem(t, m_color);
@@ -3718,7 +3718,7 @@ void MusicXmlParserDirection::direction(const String& partId,
             dynamic->setFrameType(FrameType::NO_FRAME);
         } else if (m_enclosure == "rectangle") {
             dynamic->setFrameType(FrameType::SQUARE);
-            dynamic->setFrameRound(0);
+            dynamic->setFrameRound(0_sp);
         }
 
         if (isDynamicRange) {

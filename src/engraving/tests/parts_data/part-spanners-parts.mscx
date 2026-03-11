@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="4.70">
+<museScore version="5.00">
   <Score>
     <eid>B_B</eid>
     <Division>480</Division>
@@ -290,7 +290,6 @@
                   <bendStartTimeFactor>0</bendStartTimeFactor>
                   <bendEndTimeFactor>1</bendEndTimeFactor>
                   <eid>b_b</eid>
-                  <anchor>3</anchor>
                   </GuitarBend>
                 <next>
                   <location>
@@ -347,7 +346,6 @@
                   <bendStartTimeFactor>0</bendStartTimeFactor>
                   <bendEndTimeFactor>1</bendEndTimeFactor>
                   <eid>j_j</eid>
-                  <anchor>3</anchor>
                   </GuitarBend>
                 <next>
                   <location>
@@ -564,7 +562,6 @@
                   <bendStartTimeFactor>0</bendStartTimeFactor>
                   <bendEndTimeFactor>1</bendEndTimeFactor>
                   <eid>AB_AB</eid>
-                  <anchor>3</anchor>
                   </GuitarBend>
                 <next>
                   <location>
@@ -613,7 +610,6 @@
                   <bendStartTimeFactor>0</bendStartTimeFactor>
                   <bendEndTimeFactor>1</bendEndTimeFactor>
                   <eid>HB_HB</eid>
-                  <anchor>3</anchor>
                   </GuitarBend>
                 <next>
                   <location>
@@ -916,7 +912,6 @@
                     <bendEndTimeFactor>1</bendEndTimeFactor>
                     <eid>uB_uB</eid>
                     <linkedTo>b_b</linkedTo>
-                    <anchor>3</anchor>
                     </GuitarBend>
                   <next>
                     <location>
@@ -966,6 +961,7 @@
               <Note>
                 <eid>zB_zB</eid>
                 <linkedTo>g_g</linkedTo>
+                <parentheses>both</parentheses>
                 <pitch>65</pitch>
                 <tpc>13</tpc>
                 <string>0</string>
@@ -977,7 +973,6 @@
                     <bendEndTimeFactor>1</bendEndTimeFactor>
                     <eid>0B_0B</eid>
                     <linkedTo>j_j</linkedTo>
-                    <anchor>3</anchor>
                     </GuitarBend>
                   <next>
                     <location>
@@ -1289,7 +1284,6 @@
                     <bendEndTimeFactor>1</bendEndTimeFactor>
                     <eid>YC_YC</eid>
                     <linkedTo>AB_AB</linkedTo>
-                    <anchor>3</anchor>
                     </GuitarBend>
                   <next>
                     <location>
@@ -1339,6 +1333,7 @@
               <Note>
                 <eid>dC_dC</eid>
                 <linkedTo>EB_EB</linkedTo>
+                <parentheses>both</parentheses>
                 <pitch>65</pitch>
                 <tpc>13</tpc>
                 <string>0</string>
@@ -1350,7 +1345,6 @@
                     <bendEndTimeFactor>1</bendEndTimeFactor>
                     <eid>eC_eC</eid>
                     <linkedTo>HB_HB</linkedTo>
-                    <anchor>3</anchor>
                     </GuitarBend>
                   <next>
                     <location>

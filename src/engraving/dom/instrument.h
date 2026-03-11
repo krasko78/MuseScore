@@ -25,11 +25,11 @@
 #include <vector>
 
 #include "global/containers.h"
-#include "global/types/string.h"
 
 #include "clef.h"
 #include "interval.h"
 #include "notifier.h"
+#include "staffname.h"
 #include "stringdata.h"
 
 #include "../compat/midi/midicoreevent.h"
@@ -42,29 +42,6 @@ class MasterScore;
 class Part;
 class StringData;
 class Synthesizer;
-
-//---------------------------------------------------------
-//   StaffName
-//---------------------------------------------------------
-
-class StaffName
-{
-public:
-    StaffName() = default;
-    StaffName(const String& xmlText);
-
-    String toPlainText() const;
-
-    bool operator==(const StaffName&) const;
-
-    String toString() const { return m_name; }
-    void setName(const String& n) { m_name = n; }
-
-private:
-    String m_name;
-};
-
-using StaffNameList = std::vector<StaffName>;
 
 //---------------------------------------------------------
 //   NamedEventList
@@ -349,12 +326,12 @@ public:
     void setStringData(const StringData& d) { m_stringData.set(d); }
     bool hasStrings() const { return m_stringData.strings() > 0; }
 
-    void setLongName(const String& f);
-    void setShortName(const String& f);
-    void setLongName(const StaffName& v) { m_longName = v; }
-    void setShortName(const StaffName& v) { m_shortName = v; }
-    const StaffName& longName() const;
-    const StaffName& shortName() const;
+    void setLongName(const String& f) { m_instrumentName.setLongName(f); }
+    void setShortName(const String& f) { m_instrumentName.setShortName(f); }
+    void setInstrumentName(const StaffName& n) { m_instrumentName = n; }
+    const String& longName() const { return m_instrumentName.longName(); }
+    const String& shortName() const { return m_instrumentName.shortName(); }
+    const StaffName& instrumentName() const { return m_instrumentName; }
 
     int minPitchP() const;
     int maxPitchP() const;
@@ -392,8 +369,8 @@ public:
 
 private:
 
-    StaffName m_longName;
-    StaffName m_shortName;
+    StaffName m_instrumentName;
+
     String m_trackName;
     String m_id;
     String m_soundId;

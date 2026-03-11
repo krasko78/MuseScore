@@ -16,6 +16,8 @@
 #include "appshell/internal/istartupscenario.h"
 #include "importexport/guitarpro/iguitarproconfiguration.h"
 
+class QQuickWindow;
+
 namespace mu::appshell {
 class SplashScreen;
 }
@@ -37,26 +39,29 @@ public:
 
     muse::modularity::ContextPtr setupNewContext(const muse::StringList& args = {}) override;
     void destroyContext(const muse::modularity::ContextPtr& ctx) override;
-    int contextCount() const override;
+    size_t contextCount() const override;
     std::vector<muse::modularity::ContextPtr> contexts() const override;
 
 private:
     void applyCommandLineOptions(const CmdOptions& options);
 
-    std::vector<muse::modularity::IContextSetup*>& contextSetups(const muse::modularity::ContextPtr& ctx);
+    struct Context {
+        muse::modularity::ContextPtr ctx;
+        std::vector<muse::modularity::IContextSetup*> setups;
+        QQuickWindow* window = nullptr;
+
+        bool isValid() const { return ctx != nullptr && !setups.empty(); }
+    };
+
+    Context& context(const muse::modularity::ContextPtr& ctx);
 
     CmdOptions m_options;
 
     appshell::SplashScreen* m_splashScreen = nullptr;
 
     //! NOTE Separately to initialize logger and profiler as early as possible
-    muse::GlobalModule m_globalModule;
+    muse::GlobalModule* m_globalModule = nullptr;
     std::vector<muse::modularity::IModuleSetup*> m_modules;
-
-    struct Context {
-        muse::modularity::ContextPtr ctx;
-        std::vector<muse::modularity::IContextSetup*> setups;
-    };
 
     std::vector<Context> m_contexts;
 };

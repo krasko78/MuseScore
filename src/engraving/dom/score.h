@@ -39,6 +39,7 @@
 #include "draw/iimageprovider.h"
 #include "global/iapplication.h"
 #include "../iengravingfontsprovider.h"
+#include "../ipalettescoreprovider.h"
 
 #include "../types/constants.h"
 
@@ -333,9 +334,9 @@ class Score : public EngravingObject, public muse::Contextable
     muse::GlobalInject<IEngravingFontsProvider> engravingFonts;
     muse::GlobalInject<muse::IApplication> application;
     muse::ContextInject<IEngravingElementsProvider> elementsProvider = { this };
-
+    muse::ContextInject<IPaletteScoreProvider> paletteScoreProvider = { this };
     // internal
-    muse::ContextInject<rendering::IScoreRenderer> renderer = { this };
+    muse::GlobalInject<rendering::IScoreRenderer> renderer;
 
 public:
     Score(const Score&) = delete;
@@ -343,7 +344,7 @@ public:
     virtual ~Score();
     Score* clone();
 
-    static Score* paletteScore();
+    Score* paletteScore() const;
     bool isPaletteScore() const;
 
     virtual bool isMaster() const { return false; }
@@ -391,11 +392,14 @@ public:
     void cmdAddBracket();
     void cmdToggleParentheses();
     void cmdToggleParentheses(EngravingItem* el);
+    void cmdAddParenthesesToNotes(std::list<Note*>& notes);
+    void cmdRemoveParenthesesFromNotes(std::list<Note*>& notes);
     void cmdAddParenthesesToNotes();
     void cmdRemoveParenthesesFromNotes();
     void cmdAddBraces();
     void cmdAddFret(int fret);
     void cmdSetBeamMode(BeamMode);
+    void cmdBeamSelectedRange();
     void cmdRemovePart(Part*);
     void cmdAddTie(bool addToChord = false);
     Tie* cmdToggleTie();
@@ -772,6 +776,8 @@ public:
     bool pasteStaff(XmlReader&, Segment* dst, staff_idx_t staffIdx, Fraction scale = Fraction(1, 1));
     void pasteSymbols(XmlReader& e, ChordRest* dst);
 
+    bool cmdRepeatListSelection();
+
     BeatType tick2beatType(const Fraction& tick) const;
 
     int mscVersion() const { return m_mscVersion; }
@@ -932,7 +938,7 @@ public:
     struct InsertMeasureOptions {
         InsertMeasureOptions() {}
 
-        bool createEmptyMeasures = false;
+        bool createMeasureRests = false;
         bool moveSignaturesClef = true;
         bool needDeselectAll = true;
         bool cloneBoxToAllParts = true;

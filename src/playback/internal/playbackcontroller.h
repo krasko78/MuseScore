@@ -33,7 +33,6 @@
 #include "notation/inotationplayback.h"
 #include "audio/main/iplayer.h"
 #include "audio/main/iplayback.h"
-#include "audio/main/iaudioconfiguration.h"
 #include "audio/common/audiotypes.h"
 #include "interactive/iinteractive.h"
 #include "tours/itoursservice.h"
@@ -51,7 +50,6 @@ class PlaybackController : public IPlaybackController, public muse::actions::Act
 {
     muse::GlobalInject<IPlaybackConfiguration> configuration;
     muse::GlobalInject<notation::INotationConfiguration> notationConfiguration;
-    muse::GlobalInject<muse::audio::IAudioConfiguration> audioConfiguration;
     muse::ContextInject<muse::actions::IActionsDispatcher> dispatcher = { this };
     muse::ContextInject<context::IGlobalContext> globalContext = { this };
     muse::ContextInject<muse::audio::IPlayback> playback = { this };
@@ -61,7 +59,7 @@ class PlaybackController : public IPlaybackController, public muse::actions::Act
 
 public:
     PlaybackController(const muse::modularity::ContextPtr& iocCtx);
-    ~PlaybackController();
+    ~PlaybackController() override;
 
     void init();
 
@@ -254,6 +252,8 @@ private:
     muse::async::Channel<muse::audio::TrackId> m_trackRemoved;
 
     muse::async::Channel<muse::audio::aux_channel_idx_t, std::string> m_auxChannelNameChanged;
+
+    muse::async::Asyncable m_seqAsyncReceiver; //! HACK - see PlaybackController::setupSequenceTracks
 
     InstrumentTrackIdMap m_instrumentTrackIdMap;
     AuxTrackIdMap m_auxTrackIdMap;

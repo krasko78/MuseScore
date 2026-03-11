@@ -26,6 +26,7 @@
 #include "dom/harppedaldiagram.h"
 #include "draw/fontmetrics.h"
 
+#include "engraving/rendering/score/textlayout.h"
 #include "iengravingfont.h"
 
 #include "style/textstyle.h"
@@ -58,6 +59,7 @@
 using namespace mu;
 using namespace muse::draw;
 using namespace mu::engraving;
+using namespace mu::engraving::rendering::score;
 
 namespace mu::engraving {
 static const char* FALLBACK_SYMBOL_FONT = "Bravura";
@@ -279,65 +281,26 @@ RectF TextCursor::cursorRect() const
     const TextBlock& tline       = curLine();
     const TextFragment* fragment = tline.fragment(static_cast<int>(column()));
 
-    Font _font  = fragment ? fragment->font(m_text) : m_text->font();
-    if (fragment && _font.type() == Font::Type::MusicSymbol) {
+    Font _font = fragment ? fragment->font(m_text) : m_text->font();
+    if (fragment) {
         // Ensure the cursor height matches that of the associated text font
-        String textFontId(_font.family().id() + String(u" Text"));
-        _font.setFamily(textFontId, Font::Type::MusicSymbolText);
-        _font.setPointSizeF(fragment->format.fontSize());
+        TextLayout::substituteMusicFont(_font, fragment->calculatedFontSize(m_text));
     }
+    const FontMetrics fm(_font);
 
-    const FontMetrics fm(_font); // krasko start
-    double descent = fm.descent();
+    double fontCapHeight = fm.capHeight();
+    double fontAscent = fm.ascent();
 
-    // Some fonts such as HaettenSchweiler, Lucida Fax and Maianda GD report
-    // negative descents. Turns out that using the absolute values works well.
-    if (descent < 0) {
-        descent = -descent;
-    }
+    // Bravura Text returns small values for its cap heights
+    double cursorCapHeight = fontCapHeight > 0 && _font.family().id() != u"Bravura Text"
+                             ? std::min(fontCapHeight, fontAscent) : fontAscent;
+    double cursorDescent = cursorCapHeight * .3;
 
-    // Calculating the cap height seems more reliable than using the font metrics value
-    // as some fonts (such as Bravura Text and Petaluma) report incorrect cap heights.
-    // However, tightBoundingRect() could return an invalid rectangle, e.g. for
-    // the Opus Percussion font, so we must fall back to the font metrics value.
-    // For the bounding rectangle, y = 0 is the text base line so -top returns
-    // the distance above the base line. For example, if the top of the rectangle is -25,
-    // then the letter X extends 25 pixels above the base line. Usually this will equal
-    // the height of the rectangle (i.e. the bottom will be 0) except for the fonts (such as
-    // Matura MT Script Capitals) whose capital letters invade the space below the base line.
-    RectF capHeightBoundingRect = fm.tightBoundingRect('X');
-    double cursorCapHeight = capHeightBoundingRect.isValid() && !capHeightBoundingRect.isEmpty()
-                             ? -capHeightBoundingRect.top() : 0;
-
-    if (cursorCapHeight <= 0) {
-        // Some fonts such as Gotville Text, MScore and MScore Text, report zero capHeight-s.
-        double capHeight = fm.capHeight();
-        cursorCapHeight = capHeight > 0 ? capHeight : fm.ascent();
-    }
-
-    // Calculate the extent of the cursor below the text base line (the descent).
-    // Some fonts like Broadway, Copperplate Gothic Bold, Felix Tilting, Goudy Stout
-    // and Stencil have very small descents so we need a certain minimum. Other fonts
-    // such as Pristina, Viner Hand ITC, Finale Maestro Text, Papyrus and Petaluma
-    // report or do have huge descents so let's impose a maximum as well.
-    // If the cursor does not extend all the way to the bottom of the descenders
-    // but is slightly shorter than them, this looks visually better.
-    double cursorDescent = 0.85 * descent;
-    cursorDescent = std::max(cursorDescent, cursorCapHeight * 0.25);
-    cursorDescent = std::min(cursorDescent, cursorCapHeight * 0.33);
-
-    // For the cursor ascent, aim for symmetry with the descent if possible but impose
-    // a limit to prevent excessively tall cursors when the descenders are very long.
-    double cursorAscent = cursorDescent;
-    cursorAscent = std::min(cursorAscent, cursorCapHeight * 0.33);
-
-    // We can now build the rectange of the cursor. Center it horizontally
-    // with the start of the character for the best visual result.
-    double h = cursorAscent + cursorCapHeight + cursorDescent;
-    double w = 6.0 + h / 32.0;
+    double h = cursorCapHeight + 2 * cursorDescent; // symmetrical cursor
+    double w = std::max(2.0, cursorCapHeight / 16.0);
     double x = tline.xpos(column(), m_text);
     double y = tline.y() + cursorDescent - h;
-    return RectF(x - w / 2, y, w, h); // krasko end
+    return RectF(x - w / 2, y, w, h);
 }
 
 RectF TextCursor::cursorCanvasRect() const
@@ -913,21 +876,7 @@ Font TextFragment::font(const TextBase* t) const
 {
     Font font;
 
-    double m = format.fontSize();
-    double spatiumScaling = 0.0;
-
-    if (t->isInstrumentName()) {
-        spatiumScaling = toInstrumentName(t)->largestStaffSpatium() / t->defaultSpatium();
-    } else {
-        spatiumScaling = t->spatium() / t->defaultSpatium();
-    }
-
-    if (t->sizeIsSpatiumDependent()) {
-        m *= spatiumScaling;
-    }
-    if (format.valign() != VerticalAlignment::AlignNormal) {
-        m *= SUBSCRIPT_SIZE;
-    }
+    double m = calculatedFontSize(t);
 
     String family;
     Font::Type fontType = Font::Type::Unknown;
@@ -940,7 +889,7 @@ Font TextFragment::font(const TextBase* t) const
             m = MUSICAL_SYMBOLS_DEFAULT_FONT_SIZE;
             m *= t->getProperty(Pid::MUSICAL_SYMBOLS_SCALE).toDouble();
             if (t->sizeIsSpatiumDependent()) {
-                m *= spatiumScaling;
+                m *= t->spatiumScaling();
             }
 
             if (t->style().styleB(Sid::dynamicsOverrideFont)) {
@@ -951,13 +900,16 @@ Font TextFragment::font(const TextBase* t) const
             // We use a default font size of 10pt for historical reasons,
             // but SMuFL standard is 20pt so multiply x2 here.
             m *= 2;
+
+            m *= t->mag();
         } else if (t->hasSymbolSize()) {
             family = t->style().styleSt(Sid::musicalTextFont);
             fontType = Font::Type::MusicSymbolText;
             m = t->getProperty(Pid::MUSIC_SYMBOL_SIZE).toDouble();
             if (t->sizeIsSpatiumDependent()) {
-                m *= spatiumScaling;
+                m *= t->spatiumScaling();
             }
+            m *= t->mag();
         }
         // check if all symbols are available
         font.setFamily(family, fontType);
@@ -977,8 +929,27 @@ Font TextFragment::font(const TextBase* t) const
     font.setFamily(family, fontType);
     assert(m > 0.0);
 
-    font.setPointSizeF(m * t->mag());
+    font.setPointSizeF(m);
     return font;
+}
+
+//---------------------------------------------------------
+//   calculatedFontSize
+//---------------------------------------------------------
+
+double TextFragment::calculatedFontSize(const TextBase* t) const
+{
+    double size = format.fontSize();
+
+    if (t->sizeIsSpatiumDependent()) {
+        size *= t->spatiumScaling();
+    }
+    if (format.valign() != VerticalAlignment::AlignNormal) {
+        size *= SUBSCRIPT_SIZE;
+    }
+
+    assert(size > 0.0);
+    return size * t->mag();
 }
 
 void TextFragment::resolveFallback(muse::draw::Font::Type fontType, const muse::draw::FontMetrics& fm,
@@ -1592,7 +1563,7 @@ TextBase::TextBase(const ElementType& type, EngravingItem* parent, TextStyleType
     m_frameType              = FrameType::NO_FRAME;
     m_frameWidth             = 0.1_sp;
     m_paddingWidth           = 0.2_sp;
-    m_frameRound             = 0;
+    m_frameRound             = 0_sp;
 
     m_cursor                 = new TextCursor(this);
     m_cursor->init();
@@ -2734,7 +2705,7 @@ bool TextBase::setProperty(Pid pid, const PropertyValue& v)
         setPaddingWidth(v.value<Spatium>());
         break;
     case Pid::FRAME_ROUND:
-        setFrameRound(v.toInt());
+        setFrameRound(v.value<Spatium>());
         break;
     case Pid::FRAME_FG_COLOR:
         setFrameColor(v.value<Color>());
@@ -3478,5 +3449,18 @@ bool mu::engraving::TextBase::hasSymbolScale() const
                           || (parent() && parent()->isPedalSegment());
 
     return hasSymbolScale;
+}
+
+double TextBase::spatiumScaling() const
+{
+    double spatiumScaling;
+
+    if (isInstrumentName()) {
+        spatiumScaling = toInstrumentName(this)->largestStaffSpatium() / defaultSpatium();
+    } else {
+        spatiumScaling = spatium() / defaultSpatium();
+    }
+
+    return spatiumScaling;
 }
 }

@@ -45,9 +45,9 @@ class ExtensionsListModel : public QAbstractListModel, public QQmlParserStatus, 
     QML_ELEMENT
 
     GlobalInject<IExtensionsConfiguration> configuration;
+    GlobalInject<IExtensionInstaller> installer;
+    GlobalInject<IExtensionsProvider> provider;
     ContextInject<IInteractive> interactive = { this };
-    ContextInject<IExtensionsProvider> provider = { this };
-    ContextInject<IExtensionInstaller> installer = { this };
     ContextInject<shortcuts::IShortcutsRegister> shortcutsRegister = { this };
 
 public:
@@ -90,7 +90,7 @@ private:
 
     void classBegin() override;
     void componentComplete() override {}
-
+    void init();
     void load();
 
     void updatePlugin(const Manifest& plugin);

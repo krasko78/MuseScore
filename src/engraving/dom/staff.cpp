@@ -48,7 +48,7 @@
 #include "editing/transpose.h"
 #include "utils.h"
 #include "capo.h"
-#include "editcapo.h"
+#include "editing/editcapo.h"
 
 // #define DEBUG_CLEFS
 
@@ -265,6 +265,24 @@ bool Staff::isSystemObjectStaff() const
 bool Staff::hasSystemObjectsBelowBottomStaff() const
 {
     return isSystemObjectStaff() && isLastOfScore() && style().styleB(Sid::systemObjectsBelowBottomStaff);
+}
+
+String Staff::individualStaffNameLong(const Fraction& tick) const
+{
+    IF_ASSERT_FAILED(m_part) {
+        return String();
+    }
+
+    return staffType(tick)->longName();
+}
+
+String Staff::individualStaffNameShort(const Fraction& tick) const
+{
+    IF_ASSERT_FAILED(m_part) {
+        return String();
+    }
+
+    return staffType(tick)->shortName();
 }
 
 //---------------------------------------------------------
@@ -1626,6 +1644,8 @@ PropertyValue Staff::getProperty(Pid id) const
         return staffType(Fraction(0, 1))->isSmall();
     case Pid::MAG:
         return staffType(Fraction(0, 1))->userMag();
+    case Pid::LINE_DISTANCE:
+        return staffType(Fraction(0, 1))->lineDistance();
     case Pid::STAFF_INVISIBLE:
         return staffType(Fraction(0, 1))->invisible();
     case Pid::HIDE_WHEN_EMPTY:
@@ -1677,8 +1697,12 @@ bool Staff::setProperty(Pid id, const PropertyValue& v)
         double _spatium = spatium(Fraction(0, 1));
         staffType(Fraction(0, 1))->setUserMag(v.toReal());
         setLocalSpatium(_spatium, spatium(Fraction(0, 1)), Fraction(0, 1));
+        break;
     }
-    break;
+    case Pid::LINE_DISTANCE: {
+        staffType(Fraction(0, 1))->setLineDistance(v.value<Spatium>());
+        break;
+    }
     case Pid::HIDE_WHEN_EMPTY:
         setHideWhenEmpty(v.value<AutoOnOff>());
         break;

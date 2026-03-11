@@ -123,6 +123,11 @@ ExportDialogModel::~ExportDialogModel()
 
 void ExportDialogModel::classBegin()
 {
+    init();
+}
+
+void ExportDialogModel::init()
+{
     TRACEFUNC;
 
     const ExportInfo& info = exportProjectScenario()->exportInfo();

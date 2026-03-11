@@ -107,7 +107,7 @@ QVariant PropertyValue::toQVariant() const
     break;
     case P_TYPE::SCALE:       return value<ScaleF>().toQSizeF();
     case P_TYPE::SPATIUM:     return value<Spatium>().val();
-    case P_TYPE::MILLIMETRE:  return value<Millimetre>().val();
+    case P_TYPE::ABSOLUTE:  return value<double>();
     case P_TYPE::PAIR_REAL:   return QVariant::fromValue(value<PairF>());
 
     // Draw
@@ -187,6 +187,7 @@ QVariant PropertyValue::toQVariant() const
     case P_TYPE::AUTO_CUSTOM_HIDE:  return static_cast<int>(value<AutoCustomHide>());
     case P_TYPE::MEASURE_NUMBER_PLACEMENT: return static_cast<int>(value<MeasureNumberPlacement>());
     case P_TYPE::CAPO_TRANSPOSE_MODE:  return static_cast<int>(value<CapoParams::TransposeMode>());
+    case P_TYPE::INSTRUMENT_NAMES_ALIGN: return static_cast<int>(value<InstrumentNamesAlign>());
 
     // Other
     case P_TYPE::GROUPS: {
@@ -224,7 +225,7 @@ PropertyValue PropertyValue::fromQVariant(const QVariant& v, P_TYPE type)
     break;
     case P_TYPE::SCALE:         return PropertyValue(ScaleF::fromQSizeF(v.value<QSizeF>()));
     case P_TYPE::SPATIUM:       return PropertyValue(Spatium(v.toReal()));
-    case P_TYPE::MILLIMETRE:    return PropertyValue(Millimetre(v.toReal()));
+    case P_TYPE::ABSOLUTE:    return PropertyValue(v.toReal());
     case P_TYPE::PAIR_REAL:     return PropertyValue(v.value<std::pair<double, double> >());
 
     // Draw
@@ -309,6 +310,7 @@ PropertyValue PropertyValue::fromQVariant(const QVariant& v, P_TYPE type)
     case P_TYPE::MARKER_TYPE:         return PropertyValue(MarkerType(v.toInt()));
     case P_TYPE::MEASURE_NUMBER_PLACEMENT: return PropertyValue(MeasureNumberPlacement(v.toInt()));
     case P_TYPE::CAPO_TRANSPOSE_MODE: return PropertyValue(CapoParams::TransposeMode(v.toInt()));
+    case P_TYPE::INSTRUMENT_NAMES_ALIGN: return PropertyValue(InstrumentNamesAlign(v.toInt()));
 
     // Other
     case P_TYPE::GROUPS: {

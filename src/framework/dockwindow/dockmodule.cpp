@@ -29,6 +29,7 @@
 #include "internal/dockwindowactionscontroller.h"
 #include "internal/dockwindowprovider.h"
 
+#include "thirdparty/KDDockWidgets/src/ContextData.h"
 #include "thirdparty/KDDockWidgets/src/Config.h"
 #include "thirdparty/KDDockWidgets/src/DockWidgetBase.h"
 #include "thirdparty/KDDockWidgets/src/FrameworkWidgetFactory.h"
@@ -44,7 +45,7 @@ class DockWidgetFactory : public KDDockWidgets::DefaultWidgetFactory
 {
 public:
     DockWidgetFactory(const modularity::ContextPtr& iocCtx)
-        : m_iocContext(iocCtx) {}
+        : KDDockWidgets::DefaultWidgetFactory(iocCtx->id), m_iocContext(iocCtx) {}
 
     KDDockWidgets::DropIndicatorOverlayInterface* createDropIndicatorOverlay(KDDockWidgets::DropArea* dropArea) const override
     {
@@ -58,29 +59,29 @@ public:
 
     KDDockWidgets::TitleBar* createTitleBar(KDDockWidgets::Frame* frame) const override
     {
-        KDDockWidgets::TitleBar* titleBar = new DockTitleBar(frame);
+        KDDockWidgets::TitleBar* titleBar = new DockTitleBar(m_ctx, frame); // krasko start
 
         // Hide the default title bar because we add our own. The worst part is that the default
         // title bar captures and steals the mouse events from our title bar.
         titleBar->setHeight(0);
 
-        return titleBar;
+        return titleBar; // krasko end
     }
 
     KDDockWidgets::TitleBar* createTitleBar(KDDockWidgets::FloatingWindow* floatingWindow) const override
     {
-        KDDockWidgets::TitleBar* titleBar = new DockTitleBar(floatingWindow);
+        KDDockWidgets::TitleBar* titleBar = new DockTitleBar(m_ctx, floatingWindow); // krasko start
 
         // Hide the default title bar because we add our own. The worst part is that the default
         // title bar captures and steals the mouse events from our title bar.
         titleBar->setHeight(0);
 
-        return titleBar;
+        return titleBar; // krasko end
     }
 
     KDDockWidgets::TabBar* createTabBar(KDDockWidgets::TabWidget* parent) const override
     {
-        return new DockTabBar(parent);
+        return new DockTabBar(m_ctx, parent);
     }
 
     QUrl titleBarFilename() const override
@@ -124,32 +125,6 @@ void DockModule::registerExports()
 
 void DockModule::onInit(const IApplication::RunMode&)
 {
-    // ===================================
-    // Setup KDDockWidgets
-    // ===================================
-
-    QQmlEngine* engine = globalIoc()->resolve<ui::IUiEngine>(moduleName())->qmlEngine();
-
-    KDDockWidgets::Config::self().setFrameworkWidgetFactory(new DockWidgetFactory(globalCtx()));
-    KDDockWidgets::Config::self().setQmlEngine(engine);
-
-    auto flags = KDDockWidgets::Config::self().flags()
-                 | KDDockWidgets::Config::Flag_HideTitleBarWhenTabsVisible
-                 | KDDockWidgets::Config::Flag_TitleBarNoFloatButton;
-
-    KDDockWidgets::Config::self().setFlags(flags);
-
-    KDDockWidgets::FloatingWindow::s_windowFlagsOverride = Qt::Tool
-                                                           | Qt::NoDropShadowWindowHint
-                                                           | Qt::FramelessWindowHint;
-
-    auto internalFlags = KDDockWidgets::Config::self().internalFlags()
-                         | KDDockWidgets::Config::InternalFlag_UseTransparentFloatingWindow;
-
-    KDDockWidgets::Config::self().setInternalFlags(internalFlags);
-
-    KDDockWidgets::Config::self().setAbsoluteWidgetMinSize(QSize(10, 10));
-    KDDockWidgets::Config::self().setSeparatorThickness(1);
 }
 
 // Context
@@ -169,4 +144,46 @@ void DockContext::registerExports()
 void DockContext::onInit(const IApplication::RunMode&)
 {
     m_actionsController->init();
+
+    // ===================================
+    // Setup KDDockWidgets
+    // ===================================
+
+    QQmlEngine* engine = ioc()->resolve<ui::IUiEngine>(module_name)->qmlEngine();
+
+    const int ctx = iocContext()->id;
+
+    //! NOTE Create new context data
+    KDDockWidgets::ContextData::context(ctx);
+
+    KDDockWidgets::Config& config = KDDockWidgets::Config::self(ctx);
+
+    config.setFrameworkWidgetFactory(new DockWidgetFactory(iocContext()));
+    config.setQmlEngine(engine);
+
+    auto flags = config.flags()
+                 | KDDockWidgets::Config::Flag_HideTitleBarWhenTabsVisible
+                 | KDDockWidgets::Config::Flag_TitleBarNoFloatButton;
+
+    config.setFlags(flags);
+
+    KDDockWidgets::FloatingWindow::s_windowFlagsOverride = Qt::Tool
+                                                           | Qt::NoDropShadowWindowHint
+                                                           | Qt::FramelessWindowHint;
+
+    auto internalFlags = config.internalFlags()
+                         | KDDockWidgets::Config::InternalFlag_UseTransparentFloatingWindow;
+
+    config.setInternalFlags(internalFlags);
+
+    config.setAbsoluteWidgetMinSize(QSize(10, 10));
+    config.setSeparatorThickness(1);
+}
+
+void DockContext::onDeinit()
+{
+    const int ctx = iocContext()->id;
+
+    //! NOTE Destroy context data
+    KDDockWidgets::ContextData::destroyContext(ctx);
 }

@@ -2052,14 +2052,15 @@ static Tie* createAndAddTie(Note* startNote, Note* endNote)
 void Score::cmdAddTie(bool addToChord)
 {
     std::vector<Note*> noteList = cmdTieNoteList(selection(), noteEntryMode());
-    std::vector<EngravingItem*> toSelect;
-    std::sort(noteList.begin(), noteList.end(), [](const Note* a, const Note* b) { return a->track() < b->track(); });
-    track_idx_t track = noteList[0]->chord()->track();
-
     if (noteList.empty()) {
         LOGD("no notes selected");
         return;
     }
+
+    std::sort(noteList.begin(), noteList.end(), [](const Note* a, const Note* b) { return a->track() < b->track(); });
+    track_idx_t track = noteList.at(0)->track();
+
+    std::vector<EngravingItem*> toSelect;
 
     startCmd(TranslatableString("undoableAction", "Add tie"));
     Chord* lastAddedChord = nullptr;
@@ -2122,7 +2123,6 @@ void Score::cmdAddTie(bool addToChord)
         // if no note to re-use, create one
         NoteVal nval(note->noteVal());
         if (!n) {
-            m_is.setDuration(note->chord()->durationType());
             n = addPitch(nval, addFlag);
             if (staffMove != 0) {
                 undo(new ChangeChordStaffMove(n->chord(), staffMove));
@@ -2447,6 +2447,61 @@ void Score::cmdSetBeamMode(BeamMode mode)
 }
 
 //---------------------------------------------------------
+//   cmdSetBeamSelectedRange
+//---------------------------------------------------------
+
+void Score::cmdBeamSelectedRange()
+{
+    if (!selection().isRange()) {
+        return;
+    }
+
+    cmdResetBeamMode();
+
+    const track_idx_t startTrack = staff2track(selection().staffStart());
+    const track_idx_t endTrack = staff2track(selection().staffEnd());
+    const SelectionFilter filter = selectionFilter();
+
+    for (staff_idx_t trackIdx = startTrack; trackIdx < endTrack; ++trackIdx) {
+        if (!filter.canSelectVoice(trackIdx)) {
+            continue;
+        }
+
+        ChordRest* firstChordRest = selection().firstChordRest(trackIdx);
+        ChordRest* lastChordRest = selection().lastChordRest(trackIdx);
+
+        if (!firstChordRest || !lastChordRest) {
+            continue;
+        }
+
+        ChordRest* prev = prevChordRest(firstChordRest);
+        ChordRest* cr = firstChordRest;
+        BeamMode actualBeamMode = Groups::actualBeamMode(cr, prev);
+        if (actualBeamMode != BeamMode::BEGIN) {
+            cr->undoChangeProperty(Pid::BEAM_MODE, BeamMode::BEGIN);
+        }
+
+        while (cr != lastChordRest) {
+            prev = cr;
+            cr = nextChordRest(cr);
+            actualBeamMode = Groups::actualBeamMode(cr, prev);
+            if (actualBeamMode == BeamMode::BEGIN || actualBeamMode == BeamMode::NONE) {
+                cr->undoChangeProperty(Pid::BEAM_MODE, BeamMode::MID);
+            }
+        }
+
+        prev = cr;
+        cr = nextChordRest(cr);
+        if (cr) {
+            actualBeamMode = Groups::actualBeamMode(cr, prev);
+            if (actualBeamMode != BeamMode::BEGIN && actualBeamMode != BeamMode::NONE) {
+                cr->undoChangeProperty(Pid::BEAM_MODE, BeamMode::BEGIN);
+            }
+        }
+    }
+}
+
+//---------------------------------------------------------
 //   cmdFlip
 //---------------------------------------------------------
 
@@ -2759,9 +2814,9 @@ void Score::deleteItem(EngravingItem* el)
         Part* part = el->part();
         InstrumentName* in = toInstrumentName(el);
         if (in->instrumentNameType() == InstrumentNameType::LONG) {
-            undo(new ChangeInstrumentLong(Fraction(0, 1), part, StaffName()));
+            undo(new ChangeInstrumentLong(Fraction(0, 1), part, String()));
         } else if (in->instrumentNameType() == InstrumentNameType::SHORT) {
-            undo(new ChangeInstrumentShort(Fraction(0, 1), part, StaffName()));
+            undo(new ChangeInstrumentShort(Fraction(0, 1), part, String()));
         }
     }
     break;
@@ -6903,6 +6958,7 @@ void Score::undoAddElement(EngravingItem* element, bool addToLinkedStaves, bool 
             && et != ElementType::PEDAL
             && et != ElementType::LET_RING
             && et != ElementType::PALM_MUTE
+            && et != ElementType::WHAMMY_BAR
             && et != ElementType::PARTIAL_LYRICSLINE
             && et != ElementType::BREATH
             && et != ElementType::DYNAMIC
@@ -7008,6 +7064,7 @@ void Score::undoAddElement(EngravingItem* element, bool addToLinkedStaves, bool 
                 case ElementType::LYRICS:                       // not normally segment-attached
                 case ElementType::PARTIAL_LYRICSLINE:
                 case ElementType::PLAY_COUNT_TEXT:
+                case ElementType::WHAMMY_BAR:
                     continue;
                 default:
                     break;
@@ -7173,6 +7230,7 @@ void Score::undoAddElement(EngravingItem* element, bool addToLinkedStaves, bool 
                    || element->isPedal()
                    || element->isLetRing()
                    || element->isPalmMute()
+                   || element->isWhammyBar()
                    || element->isPartialLyricsLine()) {
             Spanner* sp   = toSpanner(element);
             Spanner* nsp  = toSpanner(ne);

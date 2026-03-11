@@ -39,7 +39,7 @@ static constexpr int MAX_SUPPORTED_AUDIO_CHANNELS = 2;
 AudioEngine::AudioEngine()
 {
     m_buffer = std::make_shared<AudioBuffer>();
-    m_mixer = std::make_shared<Mixer>(nullptr);
+    m_mixer = std::make_shared<Mixer>();
 }
 
 AudioEngine::~AudioEngine()
@@ -90,10 +90,10 @@ void AudioEngine::deinit()
 {
     ONLY_AUDIO_ENGINE_THREAD;
     if (m_inited) {
+        m_inited = false;
         m_buffer->setSource(nullptr);
         m_buffer = nullptr;
         m_mixer = nullptr;
-        m_inited = false;
     }
 }
 

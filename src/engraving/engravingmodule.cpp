@@ -28,15 +28,11 @@
 #include "draw/internal/ifontsdatabase.h"
 
 #include "infrastructure/smufl.h"
-#include "infrastructure/localfileinfoprovider.h"
 
 #ifndef ENGRAVING_NO_INTERNAL
 #include "internal/engravingconfiguration.h"
 #include "internal/engravingfontsprovider.h"
-#endif
-
-#ifndef ENGRAVING_NO_ACCESSIBILITY
-#include "engraving/accessibility/accessibleitem.h"
+#include "internal/palettescoreprovider.h"
 #endif
 
 #include "engraving/style/defaultstyle.h"
@@ -46,13 +42,10 @@
 #include "engraving/dom/masterscore.h"
 #include "engraving/dom/drumset.h"
 #include "engraving/dom/figuredbass.h"
-#include "engraving/dom/fret.h"
 
 #include "rendering/score/scorerenderer.h"
 #include "rendering/single/singlerenderer.h"
 #include "rendering/editmode/editmoderenderer.h"
-
-#include "compat/scoreaccess.h"
 
 #ifndef ENGRAVING_NO_API
 #include "global/api/iapiregister.h"
@@ -74,6 +67,8 @@ using namespace mu::engraving;
 using namespace muse;
 using namespace muse::modularity;
 using namespace muse::draw;
+
+static const std::string mname("engraving");
 
 static void engraving_init_qrc()
 {
@@ -99,7 +94,7 @@ static void engraving_init_qrc()
 
 std::string EngravingModule::moduleName() const
 {
-    return "engraving";
+    return mname;
 }
 
 void EngravingModule::registerExports()
@@ -107,27 +102,26 @@ void EngravingModule::registerExports()
 #ifndef ENGRAVING_NO_INTERNAL
 
     m_configuration = std::make_shared<EngravingConfiguration>();
-    m_engravingfonts = std::make_shared<EngravingFontsProvider>(globalCtx());
+    m_engravingfonts = std::make_shared<EngravingFontsProvider>();
 
-    globalIoc()->registerExport<IEngravingConfiguration>(moduleName(), m_configuration);
-    globalIoc()->registerExport<IEngravingFontsProvider>(moduleName(), m_engravingfonts);
+    globalIoc()->registerExport<IEngravingConfiguration>(mname, m_configuration);
+    globalIoc()->registerExport<IEngravingFontsProvider>(mname, m_engravingfonts);
 #endif
 
     // internal
-    globalIoc()->registerExport<rendering::IScoreRenderer>(moduleName(), new rendering::score::ScoreRenderer());
-    globalIoc()->registerExport<rendering::ISingleRenderer>(moduleName(), new rendering::single::SingleRenderer());
-    globalIoc()->registerExport<rendering::IEditModeRenderer>(moduleName(), new rendering::editmode::EditModeRenderer());
+    globalIoc()->registerExport<rendering::IScoreRenderer>(mname, new rendering::score::ScoreRenderer());
+    globalIoc()->registerExport<rendering::ISingleRenderer>(mname, new rendering::single::SingleRenderer());
+    globalIoc()->registerExport<rendering::IEditModeRenderer>(mname, new rendering::editmode::EditModeRenderer());
 
 #ifdef MUE_BUILD_ENGRAVING_DEVTOOLS
-    globalIoc()->registerExport<IEngravingElementsProvider>(moduleName(), new EngravingElementsProvider());
-    globalIoc()->registerExport<IDiagnosticDrawProvider>(moduleName(), new DiagnosticDrawProvider(globalCtx()));
+    globalIoc()->registerExport<IDiagnosticDrawProvider>(mname, new DiagnosticDrawProvider());
 #endif
 }
 
 void EngravingModule::resolveImports()
 {
 #ifdef MUE_BUILD_ENGRAVING_DEVTOOLS
-    auto ir = globalIoc()->resolve<muse::interactive::IInteractiveUriRegister>(moduleName());
+    auto ir = globalIoc()->resolve<muse::interactive::IInteractiveUriRegister>(mname);
     if (ir) {
         ir->registerQmlUri(Uri("musescore://diagnostics/engraving/elements"), "MuseScore.Engraving", "EngravingElementsDialog");
         ir->registerQmlUri(Uri("musescore://diagnostics/engraving/undostack"), "MuseScore.Engraving", "EngravingUndoStackDialog");
@@ -141,9 +135,9 @@ void EngravingModule::registerApi()
 #ifndef ENGRAVING_NO_API
     apiv1::PluginAPI::registerQmlTypes();
 
-    auto api = globalIoc()->resolve<muse::api::IApiRegister>(moduleName());
+    auto api = globalIoc()->resolve<muse::api::IApiRegister>(mname);
     if (api) {
-        api->regApiCreator(moduleName(), "MuseApi.Engraving", new muse::api::ApiCreator<apiv1::EngravingApiV1>());
+        api->regApiCreator(mname, "MuseApi.Engraving", new muse::api::ApiCreator<apiv1::EngravingApiV1>());
 
         //! TODO remove me
         const char* uri = "MuseApi.Engraving";
@@ -170,7 +164,7 @@ void EngravingModule::onInit(const IApplication::RunMode&)
     {
         using namespace muse::draw;
 
-        std::shared_ptr<IFontsDatabase> fdb = globalIoc()->resolve<IFontsDatabase>(moduleName());
+        std::shared_ptr<IFontsDatabase> fdb = globalIoc()->resolve<IFontsDatabase>(mname);
 
         // Text
         fdb->addFont(FontDataKey(u"Edwin", false, false), ":/fonts/edwin/Edwin-Roman.otf");
@@ -266,37 +260,40 @@ void EngravingModule::onInit(const IApplication::RunMode&)
     MScore::setNudgeStep10(1.0);     // Ctrl + cursor key (default 1.0)
     MScore::setNudgeStep50(0.01);     // Alt  + cursor key (default 0.01)
 
-    // Palette
-    {
-#ifndef ENGRAVING_NO_ACCESSIBILITY
-        AccessibleItem::enabled = false;
-#endif
-        gpaletteScore = compat::ScoreAccess::createMasterScore(globalCtx());
-        gpaletteScore->setFileInfoProvider(std::make_shared<LocalFileInfoProvider>(""));
-
-#ifndef ENGRAVING_NO_ACCESSIBILITY
-        AccessibleItem::enabled = true;
-#endif
-
-        if (gpaletteScore->elementsProvider()) {
-            gpaletteScore->elementsProvider()->unreg(gpaletteScore);
-        }
-
-#ifndef ENGRAVING_NO_INTERNAL
-        gpaletteScore->setStyle(DefaultStyle::baseStyle());
-        gpaletteScore->style().set(Sid::musicalTextFont, String(u"Leland Text"));
-        IEngravingFontPtr scoreFont = m_engravingfonts->fontByName("Leland");
-        gpaletteScore->setEngravingFont(scoreFont);
-        gpaletteScore->setNoteHeadWidth(scoreFont->width(SymId::noteheadBlack,
-                                                         gpaletteScore->style().spatium()) / gpaletteScore->style().defaultSpatium());
-#endif
-    }
-
     //! NOTE And some initialization in the `Notation::init()`
 }
 
-void EngravingModule::onDestroy()
+void EngravingModule::onDeinit()
 {
-    delete gpaletteScore;
-    gpaletteScore = nullptr;
+#ifndef ENGRAVING_NO_INTERNAL
+    m_engravingfonts->deinit();
+#endif
+}
+
+IContextSetup* EngravingModule::newContext(const muse::modularity::ContextPtr& ctx) const
+{
+    return new EngravingContext(ctx);
+}
+
+void EngravingContext::registerExports()
+{
+#ifndef ENGRAVING_NO_INTERNAL
+    m_paletteScoreProvider = std::make_shared<PaletteScoreProvider>(iocContext());
+    ioc()->registerExport<IPaletteScoreProvider>(mname, m_paletteScoreProvider);
+    ioc()->registerExport<IEngravingElementsProvider>(mname, new EngravingElementsProvider());
+#endif
+}
+
+void EngravingContext::onInit(const muse::IApplication::RunMode&)
+{
+#ifndef ENGRAVING_NO_INTERNAL
+    m_paletteScoreProvider->init();
+#endif
+}
+
+void EngravingContext::onDeinit()
+{
+#ifndef ENGRAVING_NO_INTERNAL
+    m_paletteScoreProvider->deinit();
+#endif
 }

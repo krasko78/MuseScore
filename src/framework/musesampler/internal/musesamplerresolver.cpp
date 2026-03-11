@@ -80,6 +80,8 @@ InstrumentInfo findInstrument(MuseSamplerLibHandlerPtr libHandler, const AudioRe
 
 void MuseSamplerResolver::init()
 {
+    TRACEFUNC;
+
     const io::path_t libraryPath = configuration()->libraryPath();
     if (io::isAbsolute(libraryPath) && !io::FileInfo::exists(libraryPath)) {
         LOGI() << "MuseSampler library not found: " << libraryPath;
@@ -130,6 +132,15 @@ void MuseSamplerResolver::init()
     LOGI() << "MuseSampler successfully inited: " << libraryPath << ", version: " << m_samplerVersion.toString();
 }
 
+void MuseSamplerResolver::deinit()
+{
+    TRACEFUNC;
+
+    if (m_libHandler) {
+        m_libHandler->deinit();
+    }
+}
+
 bool MuseSamplerResolver::reloadAllInstruments()
 {
     if (!m_libHandler) {
@@ -145,11 +156,11 @@ int MuseSamplerResolver::buildNumber() const
 }
 
 ISynthesizerPtr MuseSamplerResolver::resolveSynth(const TrackId /*trackId*/, const AudioInputParams& params,
-                                                  const audio::OutputSpec&) const
+                                                  const audio::OutputSpec&, const muse::modularity::ContextPtr& iocCtx) const
 {
     const InstrumentInfo instrument = findInstrument(m_libHandler, params.resourceMeta);
     if (instrument.isValid()) {
-        return std::make_shared<MuseSamplerWrapper>(m_libHandler, instrument, params, iocContext());
+        return std::make_shared<MuseSamplerWrapper>(m_libHandler, instrument, params, iocCtx);
     }
 
     return nullptr;

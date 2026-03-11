@@ -52,6 +52,11 @@ LayoutPanelTreeModel::LayoutPanelTreeModel(QObject* parent)
 
 void LayoutPanelTreeModel::classBegin()
 {
+    init();
+}
+
+void LayoutPanelTreeModel::init()
+{
     m_partsNotifyReceiver = std::make_shared<muse::async::Asyncable>();
 
     m_selectionModel = new ItemMultiSelectionModel(this);

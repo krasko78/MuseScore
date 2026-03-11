@@ -65,7 +65,12 @@ class ProjectActionsController : public IProjectFilesController, public muse::mi
     muse::GlobalInject<muse::io::IFileSystem> fileSystem;
     muse::GlobalInject<IMscMetaReader> mscMetaReader;
     muse::GlobalInject<IProjectCreator> projectCreator;
-    muse::ContextInject<INotationReadersRegister> readers = { this };
+    muse::GlobalInject<muse::cloud::IMuseScoreComService> museScoreComService;
+    muse::GlobalInject<muse::cloud::IAudioComService> audioComService;
+    muse::GlobalInject<muse::extensions::IExtensionsProvider> extensionsProvider;
+    muse::GlobalInject<INotationReadersRegister> readers;
+    muse::GlobalInject<musesounds::IMuseSoundsCheckUpdateScenario> museSoundsCheckUpdateScenario;
+    muse::GlobalInject<musesounds::IMuseSamplerCheckUpdateScenario> museSamplerCheckUpdateScenario;
     muse::ContextInject<IRecentFilesController> recentFilesController = { this };
     muse::ContextInject<IProjectAutoSaver> projectAutoSaver = { this };
     muse::ContextInject<IOpenSaveProjectScenario> openSaveProjectScenario = { this };
@@ -73,13 +78,8 @@ class ProjectActionsController : public IProjectFilesController, public muse::mi
     muse::ContextInject<muse::actions::IActionsDispatcher> dispatcher = { this };
     muse::ContextInject<muse::IInteractive> interactive = { this };
     muse::ContextInject<context::IGlobalContext> globalContext = { this };
-    muse::ContextInject<muse::cloud::IMuseScoreComService> museScoreComService = { this };
-    muse::ContextInject<muse::cloud::IAudioComService> audioComService = { this };
     muse::ContextInject<playback::IPlaybackController> playbackController = { this };
     muse::ContextInject<print::IPrintProvider> printProvider = { this };
-    muse::ContextInject<musesounds::IMuseSoundsCheckUpdateScenario> museSoundsCheckUpdateScenario = { this };
-    muse::ContextInject<musesounds::IMuseSamplerCheckUpdateScenario> museSamplerCheckUpdateScenario = { this };
-    muse::ContextInject<muse::extensions::IExtensionsProvider> extensionsProvider = { this };
 
 public:
 

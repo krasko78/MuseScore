@@ -114,9 +114,9 @@ bool LayoutConfiguration::isVerticalSpreadEnabled() const
 double LayoutConfiguration::maxSystemDistance() const
 {
     if (isVerticalSpreadEnabled()) {
-        return style().styleMM(Sid::maxSystemSpread);
+        return style().styleAbsolute(Sid::maxSystemSpread);
     } else {
-        return style().styleMM(Sid::maxSystemDistance);
+        return style().styleAbsolute(Sid::maxSystemDistance);
     }
 }
 
@@ -210,6 +210,15 @@ size_t DomAccessor::nstaves() const
         return 0;
     }
     return score()->nstaves();
+}
+
+size_t DomAccessor::visibleStaffCount() const
+{
+    IF_ASSERT_FAILED(score()) {
+        return 0;
+    }
+
+    return score()->visibleStavesCount();
 }
 
 const std::vector<Staff*>& DomAccessor::staves() const

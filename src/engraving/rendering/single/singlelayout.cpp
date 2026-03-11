@@ -399,7 +399,7 @@ void SingleLayout::layout(Ambitus* item, const Context& ctx)
     // shorten line on each side by offsets
     double yDelta = ldata->bottomPos.y() - ldata->topPos.y();
     if (!RealIsNull(yDelta)) {
-        double off = spatium * Ambitus::LINEOFFSET_DEFAULT;
+        double off = Ambitus::LINEOFFSET_DEFAULT.toAbsolute(spatium);
         PointF p1 = fullLine.pointAt(off / yDelta);
         PointF p2 = fullLine.pointAt(1 - (off / yDelta));
         ldata->line = LineF(p1, p2);
@@ -495,7 +495,7 @@ void SingleLayout::layout(ChordBracket* item, const Context& ctx)
     ldata->setMag(1);
     ldata->magS = 1;
 
-    double w  = ctx.style().styleS(Sid::chordBracketHookLen).toMM(item->spatium());
+    double w  = item->absoluteFromSpatium(ctx.style().styleS(Sid::chordBracketHookLen));
     ldata->setBbox(RectF(0.0, ldata->top, w, ldata->bottom));
 }
 
@@ -612,39 +612,39 @@ void SingleLayout::layout(BarLine* item, const Context& ctx)
         double w = 0.0;
         switch (item->barLineType()) {
         case BarLineType::DOUBLE:
-            w = ctx.style().styleMM(Sid::doubleBarWidth) * 2.0 + ctx.style().styleMM(Sid::doubleBarDistance);
+            w = ctx.style().styleAbsolute(Sid::doubleBarWidth) * 2.0 + ctx.style().styleAbsolute(Sid::doubleBarDistance);
             break;
         case BarLineType::DOUBLE_HEAVY:
-            w = ctx.style().styleMM(Sid::endBarWidth) * 2.0 + ctx.style().styleMM(Sid::endBarDistance);
+            w = ctx.style().styleAbsolute(Sid::endBarWidth) * 2.0 + ctx.style().styleAbsolute(Sid::endBarDistance);
             break;
         case BarLineType::END_START_REPEAT:
-            w = ctx.style().styleMM(Sid::endBarWidth)
-                + ctx.style().styleMM(Sid::barWidth) * 2.0
-                + ctx.style().styleMM(Sid::endBarDistance) * 2.0
-                + ctx.style().styleMM(Sid::repeatBarlineDotSeparation) * 2.0
+            w = ctx.style().styleAbsolute(Sid::endBarWidth)
+                + ctx.style().styleAbsolute(Sid::barWidth) * 2.0
+                + ctx.style().styleAbsolute(Sid::endBarDistance) * 2.0
+                + ctx.style().styleAbsolute(Sid::repeatBarlineDotSeparation) * 2.0
                 + dotWidth * 2;
             break;
         case BarLineType::START_REPEAT:
         case BarLineType::END_REPEAT:
-            w = ctx.style().styleMM(Sid::endBarWidth)
-                + ctx.style().styleMM(Sid::barWidth)
-                + ctx.style().styleMM(Sid::endBarDistance)
-                + ctx.style().styleMM(Sid::repeatBarlineDotSeparation)
+            w = ctx.style().styleAbsolute(Sid::endBarWidth)
+                + ctx.style().styleAbsolute(Sid::barWidth)
+                + ctx.style().styleAbsolute(Sid::endBarDistance)
+                + ctx.style().styleAbsolute(Sid::repeatBarlineDotSeparation)
                 + dotWidth;
             break;
         case BarLineType::END:
         case BarLineType::REVERSE_END:
-            w = ctx.style().styleMM(Sid::endBarWidth)
-                + ctx.style().styleMM(Sid::barWidth)
-                + ctx.style().styleMM(Sid::endBarDistance);
+            w = ctx.style().styleAbsolute(Sid::endBarWidth)
+                + ctx.style().styleAbsolute(Sid::barWidth)
+                + ctx.style().styleAbsolute(Sid::endBarDistance);
             break;
         case BarLineType::BROKEN:
         case BarLineType::NORMAL:
         case BarLineType::DOTTED:
-            w = ctx.style().styleMM(Sid::barWidth);
+            w = ctx.style().styleAbsolute(Sid::barWidth);
             break;
         case BarLineType::HEAVY:
-            w = ctx.style().styleMM(Sid::endBarWidth);
+            w = ctx.style().styleAbsolute(Sid::endBarWidth);
             break;
         }
         return w;
@@ -759,12 +759,12 @@ void SingleLayout::layout(Bracket* item, const Context& ctx)
         double w = item->symWidth(ldata->braceSymbol) * item->magx();
         ldata->setBbox(RectF(0, 0, w, h));
         ldata->shape.add(ldata->bbox());
-        ldata->bracketWidth = w + ctx.style().styleMM(Sid::akkoladeBarDistance);
+        ldata->bracketWidth = w + ctx.style().styleAbsolute(Sid::akkoladeBarDistance);
     }
     break;
     case BracketType::NORMAL: {
         double spatium = item->spatium();
-        double w = ctx.style().styleMM(Sid::bracketWidth) * 0.5;
+        double w = ctx.style().styleAbsolute(Sid::bracketWidth) * 0.5;
         double x = -w;
 
         double bd = spatium * 0.5;
@@ -777,11 +777,11 @@ void SingleLayout::layout(Bracket* item, const Context& ctx)
         double h = (-y + item->ldata()->h2()) * 2;
         ldata->setBbox(x, y, w, h);
 
-        ldata->bracketWidth = ctx.style().styleMM(Sid::bracketWidth) + ctx.style().styleMM(Sid::bracketDistance);
+        ldata->bracketWidth = ctx.style().styleAbsolute(Sid::bracketWidth) + ctx.style().styleAbsolute(Sid::bracketDistance);
     }
     break;
     case BracketType::SQUARE: {
-        double w = ctx.style().styleMM(Sid::staffLineWidth) * .5;
+        double w = ctx.style().styleAbsolute(Sid::staffLineWidth) * .5;
         double x = -w;
         double y = -w;
         double h = (item->ldata()->h2() + w) * 2;
@@ -789,12 +789,12 @@ void SingleLayout::layout(Bracket* item, const Context& ctx)
         ldata->setBbox(x, y, w, h);
         shape.add(item->ldata()->bbox());
 
-        ldata->bracketWidth = ctx.style().styleMM(Sid::staffLineWidth) / 2 + 0.5 * item->spatium();
+        ldata->bracketWidth = ctx.style().styleAbsolute(Sid::staffLineWidth) / 2 + 0.5 * item->spatium();
     }
     break;
     case BracketType::LINE: {
         double spatium = item->spatium();
-        double w = 0.67 * ctx.style().styleMM(Sid::bracketWidth) * 0.5;
+        double w = 0.67 * ctx.style().styleAbsolute(Sid::bracketWidth) * 0.5;
         double x = -w;
         double bd = spatium * 0.25;
         double y = -bd;
@@ -802,7 +802,7 @@ void SingleLayout::layout(Bracket* item, const Context& ctx)
         ldata->setBbox(x, y, w, h);
         shape.add(item->ldata()->bbox());
 
-        ldata->bracketWidth = 0.67 * ctx.style().styleMM(Sid::bracketWidth) + ctx.style().styleMM(Sid::bracketDistance);
+        ldata->bracketWidth = 0.67 * ctx.style().styleAbsolute(Sid::bracketWidth) + ctx.style().styleAbsolute(Sid::bracketDistance);
     }
     break;
     case BracketType::NO_BRACKET:
@@ -883,9 +883,9 @@ void SingleLayout::layout(Clef* item, const Context& ctx)
 {
     Clef::LayoutData* ldata = item->mutldata();
     constexpr int lines = 5;
-    constexpr double lineDist = 1.0;
+    constexpr Spatium lineDist = 1.0_sp;
     double spatium = ctx.style().spatium();
-    double yoff = 0.0;
+    Spatium yoff = 0.0_sp;
 
     if (item->clefType() != ClefType::INVALID && item->clefType() != ClefType::MAX) {
         ldata->symId = ClefInfo::symId(item->clefType());
@@ -912,7 +912,7 @@ void SingleLayout::layout(Clef* item, const Context& ctx)
         break;
     }
 
-    ldata->setPos(0.0, yoff * spatium);
+    ldata->setPos(0.0, yoff.toAbsolute(spatium));
 
     RectF bbox = item->symBbox(ldata->symId);
     ldata->setBbox(bbox);
@@ -942,8 +942,8 @@ void SingleLayout::layout(FretDiagram* item, const Context& ctx)
     double spatium  = item->spatium();
     ldata->stringLineWidth = (spatium * 0.08);
     ldata->nutLineWidth = ((item->fretOffset() || !item->showNut()) ? ldata->stringLineWidth : spatium * 0.2);
-    ldata->stringDist = (ctx.style().styleMM(Sid::fretStringSpacing));
-    ldata->fretDist = (ctx.style().styleMM(Sid::fretFretSpacing));
+    ldata->stringDist = (ctx.style().styleAbsolute(Sid::fretStringSpacing));
+    ldata->fretDist = (ctx.style().styleAbsolute(Sid::fretFretSpacing));
     ldata->markerSize = (ldata->stringDist * 0.8);
 
     double w = ldata->stringDist * (item->strings() - 1) + ldata->markerSize;
@@ -1249,7 +1249,7 @@ void SingleLayout::layout(KeySig* item, const Context& ctx)
     int key = int(item->key());
 
     if (item->isCustom() && !item->isAtonal()) {
-        double accidentalGap = ctx.style().styleS(Sid::keysigAccidentalDistance).val();
+        Spatium accidentalGap = ctx.style().styleS(Sid::keysigAccidentalDistance);
         // add standard key accidentals first, if necessary
         for (int i = 1; i <= std::abs(key) && std::abs(key) <= 7; ++i) {
             bool drop = false;
@@ -1268,10 +1268,10 @@ void SingleLayout::layout(KeySig* item, const Context& ctx)
                 ks.line = ClefInfo::lines(clef)[lineIndexOffset + i];
                 if (ldata->keySymbols.size() > 0) {
                     KeySym& previous = ldata->keySymbols.back();
-                    double previousWidth = item->symWidth(previous.sym) / spatium;
+                    Spatium previousWidth = Spatium::fromAbsolute(item->symWidth(previous.sym), spatium);
                     ks.xPos = previous.xPos + previousWidth + accidentalGap;
                 } else {
-                    ks.xPos = 0;
+                    ks.xPos = 0_sp;
                 }
                 // TODO octave metters?
                 ldata->keySymbols.push_back(ks);
@@ -1284,10 +1284,10 @@ void SingleLayout::layout(KeySig* item, const Context& ctx)
             int accIdx = (degree * 2 + 1) % 7; // C D E F ... index to F C G D index
             accIdx = flat ? 13 - accIdx : accIdx;
             int line = ClefInfo::lines(clef)[accIdx] + cd.octAlt * 7;
-            double xpos = cd.xAlt;
+            Spatium xpos = cd.xAlt;
             if (ldata->keySymbols.size() > 0) {
                 KeySym& previous = ldata->keySymbols.back();
-                double previousWidth = item->symWidth(previous.sym) / spatium;
+                Spatium previousWidth = Spatium::fromAbsolute(item->symWidth(previous.sym), spatium);
                 xpos += previous.xPos + previousWidth + accidentalGap;
             }
             // if translated symbol if out of range, add key accidental followed by untranslated symbol
@@ -1304,7 +1304,7 @@ void SingleLayout::layout(KeySig* item, const Context& ctx)
                     sym = cd.sym;
                 }
                 ldata->keySymbols.push_back(ks);
-                xpos += key < 0 ? 0.7 : 1; // flats closer
+                xpos += Spatium(key < 0 ? 0.7 : 1); // flats closer
             }
             // create symbol; natural only if is user defined
             if (sym != SymId::accidentalNatural || sym == cd.sym) {
@@ -1319,14 +1319,14 @@ void SingleLayout::layout(KeySig* item, const Context& ctx)
         if (std::abs(key) <= 7) {
             const signed char* lines = ClefInfo::lines(clef);
             SymId sym = key > 0 ? SymId::accidentalSharp : SymId::accidentalFlat;
-            double accidentalGap = ctx.style().styleS(Sid::keysigAccidentalDistance).val();
-            double previousWidth = item->symWidth(sym) / spatium;
+            Spatium accidentalGap = ctx.style().styleS(Sid::keysigAccidentalDistance);
+            Spatium previousWidth = Spatium::fromAbsolute(item->symWidth(sym), spatium);
             int lineIndexOffset = key > 0 ? 0 : 7;
             for (int i = 0; i < std::abs(key); ++i) {
                 int line = lines[lineIndexOffset + i];
                 KeySym ks;
                 ks.sym = sym;
-                double x = 0.0;
+                Spatium x = 0.0_sp;
                 if (ldata->keySymbols.size() > 0) {
                     const KeySym& previous = ldata->keySymbols.back();
                     x = previous.xPos + previousWidth + accidentalGap;
@@ -1337,7 +1337,7 @@ void SingleLayout::layout(KeySig* item, const Context& ctx)
                     double currentCutoutY = line * step + cutout.y();
                     double previousCutoutY = previous.line * step + item->symSmuflAnchor(previous.sym, previousCutout).y();
                     if ((isAscending && currentCutoutY < previousCutoutY) || (!isAscending && currentCutoutY > previousCutoutY)) {
-                        x -= cutout.x() / spatium;
+                        x -= Spatium::fromAbsolute(cutout.x(), spatium);
                     }
                 }
                 ks.xPos = x;
@@ -1351,7 +1351,7 @@ void SingleLayout::layout(KeySig* item, const Context& ctx)
 
     // compute bbox
     for (const KeySym& ks : ldata->keySymbols) {
-        double x = ks.xPos * spatium;
+        double x = ks.xPos.toAbsolute(spatium);
         double y = ks.line * step;
         ldata->addBbox(item->symBbox(ks.sym).translated(x, y));
     }
@@ -1520,7 +1520,7 @@ void SingleLayout::layout(Spacer* item, const Context&)
     PainterPath path = PainterPath();
     double w = spatium;
     double b = w * .5;
-    double h = item->explicitParent() ? item->absoluteGap() : std::min(item->gap(), 4.0_sp).toMM(spatium).val();       // limit length for palette
+    double h = item->explicitParent() ? item->absoluteGap() : item->absoluteFromSpatium(std::min(item->gap(), 4.0_sp));       // limit length for palette
 
     switch (item->spacerType()) {
     case SpacerType::DOWN:
@@ -1594,13 +1594,14 @@ void SingleLayout::layout(StringTunings* item, const Context& ctx)
 {
     layoutTextBase(item, ctx, item->mutldata());
 
+    double spatium = item->spatium();
     for (TextBlock& block : item->mutldata()->blocks) {
         for (TextFragment& fragment : block.fragments()) {
             Font font = fragment.font(item);
             if (font.type() != Font::Type::MusicSymbol) {
                 // HACK: the music symbol doesn't have a good baseline
                 // to go with text so we correct text here
-                const double baselineAdjustment = font.pointSizeF();
+                const double baselineAdjustment = 0.35 * spatium * item->symbolScale();
                 fragment.pos.setY(fragment.pos.y() - baselineAdjustment);
             }
         }
@@ -1927,7 +1928,7 @@ void SingleLayout::layout(VoltaSegment* item, const Context& ctx)
     item->setOffset(PointF());
 
     double spatium = ctx.style().spatium();
-    double hookHeight = item->volta()->beginHookHeight().toMM(spatium);
+    double hookHeight = item->absoluteFromSpatium(item->volta()->beginHookHeight());
     if (item->text()) {
         Text* text = item->text();
         text->setParent(item);

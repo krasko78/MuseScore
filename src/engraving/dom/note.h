@@ -335,7 +335,6 @@ public:
     const std::vector<NoteDot*>& dots() const { return m_dots; }
     std::vector<NoteDot*>& dots() { return m_dots; }
 
-    int qmlDotsCount();
     void updateAccidental(AccidentalState*);
     void updateLine();
     void setNval(const NoteVal&, Fraction = { -1, 1 });
@@ -410,14 +409,14 @@ public:
 
     void setParenthesesMode(const ParenthesesMode& v, bool addToLinked = true, bool generated = false) override;
 
-    const NoteParenthesisInfo* parenInfo() const;
+    const NoteParenthesisInfo* parenthesisInfo() const;
 
     void setHarmonic(bool val) { m_harmonic = val; }
     bool harmonic() const { return m_harmonic; }
 
     bool isGrace() const;
 
-    bool isPreBendStart() const;
+    bool isPreBendOrDiveStart() const;
     bool isGraceBendStart() const;
     bool isContinuationOfBend() const;
 

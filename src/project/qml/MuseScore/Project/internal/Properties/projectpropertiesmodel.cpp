@@ -36,6 +36,11 @@ ProjectPropertiesModel::ProjectPropertiesModel(QObject* parent)
 
 void ProjectPropertiesModel::classBegin()
 {
+    init();
+}
+
+void ProjectPropertiesModel::init()
+{
     INotationProjectPtr project = context()->currentProject();
     if (project) {
         m_projectMetaInfo = project->metaInfo();

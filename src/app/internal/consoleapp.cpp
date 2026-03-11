@@ -83,9 +83,10 @@ void ConsoleApp::setup()
     // ====================================================
     // Setup modules: Resources, Exports, Imports, UiTypes
     // ====================================================
-    m_globalModule.setApplication(shared_from_this());
-    m_globalModule.registerResources();
-    m_globalModule.registerExports();
+    m_globalModule = new GlobalModule();
+    m_globalModule->setApplication(shared_from_this());
+    m_globalModule->registerResources();
+    m_globalModule->registerExports();
 
     for (modularity::IModuleSetup* m : m_modules) {
         m->setApplication(shared_from_this());
@@ -105,7 +106,7 @@ void ConsoleApp::setup()
     }
 #endif
 
-    m_globalModule.resolveImports();
+    m_globalModule->resolveImports();
     for (modularity::IModuleSetup* m : m_modules) {
         m->resolveImports();
     }
@@ -116,7 +117,7 @@ void ConsoleApp::setup()
     }
 #endif
 
-    m_globalModule.registerApi();
+    m_globalModule->registerApi();
     for (modularity::IModuleSetup* m : m_modules) {
         m->registerApi();
     }
@@ -129,7 +130,7 @@ void ConsoleApp::setup()
     // ====================================================
     // Setup modules: onPreInit
     // ====================================================
-    m_globalModule.onPreInit(runMode);
+    m_globalModule->onPreInit(runMode);
     for (modularity::IModuleSetup* m : m_modules) {
         m->onPreInit(runMode);
     }
@@ -142,7 +143,7 @@ void ConsoleApp::setup()
     // ====================================================
     // Setup modules: onInit
     // ====================================================
-    m_globalModule.onInit(runMode);
+    m_globalModule->onInit(runMode);
     for (modularity::IModuleSetup* m : m_modules) {
         m->onInit(runMode);
     }
@@ -155,7 +156,7 @@ void ConsoleApp::setup()
     // ====================================================
     // Setup modules: onAllInited
     // ====================================================
-    m_globalModule.onAllInited(runMode);
+    m_globalModule->onAllInited(runMode);
     for (modularity::IModuleSetup* m : m_modules) {
         m->onAllInited(runMode);
     }
@@ -170,7 +171,7 @@ void ConsoleApp::setup()
     // Setup modules: onStartApp (on next event loop)
     // ====================================================
     QMetaObject::invokeMethod(qApp, [this]() {
-        m_globalModule.onStartApp();
+        m_globalModule->onStartApp();
         for (modularity::IModuleSetup* m : m_modules) {
             m->onStartApp();
         }
@@ -231,7 +232,7 @@ void ConsoleApp::destroyContext(const modularity::ContextPtr&)
     // Console app has only one context, no-op
 }
 
-int ConsoleApp::contextCount() const
+size_t ConsoleApp::contextCount() const
 {
     return m_context ? 1 : 0;
 }
@@ -255,7 +256,7 @@ std::vector<muse::modularity::IContextSetup*>& ConsoleApp::contextSetups(
     Context& ref = m_contexts.back();
     ref.ctx = ctx;
 
-    modularity::IContextSetup* global = m_globalModule.newContext(ctx);
+    modularity::IContextSetup* global = m_globalModule->newContext(ctx);
     if (global) {
         ref.setups.push_back(global);
     }
@@ -344,13 +345,13 @@ void ConsoleApp::finish()
         m->onDeinit();
     }
 
-    m_globalModule.onDeinit();
+    m_globalModule->onDeinit();
 
     for (modularity::IModuleSetup* m : m_modules) {
         m->onDestroy();
     }
 
-    m_globalModule.onDestroy();
+    m_globalModule->onDestroy();
 
     // Delete contexts
     for (auto& c : m_contexts) {
@@ -361,13 +362,16 @@ void ConsoleApp::finish()
     qDeleteAll(m_modules);
     m_modules.clear();
 
-    removeIoC();
+    delete m_globalModule;
+    m_globalModule = nullptr;
+
+    muse::modularity::resetAll();
 }
 
 void ConsoleApp::applyCommandLineOptions(const CmdOptions& options, IApplication::RunMode runMode)
 {
     if (options.app.loggerLevel) {
-        m_globalModule.setLoggerLevel(options.app.loggerLevel.value());
+        m_globalModule->setLoggerLevel(options.app.loggerLevel.value());
     }
 
     if (runMode == IApplication::RunMode::AudioPluginRegistration) {
@@ -454,8 +458,9 @@ int ConsoleApp::processConverter(const CmdOptions::ConverterTask& task)
     case ConvertType::File: {
         std::string transposeOptionsJson = task.params[CmdOptions::ParamKey::ScoreTransposeOptions].toString().toStdString();
         std::optional<ConvertTarget> target = parseTarget(task.params);
-        ret = converter()->fileConvert(task.inputFile, task.outputFile, openParams, soundProfile, extensionUri,
-                                       transposeOptionsJson, target);
+        io::path_t tracksDiffPath = task.params[CmdOptions::ParamKey::TracksDiffPath].toString();
+        ret = converter()->fileConvert(task.inputFile, task.outputFile, openParams, soundProfile, tracksDiffPath,
+                                       extensionUri, transposeOptionsJson, target);
     } break;
     case ConvertType::ConvertScoreParts:
         ret = converter()->convertScoreParts(task.inputFile, task.outputFile, openParams);

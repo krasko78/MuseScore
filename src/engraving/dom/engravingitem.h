@@ -326,7 +326,7 @@ public:
 
     staff_idx_t staffIdx() const;
     void setStaffIdx(staff_idx_t val);
-    staff_idx_t effectiveStaffIdx() const; // for system objects migrating
+    virtual staff_idx_t effectiveStaffIdx() const; // for system objects migrating
     bool isTopSystemObject() const;
     virtual staff_idx_t vStaffIdx() const;
     voice_idx_t voice() const;
@@ -483,7 +483,6 @@ public:
 
     virtual void setParenthesesMode(const ParenthesesMode& v, bool addToLinked = true, bool generated = false);
     ParenthesesMode parenthesesMode() const;
-    inline bool bothParentheses() const { return m_leftParenthesis && m_rightParenthesis; }
     inline Parenthesis* paren(const DirectionH& dir) const { return dir == DirectionH::LEFT ? m_leftParenthesis : m_rightParenthesis; }
     Parenthesis* leftParen() const { return m_leftParenthesis; }
     Parenthesis* rightParen() const { return m_rightParenthesis; }

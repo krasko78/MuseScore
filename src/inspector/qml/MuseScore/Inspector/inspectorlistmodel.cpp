@@ -47,6 +47,11 @@ InspectorListModel::~InspectorListModel() = default;
 
 void InspectorListModel::classBegin()
 {
+    init();
+}
+
+void InspectorListModel::init()
+{
     listenSelectionChanged();
     listenScoreChanges();
 

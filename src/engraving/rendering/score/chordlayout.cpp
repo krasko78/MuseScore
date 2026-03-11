@@ -77,7 +77,7 @@ using namespace muse;
 using namespace mu::engraving;
 using namespace mu::engraving::rendering::score;
 
-static constexpr double STAFFTYPE_TAB_DEFAULTDOTDIST_X = 0.75;
+static constexpr Spatium STAFFTYPE_TAB_DEFAULTDOTDIST_X = 0.75_sp;
 
 void ChordLayout::layout(Chord* item, LayoutContext& ctx)
 {
@@ -105,7 +105,7 @@ void ChordLayout::layoutPitched(Chord* item, LayoutContext& ctx)
     }
 
     double mag_             = item->staff() ? item->staff()->staffMag(item) : 1.0;      // palette elements do not have a staff
-    double dotNoteDistance  = ctx.conf().styleMM(Sid::dotNoteDistance) * mag_;
+    double dotNoteDistance  = ctx.conf().styleAbsolute(Sid::dotNoteDistance) * mag_;
 
     double chordX           = (item->noteType() == NoteType::NORMAL) ? item->ldata()->pos().x() : 0.0;
 
@@ -150,7 +150,7 @@ void ChordLayout::layoutPitched(Chord* item, LayoutContext& ctx)
             double x = accidental->pos().x() + note->pos().x() + chordX;
             // distance from accidental to note already taken into account
             // but here perhaps we create more padding in *front* of accidental?
-            x -= ctx.conf().styleMM(Sid::accidentalDistance) * mag_;
+            x -= ctx.conf().styleAbsolute(Sid::accidentalDistance) * mag_;
             lll = std::max(lll, -x);
         }
 
@@ -230,7 +230,7 @@ void ChordLayout::layoutPitched(Chord* item, LayoutContext& ctx)
 
             if (!chordAccidentals.empty()) {
                 double arpeggioAccidentalDistance = paddingTable.at(elType).at(ElementType::ACCIDENTAL) * mag_;
-                double accidentalDistance = ctx.conf().styleMM(Sid::accidentalDistance) * mag_;
+                double accidentalDistance = ctx.conf().styleAbsolute(Sid::accidentalDistance) * mag_;
                 gapSize = arpeggioAccidentalDistance - accidentalDistance;
                 gapSize -= ArpeggioLayout::insetDistance(spanArp, ctx, mag_, item, chordAccidentals);
             }
@@ -270,7 +270,7 @@ void ChordLayout::layoutPitched(Chord* item, LayoutContext& ctx)
 
     if (item->dots()) {
         double x = item->dotPosX() + dotNoteDistance
-                   + double(item->dots() - 1) * ctx.conf().styleMM(Sid::dotDotDistance) * mag_;
+                   + double(item->dots() - 1) * ctx.conf().styleAbsolute(Sid::dotDotDistance) * mag_;
         x += item->symWidth(SymId::augmentationDot);
         rrr = std::max(rrr, x);
     }
@@ -348,9 +348,9 @@ void ChordLayout::layoutTablature(Chord* item, LayoutContext& ctx)
 {
     double _spatium          = item->spatium();
     double mag_ = item->staff() ? item->staff()->staffMag(item) : 1.0;    // palette elements do not have a staff
-    double dotNoteDistance = ctx.conf().styleMM(Sid::dotNoteDistance) * mag_;
-    double minNoteDistance = ctx.conf().styleMM(Sid::minNoteDistance) * mag_;
-    double minTieLength = ctx.conf().styleMM(Sid::minTieLength) * mag_;
+    double dotNoteDistance = ctx.conf().styleAbsolute(Sid::dotNoteDistance) * mag_;
+    double minNoteDistance = ctx.conf().styleAbsolute(Sid::minNoteDistance) * mag_;
+    double minTieLength = ctx.conf().styleAbsolute(Sid::minTieLength) * mag_;
 
     for (Chord* c : item->graceNotes()) {
         layoutTablature(c, ctx);
@@ -381,7 +381,7 @@ void ChordLayout::layoutTablature(Chord* item, LayoutContext& ctx)
         }
         // centre fret string on stem
         double x = stemX - fretWidth * 0.5;
-        double y = note->fixed() ? note->line() * lineDist / 2 : tab->physStringToYOffset(note->string()) * _spatium;
+        double y = note->fixed() ? note->line() * lineDist / 2 : tab->physStringToYOffset(note->string()).toAbsolute(_spatium);
         note->setPos(x, y);
         if (y < minY) {
             minY  = y;
@@ -610,7 +610,7 @@ void ChordLayout::layoutTablature(Chord* item, LayoutContext& ctx)
             }
             // if not, dots should start at a fixed distance right after the stem
             else {
-                x = STAFFTYPE_TAB_DEFAULTDOTDIST_X * _spatium;
+                x = STAFFTYPE_TAB_DEFAULTDOTDIST_X.toAbsolute(_spatium);
             }
             item->setDotPosX(x);
         }
@@ -730,15 +730,15 @@ void ChordLayout::layoutLvArticulation(Chord* item, LayoutContext& ctx)
 
             PointF result = note->pos() + item->pos();
             double center = SlurTieLayout::noteOpticalCenterForTie(note, ldata->up);
-            double visualInsetSp = 0.0;
+            Spatium visualInsetSp = 0.0_sp;
             if (note->headGroup() == NoteHeadGroup::HEAD_SLASH || note->shouldHideFret()) {
-                visualInsetSp = 0.2;
+                visualInsetSp = 0.2_sp;
             } else if (item->up() && ldata->up) {
-                visualInsetSp = 0.7;
+                visualInsetSp = 0.7_sp;
             } else {
-                visualInsetSp = 0.1;
+                visualInsetSp = 0.1_sp;
             }
-            double visualInset = visualInsetSp * sp;
+            double visualInset = visualInsetSp.toAbsolute(sp);
 
             result.rx() += center + visualInset - ldata->bbox().left();
             result.ry() += (noteHeight / 2 + 0.2 * sp) * upDir;
@@ -790,11 +790,11 @@ void ChordLayout::layoutArticulations(Chord* item, LayoutContext& ctx)
     double mag            = (staffType->isSmall() ? ctx.conf().styleD(Sid::smallStaffMag) : 1.0) * staffType->userMag();
     double _spatium       = ctx.conf().spatium() * mag;
     double _lineDist       = _spatium * staffType->lineDistance().val() / 2;
-    const double minDist = ctx.conf().styleMM(Sid::articulationMinDistance) * mag;
+    const double minDist = ctx.conf().styleAbsolute(Sid::articulationMinDistance) * mag;
     const ArticulationStemSideAlign articulationHAlign = ctx.conf().styleV(Sid::articulationStemHAlign).value<ArticulationStemSideAlign>();
     const bool keepArticsTogether = ctx.conf().styleB(Sid::articulationKeepTogether);
-    const double stemSideDistance = ctx.conf().styleMM(Sid::propertyDistanceStem) * mag;
-    const double headSideDistance = ctx.conf().styleMM(Sid::propertyDistanceHead) * mag;
+    const double stemSideDistance = ctx.conf().styleAbsolute(Sid::propertyDistanceStem) * mag;
+    const double headSideDistance = ctx.conf().styleAbsolute(Sid::propertyDistanceHead) * mag;
     const double tenutoAdditionalTieDistance = 0.6 * _spatium;
     const double staccatoAdditionalTieDistance = 0.4 * _spatium;
 
@@ -1047,10 +1047,10 @@ void ChordLayout::layoutArticulations2(Chord* item, LayoutContext& ctx, bool lay
 
     double stacAccentKern = 0.2 * item->spatium();
     double mag = item->mag();
-    double minDist = ctx.conf().styleMM(Sid::articulationMinDistance) * mag;
-    double staffDist = ctx.conf().styleMM(Sid::propertyDistance) * mag;
-    double stemDist = ctx.conf().styleMM(Sid::propertyDistanceStem) * mag;
-    double noteDist = ctx.conf().styleMM(Sid::propertyDistanceHead) * mag;
+    double minDist = ctx.conf().styleAbsolute(Sid::articulationMinDistance) * mag;
+    double staffDist = ctx.conf().styleAbsolute(Sid::propertyDistance) * mag;
+    double stemDist = ctx.conf().styleAbsolute(Sid::propertyDistanceStem) * mag;
+    double noteDist = ctx.conf().styleAbsolute(Sid::propertyDistanceHead) * mag;
     double yOffset = item->staffOffsetY();
 
     double chordTopY = item->upPos() - 0.5 * item->upNote()->headHeight() + yOffset;       // note position of highest note
@@ -1204,7 +1204,7 @@ void ChordLayout::layoutArticulations3(Chord* item, Slur* slur, LayoutContext& c
             = a->shape().translate(a->pos() + item->pos() + s->pos() + m->pos() + item->staffOffset() + itemStaffPos);
         Shape sShape = ss->shape().translate(ss->pos() + slurStaffPos);
         sShape.removeTypes({ ElementType::HAMMER_ON_PULL_OFF_TEXT });
-        double minDist = ctx.conf().styleMM(Sid::articulationMinDistance);
+        double minDist = ctx.conf().styleAbsolute(Sid::articulationMinDistance);
         bool slurBelowArticulation = a->up() && !(ss->vStaffIdx() < item->vStaffIdx());
         double vertClearance = slurBelowArticulation ? aShape.verticalClearance(sShape) : sShape.verticalClearance(aShape);
         if (vertClearance < minDist) {
@@ -1252,7 +1252,7 @@ void ChordLayout::layoutStem(Chord* item, const LayoutContext& ctx)
 
     item->stem()->mutldata()->setPosX(StemLayout::stemPosX(item));
 
-    item->stem()->setBaseLength(Spatium::fromMM(item->defaultStemLength(), item->spatium()));
+    item->stem()->setBaseLength(Spatium::fromAbsolute(item->defaultStemLength(), item->spatium()));
     TLayout::layoutStem(item->stem(), item->stem()->mutldata(), ctx.conf());
 
     // And now we need to set the position of the flag.
@@ -1313,7 +1313,7 @@ void ChordLayout::updateLedgerLines(Chord* item, LayoutContext& ctx)
     }
 
     // the extra length of a ledger line to be added on each side of the notehead
-    const double extraLen = ctx.conf().style().styleMM(Sid::ledgerLineLength);
+    const double extraLen = ctx.conf().style().styleAbsolute(Sid::ledgerLineLength);
 
     bool visible = false;
 
@@ -1915,7 +1915,7 @@ void ChordLayout::calculateChordOffsets(Segment* segment, staff_idx_t staffIdx, 
                        && bottomUpNote->chord()->durationType().headType() != NoteHeadType::HEAD_BREVIS) {
                 // stemless notes should be aligned as is they were stemmed
                 // (except in case of brevis, cause the notehead has the side bars)
-                offsetInfo.downOffset -= ctx.conf().styleMM(Sid::stemWidth) * topDownNote->chord()->mag();
+                offsetInfo.downOffset -= ctx.conf().styleAbsolute(Sid::stemWidth) * topDownNote->chord()->mag();
             }
             offsetInfo.tracksToAdjust.insert(topDownNote->track());
         }
@@ -2208,10 +2208,10 @@ void ChordLayout::calculateChordOffsets(Segment* segment, staff_idx_t staffIdx, 
         }
         double dotWidth = segment->symWidth(SymId::augmentationDot);
         // first dot
-        offsetInfo.dotAdjust = ctx.conf().styleMM(Sid::dotNoteDistance) + dotWidth;
+        offsetInfo.dotAdjust = ctx.conf().styleAbsolute(Sid::dotNoteDistance) + dotWidth;
         // additional dots
         if (dots > 1) {
-            offsetInfo.dotAdjust += ctx.conf().styleMM(Sid::dotDotDistance).val() * (dots - 1);
+            offsetInfo.dotAdjust += ctx.conf().styleAbsolute(Sid::dotDotDistance) * (dots - 1);
         }
         offsetInfo.dotAdjust *= mag;
         // only by amount over threshold
@@ -2716,7 +2716,7 @@ void ChordLayout::layoutChords3(const std::vector<Chord*>& chords,
         if (stem) {
             overlapMirror = stem->lineWidthMag();
         } else if (chord->durationType().headType() == NoteHeadType::HEAD_WHOLE) {
-            overlapMirror = style.styleMM(Sid::stemWidth) * chord->mag();
+            overlapMirror = style.styleAbsolute(Sid::stemWidth) * chord->mag();
         } else {
             overlapMirror = 0.0;
         }
@@ -3170,7 +3170,7 @@ void ChordLayout::layoutNote2(Note* item, LayoutContext& ctx)
             item->setDotRelativeLine(0);
 
             // use TAB default note-to-dot spacing
-            dd = STAFFTYPE_TAB_DEFAULTDOTDIST_X * item->spatium();
+            dd = STAFFTYPE_TAB_DEFAULTDOTDIST_X.toAbsolute(item->spatium());
             d = dd * 0.5;
         }
 
@@ -3223,8 +3223,8 @@ void ChordLayout::createParenGroups(Chord* chord)
     std::vector<Note*> removeParens;
 
     for (Note* note : chord->notes()) {
-        const NoteParenthesisInfo* noteParenInfo = note->parenInfo();
-        const Parenthesis* leftParen = noteParenInfo ? noteParenInfo->leftParen : nullptr;
+        const NoteParenthesisInfo* noteParenInfo = note->parenthesisInfo();
+        const Parenthesis* leftParen = noteParenInfo ? noteParenInfo->leftParen() : nullptr;
         bool parenGenerated = leftParen && leftParen->generated();
 
         if (note->ldata()->hasGeneratedParens()) {
@@ -3412,14 +3412,14 @@ void ChordLayout::fillShape(const Chord* item, ChordRest::LayoutData* ldata)
         shape.add(note->shape().translate(note->pos()));
     }
 
-    for (const NoteParenthesisInfo& parenInfo : item->noteParens()) {
-        Parenthesis* leftParen = parenInfo.leftParen;
-        Parenthesis* rightParen = parenInfo.rightParen;
+    for (const NoteParenthesisInfo* parenInfo : item->noteParentheses()) {
+        Parenthesis* leftParen = parenInfo->leftParen();
+        Parenthesis* rightParen = parenInfo->rightParen();
 
         if (leftParen && leftParen->addToSkyline()) {
             shape.add(leftParen->shape().translate(leftParen->pos()));
         }
-        if (rightParen && leftParen->addToSkyline()) {
+        if (rightParen && rightParen->addToSkyline()) {
             shape.add(rightParen->shape().translate(rightParen->pos()));
         }
     }

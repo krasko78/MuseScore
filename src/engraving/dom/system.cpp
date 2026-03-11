@@ -71,6 +71,7 @@ namespace mu::engraving {
 SysStaff::~SysStaff()
 {
     delete instrumentName;
+    delete individualStaffName;
 }
 
 //---------------------------------------------------------
@@ -312,7 +313,7 @@ void System::setBracketsXPosition(const double xPosition)
         // For brackets that are drawn, we must correct for half line width
         double lineWidthCorrection = 0.0;
         if (bracketType == BracketType::NORMAL || bracketType == BracketType::LINE) {
-            lineWidthCorrection = style().styleMM(Sid::bracketWidth) / 2;
+            lineWidthCorrection = style().styleAbsolute(Sid::bracketWidth) / 2;
         }
         // Compute offset cause by other stacked brackets
         double xOffset = 0;
@@ -476,7 +477,11 @@ void System::add(EngravingItem* el)
     switch (el->type()) {
     case ElementType::INSTRUMENT_NAME:
 // LOGD("  staffIdx %d, staves %d", el->staffIdx(), _staves.size());
-        m_staves[el->staffIdx()]->instrumentName = toInstrumentName(el);
+        if (toInstrumentName(el)->instrumentNameRole() == InstrumentNameRole::PART) {
+            m_staves[el->staffIdx()]->instrumentName = toInstrumentName(el);
+        } else {
+            m_staves[el->staffIdx()]->individualStaffName = toInstrumentName(el);
+        }
         toInstrumentName(el)->setSysStaff(m_staves[el->staffIdx()]);
         break;
 
@@ -561,7 +566,12 @@ void System::remove(EngravingItem* el)
 {
     switch (el->type()) {
     case ElementType::INSTRUMENT_NAME:
-        m_staves[el->staffIdx()]->instrumentName = nullptr;
+        // TODO: I'm pretty sure that this gets leadked. Needs fixing.
+        if (toInstrumentName(el)->instrumentNameRole() == InstrumentNameRole::PART) {
+            m_staves[el->staffIdx()]->instrumentName = nullptr;
+        } else {
+            m_staves[el->staffIdx()]->individualStaffName = nullptr;
+        }
         toInstrumentName(el)->setSysStaff(0);
         break;
     case ElementType::BEAM:
@@ -729,6 +739,11 @@ void System::scanElements(std::function<void(EngravingItem*)> func)
             if (InstrumentName* t = st->instrumentName) {
                 func(t);
             }
+            if (InstrumentName* n = st->individualStaffName) {
+                func(n);
+            }
+        } else if (InstrumentName* n = st->instrumentName; n && n->effectiveStaffIdx() != muse::nidx) {
+            func(n);
         }
     }
 
@@ -1035,7 +1050,7 @@ Spacer* System::downSpacer(staff_idx_t staffIdx) const
 
 double System::firstNoteRestSegmentX(bool leading) const
 {
-    double margin = style().styleMM(Sid::headerToLineStartDistance);
+    double margin = style().styleAbsolute(Sid::headerToLineStartDistance);
     for (const MeasureBase* mb : measures()) {
         if (mb->isMeasure()) {
             const Measure* measure = toMeasure(mb);
@@ -1055,7 +1070,7 @@ double System::firstNoteRestSegmentX(bool leading) const
 
 double System::endingXForOpenEndedLines() const
 {
-    double margin = style().styleMM(Sid::lineEndToBarlineDistance);
+    double margin = style().styleAbsolute(Sid::lineEndToBarlineDistance);
     double systemEndX = ldata()->bbox().width();
 
     Measure* lastMeas = lastMeasure();
@@ -1183,5 +1198,21 @@ staff_idx_t System::lastVisibleSysStaffOfPart(const Part* part) const
         }
     }
     return muse::nidx;    // No visible staves on this part.
+}
+
+std::vector<staff_idx_t> System::visibleStavesOfPart(const Part* part) const
+{
+    std::vector<staff_idx_t> result;
+    result.reserve(part->nstaves());
+
+    staff_idx_t startIdx = firstSysStaffOfPart(part);
+    staff_idx_t endIdx = startIdx + part->nstaves();
+    for (staff_idx_t staffIdx = startIdx; staffIdx < endIdx; ++staffIdx) {
+        if (staff(staffIdx)->show()) {
+            result.push_back(staffIdx);
+        }
+    }
+
+    return result;
 }
 }

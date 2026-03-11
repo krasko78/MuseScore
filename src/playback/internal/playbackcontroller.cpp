@@ -96,7 +96,7 @@ static std::string resolveAuxTrackTitle(aux_channel_idx_t index, const AudioOutp
 }
 
 PlaybackController::PlaybackController(const muse::modularity::ContextPtr& iocCtx)
-    : muse::Contextable(iocCtx), m_drumsetLoader(iocCtx), m_onlineSoundsController(std::make_unique<OnlineSoundsController>(iocCtx))
+    : muse::Contextable(iocCtx), m_onlineSoundsController(std::make_unique<OnlineSoundsController>(iocCtx))
 {
 }
 
@@ -1040,6 +1040,8 @@ void PlaybackController::resetCurrentSequence()
     playback()->masterOutputParamsChanged().disconnect(this);
     playback()->clearMasterOutputParams();
 
+    m_seqAsyncReceiver.async_disconnectAll();
+
     m_currentTick = 0;
 
     playback()->removeSequence(m_currentSequenceId);
@@ -1465,7 +1467,10 @@ void PlaybackController::setupSequenceTracks()
     });
 
     NotifyList<const Part*> partList = masterNotationParts()->partList();
-    partList.onItemChanged(this, [this, onAddFinished](const Part* part) {
+
+    //! HACK - ideally we would use "this" (PlaybackController) instead of m_seqAsyncReceiver for the following
+    //! subscription, but we've already subscribed to onItemChanged for a different reason in setNotation...
+    partList.onItemChanged(&m_seqAsyncReceiver, [this, onAddFinished](const Part* part) {
         for (const InstrumentTrackId& trackId : part->instrumentTrackIdSet()) {
             auto search = m_instrumentTrackIdMap.find(trackId);
             if (search == m_instrumentTrackIdMap.cend()) {
@@ -1475,7 +1480,7 @@ void PlaybackController::setupSequenceTracks()
         }
 
         updateSoloMuteStates();
-    }, async::Asyncable::Mode::SetReplace);
+    });
 
     audioSettings()->auxSoloMuteStateChanged().onReceive(
         this, [this](aux_channel_idx_t, const notation::INotationSoloMuteState::SoloMuteState&) {
@@ -1807,16 +1812,8 @@ void PlaybackController::setIsExportingAudio(bool exporting)
     m_isExportingAudio = exporting;
     updateSoloMuteStates();
 
-    if (!exporting) {
-        return;
-    }
-
-    if (notationPlayback()) {
+    if (exporting && notationPlayback()) {
         notationPlayback()->sendEventsForChangedTracks();
-    }
-
-    if (!onlineSounds().empty() && !audioConfiguration()->autoProcessOnlineSoundsInBackground()) {
-        dispatcher()->dispatch("process-online-sounds");
     }
 }
 

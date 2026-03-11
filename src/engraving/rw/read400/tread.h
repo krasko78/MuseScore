@@ -148,8 +148,6 @@ class TextLine;
 class TextLineBase;
 class Tie;
 class TimeSig;
-class TimeSigMap;
-class SigEvent;
 class TremoloSingleChord;
 class TremoloTwoChord;
 class TremoloBar;
@@ -269,7 +267,6 @@ public:
     static void read(SlurTieSegment* s, XmlReader& xml, ReadContext& ctx);
     static void read(Spacer* s, XmlReader& xml, ReadContext& ctx);
     static void read(Staff* s, XmlReader& xml, ReadContext& ctx, StaffHideModes& staffHideModes);
-    static void read(StaffName* item, XmlReader& xml);
     static void read(StaffState* s, XmlReader& xml, ReadContext& ctx);
     static void read(StaffText* t, XmlReader& xml, ReadContext& ctx);
     static void read(StaffTextBase* t, XmlReader& xml, ReadContext& ctx);
@@ -289,7 +286,6 @@ public:
     static void read(TextLineBase* b, XmlReader& xml, ReadContext& ctx);
     static void read(Tie* t, XmlReader& xml, ReadContext& ctx);
     static void read(TimeSig* s, XmlReader& xml, ReadContext& ctx);
-    static void read(TimeSigMap* item, XmlReader& xml, ReadContext& ctx);
     static void read(TremoloBar* b, XmlReader& xml, ReadContext& ctx);
     static void read(Trill* t, XmlReader& xml, ReadContext& ctx);
     static void read(Tuplet* t, XmlReader& xml, ReadContext& ctx);
@@ -341,7 +337,6 @@ public:
 
     static bool readProperties(Part* p, XmlReader& xml, ReadContext& ctx, StaffHideModes& staffHideModes);
 
-    static int read(SigEvent* item, XmlReader& xml, int fileDivision);
     static bool readProperties(SLine* l, XmlReader& xml, ReadContext& ctx);
     static bool readProperties(Slur* s, XmlReader& xml, ReadContext& ctx);
     static bool readProperties(SlurTie* s, XmlReader& xml, ReadContext& ctx);

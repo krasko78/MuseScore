@@ -508,7 +508,7 @@ void TDraw::draw(const Arpeggio* item, Painter* painter, const PaintOptions& opt
 
     const double y1 = ldata->bbox().top();
     const double y2 = ldata->bbox().bottom();
-    const double lineWidth = item->style().styleMM(Sid::arpeggioLineWidth);
+    const double lineWidth = item->style().styleAbsolute(Sid::arpeggioLineWidth);
 
     painter->setPen(Pen(item->curColor(opt), lineWidth, PenStyle::SolidLine, PenCapStyle::FlatCap));
     painter->save();
@@ -562,7 +562,7 @@ void TDraw::draw(const ChordBracket* item, muse::draw::Painter* painter, const P
 {
     const Arpeggio::LayoutData* ldata = item->ldata();
 
-    const double lineWidth = item->style().styleMM(Sid::chordBracketLineWidth);
+    const double lineWidth = item->style().styleAbsolute(Sid::chordBracketLineWidth);
     painter->setPen(Pen(item->curColor(opt), lineWidth, PenStyle::SolidLine, PenCapStyle::FlatCap));
 
     const double halfLineWidth = 0.5 * lineWidth;
@@ -669,7 +669,7 @@ static void drawDots(const BarLine* item, Painter* painter, double x)
     } else {
         const StaffType* st = item->staffType();
         const int lines = st->lines();
-        const double lineDistance = st->lineDistance().toMM(spatium);
+        const double lineDistance = item->absoluteFromSpatium(st->lineDistance());
 
         y1l = (static_cast<double>((lines - 1) / 2) - 0.5) * lineDistance;
         y2l = (static_cast<double>(lines / 2) + 0.5) * lineDistance;
@@ -721,91 +721,91 @@ void TDraw::draw(const BarLine* item, Painter* painter, const PaintOptions& opt)
 
     switch (item->barLineType()) {
     case BarLineType::NORMAL: {
-        double lw = item->style().styleMM(Sid::barWidth) * item->mag();
+        double lw = item->style().styleAbsolute(Sid::barWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
         painter->drawLine(LineF(lw * .5, data->y1, lw * .5, data->y2));
     }
     break;
 
     case BarLineType::BROKEN: {
-        double lw = item->style().styleMM(Sid::barWidth) * item->mag();
+        double lw = item->style().styleAbsolute(Sid::barWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw, PenStyle::DashLine, PenCapStyle::FlatCap));
         painter->drawLine(LineF(lw * .5, data->y1, lw * .5, data->y2));
     }
     break;
 
     case BarLineType::DOTTED: {
-        double lw = item->style().styleMM(Sid::barWidth) * item->mag();
+        double lw = item->style().styleAbsolute(Sid::barWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw, PenStyle::DotLine, PenCapStyle::FlatCap));
         painter->drawLine(LineF(lw * .5, data->y1, lw * .5, data->y2));
     }
     break;
 
     case BarLineType::END: {
-        double lw = item->style().styleMM(Sid::barWidth) * item->mag();
+        double lw = item->style().styleAbsolute(Sid::barWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
         double x  = lw * .5;
         painter->drawLine(LineF(x, data->y1, x, data->y2));
 
-        double lw2 = item->style().styleMM(Sid::endBarWidth) * item->mag();
+        double lw2 = item->style().styleAbsolute(Sid::endBarWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw2, PenStyle::SolidLine, PenCapStyle::FlatCap));
-        x += ((lw * .5) + item->style().styleMM(Sid::endBarDistance) + (lw2 * .5)) * item->mag();
+        x += ((lw * .5) + item->style().styleAbsolute(Sid::endBarDistance) + (lw2 * .5)) * item->mag();
         painter->drawLine(LineF(x, data->y1, x, data->y2));
     }
     break;
 
     case BarLineType::DOUBLE: {
-        double lw = item->style().styleMM(Sid::doubleBarWidth) * item->mag();
+        double lw = item->style().styleAbsolute(Sid::doubleBarWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
         double x = lw * .5;
         painter->drawLine(LineF(x, data->y1, x, data->y2));
-        x += ((lw * .5) + item->style().styleMM(Sid::doubleBarDistance) + (lw * .5)) * item->mag();
+        x += ((lw * .5) + item->style().styleAbsolute(Sid::doubleBarDistance) + (lw * .5)) * item->mag();
         painter->drawLine(LineF(x, data->y1, x, data->y2));
     }
     break;
 
     case BarLineType::REVERSE_END: {
-        double lw = item->style().styleMM(Sid::endBarWidth) * item->mag();
+        double lw = item->style().styleAbsolute(Sid::endBarWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
         double x = lw * .5;
         painter->drawLine(LineF(x, data->y1, x, data->y2));
 
-        double lw2 = item->style().styleMM(Sid::barWidth) * item->mag();
+        double lw2 = item->style().styleAbsolute(Sid::barWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw2, PenStyle::SolidLine, PenCapStyle::FlatCap));
-        x += ((lw * .5) + item->style().styleMM(Sid::endBarDistance) + (lw2 * .5)) * item->mag();
+        x += ((lw * .5) + item->style().styleAbsolute(Sid::endBarDistance) + (lw2 * .5)) * item->mag();
         painter->drawLine(LineF(x, data->y1, x, data->y2));
     }
     break;
 
     case BarLineType::HEAVY: {
-        double lw = item->style().styleMM(Sid::endBarWidth) * item->mag();
+        double lw = item->style().styleAbsolute(Sid::endBarWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
         painter->drawLine(LineF(lw * .5, data->y1, lw * .5, data->y2));
     }
     break;
 
     case BarLineType::DOUBLE_HEAVY: {
-        double lw2 = item->style().styleMM(Sid::endBarWidth) * item->mag();
+        double lw2 = item->style().styleAbsolute(Sid::endBarWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw2, PenStyle::SolidLine, PenCapStyle::FlatCap));
         double x = lw2 * .5;
         painter->drawLine(LineF(x, data->y1, x, data->y2));
-        x += ((lw2 * .5) + item->style().styleMM(Sid::endBarDistance) + (lw2 * .5)) * item->mag();
+        x += ((lw2 * .5) + item->style().styleAbsolute(Sid::endBarDistance) + (lw2 * .5)) * item->mag();
         painter->drawLine(LineF(x, data->y1, x, data->y2));
     }
     break;
 
     case BarLineType::START_REPEAT: {
-        double lw2 = item->style().styleMM(Sid::endBarWidth) * item->mag();
+        double lw2 = item->style().styleAbsolute(Sid::endBarWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw2, PenStyle::SolidLine, PenCapStyle::FlatCap));
         double x = lw2 * .5;
         painter->drawLine(LineF(x, data->y1, x, data->y2));
 
-        double lw = item->style().styleMM(Sid::barWidth) * item->mag();
+        double lw = item->style().styleAbsolute(Sid::barWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
-        x += ((lw2 * .5) + item->style().styleMM(Sid::endBarDistance) + (lw * .5)) * item->mag();
+        x += ((lw2 * .5) + item->style().styleAbsolute(Sid::endBarDistance) + (lw * .5)) * item->mag();
         painter->drawLine(LineF(x, data->y1, x, data->y2));
 
-        x += ((lw * .5) + item->style().styleMM(Sid::repeatBarlineDotSeparation)) * item->mag();
+        x += ((lw * .5) + item->style().styleAbsolute(Sid::repeatBarlineDotSeparation)) * item->mag();
         drawDots(item, painter, x);
 
         if (item->style().styleB(Sid::repeatBarTips)) {
@@ -815,18 +815,18 @@ void TDraw::draw(const BarLine* item, Painter* painter, const PaintOptions& opt)
     break;
 
     case BarLineType::END_REPEAT: {
-        double lw = item->style().styleMM(Sid::barWidth) * item->mag();
+        double lw = item->style().styleAbsolute(Sid::barWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
 
         double x = 0.0;
         drawDots(item, painter, x);
 
         x += item->symBbox(SymId::repeatDot).width();
-        x += (item->style().styleMM(Sid::repeatBarlineDotSeparation) + (lw * .5)) * item->mag();
+        x += (item->style().styleAbsolute(Sid::repeatBarlineDotSeparation) + (lw * .5)) * item->mag();
         painter->drawLine(LineF(x, data->y1, x, data->y2));
 
-        double lw2 = item->style().styleMM(Sid::endBarWidth) * item->mag();
-        x += ((lw * .5) + item->style().styleMM(Sid::endBarDistance) + (lw2 * .5)) * item->mag();
+        double lw2 = item->style().styleAbsolute(Sid::endBarWidth) * item->mag();
+        x += ((lw * .5) + item->style().styleAbsolute(Sid::endBarDistance) + (lw2 * .5)) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw2, PenStyle::SolidLine, PenCapStyle::FlatCap));
         painter->drawLine(LineF(x, data->y1, x, data->y2));
 
@@ -836,18 +836,18 @@ void TDraw::draw(const BarLine* item, Painter* painter, const PaintOptions& opt)
     }
     break;
     case BarLineType::END_START_REPEAT: {
-        double lw = item->style().styleMM(Sid::barWidth) * item->mag();
+        double lw = item->style().styleAbsolute(Sid::barWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
 
         double x = 0.0;
         drawDots(item, painter, x);
 
         x += item->symBbox(SymId::repeatDot).width();
-        x += (item->style().styleMM(Sid::repeatBarlineDotSeparation) + (lw * .5)) * item->mag();
+        x += (item->style().styleAbsolute(Sid::repeatBarlineDotSeparation) + (lw * .5)) * item->mag();
         painter->drawLine(LineF(x, data->y1, x, data->y2));
 
-        double lw2 = item->style().styleMM(Sid::endBarWidth) * item->mag();
-        x += ((lw * .5) + item->style().styleMM(Sid::endBarDistance) + (lw2 * .5)) * item->mag();
+        double lw2 = item->style().styleAbsolute(Sid::endBarWidth) * item->mag();
+        x += ((lw * .5) + item->style().styleAbsolute(Sid::endBarDistance) + (lw2 * .5)) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw2, PenStyle::SolidLine, PenCapStyle::FlatCap));
         painter->drawLine(LineF(x, data->y1, x, data->y2));
 
@@ -856,10 +856,10 @@ void TDraw::draw(const BarLine* item, Painter* painter, const PaintOptions& opt)
         }
 
         painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
-        x  += ((lw2 * .5) + item->style().styleMM(Sid::endBarDistance) + (lw * .5)) * item->mag();
+        x  += ((lw2 * .5) + item->style().styleAbsolute(Sid::endBarDistance) + (lw * .5)) * item->mag();
         painter->drawLine(LineF(x, data->y1, x, data->y2));
 
-        x += ((lw * .5) + item->style().styleMM(Sid::repeatBarlineDotSeparation)) * item->mag();
+        x += ((lw * .5) + item->style().styleAbsolute(Sid::repeatBarlineDotSeparation)) * item->mag();
         drawDots(item, painter, x);
 
         if (item->style().styleB(Sid::repeatBarTips)) {
@@ -959,7 +959,7 @@ void TDraw::draw(const Bend* item, Painter* painter, const PaintOptions& opt)
     double y  = -spatium * .8;
     double x2, y2;
 
-    double aw = item->style().styleMM(Sid::bendArrowWidth);
+    double aw = item->style().styleAbsolute(Sid::bendArrowWidth);
     PolygonF arrowUp;
     arrowUp << PointF(0, 0) << PointF(aw * .5, aw) << PointF(-aw * .5, aw);
     PolygonF arrowDown;
@@ -1113,7 +1113,7 @@ void TDraw::draw(const Bracket* item, Painter* painter, const PaintOptions& opt)
     case BracketType::NORMAL: {
         double h = ldata->bracketHeight;
         double spatium = item->spatium();
-        double w = item->style().styleMM(Sid::bracketWidth);
+        double w = item->style().styleAbsolute(Sid::bracketWidth);
         double bd = (item->style().styleSt(Sid::musicalSymbolFont) == "Leland") ? spatium * .5 : spatium * .25;
         Pen pen(item->curColor(opt), w, PenStyle::SolidLine, PenCapStyle::FlatCap);
         painter->setPen(pen);
@@ -1127,7 +1127,7 @@ void TDraw::draw(const Bracket* item, Painter* painter, const PaintOptions& opt)
     break;
     case BracketType::SQUARE: {
         double h = ldata->bracketHeight;
-        double lineW = item->style().styleMM(Sid::staffLineWidth);
+        double lineW = item->style().styleAbsolute(Sid::staffLineWidth);
         double bracketWidth = ldata->bracketWidth - lineW / 2;
         Pen pen(item->curColor(opt), lineW, PenStyle::SolidLine, PenCapStyle::FlatCap);
         painter->setPen(pen);
@@ -1138,10 +1138,10 @@ void TDraw::draw(const Bracket* item, Painter* painter, const PaintOptions& opt)
     break;
     case BracketType::LINE: {
         double h = ldata->bracketHeight;
-        double w = 0.67 * item->style().styleMM(Sid::bracketWidth);
+        double w = 0.67 * item->style().styleAbsolute(Sid::bracketWidth);
         Pen pen(item->curColor(opt), w, PenStyle::SolidLine, PenCapStyle::FlatCap);
         painter->setPen(pen);
-        double bd = item->style().styleMM(Sid::staffLineWidth) * 0.5;
+        double bd = item->style().styleAbsolute(Sid::staffLineWidth) * 0.5;
         painter->drawLine(LineF(0.0, -bd, 0.0, h + bd));
     }
     break;
@@ -1165,7 +1165,7 @@ void TDraw::draw(const ChordLine* item, Painter* painter, const PaintOptions& op
         return;
     }
 
-    painter->setPen(Pen(item->curColor(opt), item->style().styleMM(Sid::chordlineThickness) * item->mag(), PenStyle::SolidLine));
+    painter->setPen(Pen(item->curColor(opt), item->style().styleAbsolute(Sid::chordlineThickness) * item->mag(), PenStyle::SolidLine));
     painter->setBrush(BrushStyle::NoBrush);
     if (!item->isWavy()) {
         painter->drawPath(ldata->path);
@@ -1270,7 +1270,8 @@ void TDraw::draw(const FiguredBassItem* item, Painter* painter, const PaintOptio
 
     painter->setFont(f);
     painter->setBrush(BrushStyle::NoBrush);
-    Pen pen(item->figuredBass()->curColor(opt), FiguredBass::FB_CONTLINE_THICKNESS * _spatium, PenStyle::SolidLine, PenCapStyle::RoundCap);
+    Pen pen(item->figuredBass()->curColor(opt), FiguredBass::FB_CONTLINE_THICKNESS.toAbsolute(_spatium), PenStyle::SolidLine,
+            PenCapStyle::RoundCap);
     painter->setPen(pen);
     painter->drawText(ldata->bbox(), muse::draw::TextDontClip | muse::draw::AlignLeft | muse::draw::AlignTop, ldata->displayText);
 
@@ -1279,7 +1280,7 @@ void TDraw::draw(const FiguredBassItem* item, Painter* painter, const PaintOptio
     if (item->contLine() != FiguredBassItem::ContLine::NONE) {
         double lineStartX  = ldata->textWidth;                           // by default, line starts right after text
         if (lineStartX > 0.0) {
-            lineStartX += _spatium * FiguredBass::FB_CONTLINE_LEFT_PADDING;          // if some text, give some room after it
+            lineStartX += FiguredBass::FB_CONTLINE_LEFT_PADDING.toAbsolute(_spatium);          // if some text, give some room after it
         }
         lineEndX = item->figuredBass()->ldata()->printedLineLength;            // by default, line ends with item duration
         if (lineEndX - lineStartX < 1.0) {                         // if line length < 1 sp, ignore it
@@ -1297,7 +1298,7 @@ void TDraw::draw(const FiguredBassItem* item, Painter* painter, const PaintOptio
                 double nextContPageX = nextFB->additionalContLineX(pgPos.y());
                 // if an additional cont. line has been found, extend up to its initial X coord
                 if (nextContPageX > 0) {
-                    lineEndX = nextContPageX - pgPos.x() + _spatium * FiguredBass::FB_CONTLINE_OVERLAP;
+                    lineEndX = nextContPageX - pgPos.x() + FiguredBass::FB_CONTLINE_OVERLAP.toAbsolute(_spatium);
                 }
                 // with a little bit of overlap
                 else {
@@ -1717,13 +1718,8 @@ void TDraw::drawTextBase(const TextBase* item, Painter* painter, const PaintOpti
         if (item->circle()) {
             painter->drawEllipse(ldata->frame);
         } else {
-            double frameRoundFactor = (item->sizeIsSpatiumDependent() ? (item->spatium() / baseSpatium) / 2 : 0.5f);
-
-            int r2 = item->frameRound() * frameRoundFactor;
-            if (r2 > 99) {
-                r2 = 99;
-            }
-            painter->drawRoundedRect(ldata->frame, item->frameRound() * frameRoundFactor, r2);
+            double frameRadius = item->frameRound().val() * (item->sizeIsSpatiumDependent() ? item->spatium() : baseSpatium);
+            painter->drawRoundedRect(ldata->frame, frameRadius, frameRadius);
         }
     }
     painter->setBrush(BrushStyle::NoBrush);
@@ -1955,11 +1951,9 @@ void TDraw::draw(const Harmony* item, Painter* painter, const PaintOptions& opt)
         if (item->circle()) {
             painter->drawArc(ldata->frame, 0, 5760);
         } else {
-            int r2 = item->frameRound();
-            if (r2 > 99) {
-                r2 = 99;
-            }
-            painter->drawRoundedRect(ldata->frame, item->frameRound(), r2);
+            double baseSpatium = DefaultStyle::baseStyle().value(Sid::spatium).toReal();
+            double frameRadius = item->frameRound().val() * (item->sizeIsSpatiumDependent() ? item->spatium() : baseSpatium);
+            painter->drawRoundedRect(ldata->frame, frameRadius, frameRadius);
         }
     }
     painter->setBrush(BrushStyle::NoBrush);
@@ -1979,7 +1973,7 @@ void TDraw::draw(const Harmony* item, Painter* painter, const PaintOptions& opt)
 
     if (item->isPolychord()) {
         Pen pen(painter->pen());
-        pen.setWidthF(item->style().styleS(Sid::polychordDividerThickness).toMM(item->spatium()));
+        pen.setWidthF(item->absoluteFromSpatium(item->style().styleS(Sid::polychordDividerThickness)));
         pen.setColor(color);
         painter->setPen(pen);
         for (const LineF& line : ldata->polychordDividerLines()) {
@@ -2086,10 +2080,10 @@ void TDraw::draw(const KeySig* item, Painter* painter, const PaintOptions& opt)
     double _spatium = item->spatium();
     double step = _spatium * (item->staff() ? item->staff()->staffTypeForElement(item)->lineDistance().val() * 0.5 : 0.5);
     int lines = item->staff() ? item->staff()->staffTypeForElement(item)->lines() : 5;
-    double ledgerLineWidth = item->style().styleMM(Sid::ledgerLineWidth) * item->mag();
+    double ledgerLineWidth = item->style().styleAbsolute(Sid::ledgerLineWidth) * item->mag();
     double ledgerExtraLen = item->style().styleS(Sid::ledgerLineLength).val() * _spatium;
     for (const KeySym& ks : ldata->keySymbols) {
-        double x = ks.xPos * _spatium;
+        double x = ks.xPos.toAbsolute(_spatium);
         double y = ks.line * step;
         item->drawSymbol(ks.sym, painter, PointF(x, y));
         // ledger lines
@@ -2214,7 +2208,7 @@ void TDraw::draw(const MeasureRepeat* item, Painter* painter, const PaintOptions
     }
 
     if (item->style().styleB(Sid::fourMeasureRepeatShowExtenders) && item->numMeasures() == 4) {
-        double hBarThickness = item->style().styleMM(Sid::mmRestHBarThickness);
+        double hBarThickness = item->style().styleAbsolute(Sid::mmRestHBarThickness);
         Pen pen(painter->pen());
         pen.setCapStyle(PenCapStyle::FlatCap);
         pen.setWidthF(hBarThickness);
@@ -2249,7 +2243,7 @@ void TDraw::draw(const MMRest* item, Painter* painter, const PaintOptions& opt)
     if (item->isOldStyle()) {
         // draw rest symbols
         double x = (ldata->restWidth - ldata->symsWidth) * 0.5;
-        double spacing = item->style().styleMM(Sid::mmRestOldStyleSpacing);
+        double spacing = item->style().styleAbsolute(Sid::mmRestOldStyleSpacing);
         for (SymId sym : ldata->restSyms) {
             double y = (sym == SymId::restWhole ? -_spatium : 0);
             item->drawSymbol(sym, painter, PointF(x, y));
@@ -2261,7 +2255,7 @@ void TDraw::draw(const MMRest* item, Painter* painter, const PaintOptions& opt)
         pen.setCapStyle(PenCapStyle::FlatCap);
 
         // draw horizontal line
-        double hBarThickness = item->style().styleMM(Sid::mmRestHBarThickness) * mag;
+        double hBarThickness = item->style().styleAbsolute(Sid::mmRestHBarThickness) * mag;
         if (hBarThickness) { // don't draw at all if 0, QPainter interprets 0 pen width differently
             pen.setWidthF(hBarThickness);
             painter->setPen(pen);
@@ -2280,11 +2274,11 @@ void TDraw::draw(const MMRest* item, Painter* painter, const PaintOptions& opt)
         }
 
         // draw vertical lines
-        double vStrokeThickness = item->style().styleMM(Sid::mmRestHBarVStrokeThickness) * mag;
+        double vStrokeThickness = item->style().styleAbsolute(Sid::mmRestHBarVStrokeThickness) * mag;
         if (vStrokeThickness) { // don't draw at all if 0, QPainter interprets 0 pen width differently
             pen.setWidthF(vStrokeThickness);
             painter->setPen(pen);
-            double halfVStrokeHeight = item->style().styleMM(Sid::mmRestHBarVStrokeHeight) * .5 * mag;
+            double halfVStrokeHeight = item->style().styleAbsolute(Sid::mmRestHBarVStrokeHeight) * .5 * mag;
             painter->drawLine(LineF(0.0, -halfVStrokeHeight, 0.0, halfVStrokeHeight));
             painter->drawLine(LineF(ldata->restWidth, -halfVStrokeHeight, ldata->restWidth, halfVStrokeHeight));
         }
@@ -2430,7 +2424,8 @@ void TDraw::draw(const Parenthesis* item, muse::draw::Painter* painter, const Pa
     double mag = item->staff() ? item->staff()->staffMag(item->tick()) : 1.0;
 
     if (item->ldata()->symId != SymId::noSym) {
-        item->drawSymbol(item->ldata()->symId, painter);
+        painter->setPen(pen);
+        item->drawSymbol(item->ldata()->symId, painter, PointF(), item->ldata()->symScale);
         return;
     }
 
@@ -2535,7 +2530,7 @@ void TDraw::draw(const ShadowNote* item, Painter* painter, const PaintOptions&)
 
     PointF ap(item->pagePos());
     painter->translate(ap);
-    double lw = item->style().styleMM(Sid::stemWidth) * item->mag();
+    double lw = item->style().styleAbsolute(Sid::stemWidth) * item->mag();
     Pen pen(item->color(), lw, PenStyle::SolidLine, PenCapStyle::FlatCap);
     painter->setPen(pen);
 
@@ -2545,7 +2540,7 @@ void TDraw::draw(const ShadowNote* item, Painter* painter, const PaintOptions&)
     SymId acc = Accidental::subtype2symbol(item->accidentalType());
     if (acc != SymId::noSym) {
         PointF posAcc;
-        posAcc.rx() -= item->symWidth(acc) + item->style().styleMM(Sid::accidentalNoteDistance) * item->mag();
+        posAcc.rx() -= item->symWidth(acc) + item->style().styleAbsolute(Sid::accidentalNoteDistance) * item->mag();
         item->drawSymbol(acc, painter, posAcc);
     }
 
@@ -2559,8 +2554,8 @@ void TDraw::draw(const ShadowNote* item, Painter* painter, const PaintOptions&)
 
     PointF posDot;
     if (item->duration().dots() > 0) {
-        double d  = item->style().styleMM(Sid::dotNoteDistance) * item->mag();
-        double dd = item->style().styleMM(Sid::dotDotDistance) * item->mag();
+        double d  = item->style().styleAbsolute(Sid::dotNoteDistance) * item->mag();
+        double dd = item->style().styleAbsolute(Sid::dotDotDistance) * item->mag();
         posDot.rx() += (noteheadWidth + d);
 
         if (item->isRest()) {
@@ -2603,7 +2598,7 @@ void TDraw::draw(const ShadowNote* item, Painter* painter, const PaintOptions&)
         double yOffset = item->staffOffsetY();
         double step = sp2 * item->staffType()->lineDistance().val();
 
-        lw = item->style().styleMM(Sid::ledgerLineWidth) * item->mag();
+        lw = item->style().styleAbsolute(Sid::ledgerLineWidth) * item->mag();
         pen.setWidthF(lw);
         painter->setPen(pen);
 
@@ -3007,7 +3002,7 @@ void TDraw::draw(const TabDurationSymbol* item, Painter* painter, const PaintOpt
         const TablatureDurationFont& font = item->tab()->tabDurationFont();
         double _spatium = item->spatium();
         pen.setCapStyle(PenCapStyle::FlatCap);
-        pen.setWidthF(font.gridStemWidth * _spatium);
+        pen.setWidthF(font.gridStemWidth.toAbsolute(_spatium));
         painter->setPen(pen);
         // take stem height from bbox, but de-magnify it, as drawing is already magnified
         double h = ldata->bbox().y() / mag;
@@ -3015,11 +3010,11 @@ void TDraw::draw(const TabDurationSymbol* item, Painter* painter, const PaintOpt
         // if beam grid is medial/final, draw beam lines too: lines go from mid of
         // previous stem (delta x stored in _beamLength) to mid of this' stem (0.0)
         if (ldata->beamGrid == TabBeamGrid::MEDIALFINAL) {
-            pen.setWidthF(font.gridBeamWidth * _spatium);
+            pen.setWidthF(font.gridBeamWidth.toAbsolute(_spatium));
             painter->setPen(pen);
             // lower height available to beams by half a beam width,
             // so that top beam upper border aligns with stem top
-            h += (font.gridBeamWidth * _spatium) * 0.5;
+            h += (font.gridBeamWidth.toAbsolute(_spatium)) * 0.5;
             // draw beams equally spaced within the stem height (this is
             // different from modern engraving, but common in historic prints)
             double step  = -h / ldata->beamLevel;

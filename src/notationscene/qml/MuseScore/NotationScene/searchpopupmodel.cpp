@@ -30,6 +30,11 @@ SearchPopupModel::SearchPopupModel(QObject* parent)
 
 void SearchPopupModel::classBegin()
 {
+    init();
+}
+
+void SearchPopupModel::init()
+{
     dispatcher()->reg(this, "find", [this]() {
         emit showPopupRequested();
     });

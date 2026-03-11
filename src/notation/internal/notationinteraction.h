@@ -60,12 +60,12 @@ class NotationSelection;
 class NotationSelectionFilter;
 class NotationInteraction : public INotationInteraction, public muse::Contextable, public muse::async::Asyncable
 {
-    muse::GlobalInject<INotationConfiguration> configuration;
     muse::GlobalInject<appshell::IAppShellConfiguration> appshellConfiguration; // krasko
+    muse::GlobalInject<INotationConfiguration> configuration;
+    muse::GlobalInject<engraving::rendering::ISingleRenderer> engravingRenderer;
+    muse::GlobalInject<engraving::rendering::IEditModeRenderer> editModeRenderer;
     muse::ContextInject<ISelectInstrumentsScenario> selectInstrumentScenario = { this };
     muse::ContextInject<muse::IInteractive> interactive = { this };
-    muse::ContextInject<engraving::rendering::ISingleRenderer> engravingRenderer = { this };
-    muse::ContextInject<engraving::rendering::IEditModeRenderer> editModeRenderer = { this };
 
 public:
     NotationInteraction(Notation* notation, INotationUndoStackPtr undoStack);
@@ -233,6 +233,7 @@ public:
     bool canAddTupletToSelectedChordRests() const override;
     void addTupletToSelectedChordRests(const TupletOptions& options) override;
     void addBeamToSelectedChordRests(BeamMode mode) override;
+    void beamSelectedRange() override;
 
     void increaseDecreaseDuration(int steps, bool stepByDots) override;
 
@@ -461,8 +462,6 @@ private:
     bool prepareDropTimeAnchorElement(const muse::PointF& pos);
     bool dropCanvas(EngravingItem* e);
     void resetDropData();
-
-    void repeatListSelection(const engraving::Selection& selection);
 
     void doFinishAddFretboardDiagram();
 

@@ -241,6 +241,7 @@ public:
 
     TextFragment split(int column);
     muse::draw::Font font(const TextBase*) const;
+    double calculatedFontSize(const TextBase*) const;
     int columns() const;
     void changeFormat(FormatId id, const FormatValue& data);
 
@@ -470,8 +471,8 @@ public:
     void setFrameWidth(Spatium val) { m_frameWidth = val; }
     Spatium paddingWidth() const { return m_paddingWidth; }
     void setPaddingWidth(Spatium val) { m_paddingWidth = val; }
-    int frameRound() const { return m_frameRound; }
-    void setFrameRound(int val) { m_frameRound = val; }
+    Spatium frameRound() const { return m_frameRound; }
+    void setFrameRound(Spatium val) { m_frameRound = val; }
 
     struct LayoutData : public EngravingItem::LayoutData {
         std::vector<TextBlock> blocks;
@@ -514,6 +515,8 @@ public:
 
     bool hasSymbolScale() const;
     bool hasSymbolSize() const { return !hasSymbolScale(); }
+
+    double spatiumScaling() const;
 
 protected:
     TextBase(const ElementType& type, EngravingItem* parent = 0, TextStyleType tid = TextStyleType::DEFAULT,
@@ -562,7 +565,7 @@ private:
     Color m_frameColor;
     Spatium m_frameWidth;
     Spatium m_paddingWidth;
-    int m_frameRound = 0;
+    Spatium m_frameRound;
 
     // there are two representations of text; only one
     // might be valid and the other can be constructed from it

@@ -20,8 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef __KEYCANVAS_H__
-#define __KEYCANVAS_H__
+#pragma once
 
 #include <QFrame>
 
@@ -30,17 +29,13 @@
 #include "notation/inotationconfiguration.h"
 #include "engraving/iengravingconfiguration.h"
 #include "engraving/rendering/isinglerenderer.h"
-
+#include "engraving/ipalettescoreprovider.h"
 namespace mu::engraving {
 class Accidental;
 class Clef;
 }
 
 namespace mu::palette {
-//---------------------------------------------------------
-//   KeyCanvas
-//---------------------------------------------------------
-
 class KeyCanvas : public QFrame, public muse::Contextable
 {
     Q_OBJECT
@@ -48,7 +43,8 @@ class KeyCanvas : public QFrame, public muse::Contextable
     muse::GlobalInject<IPaletteConfiguration> configuration;
     muse::GlobalInject<notation::INotationConfiguration> notationConfiguration;
     muse::GlobalInject<engraving::IEngravingConfiguration> engravingConfiguration;
-    muse::ContextInject<engraving::rendering::ISingleRenderer> engravingRender = { this };
+    muse::GlobalInject<engraving::rendering::ISingleRenderer> engravingRender;
+    muse::ContextInject<engraving::IPaletteScoreProvider> paletteScoreProvider = { this };
 
     engraving::Accidental* dragElement = nullptr;
     engraving::Accidental* moveElement = nullptr;
@@ -77,5 +73,4 @@ public:
     void clear();
     const QList<engraving::Accidental*> getAccidentals() const { return accidentals; }
 };
-} // namespace Ms
-#endif
+}

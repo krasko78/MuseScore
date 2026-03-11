@@ -44,11 +44,6 @@ UiEngine::UiEngine(const modularity::ContextPtr& iocCtx)
     m_tooltip = new QmlToolTip(this, iocContext());
     m_dataFormatter = new QmlDataFormatter(this);
     m_appshellConfigurationProxy = new mu::appshell::AppShellConfigurationProxy(); // krasko
-
-    //! NOTE At the moment, UiTheme is also QProxyStyle
-    //! Inside the theme, QApplication::setStyle(this) is calling and the QStyleSheetStyle becomes as parent.
-    //! So, the UiTheme will be deleted when will deleted the application (as a child of QStyleSheetStyle).
-    m_theme = new api::ThemeApi(m_apiEngine);
 }
 
 UiEngine::~UiEngine()
@@ -59,8 +54,8 @@ UiEngine::~UiEngine()
 
 void UiEngine::init()
 {
-    m_theme->init();
     m_appshellConfigurationProxy->init(); // krasko
+
     m_engine->rootContext()->setContextProperty("ui", this);
     m_engine->rootContext()->setContextProperty("api", m_api);
     m_engine->rootContext()->setContextProperty("appshellConfig", m_appshellConfigurationProxy); // krasko
@@ -92,11 +87,14 @@ void UiEngine::init()
 
 void UiEngine::quit()
 {
+    TRACEFUNC;
+
     if (!m_engine) {
         return;
     }
 
-    emit m_engine->quit();
+    m_engine->exit(0);
+
     delete m_engine;
     m_engine = nullptr;
 }
@@ -159,6 +157,11 @@ void UiEngine::updateTheme()
 QmlApi* UiEngine::api() const
 {
     return m_api;
+}
+
+void UiEngine::setTheme(api::ThemeApi* theme)
+{
+    m_theme = theme;
 }
 
 muse::api::ThemeApi* UiEngine::theme() const

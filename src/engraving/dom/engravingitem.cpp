@@ -986,8 +986,7 @@ void EngravingItem::dump() const
 
 muse::ByteArray EngravingItem::mimeData(const PointF& dragOffset) const
 {
-    Buffer buffer;
-    buffer.open(IODevice::WriteOnly);
+    auto buffer = Buffer::opened(IODevice::WriteOnly);
     XmlWriter xml(&buffer);
 
     xml.startElement("EngravingItem");
@@ -2084,8 +2083,8 @@ bool EngravingItem::isUserModified() const
         PropertyValue val = getProperty(pid);
         PropertyValue defaultValue = propertyDefault(pid);
 
-        if (propertyType(pid) == P_TYPE::MILLIMETRE) {
-            if (std::abs(val.value<Millimetre>() - defaultValue.value<Millimetre>()) > 0.0001) {         // we don’t care spatium diffs that small
+        if (propertyType(pid) == P_TYPE::ABSOLUTE) {
+            if (std::abs(val.value<double>() - defaultValue.value<double>()) > 0.0001) {         // we don’t care spatium diffs that small
                 return true;
             }
         } else {
@@ -2415,7 +2414,7 @@ void EngravingItem::endEdit(EditData&)
 
 double EngravingItem::styleP(Sid idx) const
 {
-    return style().styleMM(idx);
+    return style().styleAbsolute(idx);
 }
 
 void EngravingItem::setParenthesesMode(const ParenthesesMode& v, bool addToLinked, bool generated)

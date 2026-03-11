@@ -5,7 +5,7 @@
  * MuseScore Studio
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore Limited
+ * Copyright (C) 2026 MuseScore Limited
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -19,19 +19,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "allzerosfilecorruptor.h"
+ #pragma once
 
-using namespace muse::io;
+ #include "modularity/imoduleinterface.h"
 
-AllZerosFileCorruptor::AllZerosFileCorruptor(const path_t& filePath)
-    : File(filePath)
+namespace mu::engraving {
+class MasterScore;
+class IPaletteScoreProvider : MODULE_CONTEXT_INTERFACE
 {
-}
+    INTERFACE_ID(IPaletteScoreProvider)
 
-size_t AllZerosFileCorruptor::writeData(const uint8_t*, size_t len)
-{
-    // Ignore the actual data and write all zeros so as to corrupt the file.
-    uint8_t* corruptData = new uint8_t[len];
-    memset(corruptData, 0, len);
-    return File::writeData(corruptData, len);
+public:
+    virtual ~IPaletteScoreProvider() = default;
+
+    virtual MasterScore* paletteScore() const = 0;
+};
 }

@@ -623,6 +623,8 @@ Note::Note(const Note& n, bool link)
     m_fixed             = n.m_fixed;
     m_fixedLine         = n.m_fixedLine;
     m_harmonic          = n.m_harmonic;
+    m_hasParens         = n.m_hasParens;
+    m_hideGeneratedParens = n.m_hideGeneratedParens;
 
     if (n.m_accidental) {
         add(new Accidental(*(n.m_accidental)));
@@ -1497,17 +1499,17 @@ bool Note::shouldForceShowFret() const
 void Note::setVisible(bool v)
 {
     EngravingItem::setVisible(v);
-    if (!chord() || chord()->noteParens().empty()) {
+    if (!chord() || chord()->noteParentheses().empty()) {
         return;
     }
 
-    const NoteParenthesisInfo* noteParenInfo = chord()->findNoteParenInfo(this);
+    const NoteParenthesisInfo* noteParenInfo = chord()->findNoteParenthesisInfo(this);
 
     if (!noteParenInfo) {
         return;
     }
 
-    const std::vector<Note*>& notes = noteParenInfo->notes;
+    const std::vector<Note*>& notes = noteParenInfo->notes();
     bool visible = false;
     for (const Note* note : notes) {
         if (note->visible()) {
@@ -1516,11 +1518,11 @@ void Note::setVisible(bool v)
         }
     }
 
-    if (noteParenInfo->leftParen) {
-        noteParenInfo->leftParen->setVisible(visible);
+    if (noteParenInfo->leftParen()) {
+        noteParenInfo->leftParen()->setVisible(visible);
     }
-    if (noteParenInfo->rightParen) {
-        noteParenInfo->rightParen->setVisible(visible);
+    if (noteParenInfo->rightParen()) {
+        noteParenInfo->rightParen()->setVisible(visible);
     }
 }
 
@@ -1855,9 +1857,11 @@ EngravingItem* Note::drop(EditData& data)
             break;
         }
 
-        case ActionIconType::PARENTHESES:
-            score()->cmdToggleParentheses(this);
+        case ActionIconType::PARENTHESES: {
+            std::list<Note*> note = { this };
+            score()->cmdAddParenthesesToNotes(note);
             break;
+        }
         case ActionIconType::STANDARD_BEND:
         case ActionIconType::SLIGHT_BEND:
         case ActionIconType::DIVE:
@@ -2855,7 +2859,7 @@ void Note::normalizeLeftDragDelta(Segment* seg, EditData& ed, NoteEditData* ned)
     } else {
         Measure* measure = seg->measure();
 
-        double minDist = style().styleMM(Sid::barNoteDistance);
+        double minDist = style().styleAbsolute(Sid::barNoteDistance);
 
         double diff = (ed.pos.x()) - (measure->pageX() + minDist);
 
@@ -3466,16 +3470,6 @@ NoteVal Note::noteVal() const
 }
 
 //---------------------------------------------------------
-//   qmlDotsCount
-//    returns number of dots for plugins
-//---------------------------------------------------------
-
-int Note::qmlDotsCount()
-{
-    return static_cast<int>(m_dots.size());
-}
-
-//---------------------------------------------------------
 //   subtypeUserName
 //---------------------------------------------------------
 
@@ -3591,7 +3585,7 @@ EngravingItem* Note::nextElement()
         return nullptr;
 
     case ElementType::NOTE: {
-        if (isPreBendStart() || isGraceBendStart()) {
+        if (isPreBendOrDiveStart() || isGraceBendStart()) {
             return bendFor()->frontSegment();
         }
 
@@ -3957,9 +3951,9 @@ void Note::setParenthesesMode(const ParenthesesMode& v, bool addToLinked, bool g
         return;
     }
 
-    const NoteParenthesisInfo* noteParenInfo = parenInfo();
+    const NoteParenthesisInfo* noteParenInfo = parenthesisInfo();
 
-    Parenthesis* leftParen = noteParenInfo ? noteParenInfo->leftParen : nullptr;
+    Parenthesis* leftParen = noteParenInfo ? noteParenInfo->leftParen() : nullptr;
 
     const bool hasGeneratedParen = leftParen && leftParen->generated();
     const bool hasUserParen = leftParen && !leftParen->generated();
@@ -3983,9 +3977,9 @@ void Note::setParenthesesMode(const ParenthesesMode& v, bool addToLinked, bool g
     }
 }
 
-const NoteParenthesisInfo* Note::parenInfo() const
+const NoteParenthesisInfo* Note::parenthesisInfo() const
 {
-    return chord() ? chord()->findNoteParenInfo(this) : nullptr;
+    return chord() ? chord()->findNoteParenthesisInfo(this) : nullptr;
 }
 
 bool Note::isGrace() const
@@ -3993,15 +3987,19 @@ bool Note::isGrace() const
     return noteType() != NoteType::NORMAL;
 }
 
-bool Note::isPreBendStart() const
+bool Note::isPreBendOrDiveStart() const
 {
     if (!isGrace()) {
         return false;
     }
 
-    GuitarBend* bend = bendFor();
+    const GuitarBend* bend = bendFor();
+    if (!bend) {
+        return false;
+    }
 
-    return bend && bend->bendType() == GuitarBendType::PRE_BEND;
+    const GuitarBendType bendType = bend->bendType();
+    return bendType == GuitarBendType::PRE_BEND || bendType == GuitarBendType::PRE_DIVE;
 }
 
 bool Note::isGraceBendStart() const
@@ -4010,7 +4008,7 @@ bool Note::isGraceBendStart() const
         return false;
     }
 
-    GuitarBend* bend = bendFor();
+    const GuitarBend* bend = bendFor();
 
     return bend && bend->bendType() == GuitarBendType::GRACE_NOTE_BEND;
 }

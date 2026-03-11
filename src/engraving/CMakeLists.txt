@@ -107,6 +107,8 @@ target_sources(engraving PRIVATE
     editing/edit.cpp
     editing/editbrackets.cpp
     editing/editbrackets.h
+    editing/editcapo.cpp
+    editing/editcapo.h
     editing/editchord.cpp
     editing/editchord.h
     editing/editclef.cpp
@@ -267,7 +269,7 @@ target_sources(engraving PRIVATE
 
     types/constants.h
     types/types.h
-    types/dimension.h
+    types/spatium.h
     types/fraction.h
     types/typesconv.cpp
     types/typesconv.h
@@ -340,6 +342,8 @@ else()
         internal/engravingfontsprovider.h
         internal/engravingfont.cpp
         internal/engravingfont.h
+        internal/palettescoreprovider.cpp
+        internal/palettescoreprovider.h
         ${API_V1_SRC}
     )
 endif()

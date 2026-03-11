@@ -1914,11 +1914,11 @@ void SlurTieLayout::calculateLaissezVibY(LaissezVibSegment* segment, SlurTiePos&
     Note* note = lv->startNote();
     Chord* chord = note->chord();
 
-    const NoteParenthesisInfo* noteParenInfo = chord->findNoteParenInfo(note);
+    const NoteParenthesisInfo* noteParenInfo = chord->findNoteParenthesisInfo(note);
 
     Parenthesis* paren = nullptr;
     if (noteParenInfo) {
-        paren = noteParenInfo->leftParen;
+        paren = noteParenInfo->leftParen();
     }
 
     const bool avoidStem = chord->stem() && chord->stem()->visible() && chord->up() == lv->up();
@@ -2037,7 +2037,8 @@ void SlurTieLayout::setPartialTieEndPos(PartialTie* item, SlurTiePos& sPos)
         const double elPosInSystemCoords = adjSeg->xPosInSystemCoords() + elPos;
         widthToSegment = outgoing ? elPosInSystemCoords - sPos.p1.x() : sPos.p2.x() - (elPosInSystemCoords + elementWidth);
         bool incomingFromBarline = !outgoing && element->isBarLine() && toBarLine(element)->barLineType() != BarLineType::START_REPEAT;
-        widthToSegment -= item->style().styleMM(incomingFromBarline ? Sid::barlineToLineStartDistance : Sid::lineEndToBarlineDistance);
+        widthToSegment
+            -= item->style().styleAbsolute(incomingFromBarline ? Sid::barlineToLineStartDistance : Sid::lineEndToBarlineDistance);
     }
 
     if (outgoing) {
@@ -2371,7 +2372,7 @@ void SlurTieLayout::adjustY(TieSegment* tieSegment)
     int upSign = up ? -1 : 1;
 
     const double staffLineDist = staff->lineDistance(tick) * spatium;
-    const double staffLineThickness = tieSegment->style().styleMM(Sid::staffLineWidth) * staff->staffMag(tick);
+    const double staffLineThickness = tieSegment->style().styleAbsolute(Sid::staffLineWidth) * staff->staffMag(tick);
 
     // 1. Check for bad end point protrusion
 

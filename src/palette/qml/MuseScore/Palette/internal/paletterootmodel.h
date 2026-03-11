@@ -103,5 +103,6 @@ signals:
 private:
     void classBegin() override;
     void componentComplete() override {}
+    void init();
 };
 }

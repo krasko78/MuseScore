@@ -26,7 +26,8 @@
 #include <QJsonArray>
 #include <QJsonParseError>
 
-#include "defer.h"
+#include "global/defer.h"
+#include "global/io/buffer.h"
 #include "global/io/file.h"
 #include "global/io/dir.h"
 
@@ -35,6 +36,7 @@
 
 #include "convertercodes.h"
 #include "compat/backendapi.h"
+#include "compat/notationmeta.h"
 #include "converterutils.h"
 
 #include "log.h"
@@ -50,9 +52,9 @@ static const std::string PNG_SUFFIX = "png";
 static const std::string SVG_SUFFIX = "svg";
 static const std::string MP3_SUFFIX = "mp3";
 
-Ret ConverterController::batchConvert(const muse::io::path_t& batchJobFile, const OpenParams& openParams,
-                                      const String& soundProfile, const muse::UriQuery& extensionUri,
-                                      muse::ProgressPtr progress)
+Ret ConverterController::batchConvert(const path_t& batchJobFile, const OpenParams& openParams,
+                                      const String& soundProfile, const UriQuery& extensionUri,
+                                      ProgressPtr progress)
 {
     TRACEFUNC;
 
@@ -79,7 +81,8 @@ Ret ConverterController::batchConvert(const muse::io::path_t& batchJobFile, cons
             progress->progress(current, total, job.in.toStdString());
         }
 
-        Ret ret = fileConvert(job.in, job.out, openParams, soundProfile, extensionUri, job.transposeOptions, job.pageNum, job.visibleParts,
+        Ret ret = convertFile(job.in, job.out, openParams, soundProfile, job.tracksDiffPath, extensionUri, job.transposeOptions,
+                              job.pageNum, job.visibleParts,
                               job.copyright);
         if (!ret) {
             errors.emplace_back(String(u"failed convert, err: %1, in: %2, out: %3")
@@ -101,10 +104,11 @@ Ret ConverterController::batchConvert(const muse::io::path_t& batchJobFile, cons
     return ret;
 }
 
-Ret ConverterController::fileConvert(const muse::io::path_t& in, const muse::io::path_t& out,
+Ret ConverterController::fileConvert(const path_t& in, const path_t& out,
                                      const OpenParams& openParams,
-                                     const muse::String& soundProfile,
-                                     const muse::UriQuery& extensionUri,
+                                     const String& soundProfile,
+                                     const path_t& tracksDiffPath,
+                                     const UriQuery& extensionUri,
                                      const std::string& transposeOptionsJson,
                                      const std::optional<ConvertTarget>& target)
 {
@@ -119,12 +123,13 @@ Ret ConverterController::fileConvert(const muse::io::path_t& in, const muse::io:
         transposeOptions = transposeOptionsRet.val;
     }
 
-    return fileConvert(in, out, openParams, soundProfile, extensionUri, transposeOptions, target);
+    return convertFile(in, out, openParams, soundProfile, tracksDiffPath, extensionUri, transposeOptions, target);
 }
 
-Ret ConverterController::fileConvert(const muse::io::path_t& in, const muse::io::path_t& out,
+Ret ConverterController::convertFile(const muse::io::path_t& in, const muse::io::path_t& out,
                                      const OpenParams& openParams,
                                      const String& soundProfile,
+                                     const path_t& tracksDiffPath,
                                      const muse::UriQuery& extensionUri,
                                      const std::optional<notation::TransposeOptions>& transposeOptions,
                                      const std::optional<ConvertTarget>& target,
@@ -151,6 +156,11 @@ Ret ConverterController::fileConvert(const muse::io::path_t& in, const muse::io:
     if (!ret) {
         LOGE() << "failed load notation, err: " << ret.toString() << ", path: " << in;
         return make_ret(Err::InFileFailedLoad);
+    }
+
+    QJsonArray oldTracks;
+    if (!tracksDiffPath.empty()) {
+        oldTracks = NotationMeta::tracksJsonArray(notationProject->masterNotation()->notation());
     }
 
     if (!soundProfile.isEmpty()) {
@@ -231,6 +241,10 @@ Ret ConverterController::fileConvert(const muse::io::path_t& in, const muse::io:
                 LOGE() << "Failed to convert full notation, err: " << ret.toString();
             }
         }
+    }
+
+    if (ret && !tracksDiffPath.empty()) {
+        ret = writeTracksDiff(notationProject, oldTracks, tracksDiffPath);
     }
 
     return ret;
@@ -360,6 +374,11 @@ RetVal<ConverterController::BatchJob> ConverterController::parseBatchJob(const m
             }
         }
 
+        const QJsonValue tracksDiffValue = obj[u"tracksDiff"];
+        if (tracksDiffValue.isString()) {
+            job.tracksDiffPath = correctUserInputPath(tracksDiffValue.toString());
+        }
+
         const QJsonValue outValue = obj[u"out"];
         if (outValue.isString()) {
             job.out = correctUserInputPath(outValue.toString());
@@ -394,19 +413,21 @@ Ret ConverterController::convertByExtension(INotationWriterPtr writer, INotation
         return ret;
     }
 
-    File file(out);
-    if (!file.open(File::WriteOnly)) {
-        return make_ret(Err::OutFileFailedOpen);
-    }
+    auto outBuf = Buffer::opened(IODevice::WriteOnly);
 
-    file.setMeta("file_path", out.toStdString());
-    ret = writer->write(notation, file);
+    outBuf.setMeta("file_path", out.toStdString());
+    ret = writer->write(notation, outBuf);
     if (!ret) {
         LOGE() << "failed write, err: " << ret.toString() << ", path: " << out;
         return make_ret(Err::OutFileFailedWrite);
     }
 
-    file.close();
+    outBuf.close();
+    ret = File::writeFile(out, outBuf.data());
+    if (!ret) {
+        LOGE() << "failed to write file: " << ret.toString();
+        return make_ret(Err::OutFileFailedWrite);
+    }
 
     return make_ret(Ret::Code::Ok);
 }
@@ -444,46 +465,48 @@ muse::Ret ConverterController::convertPage(INotationWriterPtr writer, INotationP
 {
     TRACEFUNC;
 
-    File file(filePath);
-    if (!file.open(File::WriteOnly)) {
-        return make_ret(Err::OutFileFailedOpen);
-    }
+    auto outBuf = Buffer::opened(IODevice::WriteOnly);
 
     const INotationWriter::Options options {
         { INotationWriter::OptionKey::PAGE_NUMBER, Val(static_cast<int>(pageNum)) },
     };
 
-    file.setMeta("file_path", filePath.toStdString());
-
+    outBuf.setMeta("file_path", filePath.toStdString());
     if (!dirPath.empty()) {
-        file.setMeta("dir_path", dirPath.toStdString());
+        outBuf.setMeta("dir_path", dirPath.toStdString());
     }
 
-    Ret ret = writer->write(notation, file, options);
+    Ret ret = writer->write(notation, outBuf, options);
     if (!ret) {
         return make_ret(Err::OutFileFailedWrite);
     }
 
-    file.close();
+    outBuf.close();
+    ret = File::writeFile(filePath, outBuf.data());
+    if (!ret) {
+        return make_ret(Err::OutFileFailedWrite);
+    }
 
     return make_ok();
 }
 
 Ret ConverterController::convertFullNotation(INotationWriterPtr writer, INotationPtr notation, const muse::io::path_t& out) const
 {
-    File file(out);
-    if (!file.open(File::WriteOnly)) {
-        return make_ret(Err::OutFileFailedOpen);
-    }
+    auto outBuf = Buffer::opened(IODevice::WriteOnly);
 
-    file.setMeta("file_path", out.toStdString());
-    Ret ret = writer->write(notation, file);
+    outBuf.setMeta("file_path", out.toStdString());
+    Ret ret = writer->write(notation, outBuf);
     if (!ret) {
         LOGE() << "failed write, err: " << ret.toString() << ", path: " << out;
         return make_ret(Err::OutFileFailedWrite);
     }
 
-    file.close();
+    outBuf.close();
+    ret = File::writeFile(out, outBuf.data());
+    if (!ret) {
+        LOGE() << "failed to write file: " << ret.toString();
+        return make_ret(Err::OutFileFailedWrite);
+    }
 
     return make_ret(Ret::Code::Ok);
 }
@@ -502,18 +525,19 @@ Ret ConverterController::convertScorePartsToPdf(INotationWriterPtr writer, IMast
         QString baseName = QString::fromStdString(io::completeBasename(out).toStdString());
         muse::io::path_t partOut = io::dirpath(out) + "/" + baseName.replace("*", partName).toStdString() + ".pdf";
 
-        File file(partOut);
-        if (!file.open(File::WriteOnly)) {
-            return make_ret(Err::OutFileFailedOpen);
-        }
-
-        Ret ret = writer->write(e->notation(), file, options);
+        auto outBuf = Buffer::opened(IODevice::WriteOnly);
+        Ret ret = writer->write(e->notation(), outBuf, options);
         if (!ret) {
             LOGE() << "failed write, err: " << ret.toString() << ", path: " << partOut;
             return make_ret(Err::OutFileFailedWrite);
         }
 
-        file.close();
+        outBuf.close();
+        ret = File::writeFile(partOut, outBuf.data());
+        if (!ret) {
+            LOGE() << "failed to write file: " << ret.toString();
+            return make_ret(Err::OutFileFailedWrite);
+        }
     }
 
     return make_ret(Ret::Code::Ok);
@@ -551,19 +575,21 @@ Ret ConverterController::convertScorePartsToMp3(INotationWriterPtr writer, IMast
         QString baseName = QString::fromStdString(io::completeBasename(out).toStdString());
         muse::io::path_t partOut = io::dirpath(out) + "/" + baseName.replace("*", partName).toStdString() + ".mp3";
 
-        File file(partOut);
-        if (!file.open(File::WriteOnly)) {
-            return make_ret(Err::OutFileFailedOpen);
-        }
+        auto outBuf = Buffer::opened(IODevice::WriteOnly);
 
-        file.setMeta("file_path", partOut.toStdString());
-        Ret ret = writer->write(e->notation(), file, options);
+        outBuf.setMeta("file_path", partOut.toStdString());
+        Ret ret = writer->write(e->notation(), outBuf, options);
         if (!ret) {
             LOGE() << "failed write, err: " << ret.toString() << ", path: " << partOut;
             return make_ret(Err::OutFileFailedWrite);
         }
 
-        file.close();
+        outBuf.close();
+        ret = File::writeFile(partOut, outBuf.data());
+        if (!ret) {
+            LOGE() << "failed to write file: " << ret.toString();
+            return make_ret(Err::OutFileFailedWrite);
+        }
     }
 
     return make_ret(Ret::Code::Ok);
@@ -614,6 +640,21 @@ muse::Ret ConverterController::saveRegion(INotationProjectPtr project, const Con
     interaction->select({ endMeasure }, SelectType::RANGE, region.val.end.staffIdx);
 
     return project->save(out, SaveMode::SaveSelection);
+}
+
+Ret ConverterController::writeTracksDiff(INotationProjectPtr project, const QJsonArray& oldTracks, const path_t& path) const
+{
+    TRACEFUNC;
+
+    QJsonObject root;
+    root["oldTracks"] = oldTracks;
+    root["newTracks"] = NotationMeta::tracksJsonArray(project->masterNotation()->notation());
+
+    QJsonDocument document(root);
+    QByteArray qJson = document.toJson(QJsonDocument::Compact);
+    ByteArray json = ByteArray::fromQByteArrayNoCopy(qJson);
+
+    return File::writeFile(path, json);
 }
 
 Ret ConverterController::exportScoreMedia(const muse::io::path_t& in, const muse::io::path_t& out,

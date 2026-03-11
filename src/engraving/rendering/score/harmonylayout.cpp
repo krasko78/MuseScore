@@ -96,7 +96,7 @@ PointF HarmonyLayout::calculateBoundingRect(const Harmony* item, Harmony::Layout
             newPosY = ypos - ((item->align() == AlignV::BOTTOM) ? -ldata->bbox().height() : 0.0);
         }
     } else {
-        layoutModifierParentheses(item);
+        layoutModifierParentheses(item, ctx);
         RectF bb;
         RectF hAlignBox;
         for (HarmonyRenderItem* renderItem : item->ldata()->renderItemList()) {
@@ -148,7 +148,7 @@ PointF HarmonyLayout::calculateBoundingRect(const Harmony* item, Harmony::Layout
 
         if (alignToFretDiagram) {
             double nutLineWidth = fd->ldata()->nutLineWidth;
-            newPosY = yy - ctx.conf().styleMM(Sid::harmonyFretDist) - nutLineWidth;
+            newPosY = yy - ctx.conf().styleAbsolute(Sid::harmonyFretDist) - nutLineWidth;
         } else {
             newPosY = ypos;
         }
@@ -199,10 +199,11 @@ PointF HarmonyLayout::calculateBoundingRect(const Harmony* item, Harmony::Layout
     return PointF(newPosX, newPosY);
 }
 
-void HarmonyLayout::layoutModifierParentheses(const Harmony* item)
+void HarmonyLayout::layoutModifierParentheses(const Harmony* item, const LayoutContext& ctx)
 {
     const double spatium = item->spatium();
     const std::vector<HarmonyRenderItem*>& itemList = item->ldata()->renderItemList();
+    const double smuflParens = ctx.conf().styleB(Sid::harmonyParenUseSmuflSym);
     // Layout parentheses
     std::vector<ChordSymbolParen*> openingParenStack;
     double lastTextSegHeight = 0.0;
@@ -215,6 +216,9 @@ void HarmonyLayout::layoutModifierParentheses(const Harmony* item)
             if (curParen->parenItem->direction() == DirectionH::LEFT) {
                 // Opening paren
                 openingParenStack.push_back(curParen);
+                if (ctx.conf().styleB(Sid::harmonyParenUseSmuflSym)) {
+                    curParen->parenItem->mutldata()->symId = SymId::csymParensLeftTall;
+                }
             } else {
                 // Closing paren
                 ChordSymbolParen* openingParen = openingParenStack.empty() ? nullptr : openingParenStack.back();
@@ -235,35 +239,49 @@ void HarmonyLayout::layoutModifierParentheses(const Harmony* item)
                     startY = lastTextSegTop;
                 }
 
-                const double mag = openingParen->parenItem->ldata()->mag();
-                const double scale = (height - 2 * parenExtension) / rootCapHeight;
-                static constexpr double HEIGHT_TO_WIDTH_RATIO = 20;
-                const double midPointThickness = height / HEIGHT_TO_WIDTH_RATIO * mag * 1 / std::sqrt(scale);
-                const double endPointThickness = 0.03;
-                const double shoulder = 0.2 * height * std::pow(mag, 0.1) * 1 / std::sqrt(scale);
+                if (smuflParens) {
+                    double symHeight = item->symHeight(SymId::csymParensRightTall);
+                    double scale = height / symHeight;
+                    curParen->parenItem->mutldata()->symId = SymId::csymParensRightTall;
+                    curParen->parenItem->mutldata()->symScale = scale;
+                    openingParen->parenItem->mutldata()->symScale = scale;
 
-                openingParen->parenItem->mutldata()->startY = startY;
-                openingParen->sety(startY);
-                openingParen->parenItem->mutldata()->height = height;
-                openingParen->parenItem->mutldata()->midPointThickness.set_value(midPointThickness);
-                openingParen->parenItem->mutldata()->endPointThickness.set_value(endPointThickness);
-                openingParen->parenItem->mutldata()->shoulderWidth = shoulder;
+                    curParen->sety(startY + height);
+                    openingParen->sety(startY + height);
 
-                curParen->parenItem->mutldata()->startY = startY;
-                curParen->sety(startY);
-                curParen->parenItem->mutldata()->height = height;
-                curParen->parenItem->mutldata()->midPointThickness.set_value(midPointThickness);
-                curParen->parenItem->mutldata()->endPointThickness.set_value(endPointThickness);
-                curParen->parenItem->mutldata()->shoulderWidth = shoulder;
+                    ParenthesisLayout::createSmuflShape(openingParen->parenItem, openingParen->parenItem->mutldata());
+                    ParenthesisLayout::createSmuflShape(curParen->parenItem, curParen->parenItem->mutldata());
+                } else {
+                    const double scale = (height - 2 * parenExtension) / rootCapHeight;
+                    const double mag = openingParen->parenItem->ldata()->mag();
+                    static constexpr double HEIGHT_TO_WIDTH_RATIO = 20;
+                    const double midPointThickness = height / HEIGHT_TO_WIDTH_RATIO * mag * 1 / std::sqrt(scale);
+                    const double endPointThickness = 0.03;
+                    const double shoulder = 0.2 * height * std::pow(mag, 0.1) * 1 / std::sqrt(scale);
+
+                    openingParen->parenItem->mutldata()->startY = startY;
+                    openingParen->sety(startY);
+                    openingParen->parenItem->mutldata()->height = height;
+                    openingParen->parenItem->mutldata()->midPointThickness.set_value(midPointThickness);
+                    openingParen->parenItem->mutldata()->endPointThickness.set_value(endPointThickness);
+                    openingParen->parenItem->mutldata()->shoulderWidth = shoulder;
+
+                    curParen->parenItem->mutldata()->startY = startY;
+                    curParen->sety(startY);
+                    curParen->parenItem->mutldata()->height = height;
+                    curParen->parenItem->mutldata()->midPointThickness.set_value(midPointThickness);
+                    curParen->parenItem->mutldata()->endPointThickness.set_value(endPointThickness);
+                    curParen->parenItem->mutldata()->shoulderWidth = shoulder;
+
+                    ParenthesisLayout::createPathAndShape(openingParen->parenItem, openingParen->parenItem->mutldata());
+                    ParenthesisLayout::createPathAndShape(curParen->parenItem, curParen->parenItem->mutldata());
+                }
 
                 double closingPos = openingParen->closingParenPos;
                 if (muse::RealIsEqual(-DBL_MAX, closingPos)) {
                     closingPos = openingParen->x() + openingParen->boundingRect().width();
                 }
                 curParen->setx(closingPos);
-
-                ParenthesisLayout::createPathAndShape(openingParen->parenItem, openingParen->parenItem->mutldata());
-                ParenthesisLayout::createPathAndShape(curParen->parenItem, curParen->parenItem->mutldata());
 
                 // Outer parens must always be the same length or longer than inner parens
                 for (ChordSymbolParen* outerParen : openingParenStack) {
@@ -327,15 +345,16 @@ void HarmonyLayout::layoutModifierParentheses(const Harmony* item)
         if (ChordSymbolParen* paren = dynamic_cast<ChordSymbolParen*>(renderItem)) {
             if (paren->parenItem->direction() == DirectionH::LEFT) {
                 double heightToRefRatio = std::max(paren->height(), rootRefHeight) / rootRefHeight;
-                bool scaleParenWidth = !prevParen && !muse::RealIsEqual(heightToRefRatio, 1.0);
+                bool scaleParenWidth = !smuflParens && !prevParen && !muse::RealIsEqual(heightToRefRatio, 1.0);
                 const double PAREN_PADDING_SCALER = 0.6;
                 double scaledParenWidth = paren->parenItem->width() * PAREN_PADDING_SCALER / heightToRefRatio;
 
                 double parenWidth = scaleParenWidth ? scaledParenWidth : paren->parenItem->width();
+
+                double parenAdjust = additionalSpace + padding + (smuflParens ? 0.0 : parenWidth);
+                paren->movex(parenAdjust);
                 additionalSpace += parenWidth + padding;
-                paren->movex(additionalSpace);
-            }
-            if (paren->parenItem->direction() == DirectionH::RIGHT) {
+            } else if (paren->parenItem->direction() == DirectionH::RIGHT) {
                 paren->movex(additionalSpace + padding);
                 additionalSpace += paren->parenItem->width() + padding;
             }
@@ -442,13 +461,13 @@ void HarmonyLayout::render(Harmony* item, Harmony::LayoutData* ldata, const Layo
         harmonyCtx.setx(0);
         harmonyCtx.sety(topCapHeight);
 
-        double lineY = harmonyCtx.y() - ctx.conf().style().styleS(Sid::polychordDividerSpacing).toMM(item->spatium())
-                       - ctx.conf().style().styleS(Sid::polychordDividerThickness).toMM(item->spatium()) / 2;
+        double lineY = harmonyCtx.y() - item->absoluteFromSpatium(ctx.conf().style().styleS(Sid::polychordDividerSpacing))
+                       - item->absoluteFromSpatium(ctx.conf().style().styleS(Sid::polychordDividerThickness)) / 2;
         LineF line = LineF(PointF(0.0, lineY), PointF(0.0, lineY));
         ldata->polychordDividerLines.mut_value().push_back(line);
 
-        harmonyCtx.movey(-ctx.conf().style().styleS(Sid::polychordDividerSpacing).toMM(item->spatium()) * 2.0);
-        harmonyCtx.movey(-ctx.conf().style().styleS(Sid::polychordDividerThickness).toMM(item->spatium()));
+        harmonyCtx.movey(item->absoluteFromSpatium(-ctx.conf().style().styleS(Sid::polychordDividerSpacing)) * 2.0);
+        harmonyCtx.movey(item->absoluteFromSpatium(-ctx.conf().style().styleS(Sid::polychordDividerThickness)));
     }
 
     // Align polychords

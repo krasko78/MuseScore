@@ -119,7 +119,6 @@ using namespace muse;
 using namespace mu::engraving;
 
 namespace mu::engraving {
-MasterScore* gpaletteScore;                 ///< system score, used for palettes etc.
 std::set<Score*> Score::validScores;
 
 bool noSeq           = false;
@@ -338,14 +337,14 @@ Score* Score::clone()
     return excerpt->excerptScore();
 }
 
-Score* Score::paletteScore()
+Score* Score::paletteScore() const
 {
-    return gpaletteScore;
+    return paletteScoreProvider() ? paletteScoreProvider()->paletteScore() : nullptr;
 }
 
 bool Score::isPaletteScore() const
 {
-    return this == gpaletteScore;
+    return this == paletteScore();
 }
 
 static void onBracketItemDestruction(const Score* score, const BracketItem* item)
@@ -4407,7 +4406,7 @@ void Score::appendPart(const InstrumentTemplate* t)
 void Score::appendMeasures(int n)
 {
     InsertMeasureOptions options;
-    options.createEmptyMeasures = false;
+    options.createMeasureRests = false;
 
     for (int i = 0; i < n; ++i) {
         insertMeasure(ElementType::MEASURE, nullptr, options);

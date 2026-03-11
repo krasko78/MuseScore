@@ -69,6 +69,9 @@ enum class Sid : short {
     minSystemDistance,
     maxSystemDistance,
     alignSystemToMargin,
+    instrumentNamesAlignLong,
+    instrumentNamesAlignShort,
+    instrumentNamesStackVertically,
 
     enableVerticalSpread,
     spreadSystem,
@@ -2119,6 +2122,8 @@ enum class Sid : short {
     useParensOtherJumpCourtesiesAfterCancelling,
 
     smallParens,
+
+    harmonyParenUseSmuflSym,
 
     repeatPlayCountPreset,
     repeatPlayCountShow,
