@@ -935,10 +935,10 @@ void TextBase::paste(EditData& ed, const String& txt)
                         i++;
                         Char lowSurrogate = txt.at(i);
                         insertText(ed, String::fromUcs4(Char::surrogateToUcs4(highSurrogate, lowSurrogate)));
-                    } else if (c == '\r') {  // krasko start
+                    } else if (c == '\r') {
                         continue;
                     } else if (c == '\n') {
-                        score()->undo(new SplitText(cursor), &ed); // krasko end
+                        score()->undo(new SplitText(cursor), &ed);
                     } else {
                         insertText(ed, String(c));
                     }
