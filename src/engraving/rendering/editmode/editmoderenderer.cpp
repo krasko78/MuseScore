@@ -268,7 +268,7 @@ void EditModeRenderer::drawTextBase(const TextBase* item, muse::draw::Painter* p
     }
 
     painter->translate(-pos);
-    painter->setPen(Pen(item->configuration()->frameColor(), 2.0 / currentViewScaling)); // 2 pixel pen size
+    painter->setPen(Pen(item->curColor(opt), 2.0 / currentViewScaling)); // 2 pixel pen size // krasko
     painter->setBrush(BrushStyle::NoBrush);
 
     double m = item->spatium();
