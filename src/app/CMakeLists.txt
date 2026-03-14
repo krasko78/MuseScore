@@ -29,7 +29,7 @@ set(EXECUTABLE_NAME mscore)
 ###########################################
 include(GetPlatformInfo)
 if (OS_IS_WIN)
-    set(EXECUTABLE_NAME ${MUSE_APP_NAME}${MUSE_APP_VERSION_MAJOR})
+    set(EXECUTABLE_NAME ${MUSE_APP_NAME}${MUSE_APP_VERSION_MAJOR}dev)
 
     include(GetCompilerInfo)
 
