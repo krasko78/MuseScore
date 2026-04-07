@@ -27,7 +27,6 @@
 #include "modularity/ioc.h"
 #include "global/iglobalconfiguration.h"
 #include "ui/iuiconfiguration.h"
-#include "accessibility/iaccessibilityconfiguration.h"
 #include "appshell/iappshellconfiguration.h" // krasko
 #include "importexport/guitarpro/iguitarproconfiguration.h"
 
@@ -38,7 +37,6 @@ class EngravingConfiguration : public IEngravingConfiguration, public muse::asyn
 {
     muse::GlobalInject<muse::IGlobalConfiguration> globalConfiguration;
     muse::GlobalInject<muse::ui::IUiConfiguration> uiConfiguration;
-    muse::GlobalInject<muse::accessibility::IAccessibilityConfiguration> accessibilityConfiguration;
     muse::GlobalInject<iex::guitarpro::IGuitarProConfiguration> guitarProConfiguration;
     muse::GlobalInject<appshell::IAppShellConfiguration> appShellConfiguration; // krasko
 
@@ -75,8 +73,6 @@ public:
     Color fontPrimaryColor() const override;
     Color voiceColor(voice_idx_t voiceIdx) const override;
 
-    double guiScaling() const override;
-
     Color selectionColor(voice_idx_t voiceIndex = 0, bool itemVisible = true, bool itemIsUnlinkedFromScore = false) const override;
     void setSelectionColor(voice_idx_t voiceIndex, Color color) override;
     muse::async::Channel<voice_idx_t, Color> selectionColorChanged() const override;
@@ -111,8 +107,6 @@ public:
     const DebuggingOptions& debuggingOptions() const override;
     void setDebuggingOptions(const DebuggingOptions& options) override;
     muse::async::Notification debuggingOptionsChanged() const override;
-
-    bool isAccessibleEnabled() const override;
 
     bool doNotSaveEIDsForBackCompat() const override;
     void setDoNotSaveEIDsForBackCompat(bool doNotSave) override;

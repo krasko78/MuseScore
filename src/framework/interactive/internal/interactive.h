@@ -46,7 +46,7 @@ class Interactive : public QObject, public IInteractive, public IInteractiveProv
 
     GlobalInject<ui::IUiConfiguration> uiConfiguration;
     GlobalInject<interactive::IInteractiveUriRegister> uriRegister;
-    GlobalInject<extensions::IExtensionsProvider> extensionsProvider;
+    ContextInject<extensions::IExtensionsProvider> extensionsProvider = { this };
     ContextInject<shortcuts::IShortcutsRegister> shortcutsRegister = { this };
     ContextInject<ui::IMainWindow> mainWindow = { this };
 
@@ -95,6 +95,8 @@ public:
                                                  const std::vector<std::string>& filter) override;
     io::path_t selectOpeningFileSync(const std::string& title, const io::path_t& dir, const std::vector<std::string>& filter,
                                      const int options) override;
+    io::paths_t selectOpeningFilesSync(const std::string& title, const io::path_t& dir, const std::vector<std::string>& filter,
+                                       const int options) override;
     io::path_t selectSavingFileSync(const std::string& title, const io::path_t& path, const std::vector<std::string>& filter,
                                     bool confirmOverwrite = true) override;
 
@@ -115,9 +117,10 @@ public:
 
     void raise(const UriQuery& uri) override;
 
-    void close(const UriQuery& uri) override;
-    void close(const Uri& uri) override;
-    void closeAllDialogs() override;
+    async::Promise<Ret> close(const UriQuery& uri) override;
+    async::Promise<Ret> close(const Uri& uri) override;
+    Ret closeSync(const UriQuery& uri) override;
+    Ret closeAllDialogsSync() override;
 
     // state
     ValCh<Uri> currentUri() const override;
@@ -127,16 +130,6 @@ public:
 
     QWindow* topWindow() const override;
     bool topWindowIsWidget() const override;
-
-    // external
-    Ret openUrl(const std::string& url) const override;
-    Ret openUrl(const QUrl& url) const override;
-
-    Ret isAppExists(const std::string& appIdentifier) const override;
-    Ret canOpenApp(const UriQuery& uri) const override;
-    async::Promise<Ret> openApp(const UriQuery& uri) const override;
-
-    Ret revealInFileBrowser(const io::path_t& filePath) const override;
 
     // IInteractiveProvider interface
     QString objectId(const QVariant& val) const override;
@@ -182,12 +175,14 @@ private:
     RetVal<OpenData> openWidgetDialog(const Uri& uri, const QVariantMap& params);
     RetVal<OpenData> openQml(const Uri& uri, const QVariantMap& params);
 
-    void closeObject(const ObjectInfo& obj);
+    async::Promise<Ret> closeObjects(const std::vector<ObjectInfo>& objs);
+    Ret closeObjectsSync(const std::vector<ObjectInfo>& objs);
 
     void closeQml(const QVariant& objectId);
     void raiseQml(const QVariant& objectId);
 
     std::vector<ObjectInfo> allOpenObjects() const;
+    std::vector<ObjectInfo> collectOpenObjects(std::function<bool(const ObjectInfo&)> accepted) const;
 
     void notifyAboutCurrentUriChanged();
     void notifyAboutCurrentUriWillBeChanged();
@@ -216,6 +211,8 @@ private:
     async::Channel<QmlLaunchData*> m_openRequested;
     async::Channel<QVariant> m_closeRequested;
     async::Channel<QVariant> m_raiseRequested;
+
+    std::map<QString /*objectId*/, std::function<void(const Ret&)> > m_onClosedFuncs;
 
     bool m_isSelectColorOpened = false;
 };

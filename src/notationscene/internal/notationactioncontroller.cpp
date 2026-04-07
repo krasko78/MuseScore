@@ -91,7 +91,7 @@ void NotationActionController::init()
     registerAction("action://notation/cancel", &Controller::resetState, &Controller::isNotationPage);
     m_isAllowedDuringPlayback.insert("action://notation/cancel");
 
-    registerAction("note-input", &Controller::toggleNoteInput, &Controller::startNoteInputAllowed);
+    registerAction("note-input", &Controller::toggleNoteInput, &Controller::toggleNoteInputAllowed);
     registerNoteInputAction("note-input-by-note-name", NoteInputMethod::BY_NOTE_NAME);
     registerNoteInputAction("note-input-by-duration", NoteInputMethod::BY_DURATION);
     registerNoteInputAction("note-input-rhythm", NoteInputMethod::RHYTHM);
@@ -859,7 +859,7 @@ void NotationActionController::padNote(const Pad& pad)
     }
 
     if (interaction->selection()->isNone()) {
-        if (!noteInput->isNoteInputMode() && !startNoteInputAllowed()) {
+        if (!noteInput->isNoteInputMode() && !toggleNoteInputAllowed()) {
             return;
         }
 
@@ -937,7 +937,7 @@ void NotationActionController::toggleAccidental(AccidentalType type)
     }
 
     if (interaction->selection()->isNone()) {
-        if (!noteInput->isNoteInputMode() && !startNoteInputAllowed()) {
+        if (!noteInput->isNoteInputMode() && !toggleNoteInputAllowed()) {
             return;
         }
 
@@ -967,7 +967,7 @@ void NotationActionController::toggleArticulation(SymbolId articulationSymbolId)
     }
 
     if (interaction->selection()->isNone()) {
-        if (!noteInput->isNoteInputMode() && !startNoteInputAllowed()) {
+        if (!noteInput->isNoteInputMode() && !toggleNoteInputAllowed()) {
             return;
         }
 
@@ -1277,7 +1277,7 @@ void NotationActionController::changeVoice(voice_idx_t voiceIndex)
     }
 
     if (interaction->selection()->isNone()) {
-        if (!noteInput->isNoteInputMode() && !startNoteInputAllowed()) {
+        if (!noteInput->isNoteInputMode() && !toggleNoteInputAllowed()) {
             return;
         }
 
@@ -2241,9 +2241,14 @@ void NotationActionController::playSelectedElement(bool playChord)
     currentNotationScore()->setPlayNote(false);
 }
 
-bool NotationActionController::startNoteInputAllowed() const
+bool NotationActionController::toggleNoteInputAllowed() const
 {
-    if (isEditingElement() || playbackController()->isPlaying() || qApp->applicationState() != Qt::ApplicationActive) {
+    if (playbackController()->isPlaying() || qApp->applicationState() != Qt::ApplicationActive) {
+        return false;
+    }
+
+    //! NOTE: We're more strict about starting note input mode than exiting it.
+    if (!isNoteInputMode() && isEditingElement()) {
         return false;
     }
 
@@ -2429,12 +2434,12 @@ void NotationActionController::registerAction(const ActionCode& code,
 
 void NotationActionController::registerNoteInputAction(const ActionCode& code, NoteInputMethod inputMethod)
 {
-    registerAction(code, [this, inputMethod]() { toggleNoteInputMethod(inputMethod); }, &Controller::startNoteInputAllowed);
+    registerAction(code, [this, inputMethod]() { toggleNoteInputMethod(inputMethod); }, &Controller::toggleNoteInputAllowed);
 }
 
 bool NotationActionController::noteInputActionAllowed() const
 {
-    if (!isNoteInputMode() && !startNoteInputAllowed()) {
+    if (!isNoteInputMode() && !toggleNoteInputAllowed()) {
         return false;
     }
 

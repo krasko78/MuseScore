@@ -181,6 +181,12 @@ bool MStyle::readProperties(XmlReader& e)
             case P_TYPE::PLACEMENT_H:
                 set(idx, PlacementH(e.readText().toInt()));
                 break;
+            case P_TYPE::DIRECTION_H:
+                set(idx, DirectionH(e.readText().toInt()));
+                break;
+            case P_TYPE::ORIENTATION:
+                set(idx, TConv::fromXml(e.readAsciiText(), Orientation::HORIZONTAL));
+                break;
             case P_TYPE::HOOK_TYPE:
                 set(idx, HookType(e.readText().toInt()));
                 break;
@@ -237,6 +243,9 @@ bool MStyle::readProperties(XmlReader& e)
                 break;
             case P_TYPE::INSTRUMENT_NAMES_ALIGN:
                 set(idx, TConv::fromXml(e.readAsciiText(), InstrumentNamesAlign::RIGHT_RIGHT));
+                break;
+            case P_TYPE::INSTRUMENT_NAMES_FORMAT:
+                set(idx, TConv::fromXml(e.readAsciiText(), InstrumentNamesFormat::NAME_IN_TRANSP_NUM));
                 break;
             default:
                 ASSERT_X(u"unhandled type " + String::number(int(type)));
@@ -636,12 +645,22 @@ void MStyle::read(XmlReader& e, compat::ReadChordListHook* readChordListHook, in
         }
     }
 
+    if (mscVersion < 500) {
+        set(Sid::windsNameByGroup, false);
+        set(Sid::vocalsNameByGroup, false);
+    }
+
     if (mscVersion < 470) {
         set(Sid::dividerLeftAlignToSystemBarline, false);
         set(Sid::dividerRightAlignToSystemBarline, false);
 
         // Musical symbol size
         compat::CompatUtils::setMusicSymbolSize470(*this);
+
+        // Make sure new position styles are initially the same as align values
+        // Exclude text styles which had align & position separated in 4.6
+        compat::CompatUtils::setPositionStylesFromAlign(this, { Sid::chordSymbolAAlign, Sid::chordSymbolBAlign, Sid::romanNumeralAlign,
+                                                                Sid::nashvilleNumberAlign, Sid::repeatLeftAlign, Sid::repeatRightAlign });
 
         if (value(Sid::chordStyle).value<ChordStylePreset>() == ChordStylePreset::JAZZ) {
             set(Sid::harmonyParenUseSmuflSym, true);
@@ -655,14 +674,7 @@ void MStyle::read(XmlReader& e, compat::ReadChordListHook* readChordListHook, in
                                   || value(Sid::maxFretShiftBelow).value<Spatium>() != 0.0_sp;
         set(Sid::verticallyAlignChordSymbols, verticalChordAlign);
         // Make sure new position styles are initially the same as align values
-        for (const StyleDef::StyleValue& st : StyleDef::styleValues) {
-            Sid positionSid = compat::CompatUtils::positionStyleFromAlign(st.sid);
-            if (positionSid == Sid::NOSTYLE) {
-                continue;
-            }
-            AlignH val = value(st.sid).value<Align>().horizontal;
-            set(positionSid, val);
-        }
+        compat::CompatUtils::setPositionStylesFromAlign(this);
 
         if (value(Sid::measureNumberPosition).value<AlignH>() == AlignH::HCENTER) {
             set(Sid::measureNumberHPlacement, AlignH::HCENTER);
@@ -735,6 +747,8 @@ void MStyle::save(XmlWriter& xml, bool optimize)
             xml.tag(st.xmlName, value(idx).value<Spatium>().val());
         } else if (P_TYPE::DIRECTION_V == type) {
             xml.tag(st.xmlName, int(value(idx).value<DirectionV>()));
+        } else if (P_TYPE::ORIENTATION == type) {
+            xml.tag(st.xmlName, TConv::toXml(value(idx).value<Orientation>()));
         } else if (P_TYPE::ALIGN == type) {
             Align a = value(idx).value<Align>();
             // Don't write if it's the default value
@@ -774,6 +788,8 @@ void MStyle::save(XmlWriter& xml, bool optimize)
             xml.tag(st.xmlName, TConv::toXml(value(idx).value<MeasureNumberPlacement>()));
         } else if (P_TYPE::INSTRUMENT_NAMES_ALIGN == type) {
             xml.tag(st.xmlName, TConv::toXml(value(idx).value<InstrumentNamesAlign>()));
+        } else if (P_TYPE::INSTRUMENT_NAMES_FORMAT == type) {
+            xml.tag(st.xmlName, TConv::toXml(value(idx).value<InstrumentNamesFormat>()));
         } else {
             PropertyValue val = value(idx);
             //! NOTE for compatibility

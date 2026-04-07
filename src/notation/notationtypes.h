@@ -63,6 +63,7 @@
 namespace mu::notation {
 using Page = mu::engraving::Page;
 using System = mu::engraving::System;
+using SysStaff = mu::engraving::SysStaff;
 using EngravingItem = mu::engraving::EngravingItem;
 using ElementType = mu::engraving::ElementType;
 using PropertyValue = engraving::PropertyValue;
@@ -122,7 +123,8 @@ using BracketType = mu::engraving::BracketType;
 using StaffGroup = mu::engraving::StaffGroup;
 using StaffType = mu::engraving::StaffType;
 using StaffTypeId = mu::engraving::StaffTypes;
-using StaffName = mu::engraving::StaffName;
+using StaffLabel = mu::engraving::StaffLabel;
+using InstrumentLabel = mu::engraving::InstrumentLabel;
 using Segment = mu::engraving::Segment;
 using TextStyleType = mu::engraving::TextStyleType;
 using TraitType = mu::engraving::TraitType;

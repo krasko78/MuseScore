@@ -27,12 +27,17 @@
         <StaffType group="pitched">
           <name>stdNormal</name>
           </StaffType>
-        <bracket type="0" span="3" col="0" visible="1"/>
+        <BracketItem>
+          <type>Normal</type>
+          <bracketSpan>3</bracketSpan>
+          <level>0</level>
+          </BracketItem>
         </Staff>
-      <trackName></trackName>
       <Instrument id="soprano">
-        <longName>Soprano</longName>
-        <shortName>S.</shortName>
+        <InstrumentLabel>
+          <longName>Soprano</longName>
+          <shortName>S.</shortName>
+          </InstrumentLabel>
         <trackName></trackName>
         <instrumentId>voice.soprano</instrumentId>
         <Channel>
@@ -47,10 +52,11 @@
           <name>stdNormal</name>
           </StaffType>
         </Staff>
-      <trackName></trackName>
       <Instrument id="alto">
-        <longName>Alto</longName>
-        <shortName>A.</shortName>
+        <InstrumentLabel>
+          <longName>Alto</longName>
+          <shortName>A.</shortName>
+          </InstrumentLabel>
         <trackName></trackName>
         <instrumentId>voice.alto</instrumentId>
         <Channel>
@@ -65,10 +71,11 @@
           <name>stdNormal</name>
           </StaffType>
         </Staff>
-      <trackName></trackName>
       <Instrument id="bass">
-        <longName>Bass</longName>
-        <shortName>B.</shortName>
+        <InstrumentLabel>
+          <longName>Bass</longName>
+          <shortName>B.</shortName>
+          </InstrumentLabel>
         <trackName></trackName>
         <instrumentId>voice.bass</instrumentId>
         <Channel>

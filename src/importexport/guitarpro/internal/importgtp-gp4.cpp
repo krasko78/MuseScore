@@ -53,6 +53,8 @@
 #include "engraving/dom/stringtunings.h"
 #include "engraving/types/symid.h"
 
+#include "engraving/editing/editchord.h"
+
 #include "guitarprodrumset.h"
 
 #include "log.h"
@@ -245,7 +247,7 @@ GuitarPro::ReadNoteResult GuitarPro4::readNote(int string, int staffIdx, Note* n
     if (noteBits & NOTE_SFORZATO) {             // 0x40
         Articulation* art = Factory::createArticulation(note->score()->dummy()->chord());
         art->setSymId(SymId::articAccentAbove);
-        if (!note->score()->toggleArticulation(note, art)) {
+        if (!EditChord::toggleArticulation(note->score(), note, art)) {
             delete art;
         }
     }
@@ -742,7 +744,6 @@ bool GuitarPro4::read(IODevice* io)
         Instrument* instr = part->instrument();
         instr->setStringData(stringData);
         instr->setSingleNoteDynamics(false);
-        part->setPartName(name);
         part->setPlainLongName(name);
 
         int patch = channelDefaults[midiChannel].patch;

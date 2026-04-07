@@ -58,6 +58,7 @@ class VBox;
 class FBox;
 class TBox;
 class Bracket;
+class BracketItem;
 class Breath;
 
 class Chord;
@@ -91,6 +92,7 @@ class Hook;
 class Instrument;
 class InstrChannel;
 class InstrumentChange;
+class InstrumentLabel;
 
 class Jump;
 
@@ -145,7 +147,7 @@ class SlurTieSegment;
 class Spanner;
 class Spacer;
 class Staff;
-class StaffName;
+class StaffLabel;
 class StaffState;
 class StaffText;
 class StaffTextBase;
@@ -393,7 +395,10 @@ public:
     static void readItemEID(EngravingObject* item, XmlReader& xml);
     static void readItemLink(EngravingItem* item, XmlReader& xml, ReadContext& ctx);
 
-    static String readStaffName(XmlReader& xml);
+    static String readLegacyStaffName(XmlReader& xml);
+
+    static void readStaffLabel(StaffLabel& item, XmlReader& xml);
+    static void readInstrumentLabel(InstrumentLabel& item, XmlReader& xml);
 
 private:
     static bool readProperties(Box* b, XmlReader& xml, ReadContext& ctx);
@@ -406,8 +411,13 @@ private:
 
     static void readHopoText(HammerOnPullOffSegment* hopoSeg, XmlReader& xml, ReadContext& ctx, int idx);
 
-    static void lineBreakFromTag(String& str);
+    static String lineBreakFromTag(const String& str);
 
     static void readNoteParenGroup(Chord* ch, XmlReader& e, ReadContext& ctx);
+
+    static bool readProperties(StaffLabel& item, XmlReader& xml);
+    static bool readProperties(InstrumentLabel& item, XmlReader& xml);
+
+    static void read(BracketItem* b, XmlReader& xml, ReadContext& ctx);
 };
 }

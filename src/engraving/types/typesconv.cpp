@@ -1706,6 +1706,7 @@ static const std::vector<Item<TextStyleType> > TEXTSTYLE_TYPES = {
     { TextStyleType::INSTRUMENT_LONG,   "instrument_long",      muse::TranslatableString("engraving", "Instrument name (Long)") },
     { TextStyleType::INSTRUMENT_SHORT,  "instrument_short",     muse::TranslatableString("engraving", "Instrument name (Short)") },
     { TextStyleType::INSTRUMENT_CHANGE, "instrument_change",    muse::TranslatableString("engraving", "Instrument change") },
+    { TextStyleType::GROUP_BRACKET,     "group_bracket",        muse::TranslatableString("engraving", "Group bracket") },
     { TextStyleType::HEADER,            "header",               muse::TranslatableString("engraving", "Header") },
     { TextStyleType::FOOTER,            "footer",               muse::TranslatableString("engraving", "Footer") },
     { TextStyleType::COPYRIGHT,         "copyright",            muse::TranslatableString("engraving", "Copyright") },
@@ -2518,6 +2519,7 @@ static const std::vector<Item<BracketType> > BRACKET_TYPES = {
     { BracketType::BRACE,      "Brace",     muse::TranslatableString("engraving/brackettype", "Brace") },
     { BracketType::SQUARE,     "Square",    muse::TranslatableString("engraving/brackettype", "Square") },
     { BracketType::LINE,       "Line",      muse::TranslatableString("engraving/brackettype", "Line") },
+    { BracketType::GROUP,      "Group",     muse::TranslatableString("engraving/brackettype", "Group") },
     { BracketType::NO_BRACKET, "NoBracket", muse::TranslatableString("engraving/brackettype", "No bracket") }
 };
 
@@ -3411,4 +3413,21 @@ mu::engraving::AsciiStringView mu::engraving::TConv::toXml(InstrumentNamesAlign 
 InstrumentNamesAlign TConv::fromXml(const AsciiStringView& str, InstrumentNamesAlign def)
 {
     return findTypeByXmlTag<InstrumentNamesAlign>(INSTR_LABELS_ALIGN, str, def);
+}
+
+const std::array<Item<InstrumentNamesFormat>, 4> INSTR_NAMES_FORMAT = { {
+    { InstrumentNamesFormat::NAME_IN_TRANSP_NUM, "name-in-transp-num" },
+    { InstrumentNamesFormat::NAME_NUM_IN_TRANSP, "name-num-in-transp" },
+    { InstrumentNamesFormat::TRANSP_NAME_NUM, "transp-name-num" },
+    { InstrumentNamesFormat::CUSTOM, "custom" }
+} };
+
+mu::engraving::AsciiStringView mu::engraving::TConv::toXml(InstrumentNamesFormat v)
+{
+    return findXmlTagByType<InstrumentNamesFormat>(INSTR_NAMES_FORMAT, v);
+}
+
+InstrumentNamesFormat TConv::fromXml(const AsciiStringView& str, InstrumentNamesFormat def)
+{
+    return findTypeByXmlTag<InstrumentNamesFormat>(INSTR_NAMES_FORMAT, str, def);
 }

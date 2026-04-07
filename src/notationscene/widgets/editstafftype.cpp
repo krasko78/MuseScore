@@ -60,8 +60,8 @@ mu::engraving::NoteHeadScheme noteHeadSchemes[] = {
 //   EditStaffType
 //---------------------------------------------------------
 
-EditStaffType::EditStaffType(QWidget* parent)
-    : QDialog(parent), muse::Contextable(muse::iocCtxForQWidget(this))
+EditStaffType::EditStaffType(const muse::modularity::ContextPtr& ctx, QWidget* parent)
+    : QDialog(parent), muse::Contextable(ctx)
 {
     setObjectName("EditStaffType");
     setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -272,7 +272,6 @@ Ret EditStaffType::loadScore(mu::engraving::MasterScore* score, const muse::io::
         s->setLayoutAll();
     }
     score->updateChannel();
-    score->setSaved(true);
     score->update();
 
     return score->sanityCheck();

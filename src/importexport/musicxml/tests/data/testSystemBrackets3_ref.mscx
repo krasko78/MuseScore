@@ -26,13 +26,17 @@
         <StaffType group="pitched">
           <name>stdNormal</name>
           </StaffType>
-        <bracket type="0" span="1" col="0" visible="1"/>
+        <BracketItem>
+          <type>Normal</type>
+          <bracketSpan>1</bracketSpan>
+          <level>0</level>
+          </BracketItem>
         </Staff>
-      <trackName>Backing
-Vocals</trackName>
       <Instrument id="voice">
-        <longName>Backing<br/>Vocals</longName>
-        <shortName>B. Vx.</shortName>
+        <InstrumentLabel>
+          <longName>Backing<br/>Vocals</longName>
+          <shortName>B. Vx.</shortName>
+          </InstrumentLabel>
         <trackName>Voice</trackName>
         <minPitchP>38</minPitchP>
         <maxPitchP>84</maxPitchP>
@@ -94,8 +98,16 @@ Vocals</trackName>
         <StaffType group="pitched">
           <name>stdNormal</name>
           </StaffType>
-        <bracket type="0" span="6" col="0" visible="1"/>
-        <bracket type="1" span="2" col="1" visible="1"/>
+        <BracketItem>
+          <type>Normal</type>
+          <bracketSpan>6</bracketSpan>
+          <level>0</level>
+          </BracketItem>
+        <BracketItem>
+          <type>Brace</type>
+          <bracketSpan>2</bracketSpan>
+          <level>1</level>
+          </BracketItem>
         <barLineSpan>1</barLineSpan>
         </Staff>
       <Staff>
@@ -122,11 +134,11 @@ Vocals</trackName>
           </StaffType>
         <barLineSpan>1</barLineSpan>
         </Staff>
-      <trackName>Electric
-Guitar 1</trackName>
       <Instrument id="electric-guitar">
-        <longName>Electric<br/>Guitar 1</longName>
-        <shortName>Elec.<br/>Gtr. 1</shortName>
+        <InstrumentLabel>
+          <longName>Electric<br/>Guitar 1</longName>
+          <shortName>Elec.<br/>Gtr. 1</shortName>
+          </InstrumentLabel>
         <trackName>Electric Guitar</trackName>
         <minPitchP>40</minPitchP>
         <maxPitchP>88</maxPitchP>
@@ -223,7 +235,11 @@ Guitar 1</trackName>
         <StaffType group="pitched">
           <name>stdNormal</name>
           </StaffType>
-        <bracket type="2" span="2" col="1" visible="1"/>
+        <BracketItem>
+          <type>Square</type>
+          <bracketSpan>2</bracketSpan>
+          <level>1</level>
+          </BracketItem>
         <barLineSpan>1</barLineSpan>
         </Staff>
       <Staff>
@@ -250,11 +266,11 @@ Guitar 1</trackName>
           </StaffType>
         <barLineSpan>1</barLineSpan>
         </Staff>
-      <trackName>Electric
-Guitar 2</trackName>
       <Instrument id="electric-guitar">
-        <longName>Electric<br/>Guitar 2</longName>
-        <shortName>Elec.<br/>Gtr. 2</shortName>
+        <InstrumentLabel>
+          <longName>Electric<br/>Guitar 2</longName>
+          <shortName>Elec.<br/>Gtr. 2</shortName>
+          </InstrumentLabel>
         <trackName>Electric Guitar</trackName>
         <minPitchP>40</minPitchP>
         <maxPitchP>88</maxPitchP>
@@ -351,7 +367,11 @@ Guitar 2</trackName>
         <StaffType group="pitched">
           <name>stdNormal</name>
           </StaffType>
-        <bracket type="1" span="2" col="1" visible="1"/>
+        <BracketItem>
+          <type>Brace</type>
+          <bracketSpan>2</bracketSpan>
+          <level>1</level>
+          </BracketItem>
         <barLineSpan>1</barLineSpan>
         </Staff>
       <Staff>
@@ -377,11 +397,11 @@ Guitar 2</trackName>
           <useNumbers>1</useNumbers>
           </StaffType>
         </Staff>
-      <trackName>Acoustic
-Guitar</trackName>
       <Instrument id="guitar-steel">
-        <longName>Acoustic<br/>Guitar</longName>
-        <shortName>Ac.<br/>Gtr.</shortName>
+        <InstrumentLabel>
+          <longName>Acoustic<br/>Guitar</longName>
+          <shortName>Ac.<br/>Gtr.</shortName>
+          </InstrumentLabel>
         <trackName>Acoustic Guitar</trackName>
         <minPitchP>40</minPitchP>
         <maxPitchP>84</maxPitchP>
@@ -464,7 +484,11 @@ Guitar</trackName>
         <StaffType group="pitched">
           <name>stdNormal</name>
           </StaffType>
-        <bracket type="0" span="2" col="0" visible="1"/>
+        <BracketItem>
+          <type>Normal</type>
+          <bracketSpan>2</bracketSpan>
+          <level>0</level>
+          </BracketItem>
         <barLineSpan>1</barLineSpan>
         </Staff>
       <Staff>
@@ -473,10 +497,11 @@ Guitar</trackName>
           <name>stdNormal</name>
           </StaffType>
         </Staff>
-      <trackName>Piano 2</trackName>
       <Instrument id="piano">
-        <longName>Piano 2</longName>
-        <shortName>Pno.<br/>2</shortName>
+        <InstrumentLabel>
+          <longName>Piano 2</longName>
+          <shortName>Pno.<br/>2</shortName>
+          </InstrumentLabel>
         <trackName>Piano</trackName>
         <minPitchP>21</minPitchP>
         <maxPitchP>108</maxPitchP>

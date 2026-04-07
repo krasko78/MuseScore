@@ -27,13 +27,18 @@
         <StaffType group="pitched">
           <name>stdNormal</name>
           </StaffType>
-        <bracket type="0" span="4" col="0" visible="1"/>
+        <BracketItem>
+          <type>Normal</type>
+          <bracketSpan>4</bracketSpan>
+          <level>0</level>
+          </BracketItem>
         <barLineSpan>1</barLineSpan>
         </Staff>
-      <trackName></trackName>
       <Instrument id="violin">
-        <longName>Violin</longName>
-        <shortName>Vln.</shortName>
+        <InstrumentLabel>
+          <longName>Violin</longName>
+          <shortName>Vln.</shortName>
+          </InstrumentLabel>
         <trackName></trackName>
         <instrumentId>strings.violin</instrumentId>
         <Channel>
@@ -49,10 +54,11 @@
           </StaffType>
         <barLineSpan>1</barLineSpan>
         </Staff>
-      <trackName></trackName>
       <Instrument id="violin">
-        <longName>Violin 2</longName>
-        <shortName>Vln. 2</shortName>
+        <InstrumentLabel>
+          <longName>Violin 2</longName>
+          <shortName>Vln. 2</shortName>
+          </InstrumentLabel>
         <trackName></trackName>
         <instrumentId>strings.violin</instrumentId>
         <Channel>
@@ -68,10 +74,11 @@
           </StaffType>
         <barLineSpan>1</barLineSpan>
         </Staff>
-      <trackName></trackName>
       <Instrument id="viola">
-        <longName>Viola</longName>
-        <shortName>Vla.</shortName>
+        <InstrumentLabel>
+          <longName>Viola</longName>
+          <shortName>Vla.</shortName>
+          </InstrumentLabel>
         <trackName></trackName>
         <instrumentId>strings.viola</instrumentId>
         <Channel>
@@ -86,10 +93,11 @@
           <name>stdNormal</name>
           </StaffType>
         </Staff>
-      <trackName></trackName>
       <Instrument id="violoncello">
-        <longName>Violoncello</longName>
-        <shortName>Vc.</shortName>
+        <InstrumentLabel>
+          <longName>Violoncello</longName>
+          <shortName>Vc.</shortName>
+          </InstrumentLabel>
         <trackName></trackName>
         <instrumentId>strings.cello</instrumentId>
         <Channel>

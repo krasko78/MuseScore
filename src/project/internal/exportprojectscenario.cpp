@@ -228,9 +228,6 @@ bool ExportProjectScenario::exportScores(notation::INotationPtrList notations, c
     } break;
     case INotationWriter::UnitType::MULTI_PART: {
         auto exportFunction = [writer, notations, options](IODevice& destinationDevice) {
-                if (notations.size() == 1) {
-                    return writer->write(notations.front(), destinationDevice, options);
-                }
                 return writer->writeList(notations, destinationDevice, options);
             };
 
@@ -411,10 +408,21 @@ Ret ExportProjectScenario::doExportLoop(const muse::io::path_t& scorePath, std::
         //! But there is one atypical case:
         //! Export score to unpacked directory - creates a directory and writes files to it
 
+        // Remove previous file because we need to know whether
+        // exportFunctions writes at scorePath
+        Ret ret = fileSystem()->remove(scorePath);
+        if (!ret) {
+            if (askForRetry(filename)) {
+                continue;
+            } else {
+                return make_ret(Ret::Code::Cancel);
+            }
+        }
+
         auto outputBuf = Buffer::opened(IODevice::WriteOnly);
         outputBuf.setMeta("file_path", scorePath.toStdString());
 
-        Ret ret = exportFunction(outputBuf);
+        ret = exportFunction(outputBuf);
         outputBuf.close();
 
         const bool isFileMode = fileSystem()->exists(scorePath);
@@ -463,7 +471,7 @@ void ExportProjectScenario::showExportProgress(bool isAudioExport) const
 
 void ExportProjectScenario::openFolder(const muse::io::path_t& path) const
 {
-    Ret ret = interactive()->revealInFileBrowser(path.toQString());
+    Ret ret = platformInteractive()->revealInFileBrowser(path.toQString());
 
     if (!ret) {
         LOGE() << "Could not open folder: " << path.toQString();

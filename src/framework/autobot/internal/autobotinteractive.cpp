@@ -112,6 +112,12 @@ io::path_t AutobotInteractive::selectOpeningFileSync(const std::string& title, c
     return m_real->selectOpeningFileSync(title, dir, filter, options);
 }
 
+io::paths_t AutobotInteractive::selectOpeningFilesSync(const std::string& title, const io::path_t& dir,
+                                                       const std::vector<std::string>& filter, const int options)
+{
+    return m_real->selectOpeningFilesSync(title, dir, filter, options);
+}
+
 io::path_t AutobotInteractive::selectSavingFileSync(const std::string& title, const io::path_t& dir, const std::vector<std::string>& filter,
                                                     bool confirmOverwrite)
 {
@@ -178,19 +184,24 @@ void AutobotInteractive::raise(const UriQuery& uri)
     m_real->raise(uri);
 }
 
-void AutobotInteractive::close(const UriQuery& uri)
+async::Promise<Ret> AutobotInteractive::close(const UriQuery& uri)
 {
-    m_real->close(uri);
+    return m_real->close(uri);
 }
 
-void AutobotInteractive::close(const Uri& uri)
+async::Promise<Ret> AutobotInteractive::close(const Uri& uri)
 {
-    m_real->close(uri);
+    return m_real->close(uri);
 }
 
-void AutobotInteractive::closeAllDialogs()
+Ret AutobotInteractive::closeSync(const UriQuery& uri)
 {
-    m_real->closeAllDialogs();
+    return m_real->closeSync(uri);
+}
+
+Ret AutobotInteractive::closeAllDialogsSync()
+{
+    return m_real->closeAllDialogsSync();
 }
 
 ValCh<Uri> AutobotInteractive::currentUri() const
@@ -221,36 +232,6 @@ QWindow* AutobotInteractive::topWindow() const
 bool AutobotInteractive::topWindowIsWidget() const
 {
     return m_real->topWindowIsWidget();
-}
-
-Ret AutobotInteractive::openUrl(const std::string& url) const
-{
-    return m_real->openUrl(url);
-}
-
-Ret AutobotInteractive::openUrl(const QUrl& url) const
-{
-    return m_real->openUrl(url);
-}
-
-Ret AutobotInteractive::isAppExists(const std::string& appIdentifier) const
-{
-    return m_real->isAppExists(appIdentifier);
-}
-
-Ret AutobotInteractive::canOpenApp(const UriQuery& uri) const
-{
-    return m_real->canOpenApp(uri);
-}
-
-async::Promise<Ret> AutobotInteractive::openApp(const UriQuery& uri) const
-{
-    return m_real->openApp(uri);
-}
-
-Ret AutobotInteractive::revealInFileBrowser(const io::path_t& filePath) const
-{
-    return m_real->revealInFileBrowser(filePath);
 }
 
 io::path_t AutobotInteractive::selectedFilePath() const

@@ -24,10 +24,11 @@
           <name>stdNormal</name>
           </StaffType>
         </Staff>
-      <trackName>Nylon Guitar</trackName>
       <Instrument id="cavaquinho">
-        <longName>Nylon Guitar</longName>
-        <shortName>n.guit.</shortName>
+        <InstrumentLabel>
+          <longName>Nylon Guitar</longName>
+          <shortName>n.guit.</shortName>
+          </InstrumentLabel>
         <trackName></trackName>
         <transposeDiatonic>-7</transposeDiatonic>
         <transposeChromatic>-12</transposeChromatic>
@@ -57,10 +58,11 @@
           <name>stdNormal</name>
           </StaffType>
         </Staff>
-      <trackName>Electric Guitar</trackName>
       <Instrument id="electric-guitar">
-        <longName>Electric Guitar</longName>
-        <shortName>jz.guit.</shortName>
+        <InstrumentLabel>
+          <longName>Electric Guitar</longName>
+          <shortName>jz.guit.</shortName>
+          </InstrumentLabel>
         <trackName></trackName>
         <transposeDiatonic>-7</transposeDiatonic>
         <transposeChromatic>-12</transposeChromatic>
@@ -89,7 +91,11 @@
         <StaffType group="pitched">
           <name>stdNormal</name>
           </StaffType>
-        <bracket type="1" span="2" col="0" visible="1"/>
+        <BracketItem>
+          <type>Brace</type>
+          <bracketSpan>2</bracketSpan>
+          <level>0</level>
+          </BracketItem>
         <barLineSpan>1</barLineSpan>
         </Staff>
       <Staff>
@@ -99,10 +105,11 @@
           </StaffType>
         <defaultClef>F</defaultClef>
         </Staff>
-      <trackName>Acoustic Piano</trackName>
       <Instrument id="piano">
-        <longName>Acoustic Piano</longName>
-        <shortName>pno.</shortName>
+        <InstrumentLabel>
+          <longName>Acoustic Piano</longName>
+          <shortName>pno.</shortName>
+          </InstrumentLabel>
         <trackName></trackName>
         <instrumentId>keyboard.piano</instrumentId>
         <singleNoteDynamics>0</singleNoteDynamics>
@@ -130,10 +137,11 @@
           <name>stdNormal</name>
           </StaffType>
         </Staff>
-      <trackName>Electric Guitar</trackName>
       <Instrument id="electric-guitar">
-        <longName>Electric Guitar</longName>
-        <shortName>od.guit.</shortName>
+        <InstrumentLabel>
+          <longName>Electric Guitar</longName>
+          <shortName>od.guit.</shortName>
+          </InstrumentLabel>
         <trackName></trackName>
         <transposeDiatonic>-7</transposeDiatonic>
         <transposeChromatic>-12</transposeChromatic>

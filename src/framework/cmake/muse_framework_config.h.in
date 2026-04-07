@@ -40,7 +40,6 @@
 /* ============================================== */
 #cmakedefine MUSE_CONFIGURATION_IS_WEB 1
 #cmakedefine MUSE_THREADS_SUPPORT 1
-#cmakedefine MUSE_MULTICONTEXT_WIP 1
 
 /* ============================================== */
 /* Modules                                        */
@@ -72,6 +71,10 @@
 #cmakedefine MUSE_MODULE_AUTOBOT 1
 #cmakedefine MUSE_MODULE_AUTOBOT_TESTS 1
 #cmakedefine MUSE_MODULE_AUTOBOT_API 1
+
+#cmakedefine MUSE_MODULE_AUTOMATION 1
+#cmakedefine MUSE_MODULE_AUTOMATION_TESTS 1
+#cmakedefine MUSE_MODULE_AUTOMATION_API 1
 
 #cmakedefine MUSE_MODULE_CLOUD 1
 #cmakedefine MUSE_MODULE_CLOUD_TESTS 1
@@ -116,6 +119,10 @@
 #cmakedefine MUSE_MODULE_MIDI_TESTS 1
 #cmakedefine MUSE_MODULE_MIDI_API 1
 
+#cmakedefine MUSE_MODULE_MIDIREMOTE 1
+#cmakedefine MUSE_MODULE_MIDIREMOTE_TESTS 1
+#cmakedefine MUSE_MODULE_MIDIREMOTE_API 1
+
 #cmakedefine MUSE_MODULE_MPE 1
 #cmakedefine MUSE_MODULE_MPE_TESTS 1
 #cmakedefine MUSE_MODULE_MPE_API 1
@@ -123,6 +130,7 @@
 #cmakedefine MUSE_MODULE_MULTIWINDOWS 1
 #cmakedefine MUSE_MODULE_MULTIWINDOWS_TESTS 1
 #cmakedefine MUSE_MODULE_MULTIWINDOWS_API 1
+#cmakedefine MUSE_MODULE_MULTIWINDOWS_SINGLEPROC_MODE 1
 
 #cmakedefine MUSE_MODULE_MUSESAMPLER 1
 #cmakedefine MUSE_MODULE_MUSESAMPLER_TESTS 1

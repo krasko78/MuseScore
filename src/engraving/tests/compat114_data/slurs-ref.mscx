@@ -37,7 +37,11 @@
         <eid>C_C</eid>
         <StaffType group="pitched">
           </StaffType>
-        <bracket type="1" span="2" col="0" visible="1"/>
+        <BracketItem>
+          <type>Brace</type>
+          <bracketSpan>2</bracketSpan>
+          <level>0</level>
+          </BracketItem>
         <barLineSpan>1</barLineSpan>
         </Staff>
       <Staff>
@@ -45,7 +49,6 @@
         <StaffType group="pitched">
           </StaffType>
         </Staff>
-      <trackName>Piano</trackName>
       <Instrument id="piano">
         <trackName>Piano</trackName>
         <minPitchP>21</minPitchP>

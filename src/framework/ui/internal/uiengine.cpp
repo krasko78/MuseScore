@@ -56,13 +56,16 @@ void UiEngine::init()
 {
     m_appshellConfigurationProxy->init(); // krasko
 
-    m_engine->rootContext()->setContextProperty("ui", this);
-    m_engine->rootContext()->setContextProperty("api", m_api);
-    m_engine->rootContext()->setContextProperty("appshellConfig", m_appshellConfigurationProxy); // krasko
-
     QmlIoCContext* qmlIoc = new QmlIoCContext(this);
     qmlIoc->ctx = iocContext();
-    m_engine->rootContext()->setContextProperty("ioc_context", QVariant::fromValue(qmlIoc));
+
+    QQmlContext* rootContext = m_engine->rootContext();
+    rootContext->setObjectName(QString("Root QQmlContext: %1").arg(qmlIoc->ctx->id));
+    rootContext->setContextProperty("ioc_context", QVariant::fromValue(qmlIoc));
+
+    rootContext->setContextProperty("ui", this);
+    rootContext->setContextProperty("api", m_api);
+    rootContext->setContextProperty("appshellConfig", m_appshellConfigurationProxy); // krasko
 
     QJSValue translator = m_engine->newQObject(m_translation);
     QJSValue translateFn = translator.property("translate");

@@ -47,6 +47,7 @@
       <longInstrumentFontFace>Times New Roman</longInstrumentFontFace>
       <shortInstrumentFontFace>Times New Roman</shortInstrumentFontFace>
       <partInstrumentFontFace>Times New Roman</partInstrumentFontFace>
+      <groupBracketFontFace>Times New Roman</groupBracketFontFace>
       <expressionFontFace>Times New Roman</expressionFontFace>
       <tempoFontFace>Times New Roman</tempoFontFace>
       <tempoChangeFontFace>Times New Roman</tempoChangeFontFace>
@@ -106,9 +107,10 @@
           <name>stdNormal</name>
           </StaffType>
         </Staff>
-      <trackName>[Unnamed (treble staff)]</trackName>
       <Instrument id="grand-piano">
-        <longName>[Unnamed (treble staff)]</longName>
+        <InstrumentLabel>
+          <longName>[Unnamed (treble staff)]</longName>
+          </InstrumentLabel>
         <trackName></trackName>
         <minPitchP>21</minPitchP>
         <maxPitchP>108</maxPitchP>

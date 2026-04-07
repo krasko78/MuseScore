@@ -23,7 +23,11 @@
         <StaffType group="pitched">
           <name>stdNormal</name>
           </StaffType>
-        <bracket type="1" span="2" col="0" visible="1"/>
+        <BracketItem>
+          <type>Brace</type>
+          <bracketSpan>2</bracketSpan>
+          <level>0</level>
+          </BracketItem>
         <barLineSpan>1</barLineSpan>
         </Staff>
       <Staff>
@@ -33,10 +37,11 @@
           </StaffType>
         <defaultClef>F</defaultClef>
         </Staff>
-      <trackName>Acoustic Piano</trackName>
       <Instrument id="piano">
-        <longName>Acoustic Piano</longName>
-        <shortName>A-Piano</shortName>
+        <InstrumentLabel>
+          <longName>Acoustic Piano</longName>
+          <shortName>A-Piano</shortName>
+          </InstrumentLabel>
         <trackName></trackName>
         <instrumentId>keyboard.piano</instrumentId>
         <singleNoteDynamics>0</singleNoteDynamics>
