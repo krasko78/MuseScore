@@ -72,7 +72,6 @@ public:
     MOCK_METHOD(async::Notification, musicalTextFontChanged, (), (const, override));
 
     MOCK_METHOD(std::string, defaultFontFamily, (), (const, override));
-    MOCK_METHOD(int, defaultFontSize, (), (const, override));
     MOCK_METHOD(async::Notification, defaultFontChanged, (), (const, override)); // krasko
 
     MOCK_METHOD(void, resetFonts, (), (override));

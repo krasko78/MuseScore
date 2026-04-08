@@ -78,9 +78,6 @@ public:
     bool mainMenuFontSameAsUiFont() const override;
     muse::async::Channel<bool> mainMenuFontSameAsUiFontChanged() const override;
 
-    double mainMenuFontSizeMultiplier() const override;
-    muse::async::Channel<double> mainMenuFontSizeMultiplierChanged() const override;
-
     bool enableHighPrecisionNudging() const override;
 
     int verticalPanelsWidth() const override;
@@ -111,7 +108,6 @@ private:
     muse::async::Channel<mu::engraving::Color> m_activeGripColorChanged;
     muse::async::Channel<mu::engraving::Color> m_scrollbarColorChanged;
     muse::async::Channel<bool> m_mainMenuFontSameAsUiFontChanged;
-    muse::async::Channel<double> m_mainMenuFontSizeMultiplierChanged;
     muse::async::Channel<int> m_verticalPanelsWidthChanged;
     muse::async::Channel<int> m_flickableMaxVelocityChanged;
     muse::async::Channel<double> m_stepForSpinControlsOnAppearanceTabChanged;

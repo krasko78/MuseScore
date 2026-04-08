@@ -460,7 +460,7 @@ void ThemeApi::setupUiFonts()
 void ThemeApi::setupDefaultFont() // krasko
 {
     m_defaultFont.setFamily(QString::fromStdString(configuration()->defaultFontFamily()));
-    m_defaultFont.setPixelSize(configuration()->defaultFontSize());
+    m_defaultFont.setPixelSize(configuration()->fontSize());
 }
 
 void ThemeApi::setupIconsFont()

@@ -101,7 +101,7 @@ void UiConfiguration::init()
     settings()->setDefaultValue(UI_MUSICAL_FONT_FAMILY_KEY, Val("Leland"));
     settings()->setDefaultValue(UI_MUSICAL_FONT_SIZE_KEY, Val(24));
     settings()->setDefaultValue(UI_MUSICAL_TEXT_FONT_FAMILY_KEY, Val("Leland Text"));
-    settings()->setDefaultValue(UI_MUSICAL_TEXT_FONT_SIZE_KEY, Val(defaultFontSize()));
+    settings()->setDefaultValue(UI_MUSICAL_TEXT_FONT_SIZE_KEY, Val(12)); // krasko
     settings()->setDefaultValue(UI_THEMES_KEY, Val(""));
 
     settings()->valueChanged(UI_THEMES_KEY).onReceive(this, [this](const Val&) {
@@ -124,7 +124,6 @@ void UiConfiguration::init()
     });
 
     settings()->valueChanged(UI_FONT_SIZE_KEY).onReceive(this, [this](const Val&) {
-        calculateDefaultFontSize(); // krasko
         m_fontChanged.notify();
         m_defaultFontChanged.notify(); // krasko
         m_iconsFontChanged.notify();
@@ -133,11 +132,6 @@ void UiConfiguration::init()
     appshellConfiguration()->mainMenuFontSameAsUiFontChanged().onReceive(this, [this](bool) { // krasko start
         m_defaultFontChanged.notify();
     });
-
-    appshellConfiguration()->mainMenuFontSizeMultiplierChanged().onReceive(this, [this](const double) {
-        calculateDefaultFontSize();
-        m_defaultFontChanged.notify();
-    }); // krasko end
 
     settings()->valueChanged(UI_ICONS_FONT_FAMILY_KEY).onReceive(this, [this](const Val&) {
         m_iconsFontChanged.notify();
@@ -661,27 +655,6 @@ std::string UiConfiguration::defaultFontFamily() const
 
     return QFontDatabase::systemFont(QFontDatabase::GeneralFont).family().toStdString();
 }
-
-int UiConfiguration::defaultFontSize() const
-{
-    return m_defaultFontSize; // krasko
-}
-
-void UiConfiguration::calculateDefaultFontSize() // krasko start
-{
-    m_defaultFontSize = fontSize();
-
-    double multiplier = appshellConfiguration()->mainMenuFontSizeMultiplier();
-    if (multiplier > 0.0)
-    {
-        double scaledDefaultFontSize = m_defaultFontSize * multiplier;
-        if (scaledDefaultFontSize < 8.0)
-        {
-            scaledDefaultFontSize = 8.0;
-        }
-        m_defaultFontSize = scaledDefaultFontSize;
-    }
-} // krasko end
 
 muse::async::Notification UiConfiguration::defaultFontChanged() const // krasko
 {

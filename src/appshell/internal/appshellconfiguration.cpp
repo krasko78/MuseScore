@@ -61,8 +61,6 @@ static constexpr char KEY_ScrollbarColor[] = "krasko/scrollbarColor";
 
 static constexpr char KEY_MainMenuFontSameAsUiFont[] = "krasko/mainMenuFontSameAsUiFont";
 
-static constexpr char KEY_MainMenuFontSizeMultiplier[] = "krasko/mainMenuFontSizeMultiplier";
-
 static constexpr char KEY_EnableHighPrecisionNudging[] = "krasko/enableHighPrecisionNudging";
 
 static constexpr char KEY_VerticalPanelsWidth[] = "krasko/verticalPanelsWidth";
@@ -250,20 +248,6 @@ void AppShellConfiguration::createKraskoSettings()
             m_mainMenuFontSameAsUiFontChanged.send(val.toBool());
         });
 
-    sc.createSetting(krasko_module_name, KEY_MainMenuFontSizeMultiplier)
-        .setDefaultValue(Val(0.9))
-        .setDescription(muse::trc("krasko", "Main menu font size multiplier"))
-        .setHelpString(muse::trc("krasko",
-            "Specifies a number, e.g. '1.0' or '0.9' that will be multiplied by the font size "
-			"set on the 'Appearance' page of preferences to obtain the size of the main "
-            "menu. For instance, a multiplier of 1.0 will make the main menu font size the same as "
-            "that of the other UI elements. Valid values are from 0.5 to 2.0."))
-		.setMinValue(Val(0.5))
-		.setMaxValue(Val(2.0))
-        .valueChanged().onReceive(this, [this](const Val& val) {
-            m_mainMenuFontSizeMultiplierChanged.send(val.toDouble());
-        });
-
     sc.createSetting(krasko_module_name, KEY_EnableHighPrecisionNudging)
         .setDefaultValue(Val(false))
         .setDescription(muse::trc("krasko", "Enable high-precision nudging"))
@@ -402,7 +386,6 @@ void AppShellConfiguration::notifyAboutChangedKraskoSettings()
     // few notifications to force dependent settings in other modules that were created
     // BEFORE krasko's settings to update. An example is the default font in uiconfiguration.
     m_mainMenuFontSameAsUiFontChanged.send(mainMenuFontSameAsUiFont());
-    m_mainMenuFontSizeMultiplierChanged.send(mainMenuFontSizeMultiplier());
 }
 
 const Settings::Key* AppShellConfiguration::findKraskoSettingKey(const std::string& keyName) const
@@ -536,16 +519,6 @@ bool AppShellConfiguration::mainMenuFontSameAsUiFont() const
 muse::async::Channel<bool> AppShellConfiguration::mainMenuFontSameAsUiFontChanged() const
 {
     return m_mainMenuFontSameAsUiFontChanged;
-}
-
-double AppShellConfiguration::mainMenuFontSizeMultiplier() const
-{
-    return kraskoSettingValue(KEY_MainMenuFontSizeMultiplier).toDouble();
-}
-
-muse::async::Channel<double> AppShellConfiguration::mainMenuFontSizeMultiplierChanged() const
-{
-    return m_mainMenuFontSizeMultiplierChanged;
 }
 
 bool AppShellConfiguration::enableHighPrecisionNudging() const

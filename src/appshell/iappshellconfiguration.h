@@ -63,9 +63,6 @@ public:
     virtual bool mainMenuFontSameAsUiFont() const = 0;
     virtual muse::async::Channel<bool> mainMenuFontSameAsUiFontChanged() const = 0;
 
-    virtual double mainMenuFontSizeMultiplier() const = 0;
-    virtual muse::async::Channel<double> mainMenuFontSizeMultiplierChanged() const = 0;
-
     virtual bool enableHighPrecisionNudging() const = 0;
 
     virtual int verticalPanelsWidth() const = 0;

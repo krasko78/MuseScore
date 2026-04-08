@@ -91,7 +91,6 @@ public:
     async::Notification musicalTextFontChanged() const override;
 
     std::string defaultFontFamily() const override;
-    int defaultFontSize() const override;
     async::Notification defaultFontChanged() const override; // krasko
 
     void resetFonts() override;
@@ -132,10 +131,6 @@ private:
 
     ThemeList readThemes() const;
     void writeThemes(const ThemeList& themes);
-
-    void calculateDefaultFontSize(); // krasko
-
-    int m_defaultFontSize; // krasko
 
     async::Notification m_currentThemeChanged;
     async::Notification m_fontChanged;
