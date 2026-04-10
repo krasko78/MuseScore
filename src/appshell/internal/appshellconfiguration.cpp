@@ -63,8 +63,6 @@ static constexpr char KEY_EnableHighPrecisionNudging[] = "krasko/enableHighPreci
 
 static constexpr char KEY_VerticalPanelsWidth[] = "krasko/verticalPanelsWidth";
 
-static constexpr char KEY_FlickableMaxVelocity[] = "krasko/flickableMaxVelocity";
-
 static constexpr char KEY_StepForSpinControlsOnAppearanceTab[] = "krasko/stepForSpinControlsOnAppearanceTab";
 
 static constexpr char KEY_TextStylesToUseFullFontHeight[] = "krasko/textStylesToUseFullFontHeight";
@@ -255,18 +253,6 @@ void AppShellConfiguration::createKraskoSettings()
         .setMaxValue(Val(500))
         .valueChanged().onReceive(this, [this](const Val& val) {
             m_verticalPanelsWidthChanged.send(val.toInt());
-        });
-
-    sc.createSetting(krasko_module_name, KEY_FlickableMaxVelocity)
-        .setDefaultValue(Val(4000))
-        .setDescription(muse::trc("krasko", "Max velocity of flickable elements"))
-        .setHelpString(muse::trc("krasko",
-            "Determines the velocity that the scrolling of lists and panels can reach. The higher the value, "
-            "the quicker the scrolling. Valid values are between 1000 and 15000."))
-        .setMinValue(Val(1000))
-        .setMaxValue(Val(15000))
-        .valueChanged().onReceive(this, [this](const Val& val) {
-            m_flickableMaxVelocityChanged.send(val.toInt());
         });
 
     sc.createSetting(krasko_module_name, KEY_StepForSpinControlsOnAppearanceTab)
@@ -511,16 +497,6 @@ int AppShellConfiguration::verticalPanelsWidth() const
 muse::async::Channel<int> AppShellConfiguration::verticalPanelsWidthChanged() const
 {
     return m_verticalPanelsWidthChanged;
-}
-
-int AppShellConfiguration::flickableMaxVelocity() const
-{
-    return kraskoSettingValue(KEY_FlickableMaxVelocity).toInt();
-}
-
-muse::async::Channel<int> AppShellConfiguration::flickableMaxVelocityChanged() const
-{
-    return m_flickableMaxVelocityChanged;
 }
 
 double AppShellConfiguration::stepForSpinControlsOnAppearanceTab() const

@@ -65,9 +65,6 @@ public:
     virtual int verticalPanelsWidth() const = 0;
     virtual muse::async::Channel<int> verticalPanelsWidthChanged() const = 0;
 
-    virtual int flickableMaxVelocity() const = 0;
-    virtual muse::async::Channel<int> flickableMaxVelocityChanged() const = 0;
-
     virtual double stepForSpinControlsOnAppearanceTab() const = 0;
     virtual muse::async::Channel<double> stepForSpinControlsOnAppearanceTabChanged() const = 0;
 

@@ -111,10 +111,6 @@ void ThemeApi::init()
         update();
     });
 
-    appshellConfiguration()->flickableMaxVelocityChanged().onReceive(this, [this](int) { // krasko
-        notifyAboutThemeChanged();
-    });
-
     initThemeValues();
 
     initUiFonts();
@@ -366,9 +362,9 @@ qreal ThemeApi::itemOpacityDisabled() const
     return m_itemOpacityDisabled;
 }
 
-int ThemeApi::flickableMaxVelocity() const // krasko: not used
+int ThemeApi::flickableMaxVelocity() const
 {
-    return appshellConfiguration()->flickableMaxVelocity(); //configuration()->flickableMaxVelocity(); // krasko
+    return configuration()->flickableMaxVelocity();
 }
 
 int ThemeApi::flickableDeceleration() const

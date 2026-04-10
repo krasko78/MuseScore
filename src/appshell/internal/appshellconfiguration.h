@@ -80,9 +80,6 @@ public:
     int verticalPanelsWidth() const override;
     muse::async::Channel<int> verticalPanelsWidthChanged() const override;
 
-    int flickableMaxVelocity() const override;
-    muse::async::Channel<int> flickableMaxVelocityChanged() const override;
-
     double stepForSpinControlsOnAppearanceTab() const override;
     muse::async::Channel<double> stepForSpinControlsOnAppearanceTabChanged() const override;
 
@@ -105,7 +102,6 @@ private:
     muse::async::Channel<mu::engraving::Color> m_activeGripColorChanged;
     muse::async::Channel<mu::engraving::Color> m_scrollbarColorChanged;
     muse::async::Channel<int> m_verticalPanelsWidthChanged;
-    muse::async::Channel<int> m_flickableMaxVelocityChanged;
     muse::async::Channel<double> m_stepForSpinControlsOnAppearanceTabChanged;
     muse::async::Channel<std::string> m_textStylesToUseFullFontHeightChanged;
     muse::async::Channel<bool> m_fixFingeringTooCloseToStaffOnBeamedNotesChanged;
