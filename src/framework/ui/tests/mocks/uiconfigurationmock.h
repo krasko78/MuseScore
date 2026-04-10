@@ -84,7 +84,6 @@ public:
     MOCK_METHOD(void, applyPlatformStyle, (QWindow*), (override));
 
     MOCK_METHOD(int, flickableMaxVelocity, (), (const, override));
-    MOCK_METHOD(int, flickableDeceleration, (), (const, override));
 
     MOCK_METHOD(int, tooltipDelay, (), (const, override));
 

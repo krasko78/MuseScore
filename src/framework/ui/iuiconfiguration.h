@@ -101,7 +101,6 @@ public:
     virtual void applyPlatformStyle(QWindow* window) = 0;
 
     virtual int flickableMaxVelocity() const = 0;
-    virtual int flickableDeceleration() const = 0;
 
     virtual int tooltipDelay() const = 0;
 

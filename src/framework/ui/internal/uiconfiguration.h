@@ -103,7 +103,6 @@ public:
     void applyPlatformStyle(QWindow* window) override;
 
     int flickableMaxVelocity() const override;
-    int flickableDeceleration() const override;
 
     int tooltipDelay() const override;
 

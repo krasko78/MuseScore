@@ -66,8 +66,6 @@ static const Settings::Key UI_MUSICAL_TEXT_FONT_SIZE_KEY("ui", "ui/theme/musical
 
 static const int FLICKABLE_MAX_VELOCITY = 4000;
 
-static const int FLICKABLE_DECELERATION = 5000;
-
 static const int TOOLTIP_DELAY = 500;
 
 // read custom colors saved by Qt < 6.9
@@ -687,11 +685,6 @@ void UiConfiguration::applyPlatformStyle(QWindow* window)
 int UiConfiguration::flickableMaxVelocity() const
 {
     return FLICKABLE_MAX_VELOCITY;
-}
-
-int UiConfiguration::flickableDeceleration() const
-{
-    return FLICKABLE_DECELERATION;
 }
 
 int UiConfiguration::tooltipDelay() const
