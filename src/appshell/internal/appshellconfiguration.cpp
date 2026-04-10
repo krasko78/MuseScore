@@ -59,8 +59,6 @@ static constexpr char KEY_ActiveGripColor[] = "krasko/activeGripColor";
 
 static constexpr char KEY_ScrollbarColor[] = "krasko/scrollbarColor";
 
-static constexpr char KEY_MainMenuFontSameAsUiFont[] = "krasko/mainMenuFontSameAsUiFont";
-
 static constexpr char KEY_EnableHighPrecisionNudging[] = "krasko/enableHighPrecisionNudging";
 
 static constexpr char KEY_VerticalPanelsWidth[] = "krasko/verticalPanelsWidth";
@@ -238,16 +236,6 @@ void AppShellConfiguration::createKraskoSettings()
             m_scrollbarColorChanged.send(mu::engraving::Color::fromQColor(val.toQColor()));
         });
 
-    sc.createSetting(krasko_module_name, KEY_MainMenuFontSameAsUiFont)
-        .setDefaultValue(Val(false))
-        .setDescription(muse::trc("krasko", "Main menu font same as UI font"))
-        .setHelpString(muse::trc("krasko",
-            "When enabled, the font face of the main menu will be the same as that "
-			"of all other UI elements selectable under 'Preferences' –> 'Appearance'."))
-        .valueChanged().onReceive(this, [this](const Val& val) {
-            m_mainMenuFontSameAsUiFontChanged.send(val.toBool());
-        });
-
     sc.createSetting(krasko_module_name, KEY_EnableHighPrecisionNudging)
         .setDefaultValue(Val(false))
         .setDescription(muse::trc("krasko", "Enable high-precision nudging"))
@@ -382,10 +370,9 @@ void AppShellConfiguration::deleteUnusedKraskoSettings()
 
 void AppShellConfiguration::notifyAboutChangedKraskoSettings()
 {
-    // Once krasko's settings have been created, we need to manually send out
-    // few notifications to force dependent settings in other modules that were created
-    // BEFORE krasko's settings to update. An example is the default font in uiconfiguration.
-    m_mainMenuFontSameAsUiFontChanged.send(mainMenuFontSameAsUiFont());
+    // Once krasko's settings have been created, we may need to manually send out
+    // a few notifications to force dependent settings in other modules that were created
+    // BEFORE krasko's settings to update. This can be done here.
 }
 
 const Settings::Key* AppShellConfiguration::findKraskoSettingKey(const std::string& keyName) const
@@ -509,16 +496,6 @@ mu::engraving::Color AppShellConfiguration::scrollbarColor() const
 muse::async::Channel<mu::engraving::Color> AppShellConfiguration::scrollbarColorChanged() const
 {
     return m_scrollbarColorChanged;
-}
-
-bool AppShellConfiguration::mainMenuFontSameAsUiFont() const
-{
-    return kraskoSettingValue(KEY_MainMenuFontSameAsUiFont).toBool();
-}
-
-muse::async::Channel<bool> AppShellConfiguration::mainMenuFontSameAsUiFontChanged() const
-{
-    return m_mainMenuFontSameAsUiFontChanged;
 }
 
 bool AppShellConfiguration::enableHighPrecisionNudging() const

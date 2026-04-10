@@ -120,17 +120,11 @@ void UiConfiguration::init()
 
     settings()->valueChanged(UI_FONT_FAMILY_KEY).onReceive(this, [this](const Val&) {
         m_fontChanged.notify();
-        m_defaultFontChanged.notify(); // krasko
     });
 
     settings()->valueChanged(UI_FONT_SIZE_KEY).onReceive(this, [this](const Val&) {
         m_fontChanged.notify();
-        m_defaultFontChanged.notify(); // krasko
         m_iconsFontChanged.notify();
-    });
-
-    appshellConfiguration()->mainMenuFontSameAsUiFontChanged().onReceive(this, [this](bool) { // krasko start
-        m_defaultFontChanged.notify();
     });
 
     settings()->valueChanged(UI_ICONS_FONT_FAMILY_KEY).onReceive(this, [this](const Val&) {
@@ -649,16 +643,7 @@ Notification UiConfiguration::musicalTextFontChanged() const
 
 std::string UiConfiguration::defaultFontFamily() const
 {
-    if (appshellConfiguration()->mainMenuFontSameAsUiFont()) { // krasko
-        return fontFamily();
-    }
-
     return QFontDatabase::systemFont(QFontDatabase::GeneralFont).family().toStdString();
-}
-
-muse::async::Notification UiConfiguration::defaultFontChanged() const // krasko
-{
-    return m_defaultFontChanged;
 }
 
 void UiConfiguration::resetFonts()

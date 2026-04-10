@@ -60,9 +60,6 @@ public:
     virtual mu::engraving::Color scrollbarColor() const = 0;
     virtual muse::async::Channel<mu::engraving::Color> scrollbarColorChanged() const = 0;
 
-    virtual bool mainMenuFontSameAsUiFont() const = 0;
-    virtual muse::async::Channel<bool> mainMenuFontSameAsUiFontChanged() const = 0;
-
     virtual bool enableHighPrecisionNudging() const = 0;
 
     virtual int verticalPanelsWidth() const = 0;
