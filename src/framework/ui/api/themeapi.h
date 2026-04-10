@@ -254,12 +254,6 @@ class ThemeApi : public api::ApiObject, public async::Asyncable
 
     /** APIDOC
      * @readonly
-     * @q_property {Font}
-     */
-    Q_PROPERTY(QFont defaultFont READ defaultFont NOTIFY themeChanged) // krasko
-
-    /** APIDOC
-     * @readonly
      * @q_property {Number}
      */
     Q_PROPERTY(qreal defaultButtonSize READ defaultButtonSize NOTIFY themeChanged)
@@ -314,8 +308,6 @@ public:
     QFont musicalFont() const;
     QFont musicalTextFont() const;
 
-    QFont defaultFont() const;
-
     qreal defaultButtonSize() const;
     qreal borderWidth() const;
     qreal navCtrlBorderWidth() const;
@@ -349,7 +341,6 @@ private:
     void initMusicalTextFont();
 
     void setupUiFonts();
-    void setupDefaultFont(); // krasko
     void setupIconsFont();
     void setupMusicFont();
     void setupMusicTextFont();
@@ -373,7 +364,6 @@ private:
     QFont m_toolbarIconsFont;
     QFont m_musicalFont;
     QFont m_musicalTextFont;
-    QFont m_defaultFont;
 
     QColor m_backgroundPrimaryColor;
     QColor m_backgroundSecondaryColor;

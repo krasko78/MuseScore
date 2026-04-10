@@ -316,11 +316,6 @@ QFont ThemeApi::musicalTextFont() const
     return m_musicalTextFont;
 }
 
-QFont ThemeApi::defaultFont() const
-{
-    return m_defaultFont;
-}
-
 qreal ThemeApi::defaultButtonSize() const
 {
     return m_defaultButtonSize;
@@ -394,13 +389,6 @@ void ThemeApi::initUiFonts()
         setupUiFonts();
         update();
     });
-
-    setupDefaultFont(); // krasko start
-
-    configuration()->defaultFontChanged().onNotify(this, [this]() {
-        setupDefaultFont();
-        update();
-    }); // krasko end
 }
 
 void ThemeApi::initIconsFont()
@@ -455,12 +443,6 @@ void ThemeApi::setupUiFonts()
         font->setFamily(QString::fromStdString(family));
         font->setWeight(fontConfig.weight);
     }
-} // krasko
-
-void ThemeApi::setupDefaultFont() // krasko
-{
-    m_defaultFont.setFamily(QString::fromStdString(configuration()->defaultFontFamily()));
-    m_defaultFont.setPixelSize(configuration()->fontSize());
 }
 
 void ThemeApi::setupIconsFont()
