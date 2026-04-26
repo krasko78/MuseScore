@@ -229,6 +229,7 @@ void EditModeRenderer::drawTextBase(const TextBase* item, muse::draw::Painter* p
         return;
     }
 
+    double m = item->spatium(); // krasko
     if (cursor->hasSelection()) {
         painter->setBrush(BrushStyle::NoBrush);
         painter->setPen(item->textColor(opt));
@@ -252,6 +253,8 @@ void EditModeRenderer::drawTextBase(const TextBase* item, muse::draw::Painter* p
                     br = t.boundingRect();
                 }
                 br.translate(0.0, t.y());
+                double verticalPadding = std::min(m, br.height() * 0.25); // krasko start
+                br.adjust(0, -verticalPadding, 0, verticalPadding); // krasko end
                 drawTextBaseSelection(item, painter, br);
             }
             ++row;
@@ -270,7 +273,7 @@ void EditModeRenderer::drawTextBase(const TextBase* item, muse::draw::Painter* p
     painter->setPen(Pen(item->curColor(opt), 2.0 / currentViewScaling)); // 2 pixel pen size // krasko
     painter->setBrush(BrushStyle::NoBrush);
 
-    double m = item->spatium();
+    //double m = item->spatium(); // krasko moved up, because we need it for selection rect as well
     RectF r = item->canvasBoundingRect().adjusted(-m, -m, m, m);
 
     painter->drawRect(r);
