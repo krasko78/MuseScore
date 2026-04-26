@@ -5058,12 +5058,16 @@ void NotationInteraction::editElement(QKeyEvent* event)
             updateGripAnchorLines();
         }
 
+        if (isTextEditingStarted()) { // krasko start
+            notifyAboutTextEditingChanged();
+        } // krasko end
+
         event->accept();
     }
 
-    if (isTextEditingStarted()) {
-        notifyAboutTextEditingChanged();
-    }
+    //if (isTextEditingStarted()) { // krasko start
+    //    notifyAboutTextEditingChanged();
+    //} // krasko end
 }
 
 void NotationInteraction::endEditElement()
