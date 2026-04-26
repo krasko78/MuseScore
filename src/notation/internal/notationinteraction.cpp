@@ -4723,7 +4723,7 @@ void NotationInteraction::updateTextCursorVisibility()
     // Whenever the cursor moves, we update its visibility.
     // If it has to be visible, we display it immediately
     // regardless of the blinking, and restart the blinking.
-    bool showCursor = !cursor->hasSelection();
+    bool showCursor = true; // !cursor->hasSelection(); // krasko
     cursor->setVisible(showCursor);
     if (showCursor) {
         startTextCursorBlinkTimer();
