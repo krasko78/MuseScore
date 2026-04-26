@@ -3686,6 +3686,10 @@ void NotationInteraction::drawSelectionRange(muse::draw::Painter* painter)
 
 void NotationInteraction::drawGripPoints(muse::draw::Painter* painter, const engraving::rendering::PaintOptions& opt)
 {
+    if (isTextEditingStarted()) { // krasko
+        return;
+    }
+
     if (isDragStarted() && !isGripEditStarted()) {
         return;
     }
