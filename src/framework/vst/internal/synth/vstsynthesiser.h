@@ -41,8 +41,7 @@ class VstSynthesiser : public muse::audio::synth::AbstractSynthesizer
     GlobalInject<IVstInstancesRegister> instancesRegister;
 
 public:
-    explicit VstSynthesiser(const muse::audio::TrackId trackId, const muse::audio::AudioInputParams& params,
-                            const modularity::ContextPtr& iocCtx);
+    explicit VstSynthesiser(const muse::audio::TrackId trackId, const muse::audio::AudioInputParams& params);
     ~VstSynthesiser() override;
 
     void init(const audio::OutputSpec& spec);
@@ -58,11 +57,10 @@ public:
     void setupEvents(const mpe::PlaybackData& playbackData) override;
     const mpe::PlaybackData& playbackData() const override;
 
-    bool isActive() const override;
-    void setIsActive(const bool isActive) override;
+    void setMode(const muse::audio::ProcessMode mode) override;
 
-    muse::audio::msecs_t playbackPosition() const override;
-    void setPlaybackPosition(const muse::audio::msecs_t newPosition) override;
+    muse::audio::TimePosition playbackPosition() const override;
+    void setPlaybackPosition(const muse::audio::TimePosition& position) override;
 
     // IAudioSource
     void setOutputSpec(const audio::OutputSpec& spec) override;
@@ -71,7 +69,6 @@ public:
     muse::audio::samples_t process(float* buffer, muse::audio::samples_t samplesPerChannel) override;
 
 private:
-    void updateRenderingMode(const audio::RenderMode mode) override;
 
     void toggleVolumeGain(const bool isActive);
     audio::samples_t processSequence(const VstSequencer::EventSequence& sequence, const audio::samples_t samples, float* buffer);
@@ -89,7 +86,7 @@ private:
     bool m_inited = false;
     bool m_useDynamicEvents = false;
 
-    audio::samples_t m_currentPositionSamples = 0;
+    audio::TimePosition m_currentPosition;
 };
 
 using VstSynthPtr = std::shared_ptr<VstSynthesiser>;

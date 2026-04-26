@@ -29,14 +29,24 @@ using namespace muse::mpe;
 using namespace muse::audio;
 using namespace muse::audio::synth;
 
-AbstractSynthesizer::AbstractSynthesizer(const AudioInputParams& params, const modularity::ContextPtr& iocCtx)
-    : Contextable(iocCtx), m_params(params)
+AbstractSynthesizer::AbstractSynthesizer(const AudioInputParams& params)
+    : m_params(params)
+{
+    ONLY_AUDIO_ENGINE_THREAD;
+}
+
+void AbstractSynthesizer::setMode(const ProcessMode mode)
 {
     ONLY_AUDIO_ENGINE_THREAD;
 
-    audioEngine()->modeChanged().onReceive(this, [this](RenderMode mode) {
-        updateRenderingMode(mode);
-    });
+    m_mode = mode;
+}
+
+ProcessMode AbstractSynthesizer::mode() const
+{
+    ONLY_AUDIO_ENGINE_THREAD;
+
+    return m_mode;
 }
 
 const AudioInputParams& AbstractSynthesizer::params() const
@@ -82,11 +92,6 @@ async::Notification AbstractSynthesizer::readyToPlayChanged() const
     return m_readyToPlayChanged;
 }
 
-void AbstractSynthesizer::updateRenderingMode(const RenderMode /*mode*/)
-{
-    ONLY_AUDIO_ENGINE_THREAD;
-}
-
 bool AbstractSynthesizer::hasPendingChunks() const
 {
     ONLY_AUDIO_ENGINE_THREAD;
@@ -111,13 +116,6 @@ void AbstractSynthesizer::clearCache()
     ONLY_AUDIO_ENGINE_THREAD;
 }
 
-RenderMode AbstractSynthesizer::currentRenderMode() const
-{
-    ONLY_AUDIO_ENGINE_THREAD;
-
-    return audioEngine()->mode();
-}
-
 muse::audio::msecs_t AbstractSynthesizer::samplesToMsecs(const samples_t samplesPerChannel, const samples_t sampleRate) const
 {
     return samplesPerChannel * 1000000 / sampleRate;
@@ -125,5 +123,5 @@ muse::audio::msecs_t AbstractSynthesizer::samplesToMsecs(const samples_t samples
 
 samples_t AbstractSynthesizer::microSecsToSamples(const msecs_t msec, const samples_t sampleRate) const
 {
-    return (msec / 1000000.f) * sampleRate;
+    return (msec.raw() / 1000000.f) * sampleRate;
 }

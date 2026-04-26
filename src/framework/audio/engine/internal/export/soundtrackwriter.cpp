@@ -56,9 +56,8 @@ static encode::AbstractAudioEncoderPtr createEncoder(const SoundTrackFormat& for
 }
 
 SoundTrackWriter::SoundTrackWriter(io::IODevice& dstDevice, const SoundTrackFormat& format,
-                                   const msecs_t totalDuration, IAudioSourcePtr source,
-                                   const modularity::ContextPtr& iocCtx)
-    : muse::Contextable(iocCtx), m_source(std::move(source))
+                                   const secs_t totalDuration, IAudioSourcePtr source)
+    : m_source(std::move(source))
 {
     if (!m_source) {
         return;
@@ -68,8 +67,8 @@ SoundTrackWriter::SoundTrackWriter(io::IODevice& dstDevice, const SoundTrackForm
     }
 
     const OutputSpec& outputSpec = format.outputSpec;
-    const uint64_t totalUs = static_cast<uint64_t>(std::max<int64_t>(0, totalDuration));
-    m_totalSamplesPerChannel = static_cast<samples_t>((totalUs * static_cast<uint64_t>(outputSpec.sampleRate)) / 1000000ULL);
+    const double totalSec = std::max(0.0, totalDuration.raw());
+    m_totalSamplesPerChannel = static_cast<samples_t>(std::llround(totalSec * static_cast<double>(outputSpec.sampleRate)));
 
     const samples_t intermediateSamplesNumber = outputSpec.samplesPerChannel * outputSpec.audioChannelCount;
     m_intermBuffer.resize(intermediateSamplesNumber);
@@ -93,20 +92,13 @@ Ret SoundTrackWriter::write()
         return false;
     }
 
-    audioEngine()->setMode(RenderMode::OfflineMode);
-
     m_source->setOutputSpec(m_encoderPtr->format().outputSpec);
-    m_source->setIsActive(true);
+    m_source->setMode(ProcessMode::PlayingOffline);
 
     DEFER {
         if (!m_isAborted) {
             m_encoderPtr->end();
         }
-
-        audioEngine()->setMode(RenderMode::IdleMode);
-
-        m_source->setOutputSpec(audioEngine()->outputSpec());
-        m_source->setIsActive(false);
 
         m_isAborted = false;
     };
@@ -131,6 +123,7 @@ Progress SoundTrackWriter::progress()
 
 Ret SoundTrackWriter::writeStreaming()
 {
+    TRACEFUNC;
     if (m_totalSamplesPerChannel == 0) {
         LOGI() << "No audio to export";
         return make_ret(Err::NoAudioToExport);

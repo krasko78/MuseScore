@@ -27,22 +27,23 @@
 #include "mpe/events.h"
 
 #include "global/modularity/ioc.h"
-#include "../../iaudioengine.h"
 #include "../../iaudioengineconfiguration.h"
 
 #include "audio/common/audiotypes.h"
 #include "../../isynthesizer.h"
 
 namespace muse::audio::synth {
-class AbstractSynthesizer : public ISynthesizer, public Contextable, public async::Asyncable
+class AbstractSynthesizer : public ISynthesizer, public async::Asyncable
 {
 public:
     muse::GlobalInject<engine::IAudioEngineConfiguration> config;
-    muse::ContextInject<engine::IAudioEngine> audioEngine = { this };
 
 public:
-    AbstractSynthesizer(const audio::AudioInputParams& params, const modularity::ContextPtr& iocCtx);
+    AbstractSynthesizer(const audio::AudioInputParams& params);
     virtual ~AbstractSynthesizer() = default;
+
+    virtual void setMode(const ProcessMode mode) override;
+    ProcessMode mode() const override;
 
     const audio::AudioInputParams& params() const override;
     async::Channel<audio::AudioInputParams> paramsChanged() const override;
@@ -62,12 +63,11 @@ public:
 protected:
     virtual void setupSound(const mpe::PlaybackSetupData& setupData) = 0;
     virtual void setupEvents(const mpe::PlaybackData& playbackData) = 0;
-    virtual void updateRenderingMode(const RenderMode mode);
-
-    audio::RenderMode currentRenderMode() const;
 
     msecs_t samplesToMsecs(const samples_t samplesPerChannel, const samples_t sampleRate) const;
     samples_t microSecsToSamples(const msecs_t msec, const samples_t sampleRate) const;
+
+    ProcessMode m_mode = ProcessMode::Undefined;
 
     mpe::PlaybackSetupData m_setupData;
 

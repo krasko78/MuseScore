@@ -25,13 +25,12 @@
 #include <variant>
 #include <set>
 #include <string>
+#include <cmath>
 
 #include "global/types/number.h"
 #include "global/types/secs.h"
 #include "global/types/ratio.h"
 #include "global/types/string.h"
-#include "global/types/ret.h"
-#include "global/realfn.h"
 #include "global/async/channel.h"
 #include "global/io/iodevice.h"
 
@@ -40,14 +39,14 @@
 #include "log.h"
 
 namespace muse::audio {
-using msecs_t = int64_t;
+using msecs_t = muse::msecs_t;
 using secs_t = muse::secs_t;
 
-inline secs_t milisecsToSecs(msecs_t ms) { return secs_t(ms / 1000.0); }
-inline secs_t microsecsToSecs(msecs_t us) { return secs_t(us / 1000000.0); }
+inline secs_t milisecsToSecs(msecs_t ms) { return secs_t(ms.raw() / 1000.0); }
+inline secs_t microsecsToSecs(msecs_t us) { return secs_t(us.raw() / 1000000.0); }
 
-inline msecs_t secsToMilisecs(secs_t s) { return msecs_t(s * 1000.0); }
-inline msecs_t secsToMicrosecs(secs_t s) { return msecs_t(s * 1000000.0); }
+inline msecs_t secsToMilisecs(secs_t s) { return msecs_t(s.raw() * 1000.0); }
+inline msecs_t secsToMicrosecs(secs_t s) { return msecs_t(s.raw() * 1000000.0); }
 
 using samples_t = uint64_t;
 using sample_rate_t = uint64_t;
@@ -56,9 +55,6 @@ using volume_db_t = db_t;
 using volume_dbfs_t = db_t;
 using gain_t = float;
 using balance_t = float;
-
-using TrackSequenceId = int32_t;
-using TrackSequenceIdList = std::vector<TrackSequenceId>;
 
 using TrackId = int32_t;
 using TrackIdList = std::vector<TrackId>;
@@ -97,6 +93,12 @@ struct OutputSpec {
     }
 
     inline bool operator!=(const OutputSpec& other) const { return !this->operator==(other); }
+};
+
+struct RenderConstraints {
+    // mixer
+    size_t desiredAudioThreadNumber = 0;
+    size_t minTrackCountForMultithreading = 0;
 };
 
 enum class SoundTrackType {
@@ -170,11 +172,11 @@ enum class AudioResourceType {
     Undefined = -1,
     FluidSoundfont,
     VstPlugin,
-    MusePlugin,
+    NativeEffect,
     MuseSamplerSoundPack,
     Lv2Plugin,
     AudioUnit,
-    NyquistPlugin
+    NyquistPlugin,
 };
 
 static const std::map<AudioResourceType, QString> RESOURCE_TYPE_MAP = {
@@ -182,7 +184,10 @@ static const std::map<AudioResourceType, QString> RESOURCE_TYPE_MAP = {
     { AudioResourceType::MuseSamplerSoundPack, "muse_sampler_sound_pack" },
     { AudioResourceType::FluidSoundfont, "fluid_soundfont" },
     { AudioResourceType::VstPlugin, "vst_plugin" },
-    { AudioResourceType::MusePlugin, "muse_plugin" },
+    { AudioResourceType::NativeEffect, "muse_plugin" },
+    { AudioResourceType::Lv2Plugin, "lv2_plugin" },
+    { AudioResourceType::AudioUnit, "audio_unit" },
+    { AudioResourceType::NyquistPlugin, "nyquist_plugin" },
 };
 
 struct AudioResourceMeta {
@@ -293,7 +298,7 @@ struct AudioFxParams {
     {
         switch (resourceMeta.type) {
         case AudioResourceType::VstPlugin: return AudioFxType::VstFx;
-        case AudioResourceType::MusePlugin: return AudioFxType::MuseFx;
+        case AudioResourceType::NativeEffect: return AudioFxType::MuseFx;
         case AudioResourceType::AudioUnit:
         case AudioResourceType::Lv2Plugin:
         case AudioResourceType::FluidSoundfont:
@@ -381,7 +386,7 @@ inline AudioSourceType sourceTypeFromResourceType(AudioResourceType type)
     case AudioResourceType::MuseSamplerSoundPack: return AudioSourceType::MuseSampler;
     case AudioResourceType::AudioUnit:
     case AudioResourceType::Lv2Plugin:
-    case AudioResourceType::MusePlugin:
+    case AudioResourceType::NativeEffect:
     case AudioResourceType::NyquistPlugin:
     case AudioResourceType::Undefined: break;
     }
@@ -473,12 +478,17 @@ struct SoundPreset
 
 using SoundPresetList = std::vector<SoundPreset>;
 
-enum class RenderMode {
-    Undefined = -1,
-    RealTimeMode,
-    IdleMode,
-    OfflineMode
+enum class ProcessMode {
+    Undefined = 0,
+    Idle,
+    Playing,
+    PlayingOffline
 };
+
+inline bool isModePlaying(ProcessMode mode)
+{
+    return mode == ProcessMode::Playing || mode == ProcessMode::PlayingOffline;
+}
 
 //! NOTE When commands arrive at the engine, it exec them.
 //! These can be quick commands like changing the volume,
@@ -551,4 +561,27 @@ enum SaveSoundTrackStage {
 };
 
 using SaveSoundTrackProgress = async::Channel<int64_t /*current*/, int64_t /*total*/, SaveSoundTrackStage>;
+
+struct TransportEvent {
+    enum class Type : unsigned char {
+        Unknown = 0,
+        Play,
+        Pause,
+        Stop,
+        Seek,
+    };
+
+    struct SeekData {
+        secs_t position = 0.;
+    };
+
+    static TransportEvent play() { return { Type::Play, {} }; }
+    static TransportEvent pause() { return { Type::Pause, {} }; }
+    static TransportEvent stop() { return { Type::Stop, {} }; }
+    static TransportEvent seek(secs_t pos) { return { Type::Seek, SeekData { pos } }; }
+
+    Type type = Type::Unknown;
+    std::variant<std::monostate, SeekData> data;
+};
+using TransportEvents = std::vector<TransportEvent>;
 }

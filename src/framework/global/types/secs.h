@@ -21,8 +21,13 @@
  */
 #pragma once
 
+#include <cmath>
 #include "number.h"
 
 namespace muse {
 using secs_t = number_t<double>;
+using msecs_t = number_t<int64_t>;
+
+inline secs_t msecs_to_secs(msecs_t msecs) { return secs_t(msecs.raw() / 1000.0); }
+inline msecs_t secs_to_msecs(secs_t secs) { return msecs_t(static_cast<int64_t>(std::llround(secs.raw() * 1000.0))); }
 }

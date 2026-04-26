@@ -1220,6 +1220,11 @@ void NavigationController::goToControl(MoveDirection direction, INavigationPanel
                 toControl = nextEnabled(activePanel->controls(), activeControl->index(), MoveDirection::Down);
             }
             if (!toControl) { // active is last
+                if (activePanel->direction() == INavigationPanel::Direction::Horizontal) {
+                    toControl = firstEnabled(activePanel->controls());
+                    break;
+                }
+
                 INavigation::Index index = activeControl->index();
                 index.column = -1;
                 toControl = firstEnabled(activePanel->controls(), index, MoveDirection::Right); // the first to be the next
@@ -1241,6 +1246,11 @@ void NavigationController::goToControl(MoveDirection direction, INavigationPanel
                 toControl = nextEnabled(activePanel->controls(), activeControl->index(), MoveDirection::Right);
             }
             if (!toControl) { // active is last
+                if (activePanel->direction() == INavigationPanel::Direction::Vertical) {
+                    toControl = firstEnabled(activePanel->controls());
+                    break;
+                }
+
                 INavigation::Index index = activeControl->index();
                 index.row = -1;
                 toControl = firstEnabled(activePanel->controls(), index, MoveDirection::Down); // the first to be the next
@@ -1262,6 +1272,11 @@ void NavigationController::goToControl(MoveDirection direction, INavigationPanel
                 toControl = nextEnabled(activePanel->controls(), activeControl->index(), MoveDirection::Up);
             }
             if (!toControl) { // active is first
+                if (activePanel->direction() == INavigationPanel::Direction::Horizontal) {
+                    toControl = lastEnabled(activePanel->controls());
+                    break;
+                }
+
                 INavigation::Index index = activeControl->index();
                 index.column = std::numeric_limits<int>::max();
                 toControl = lastEnabled(activePanel->controls(), index, MoveDirection::Left); // the last to be the next
@@ -1283,6 +1298,11 @@ void NavigationController::goToControl(MoveDirection direction, INavigationPanel
                 toControl = nextEnabled(activePanel->controls(), activeControl->index(), MoveDirection::Left);
             }
             if (!toControl) { // active is first
+                if (activePanel->direction() == INavigationPanel::Direction::Vertical) {
+                    toControl = lastEnabled(activePanel->controls());
+                    break;
+                }
+
                 INavigation::Index index = activeControl->index();
                 index.row = std::numeric_limits<int>::max();
                 toControl = lastEnabled(activePanel->controls(), index, MoveDirection::Up); // the last to be the next

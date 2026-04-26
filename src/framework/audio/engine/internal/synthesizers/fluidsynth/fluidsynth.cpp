@@ -41,7 +41,7 @@ static constexpr bool FLUID_DEBUG = false;
 
 static constexpr double FLUID_GLOBAL_VOLUME_GAIN = 4.8;
 static constexpr int DEFAULT_MIDI_VOLUME = 100;
-static constexpr msecs_t MIN_NOTE_LENGTH = 10;
+static constexpr msecs_t MIN_NOTE_LENGTH = msecs_t::make(10);
 
 /// @note
 ///  Fluid does not support MONO, so they start counting audio channels from 1, which means "1 pair of audio channels"
@@ -62,8 +62,8 @@ struct muse::audio::synth::Fluid {
     }
 };
 
-FluidSynth::FluidSynth(const AudioSourceParams& params, const modularity::ContextPtr& iocCtx)
-    : AbstractSynthesizer(params, iocCtx)
+FluidSynth::FluidSynth(const AudioSourceParams& params)
+    : AbstractSynthesizer(params)
 {
     m_fluid = std::make_shared<Fluid>();
     m_midiOutPort = midiOutPort();
@@ -259,6 +259,18 @@ bool FluidSynth::handleEvent(const midi::Event& event)
     return ret == FLUID_OK;
 }
 
+void FluidSynth::setMode(const ProcessMode mode)
+{
+    if (m_mode == mode) {
+        return;
+    }
+
+    AbstractSynthesizer::setMode(mode);
+
+    m_sequencer.setActive(isModePlaying(mode));
+    toggleExpressionController();
+}
+
 void FluidSynth::setOutputSpec(const OutputSpec& spec)
 {
     if (m_outputSpec == spec) {
@@ -369,27 +381,20 @@ void FluidSynth::flushSound()
     m_flushSoundRequested = true;
 }
 
-bool FluidSynth::isActive() const
+TimePosition FluidSynth::playbackPosition() const
 {
-    return m_sequencer.isActive();
+    return TimePosition::fromTime(muse::msecs_to_secs(m_sequencer.playbackPosition()), m_outputSpec.sampleRate);
 }
 
-void FluidSynth::setIsActive(const bool isActive)
+void FluidSynth::setPlaybackPosition(const TimePosition& position)
 {
-    m_sequencer.setActive(isActive);
-    toggleExpressionController();
-}
+    IF_ASSERT_FAILED(position.isValid()) {
+        return;
+    }
 
-msecs_t FluidSynth::playbackPosition() const
-{
-    return m_sequencer.playbackPosition();
-}
+    m_sequencer.setPlaybackPosition(muse::secs_to_msecs(position.time()));
 
-void FluidSynth::setPlaybackPosition(const msecs_t newPosition)
-{
-    m_sequencer.setPlaybackPosition(newPosition);
-
-    if (isActive()) {
+    if (m_sequencer.isActive()) {
         setExpressionLevel(m_sequencer.currentExpressionLevel());
     }
 }
@@ -467,7 +472,7 @@ async::Channel<unsigned int> FluidSynth::audioChannelsCountChanged() const
 
 void FluidSynth::toggleExpressionController()
 {
-    if (isActive()) {
+    if (m_sequencer.isActive()) {
         setExpressionLevel(m_sequencer.currentExpressionLevel());
     } else {
         setExpressionLevel(m_sequencer.naturalExpressionLevel());

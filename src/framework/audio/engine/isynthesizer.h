@@ -26,6 +26,8 @@
 
 #include "global/async/notification.h"
 
+#include "audio/common/timeposition.h"
+
 namespace muse::audio::synth {
 class ISynthesizer : public engine::IAudioSource
 {
@@ -42,8 +44,8 @@ public:
     virtual const audio::AudioInputParams& params() const = 0;
     virtual async::Channel<audio::AudioInputParams> paramsChanged() const = 0;
 
-    virtual msecs_t playbackPosition() const = 0;
-    virtual void setPlaybackPosition(const msecs_t newPosition) = 0;
+    virtual TimePosition playbackPosition() const = 0;
+    virtual void setPlaybackPosition(const TimePosition& position) = 0;
 
     virtual void prepareToPlay() = 0;
     virtual bool readyToPlay() const = 0;

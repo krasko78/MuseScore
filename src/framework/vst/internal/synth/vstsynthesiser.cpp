@@ -37,9 +37,8 @@ static const std::set<Steinberg::Vst::CtrlNumber> SUPPORTED_CONTROLLERS = {
     Steinberg::Vst::kPitchBend,
 };
 
-VstSynthesiser::VstSynthesiser(const TrackId trackId, const muse::audio::AudioInputParams& params,
-                               const modularity::ContextPtr& iocCtx)
-    : AbstractSynthesizer(params, iocCtx),
+VstSynthesiser::VstSynthesiser(const TrackId trackId, const muse::audio::AudioInputParams& params)
+    : AbstractSynthesizer(params),
     m_vstAudioClient(std::make_unique<VstAudioClient>()),
     m_trackId(trackId)
 {
@@ -88,15 +87,6 @@ void VstSynthesiser::init(const OutputSpec& spec)
     m_sequencer.setOnOffStreamFlushed([this]() {
         m_vstAudioClient->flushSound();
     });
-}
-
-void VstSynthesiser::updateRenderingMode(const RenderMode mode)
-{
-    if (mode == RenderMode::OfflineMode) {
-        m_vstAudioClient->setProcessMode(VstProcessMode::kOffline);
-    } else {
-        m_vstAudioClient->setProcessMode(VstProcessMode::kRealtime);
-    }
 }
 
 void VstSynthesiser::toggleVolumeGain(const bool isActive)
@@ -154,34 +144,43 @@ const mpe::PlaybackData& VstSynthesiser::playbackData() const
     return m_sequencer.playbackData();
 }
 
-bool VstSynthesiser::isActive() const
+void VstSynthesiser::setMode(const muse::audio::ProcessMode mode)
 {
-    return m_sequencer.isActive();
-}
-
-void VstSynthesiser::setIsActive(const bool isActive)
-{
-    if (m_sequencer.isActive() == isActive) {
+    if (m_mode == mode) {
         return;
     }
 
+    AbstractSynthesizer::setMode(mode);
+
+    bool isActive = isModePlaying(mode);
     m_sequencer.setActive(isActive);
     toggleVolumeGain(isActive);
     m_vstAudioClient->setIsPlaying(isActive);
     m_vstAudioClient->setIsActive(isActive);
+
+    if (mode == ProcessMode::PlayingOffline) {
+        m_vstAudioClient->setProcessMode(VstProcessMode::kOffline);
+    } else {
+        m_vstAudioClient->setProcessMode(VstProcessMode::kRealtime);
+    }
 }
 
-muse::audio::msecs_t VstSynthesiser::playbackPosition() const
+muse::audio::TimePosition VstSynthesiser::playbackPosition() const
 {
-    return m_sequencer.playbackPosition();
+    return m_currentPosition;
 }
 
-void VstSynthesiser::setPlaybackPosition(const muse::audio::msecs_t newPosition)
+void VstSynthesiser::setPlaybackPosition(const muse::audio::TimePosition& position)
 {
-    m_sequencer.setPlaybackPosition(newPosition);
-    m_currentPositionSamples = microSecsToSamples(newPosition, m_outputSpec.sampleRate);
+    IF_ASSERT_FAILED(position.isValid()) {
+        return;
+    }
 
-    if (isActive()) {
+    m_sequencer.setPlaybackPosition(muse::secs_to_msecs(position.time()));
+
+    m_currentPosition = position;
+
+    if (m_sequencer.isActive()) {
         m_vstAudioClient->setVolumeGain(m_sequencer.currentGain());
     }
 }
@@ -189,8 +188,6 @@ void VstSynthesiser::setPlaybackPosition(const muse::audio::msecs_t newPosition)
 void VstSynthesiser::setOutputSpec(const audio::OutputSpec& spec)
 {
     m_outputSpec = spec;
-    m_currentPositionSamples = microSecsToSamples(m_sequencer.playbackPosition(), m_outputSpec.sampleRate);
-
     if (m_inited) {
         m_vstAudioClient->setOutputSpec(spec);
     }
@@ -236,7 +233,7 @@ samples_t VstSynthesiser::process(float* buffer, samples_t samplesPerChannel)
         sampleOffset += durationInSamples;
 
         if (active) {
-            m_currentPositionSamples += durationInSamples;
+            m_currentPosition.forward(durationInSamples);
         }
     }
 
@@ -260,5 +257,5 @@ samples_t VstSynthesiser::processSequence(const VstSequencer::EventSequence& seq
         return 0;
     }
 
-    return m_vstAudioClient->process(buffer, samples, m_currentPositionSamples);
+    return m_vstAudioClient->process(buffer, samples, m_currentPosition.samples());
 }

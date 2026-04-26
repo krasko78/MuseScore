@@ -25,7 +25,7 @@
 
 #include "log.h"
 
-//#define RPC_LOGGING_ENABLED
+// #define RPC_LOGGING_ENABLED
 
 #ifdef RPC_LOGGING_ENABLED
 #define RPCLOG() LOGDA()
@@ -71,8 +71,9 @@ void GeneralRpcChannel::process()
 
 void GeneralRpcChannel::send(const Msg& msg, const Handler& onResponse)
 {
-    RPCLOG() << "callId: " << msg.callId
-             << ", method: " << to_string(msg.method)
+    RPCLOG() << "ctxId: " << msg.ctxId
+             << ", callId: " << msg.callId
+             << ", code: " << to_string(msg.code)
              << ", type: " << to_string(msg.type)
              << ", data.size: " << msg.data.size();
 
@@ -93,8 +94,9 @@ void GeneralRpcChannel::send(const Msg& msg, const Handler& onResponse)
 
 void GeneralRpcChannel::receive(RpcData& to, const Msg& m) const
 {
-    RPCLOG() << "callId: " << m.callId
-             << ", method: " << to_string(m.method)
+    RPCLOG() << "ctxId: " << m.ctxId
+             << ", callId: " << m.callId
+             << ", code: " << to_string(m.code)
              << ", type: " << to_string(m.type)
              << ", data.size: " << m.data.size();
 
@@ -103,40 +105,56 @@ void GeneralRpcChannel::receive(RpcData& to, const Msg& m) const
         to.listenerAll(m);
     }
 
-    // if stream
-    if (m.type == MsgType::Stream) {
-        StreamMsg msg;
-        msg.streamId = m.callId;
-        msg.name = static_cast<StreamName>(m.method);
-        msg.data = m.data;
-        receive(to, msg);
-        return;
-    }
-
-    // by method
-    {
-        auto it = to.onMethods.find(m.method);
-        if (it != to.onMethods.end() && it->second) {
+    switch (m.type) {
+    case MsgType::Stream: {
+        auto it = to.onStreams.find(m.callId);
+        if (it != to.onStreams.end() && it->second) {
             it->second(m);
         }
-    }
-
-    // by callId (response)
-    if (m.type == MsgType::Response) {
-        auto it = to.onResponses.find(m.callId);
-        if (it != to.onResponses.end() && it->second) {
+    } break;
+    case MsgType::Request: {
+        auto it = to.onRequests.find(m.code);
+        if (it != to.onRequests.end() && it->second) {
             it->second(m);
+        }
+    } break;
+    case MsgType::Notification: {
+        auto it = to.onNotifications.find(m.code);
+        if (it != to.onNotifications.end() && it->second) {
+            it->second(m);
+        }
+    } break;
+    case MsgType::Response: {
+        auto it = to.onResponses.find(m.callId);
+        if (it != to.onResponses.end()) {
+            if (it->second) {
+                it->second(m);
+            }
             to.onResponses.erase(it);
         }
+    } break;
+    default: {
+        UNREACHABLE;
+        break;
+    }
     }
 }
 
-void GeneralRpcChannel::onMethod(Method method, Handler h)
+void GeneralRpcChannel::onRequest(MsgCode code, Handler h)
 {
     if (s_isMainThread) {
-        m_mainRpcData.onMethods[method] = h;
+        m_mainRpcData.onRequests[code] = h;
     } else {
-        m_engineRpcData.onMethods[method] = h;
+        m_engineRpcData.onRequests[code] = h;
+    }
+}
+
+void GeneralRpcChannel::onNotification(MsgCode code, Handler h)
+{
+    if (s_isMainThread) {
+        m_mainRpcData.onNotifications[code] = h;
+    } else {
+        m_engineRpcData.onNotifications[code] = h;
     }
 }
 
@@ -151,20 +169,7 @@ void GeneralRpcChannel::listenAll(Handler h)
 
 void GeneralRpcChannel::sendStream(const StreamMsg& msg)
 {
-    Msg m;
-    m.type = MsgType::Stream;
-    m.callId = msg.streamId;
-    m.method = static_cast<Method>(msg.name);
-    m.data = msg.data;
-    send(m);
-}
-
-void GeneralRpcChannel::receive(RpcData& to, const StreamMsg& m) const
-{
-    auto it = to.onStreams.find(m.streamId);
-    if (it != to.onStreams.end() && it->second) {
-        it->second(m);
-    }
+    send(msg);
 }
 
 void GeneralRpcChannel::addStream(std::shared_ptr<IRpcStream> s)

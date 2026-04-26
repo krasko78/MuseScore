@@ -25,39 +25,39 @@
 
 #include "global/modularity/ioc.h"
 #include "audio/common/rpc/irpcchannel.h"
-#include "../iaudioengine.h"
-#include "../iengineplayback.h"
+#include "iaudioengine.h"
 #include "../isoundfontrepository.h"
 #include "../iaudioengineconfiguration.h"
 
+#include "iaudiocontext.h"
+
 namespace muse::audio::engine {
-class EngineRpcController : public async::Asyncable, public muse::Contextable
+class EngineRpcController : public async::Asyncable
 {
     GlobalInject<IAudioEngineConfiguration> configuration;
     GlobalInject<synth::ISoundFontRepository> soundFontRepository;
-    ContextInject<rpc::IRpcChannel> channel = { this };
-    ContextInject<IAudioEngine> audioEngine = { this };
-    ContextInject<IEnginePlayback> playback = { this };
+    GlobalInject<rpc::IRpcChannel> channel;
+    GlobalInject<IAudioEngine> audioEngine;
 
 public:
-    EngineRpcController(const muse::modularity::ContextPtr& iocCtx)
-        : Contextable(iocCtx) {}
+    EngineRpcController() = default;
 
     void init();
     void deinit();
 
 private:
 
-    void onLongMethod(rpc::Method method, const rpc::Handler& h);
-    void onQuickMethod(rpc::Method method, const rpc::Handler& h);
-    void onMethod(OperationType type, rpc::Method method, const rpc::Handler& h);
+    std::shared_ptr<IAudioContext> audioContext() const;
 
-    std::vector<rpc::Method> m_usedMethods;
+    void onLongRequest(rpc::MsgCode code, const rpc::Handler& h);
+    void onQuickRequest(rpc::MsgCode code, const rpc::Handler& h);
+    void onRequest(OperationType type, rpc::MsgCode code, const rpc::Handler& h);
+
+    std::vector<rpc::MsgCode> m_usedRequests;
     std::atomic<bool> m_terminated = false;
 
     struct PendingTrack {
         rpc::Msg msg;
-        TrackSequenceId seqId;
         TrackName trackName;
         mpe::PlaybackData playbackData;
         AudioParams params;
@@ -66,7 +66,7 @@ private:
     std::map<std::string /*sfname*/, std::vector<PendingTrack> > m_pendingTracks;
     bool m_soundFontsChangedSubscribed = false;
 
-    async::Channel<TrackSequenceId, int64_t, int64_t, SaveSoundTrackStage> m_saveSoundTrackProgressStream;
+    async::Channel<int64_t, int64_t, SaveSoundTrackStage> m_saveSoundTrackProgressStream;
     rpc::StreamId m_saveSoundTrackProgressStreamId = 0;
 };
 }

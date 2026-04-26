@@ -27,31 +27,31 @@
 #include "mpe/events.h"
 
 #include "audio/common/audiotypes.h"
-#include "../isynthresolver.h"
+#include "iaudiofactory.h"
 #include "track.h"
 
 namespace muse::audio::engine {
-class EventAudioSource : public ITrackAudioInput, public muse::Contextable, public async::Asyncable
+class EventAudioSource : public ITrackAudioInput, public async::Asyncable
 {
-    GlobalInject<synth::ISynthResolver> synthResolver;
+    GlobalInject<IAudioFactory> audioFactory;
 
 public:
     using OnOffStreamEventsReceived = std::function<void (const TrackId)>;
 
-    explicit EventAudioSource(const TrackId trackId, const mpe::PlaybackData& playbackData, OnOffStreamEventsReceived onOffStreamReceived,
-                              const muse::modularity::ContextPtr& iocCtx);
+    explicit EventAudioSource(const TrackId trackId, const mpe::PlaybackData& playbackData, OnOffStreamEventsReceived onOffStreamReceived);
 
     ~EventAudioSource() override;
 
-    bool isActive() const override;
-    void setIsActive(const bool active) override;
+    TrackId trackId() const override;
 
+    void setMode(const ProcessMode mode) override;
+    ProcessMode mode() const override;
     void setOutputSpec(const OutputSpec& spec) override;
     unsigned int audioChannelsCount() const override;
     async::Channel<unsigned int> audioChannelsCountChanged() const override;
     samples_t process(float* buffer, samples_t samplesPerChannel) override;
 
-    void seek(const msecs_t newPositionMsecs, const bool flushSound = true) override;
+    void seek(const TimePosition& position, const bool flushSound = true) override;
     void flush() override;
 
     const AudioInputParams& inputParams() const override;
@@ -71,13 +71,9 @@ public:
 private:
     struct SynthCtx
     {
-        bool isActive = false;
-        msecs_t playbackPosition = -1;
-
-        bool isValid() const
-        {
-            return playbackPosition >= 0;
-        }
+        ProcessMode mode = ProcessMode::Undefined;
+        TimePosition playbackPosition;
+        bool isValid() const { return mode != ProcessMode::Undefined; }
     };
 
     void setupSource();

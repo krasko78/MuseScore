@@ -26,21 +26,23 @@
 #include "global/async/asyncable.h"
 #include "global/async/notification.h"
 
-#include "../ifxresolver.h"
+#include "iaudiofactory.h"
 #include "../ifxprocessor.h"
 #include "audiosignalnotifier.h"
 #include "track.h"
+#include "../iplayhead.h"
 
 namespace muse::audio::engine {
-class IGetPlaybackPosition;
 class MixerChannel : public ITrackAudioOutput, public async::Asyncable
 {
-    GlobalInject<fx::IFxResolver> fxResolver;
+    GlobalInject<IAudioFactory> audioFactory;
 
 public:
     explicit MixerChannel(const TrackId trackId, const OutputSpec& outputSpec, IAudioSourcePtr source,
-                          const IGetPlaybackPosition* getPlaybackPosition);
-    explicit MixerChannel(const TrackId trackId, const OutputSpec& outputSpec, const IGetPlaybackPosition* getPlaybackPosition);
+                          PlayheadPositionPtr playheadPosition);
+    explicit MixerChannel(const TrackId trackId, const OutputSpec& outputSpec, PlayheadPositionPtr playheadPosition);
+
+    void setPlayheadPosition(PlayheadPositionPtr playheadPosition);
 
     TrackId trackId() const;
     IAudioSourcePtr source() const;
@@ -61,8 +63,8 @@ public:
 
     AudioSignalChanges audioSignalChanges() const override;
 
-    bool isActive() const override;
-    void setIsActive(bool arg) override;
+    ProcessMode mode() const override;
+    void setMode(const ProcessMode mode) override;
 
     void setOutputSpec(const OutputSpec& spec) override;
     unsigned int audioChannelsCount() const override;
@@ -72,13 +74,16 @@ public:
 private:
     void completeOutput(float* buffer, unsigned int samplesCount);
 
+    void updateShouldProcessDuringSilence();
+
     TrackId m_trackId = -1;
 
+    ProcessMode m_mode = ProcessMode::Undefined;
     OutputSpec m_outputSpec;
     AudioOutputParams m_params;
 
     IAudioSourcePtr m_audioSource = nullptr;
-    const IGetPlaybackPosition* m_getPlaybackPosition = nullptr;
+    PlayheadPositionPtr m_playheadPosition = nullptr;
     std::vector<IFxProcessorPtr> m_fxProcessors = {};
 
     bool m_isSilent = true;

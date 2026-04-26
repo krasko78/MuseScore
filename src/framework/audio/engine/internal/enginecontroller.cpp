@@ -40,11 +40,10 @@ using namespace muse::audio::engine;
 using namespace muse::audio::fx;
 using namespace muse::audio::synth;
 
-EngineController::EngineController(std::shared_ptr<rpc::IRpcChannel> rpcChannel,
-                                   const muse::modularity::ContextPtr& iocCtx)
-    : muse::Contextable(iocCtx), m_rpcChannel(rpcChannel)
+EngineController::EngineController(std::shared_ptr<rpc::IRpcChannel> rpcChannel)
+    : m_rpcChannel(rpcChannel)
 {
-    m_rpcChannel->onMethod(rpc::Method::EngineInit, [this](const rpc::Msg& msg) {
+    m_rpcChannel->onRequest(rpc::MsgCode::EngineInit, [this](const rpc::Msg& msg) {
         OutputSpec spec;
         AudioEngineConfig conf;
 
@@ -57,7 +56,7 @@ EngineController::EngineController(std::shared_ptr<rpc::IRpcChannel> rpcChannel,
         m_rpcChannel->send(rpc::make_response(msg));
     });
 
-    m_rpcChannel->onMethod(rpc::Method::EngineDeinit, [this](const rpc::Msg& msg) {
+    m_rpcChannel->onRequest(rpc::MsgCode::EngineDeinit, [this](const rpc::Msg& msg) {
         deinit();
         m_rpcChannel->send(rpc::make_response(msg));
     });
@@ -68,12 +67,12 @@ void EngineController::onStartRunning()
     //! NOTE After sending a EngineRunning,
     //! we may receive RPC messages, such as for example load a soundfont.
     //! Therefore, we need to subscribe to RPC messages.
-    m_rpcController  = std::make_shared<EngineRpcController>(iocContext());
+    m_rpcController = std::make_shared<EngineRpcController>();
     m_rpcController->init();
 
     //! NOTE We inform that the engine is running and can receive messages
     //! (it has not yet been initialized)
-    m_rpcChannel->send(rpc::make_notification(rpc::Method::EngineRunning));
+    m_rpcChannel->send(rpc::make_notification(rpc::MsgCode::EngineRunning));
 }
 
 void EngineController::init(const OutputSpec& outputSpec, const AudioEngineConfig& conf)
@@ -86,24 +85,24 @@ void EngineController::init(const OutputSpec& outputSpec, const AudioEngineConfi
     synthResolver()->init(configuration()->defaultAudioInputParams(), outputSpec);
     // ------------------------------------------------------------
 
-    IAudioEngine::RenderConstraints consts;
-    consts.minSamplesToReserveWhenIdle = minSamplesToReserve(RenderMode::IdleMode);
-    consts.minSamplesToReserveInRealtime = minSamplesToReserve(RenderMode::RealTimeMode);
+    RenderConstraints consts;
     consts.desiredAudioThreadNumber = configuration()->desiredAudioThreadNumber();
     consts.minTrackCountForMultithreading = configuration()->minTrackCountForMultithreading();
 
     // Setup audio engine
-    audioEngine()->init(outputSpec, consts);
+    audioEngine()->init(outputSpec);
 
-    playback()->init();
+    audioEngine()->context()->init(consts);
+
+    transportEventsDispatcher()->init();
 }
 
 void EngineController::deinit()
 {
     //! AUDIO THREAD
-    playback()->deinit();
-    audioEngine()->deinit();
     m_rpcController->deinit();
+    audioEngine()->context()->deinit();
+    audioEngine()->deinit();
 }
 
 OutputSpec EngineController::outputSpec() const
@@ -119,14 +118,4 @@ async::Channel<OutputSpec> EngineController::outputSpecChanged() const
 void EngineController::process(float* stream, unsigned samplesPerChannel)
 {
     audioEngine()->process(stream, samplesPerChannel);
-}
-
-void EngineController::process()
-{
-    audioEngine()->processAudioData();
-}
-
-void EngineController::popAudioData(float* stream, unsigned samplesPerChannel)
-{
-    audioEngine()->popAudioData(stream, samplesPerChannel);
 }

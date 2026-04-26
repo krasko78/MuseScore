@@ -24,6 +24,7 @@
 
 #include "async/asyncable.h"
 
+#include "settings.h" // krasko
 #include "modularity/ioc.h"
 #include "global/iglobalconfiguration.h"
 #include "global/iapplication.h"
@@ -34,7 +35,7 @@
 #include "notation/inotationconfiguration.h"
 #include "playback/iplaybackconfiguration.h"
 #include "languages/ilanguagesconfiguration.h"
-#include "settings.h" // krasko
+#include "update/iupdateconfiguration.h"
 
 #include "iappshellconfiguration.h"
 
@@ -50,6 +51,7 @@ class AppShellConfiguration : public IAppShellConfiguration, public muse::Contex
     muse::GlobalInject<playback::IPlaybackConfiguration> playbackConfiguration;
     muse::GlobalInject<muse::languages::ILanguagesConfiguration> languagesConfiguration;
     muse::GlobalInject<muse::IApplication> application;
+    muse::GlobalInject<muse::update::IUpdateConfiguration> updateConfiguration;
 
 // krasko start: KRASKO'S SETTINGS
 

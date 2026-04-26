@@ -27,7 +27,7 @@
 #include "global/async/asyncable.h"
 
 #include "global/modularity/ioc.h"
-#include "../../iaudioengine.h"
+#include "../iaudioengine.h"
 #include "audio/common/rpc/irpcchannel.h"
 
 #include "audio/common/audiotypes.h"
@@ -40,14 +40,12 @@ class IODevice;
 }
 
 namespace muse::audio::soundtrack {
-class SoundTrackWriter : public muse::Contextable, public async::Asyncable
+class SoundTrackWriter : public async::Asyncable
 {
-    muse::ContextInject<engine::IAudioEngine> audioEngine = { this };
-    muse::ContextInject<rpc::IRpcChannel> rpcChannel = { this };
+    muse::GlobalInject<rpc::IRpcChannel> rpcChannel;
 
 public:
-    SoundTrackWriter(io::IODevice& dstDevice, const SoundTrackFormat& format, const msecs_t totalDuration, engine::IAudioSourcePtr source,
-                     const muse::modularity::ContextPtr& iocCtx);
+    SoundTrackWriter(io::IODevice& dstDevice, const SoundTrackFormat& format, const secs_t totalDuration, engine::IAudioSourcePtr source);
 
     Ret write();
     void abort();

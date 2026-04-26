@@ -30,14 +30,12 @@ endif()
 
 option(MUSE_MODULE_AUDIO_EXPORT "Enable audio export" ON)
 
-# 1 - worker
+# 1 - worker - NOT SUPPORTED NOW
 # 2 - driver callback
-# 3 - worker - RPC, driver callback - process
-set(MUSE_MODULE_AUDIO_WORKMODE 1 CACHE STRING "Audio subsystem work mode")
+# 3 - hybrid mode - worker - RPC, driver callback - process
+set(MUSE_MODULE_AUDIO_WORKMODE 3 CACHE STRING "Audio subsystem work mode")
 
 declare_muse_module_opt(AUDIOPLUGINS ON)
-
-declare_muse_module_opt(AUTOBOT ON)
 
 declare_muse_module_opt(AUTOMATION ON)
 
@@ -81,7 +79,7 @@ declare_muse_module_opt(NETWORK ON)
 option(MUSE_MODULE_NETWORK_WEBSOCKET "Enable websocket support" OFF)
 
 declare_muse_module_opt(SHORTCUTS ON)
-
+declare_muse_module_opt(TESTFLOW ON)
 declare_muse_module_opt(TOURS ON)
 
 declare_muse_module_opt(UI ON)
