@@ -200,11 +200,32 @@ void EditModeRenderer::drawSlurTieSegment(const SlurTieSegment* item, muse::draw
     drawEngravingItem(item, painter, ed, currentViewScaling, opt);
 }
 
-static void drawTextBaseSelection(const TextBase* item, muse::draw::Painter* painter, const RectF& r)
+static Color getTextBaseSelectionBgColor(const TextBase* item, const mu::engraving::rendering::PaintOptions& opt) // krasko
+{
+    Color bgColor = item->configuration()->selectionColor();
+
+    int brightness = bgColor.brightness();
+    bool isBlack = brightness == 0;
+
+    if (isBlack) {
+        if (opt.invertColors) {
+            bgColor = Color::WHITE;
+        }
+    } else {
+        int newBrightness = opt.invertColors ? 255 : std::min(128 + bgColor.sat(), 255);
+        bgColor.setRed(bgColor.red() * newBrightness / brightness);
+        bgColor.setGreen(bgColor.green() * newBrightness / brightness);
+        bgColor.setBlue(bgColor.blue() * newBrightness / brightness);
+    }
+
+    bgColor.setAlpha(opt.invertColors ? 128 : 48);
+    return bgColor;
+}
+
+static void drawTextBaseSelection(const TextBase* item, const mu::engraving::rendering::PaintOptions& opt, muse::draw::Painter* painter, const RectF& r) // krasko
 {
     painter->save();
-    Brush bg(item->configuration()->selectionColor());
-    painter->setCompositionMode(CompositionMode::HardLight);
+    Brush bg(getTextBaseSelectionBgColor(item, opt)); // krasko
     painter->setBrush(bg);
     painter->setNoPen();
     painter->drawRect(r);
@@ -255,7 +276,7 @@ void EditModeRenderer::drawTextBase(const TextBase* item, muse::draw::Painter* p
                 br.translate(0.0, t.y());
                 double verticalPadding = std::min(m, br.height() * 0.25); // krasko start
                 br.adjust(0, -verticalPadding, 0, verticalPadding); // krasko end
-                drawTextBaseSelection(item, painter, br);
+                drawTextBaseSelection(item, opt, painter, br); // krasko
             }
             ++row;
         }
