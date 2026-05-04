@@ -5,7 +5,7 @@
  * MuseScore Studio
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore Limited
+ * Copyright (C) 2021 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -144,5 +144,6 @@ public:
     virtual bool specificSlursLayoutWorkaround() const = 0;
     virtual bool preferSameStringForTranspose() const = 0;
     virtual void setPreferSameStringForTranspose(bool preferSameString) = 0;
+    virtual bool keepDeadNotesUnchangedOnTranspose() const = 0;
 };
 }

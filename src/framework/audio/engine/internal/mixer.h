@@ -23,38 +23,34 @@
 #pragma once
 
 #include <memory>
-#include <map>
 
 #include "global/modularity/ioc.h"
 #include "global/async/asyncable.h"
-#include "global/types/retval.h"
-
-#include "abstractaudiosource.h"
 
 #include "../iplayhead.h"
 #include "iaudiofactory.h"
 
 #include "mixerchannel.h"
-#include "audiosignalnotifier.h"
+#include "nodes/fxnode.h"
+#include "nodes/controlnode.h"
+#include "nodes/signalnode.h"
 
 namespace muse {
 class TaskScheduler;
 }
 
 namespace muse::audio::engine {
-class Mixer : public AbstractAudioSource, public async::Asyncable, public std::enable_shared_from_this<Mixer>
+class Mixer : public AudioNode, public async::Asyncable
 {
     GlobalInject<IAudioFactory> audioFactory;
 
 public:
     ~Mixer() override;
 
-    void init(size_t desiredAudioThreadNumber, size_t minTrackCountForMultithreading);
+    void init();
 
-    IAudioSourcePtr mixedSource();
-
-    Ret addChannel(ITrackAudioOutputPtr output);
-    Ret addAuxChannel(ITrackAudioOutputPtr output);
+    Ret addChannel(AudioOutputNodePtr output);
+    Ret addAuxChannel(AudioOutputNodePtr output);
     Ret removeChannel(const TrackId trackId);
 
     void setPlayhead(PlayheadPtr playhead);
@@ -69,17 +65,13 @@ public:
     void setIsIdle(bool idle);
     void setTracksToProcessWhenIdle(const std::unordered_set<TrackId>& trackIds);
 
-    // IAudioSource
-    void setMode(const ProcessMode mode) override;
-    void setOutputSpec(const OutputSpec& spec) override;
-    unsigned int audioChannelsCount() const override;
-
-    samples_t process(float* outBuffer, samples_t samplesPerChannel) override;
-
 private:
-    using TracksData = std::map<TrackId, std::vector<float> >;
 
-    const TimePosition& playbackPosition() const;
+    void onOutputSpecChanged(const OutputSpec& spec) override;
+    void onModeChanged(const ProcessMode mode) override;
+
+    void doProcess(float* buffer, samples_t samplesPerChannel) override;
+    void doSelfProcess(float* buffer, samples_t samplesPerChannel) override;
 
     void processTrackChannels(size_t outBufferSize, size_t samplesPerChannel);
     void mixOutputFromChannel(float* outBuffer, const float* inBuffer, unsigned int samplesCount) const;
@@ -87,7 +79,6 @@ private:
     void writeTrackToAuxBuffers(const float* trackBuffer, const AuxSendsParams& auxSends, samples_t samplesPerChannel);
     void processAuxChannels(float* buffer, samples_t samplesPerChannel);
     void processMasterFx(float* buffer, samples_t samplesPerChannel);
-    void completeOutput(float* buffer, samples_t samplesPerChannel);
 
     void updateNonMutedTrackCount();
     bool useMultithreading() const;
@@ -99,12 +90,11 @@ private:
 
     TaskScheduler* m_taskScheduler = nullptr;
 
-    size_t m_minTrackCountForMultithreading = 0;
     size_t m_nonMutedTrackCount = 0;
 
     AudioOutputParams m_masterParams;
     async::Channel<AudioOutputParams> m_masterOutputParamsChanged;
-    std::vector<IFxProcessorPtr> m_masterFxProcessors = {};
+    std::vector<FxNodePtr> m_masterFxNodes;
 
     struct TrackData {
         TrackId trackId;
@@ -127,9 +117,10 @@ private:
 
     std::shared_ptr<IPlayhead> m_playhead;
 
-    mutable AudioSignalsNotifier m_audioSignalNotifier;
+    bool m_chainProcessing = false;
+    SignalNodePtr m_signalNode;
+    ControlNodePtr m_controlNode;
 
-    bool m_isSilence = false;
     bool m_shouldProcessMasterFxDuringSilence = false;
     bool m_isIdle = false;
 };

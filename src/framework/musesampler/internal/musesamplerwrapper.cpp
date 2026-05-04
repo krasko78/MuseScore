@@ -141,16 +141,6 @@ void MuseSamplerWrapper::setOutputSpec(const audio::OutputSpec& spec)
     setMode(m_mode);
 }
 
-unsigned int MuseSamplerWrapper::audioChannelsCount() const
-{
-    return AUDIO_CHANNELS_COUNT;
-}
-
-async::Channel<unsigned int> MuseSamplerWrapper::audioChannelsCountChanged() const
-{
-    return m_audioChannelsCountChanged;
-}
-
 samples_t MuseSamplerWrapper::process(float* buffer, samples_t samplesPerChannel)
 {
     if (!m_samplerLib || !m_sampler) {
@@ -295,7 +285,10 @@ void MuseSamplerWrapper::setPlaybackPosition(const muse::audio::TimePosition& po
         return;
     }
 
-    m_sequencer.setPlaybackPosition(muse::secs_to_msecs(position.time()));
+    //! NOTE Don't trust that msecs_t is used everywhere here,
+    // in fact, usecs_t (microseconds) is stored there.
+    const usecs_t usecs = muse::secs_to_usecs(position.time());
+    m_sequencer.setPlaybackPosition(msecs_t(usecs.raw()));
 
     IF_ASSERT_FAILED(m_samplerLib && m_sampler) {
         return;
@@ -462,7 +455,7 @@ void MuseSamplerWrapper::updateRenderingProgress(ms_RenderingRangeList list, int
         }
 
         chunksDurationUs += info._end_us - info._start_us;
-        chunks.push_back({ audio::microsecsToSecs(info._start_us), audio::microsecsToSecs(info._end_us) });
+        chunks.push_back({ muse::usecs_to_secs(info._start_us), muse::usecs_to_secs(info._end_us) });
     }
 
     // Start progress

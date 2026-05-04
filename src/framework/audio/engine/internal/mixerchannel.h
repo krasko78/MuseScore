@@ -26,26 +26,29 @@
 #include "global/async/asyncable.h"
 #include "global/async/notification.h"
 
+#include "nodes/audiooutputnode.h"
+
 #include "iaudiofactory.h"
-#include "../ifxprocessor.h"
-#include "audiosignalnotifier.h"
-#include "track.h"
 #include "../iplayhead.h"
+#include "nodes/fxnode.h"
+#include "nodes/controlnode.h"
+#include "nodes/signalnode.h"
 
 namespace muse::audio::engine {
-class MixerChannel : public ITrackAudioOutput, public async::Asyncable
+class MixerChannel : public AudioOutputNode, public async::Asyncable
 {
     GlobalInject<IAudioFactory> audioFactory;
 
 public:
-    explicit MixerChannel(const TrackId trackId, const OutputSpec& outputSpec, IAudioSourcePtr source,
-                          PlayheadPositionPtr playheadPosition);
-    explicit MixerChannel(const TrackId trackId, const OutputSpec& outputSpec, PlayheadPositionPtr playheadPosition);
+    explicit MixerChannel(const TrackId trackId, AudioSourceNodePtr source, PlayheadPositionPtr playheadPosition);
+    explicit MixerChannel(const TrackId trackId, PlayheadPositionPtr playheadPosition);
+
+    void init();
 
     void setPlayheadPosition(PlayheadPositionPtr playheadPosition);
 
     TrackId trackId() const;
-    IAudioSourcePtr source() const;
+    AudioNodePtr source() const;
 
     bool muted() const;
     async::Notification mutedChanged() const;
@@ -54,45 +57,33 @@ public:
     bool shouldProcessDuringSilence() const;
     async::Channel<bool> shouldProcessDuringSilenceChanged() const;
 
-    AudioSignalsNotifier& signalNotifier() const;
     void setNoAudioSignal();
-
-    const AudioOutputParams& outputParams() const override;
-    void applyOutputParams(const AudioOutputParams& requiredParams) override;
-    async::Channel<AudioOutputParams> outputParamsChanged() const override;
-
-    AudioSignalChanges audioSignalChanges() const override;
-
-    ProcessMode mode() const override;
-    void setMode(const ProcessMode mode) override;
-
-    void setOutputSpec(const OutputSpec& spec) override;
-    unsigned int audioChannelsCount() const override;
-    async::Channel<unsigned int> audioChannelsCountChanged() const override;
-    samples_t process(float* buffer, samples_t samplesPerChannel) override;
+    void notifyAboutAudioSignalChanges();
+    AudioSignalChanges audioSignalChanges() const;
 
 private:
-    void completeOutput(float* buffer, unsigned int samplesCount);
+
+    void onOutputSpecChanged(const OutputSpec& spec) override;
+    void onModeChanged(const ProcessMode mode) override;
+    AudioOutputParams onOutputParamsChanged(const AudioOutputParams& requiredParams) override;
+    void doProcess(float* buffer, samples_t samplesPerChannel) override;
+    void doSelfProcess(float* buffer, samples_t samplesPerChannel) override;
 
     void updateShouldProcessDuringSilence();
 
     TrackId m_trackId = -1;
+    PlayheadPositionPtr m_playheadPosition;
 
-    ProcessMode m_mode = ProcessMode::Undefined;
-    OutputSpec m_outputSpec;
-    AudioOutputParams m_params;
+    bool m_chainProcessing = false;
+    SignalNodePtr m_signalNode;
+    ControlNodePtr m_controlNode;
+    std::vector<FxNodePtr> m_fxNodes;
+    AudioSourceNodePtr m_sourceNode;
 
-    IAudioSourcePtr m_audioSource = nullptr;
-    PlayheadPositionPtr m_playheadPosition = nullptr;
-    std::vector<IFxProcessorPtr> m_fxProcessors = {};
-
-    bool m_isSilent = true;
     bool m_shouldProcessDuringSilence = false;
     async::Channel<bool> m_shouldProcessDuringSilenceChanged;
 
     async::Notification m_mutedChanged;
-    mutable async::Channel<AudioOutputParams> m_paramsChanges;
-    mutable AudioSignalsNotifier m_audioSignalNotifier;
 };
 
 using MixerChannelPtr = std::shared_ptr<MixerChannel>;

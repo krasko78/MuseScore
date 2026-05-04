@@ -5,7 +5,7 @@
  * MuseScore Studio
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore Limited
+ * Copyright (C) 2021 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -1088,4 +1088,36 @@ void CompatUtils::convertPre470ImageSize(Image* image)
         image->init();
         image->setSize(image->size() * (DPI / PRE_470_DPI));
     }
+}
+
+PointF CompatUtils::getAdjustedOffset(EngravingItem* item, PointF offset)
+{
+    PointF defaultOffset = item->defaultPos();
+    return offset - defaultOffset;
+}
+
+void CompatUtils::migrateOffset500(EngravingItem* item, PropertyValue& offset)
+{
+    if (!item->isTextBase() && !item->isSpanner() && !item->isSpannerSegment()) {
+        return;
+    }
+
+    // We need additional context for items with voice assignment properties
+    // Migrate in EngravingCompat after layout
+    if (item->hasVoiceAssignmentProperties()) {
+        return;
+    }
+
+    offset = getAdjustedOffset(item, offset.value<PointF>());
+}
+
+void CompatUtils::migrateOffsetPre302(EngravingItem* item, int mscVersion)
+{
+    if (mscVersion > 301 || item->offset().isNull()) {
+        return;
+    }
+
+    PropertyValue offset = item->getProperty(Pid::OFFSET);
+    compat::CompatUtils::migrateOffset500(item, offset);
+    item->setProperty(Pid::OFFSET, offset);
 }

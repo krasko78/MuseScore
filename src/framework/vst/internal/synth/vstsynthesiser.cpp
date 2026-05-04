@@ -176,7 +176,10 @@ void VstSynthesiser::setPlaybackPosition(const muse::audio::TimePosition& positi
         return;
     }
 
-    m_sequencer.setPlaybackPosition(muse::secs_to_msecs(position.time()));
+    //! NOTE Don't trust that msecs_t is used everywhere here,
+    // in fact, usecs_t (microseconds) is stored there.
+    const usecs_t usecs = muse::secs_to_usecs(position.time());
+    m_sequencer.setPlaybackPosition(msecs_t(usecs.raw()));
 
     m_currentPosition = position;
 
@@ -191,16 +194,6 @@ void VstSynthesiser::setOutputSpec(const audio::OutputSpec& spec)
     if (m_inited) {
         m_vstAudioClient->setOutputSpec(spec);
     }
-}
-
-unsigned int VstSynthesiser::audioChannelsCount() const
-{
-    return m_outputSpec.audioChannelCount;
-}
-
-async::Channel<unsigned int> VstSynthesiser::audioChannelsCountChanged() const
-{
-    return m_streamsCountChanged;
 }
 
 samples_t VstSynthesiser::process(float* buffer, samples_t samplesPerChannel)

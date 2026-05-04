@@ -5,7 +5,7 @@
  * MuseScore Studio
  * Music Composition & Notation
  *
- * Copyright (C) 2025 MuseScore Limited
+ * Copyright (C) 2025 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -144,8 +144,8 @@ void PlaybackController::init()
 
         m_loadingProgress.start();
 
-        playback()->initPlayback().onResolve(this, [this](const bool& success) {
-            if (success) {
+        playback()->init().onResolve(this, [this](const Ret& ret) {
+            if (ret) {
                 setupPlayback();
             }
         });
@@ -1058,7 +1058,7 @@ void PlaybackController::resetPlayback()
 
     m_currentTick = 0;
 
-    playback()->deinitPlayback();
+    playback()->deinit();
 
     m_instrumentTrackIdMap.clear();
     m_auxTrackIdMap.clear();
@@ -1273,40 +1273,6 @@ AudioOutputParams PlaybackController::trackOutputParams(const InstrumentTrackId&
     return result;
 }
 
-InstrumentTrackIdSet PlaybackController::availableInstrumentTracks() const
-{
-    InstrumentTrackIdSet result;
-
-    for (const auto& pair : m_instrumentTrackIdMap) {
-        result.insert(pair.first);
-    }
-
-    return result;
-}
-
-void PlaybackController::removeNonExistingTracks()
-{
-    for (const InstrumentTrackId& instrumentTrackId : availableInstrumentTracks()) {
-        if (instrumentTrackId == notationPlayback()->metronomeTrackId()) {
-            continue;
-        }
-
-        if (!masterNotationParts()->partExists(instrumentTrackId.partId)) {
-            removeTrack(instrumentTrackId);
-            continue;
-        }
-
-        const Part* part = masterNotationParts()->part(instrumentTrackId.partId);
-        const InstrumentTrackIdSet& idSet = part->instrumentTrackIdSet();
-
-        if (idSet.find(instrumentTrackId) == idSet.cend()) {
-            removeTrack(instrumentTrackId);
-        }
-    }
-
-    updateSoloMuteStates();
-}
-
 void PlaybackController::removeTrack(const InstrumentTrackId& instrumentTrackId)
 {
     IF_ASSERT_FAILED(notationPlayback() && playback()) {
@@ -1469,15 +1435,7 @@ void PlaybackController::setupTracks()
 
     //! HACK - ideally we would use "this" (PlaybackController) instead of m_seqAsyncReceiver for the following
     //! subscription, but we've already subscribed to onItemChanged for a different reason in setNotation...
-    partList.onItemChanged(&m_seqAsyncReceiver, [this, onAddFinished](const Part* part) {
-        for (const InstrumentTrackId& trackId : part->instrumentTrackIdSet()) {
-            auto search = m_instrumentTrackIdMap.find(trackId);
-            if (search == m_instrumentTrackIdMap.cend()) {
-                removeNonExistingTracks();
-                addTrack(trackId, onAddFinished);
-            }
-        }
-
+    partList.onItemChanged(&m_seqAsyncReceiver, [this](const Part*) {
         updateSoloMuteStates();
     });
 
@@ -1498,7 +1456,7 @@ void PlaybackController::setupPlayer()
         updateCurrentTempo();
 
         secs_t endSecs = totalPlayTime();
-        if (pos + milisecsToSecs(1) >= endSecs) {
+        if (pos + muse::msecs_to_secs(1) >= endSecs) {
             stop();
         }
     });

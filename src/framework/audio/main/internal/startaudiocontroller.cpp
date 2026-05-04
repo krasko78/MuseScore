@@ -81,7 +81,7 @@ void StartAudioController::th_setupEngine()
 
 void StartAudioController::init()
 {
-    m_rpcChannel->onNotification(rpc::MsgCode::EngineRunning, [this](const rpc::Msg&) {
+    m_rpcChannel->onNotification(rpc::GLOBAL_CTX_ID, rpc::MsgCode::EngineRunning, [this](const rpc::Msg&) {
         soundFontController()->loadSoundFonts();
 
         m_isEngineRunning.set(true);
@@ -223,7 +223,8 @@ void StartAudioController::startAudioProcessing(const IApplication::RunMode& mod
 
     AudioEngineConfig conf = configuration()->engineConfig();
     auto sendEngineInit = [this, activeSpec, conf]() {
-        m_rpcChannel->send(rpc::make_request(MsgCode::EngineInit, RpcPacker::pack(activeSpec.output, conf)), [this](const Msg&) {
+        m_rpcChannel->send(rpc::make_request(rpc::GLOBAL_CTX_ID, MsgCode::EngineInit, RpcPacker::pack(activeSpec.output, conf)),
+                           [this](const Msg&) {
             m_isAudioStarted.set(true);
         });
     };
@@ -242,13 +243,14 @@ void StartAudioController::startAudioProcessing(const IApplication::RunMode& mod
 void StartAudioController::stopAudioProcessing()
 {
 #ifndef Q_OS_WASM
-    if (m_isAudioStarted.val) {
-        m_rpcChannel->send(rpc::make_request(MsgCode::EngineDeinit), [this](const Msg&) {
+    m_rpcChannel->send(rpc::make_request(rpc::GLOBAL_CTX_ID, MsgCode::EngineDeinit), [this](const Msg&) {
+        if (m_isAudioStarted.val) {
             m_isAudioStarted.set(false);
-        });
-    }
+        }
+    });
 
-    while (m_isAudioStarted.val) {
+    do {
+        // Ensure that RPC process() is called at least once
         m_rpcChannel->process();
 
         if (!m_isAudioStarted.val) {
@@ -258,7 +260,7 @@ void StartAudioController::stopAudioProcessing()
         std::this_thread::yield();
         using namespace std::chrono_literals;
         std::this_thread::sleep_for(10ms);
-    }
+    } while (m_isAudioStarted.val);
 
     audioDriverController()->close();
 

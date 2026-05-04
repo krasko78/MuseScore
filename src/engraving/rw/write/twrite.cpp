@@ -5,7 +5,7 @@
  * MuseScore Studio
  * Music Composition & Notation
  *
- * Copyright (C) 2021 MuseScore Limited
+ * Copyright (C) 2021 MuseScore Limited and others
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -570,10 +570,14 @@ void TWrite::writeItemProperties(const EngravingItem* item, XmlWriter& xml, Writ
         xml.tag("track", t);
     }
 
-    for (Pid pid : { Pid::OFFSET, Pid::COLOR, Pid::VISIBLE, Pid::Z }) {
+    for (Pid pid : { Pid::COLOR, Pid::VISIBLE, Pid::Z }) {
         if (item->propertyFlags(pid) == PropertyFlags::NOSTYLE) {
             writeProperty(item, xml, pid);
         }
+    }
+
+    if (!item->offset().isNull()) {
+        writeProperty(item, xml, Pid::OFFSET);
     }
 
     if (!item->hasVoiceAssignmentProperties() && item->propertyFlags(Pid::PLACEMENT) == PropertyFlags::NOSTYLE) {
@@ -1361,9 +1365,6 @@ void TWrite::write(const Fermata* item, XmlWriter& xml, WriteContext& ctx)
     writeProperty(item, xml, Pid::TIME_STRETCH);
     writeProperty(item, xml, Pid::PLAY);
     writeProperty(item, xml, Pid::MIN_DISTANCE);
-    if (!item->isStyled(Pid::OFFSET)) {
-        writeProperty(item, xml, Pid::OFFSET);
-    }
     writeItemProperties(item, xml, ctx);
     xml.endElement();
 }
