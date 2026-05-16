@@ -32,16 +32,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(MUSE_FRAMEWORK_PATH "${CMAKE_CURRENT_LIST_DIR}/muse" CACHE PATH "Path to muse framework")
+
+set(MUSE_FRAMEWORK_SRC_PATH ${MUSE_FRAMEWORK_PATH}/framework)
+
 set(CMAKE_MODULE_PATH
     ${CMAKE_CURRENT_LIST_DIR}
     ${CMAKE_CURRENT_LIST_DIR}/buildscripts
     ${CMAKE_CURRENT_LIST_DIR}/buildscripts/cmake
-    ${CMAKE_CURRENT_LIST_DIR}/src/framework/cmake
+    ${MUSE_FRAMEWORK_SRC_PATH}/cmake
+    ${MUSE_FRAMEWORK_PATH}/buildscripts/cmake
     ${CMAKE_MODULE_PATH}
     )
-
-set(MUSE_FRAMEWORK_PATH ${CMAKE_CURRENT_LIST_DIR})
-set(MUSE_FRAMEWORK_SRC_PATH ${CMAKE_CURRENT_LIST_DIR}/src/framework)
 
 ###########################################
 # Setup option and build settings
@@ -96,7 +98,7 @@ option(MUE_BUILD_IMPEXP_AUDIOEXPORT_MODULE "Build importexport audioexport modul
 option(MUE_BUILD_IMPEXP_IMAGESEXPORT_MODULE "Build importexport imagesexport module" ON)
 option(MUE_BUILD_IMPEXP_GUITARPRO_MODULE "Build importexport guitarpro module" ON)
 option(MUE_BUILD_IMPEXP_MEI_MODULE "Build importexport mei module" ON)
-option(MUE_BUILD_IMPEXP_VIDEOEXPORT_MODULE "Build importexport videoexport module" OFF)
+option(MUE_BUILD_IMPEXP_VIDEOEXPORT_MODULE "Build importexport videoexport module" ON)
 option(MUE_BUILD_IMPEXP_TABLEDIT_MODULE "Build importexport tabledit module" ON)
 option(MUE_BUILD_IMPEXP_LYRICS_MODULE "Build importexport lyrics module" ON)
 
@@ -192,7 +194,6 @@ else()
     include(SetupConfigure)
 endif()
 
-set(MUSE_FRAMEWORK_SRC_PATH ${PROJECT_SOURCE_DIR}/src/framework)
 set(THIRDPARTY_DIR ${PROJECT_SOURCE_DIR}/thirdparty)
 
 ###########################################
@@ -210,6 +211,8 @@ endif(MUSE_COMPILE_USE_COMPILER_CACHE)
 ###########################################
 # Setup external dependencies
 ###########################################
+set(FETCHCONTENT_QUIET OFF)
+set(FETCHCONTENT_BASE_DIR ${PROJECT_BINARY_DIR}/_deps)
 
 if (MUE_COMPILE_MACOS_PRECOMPILED_DEPS_PATH)
     list(PREPEND CMAKE_PREFIX_PATH ${MUE_COMPILE_MACOS_PRECOMPILED_DEPS_PATH})
@@ -225,6 +228,8 @@ if (MUE_DOWNLOAD_SOUNDFONT)
     include(DownloadSoundFont)
 endif(MUE_DOWNLOAD_SOUNDFONT)
 
+set(FETCHCONTENT_BASE_DIR ${PROJECT_BINARY_DIR}/_deps)
+
 include(SetupDependencies)
 
 ###########################################
@@ -236,6 +241,7 @@ if (MUSE_ENABLE_UNIT_TESTS)
 endif()
 
 add_subdirectory(share)
+add_subdirectory(${MUSE_FRAMEWORK_SRC_PATH})
 add_subdirectory(src)
 
 

@@ -102,6 +102,7 @@
 #include "../../dom/rest.h"
 #include "../../dom/score.h"
 #include "../../dom/segment.h"
+#include "../../dom/sharedpart.h"
 #include "../../dom/slur.h"
 #include "../../dom/slurtie.h"
 #include "../../dom/soundflag.h"
@@ -1835,12 +1836,7 @@ void TRead::read(ActionIcon* i, XmlReader& e, ReadContext&)
 {
     while (e.readNextStartElement()) {
         const AsciiStringView tag(e.name());
-        if (tag == "subtype") {
-            // This is fragile, see https://github.com/musescore/MuseScore/issues/24060#issuecomment-2299665318.
-            // Keeping it here for compatbility in case an ActionIcon from some old version doesn't have an <action> tag.
-            // If the <action> tag is present, it will override this value, see below.
-            i->setActionType(static_cast<ActionIconType>(e.readInt()));
-        } else if (tag == "action") {
+        if (tag == "action") {
             const std::string actionCode = e.readText().toStdString();
             i->setAction(actionCode, 0);
             setActionIconTypeFromAction(i, actionCode);
@@ -2861,7 +2857,7 @@ void TRead::read(GuitarBend* g, XmlReader& e, ReadContext& ctx)
     while (e.readNextStartElement()) {
         const AsciiStringView tag = e.name();
         if (tag == "guitarBendType") {
-            g->setBendType(static_cast<GuitarBendType>(e.readInt()));
+            g->setBendType(TConv::fromXml(e.readAsciiText(), GuitarBendType::BEND));
         } else if (tag == "GuitarBendHold") {
             GuitarBendHold* hold = new GuitarBendHold(g);
             TRead::read(hold, e, ctx);
@@ -2974,9 +2970,9 @@ void TRead::read(Harmony* h, XmlReader& e, ReadContext& ctx)
     while (e.readNextStartElement()) {
         const AsciiStringView tag(e.name());
         if (tag == "bassCase") {
-            h->setBassCase(static_cast<NoteCaseType>(e.readInt()));
+            h->setBassCase(TConv::fromXml(e.readAsciiText(), NoteCaseType::AUTO));
         } else if (tag == "rootCase") {
-            h->setRootCase(static_cast<NoteCaseType>(e.readInt()));
+            h->setRootCase(TConv::fromXml(e.readAsciiText(), NoteCaseType::AUTO));
         } else if (tag == "harmonyInfo") {
             HarmonyInfo* info = new HarmonyInfo(ctx.score());
             readHarmonyInfo(info, e);
@@ -3552,6 +3548,20 @@ void TRead::read(Part* p, XmlReader& e, ReadContext& ctx)
     }
 }
 
+void TRead::read(SharedPart* p, XmlReader& e, ReadContext& ctx)
+{
+    p->setId(e.intAttribute("id", 0));
+
+    while (e.readNextStartElement()) {
+        const AsciiStringView tag(e.name());
+        if (tag == "sharedPartEnabled") {
+            p->setProperty(Pid::SHARED_PART_ENABLED, e.readBool());
+        } else if (!readProperties(p, e, ctx)) {
+            e.unknown();
+        }
+    }
+}
+
 void TRead::read(PartialLyricsLine* p, XmlReader& xml, ReadContext& ctx)
 {
     while (xml.readNextStartElement()) {
@@ -3582,6 +3592,17 @@ bool TRead::readProperties(Part* p, XmlReader& e, ReadContext& ctx)
     const AsciiStringView tag(e.name());
     if (tag == "id") {
         p->setId(e.readInt());
+    } else if (tag == "eid") {
+        readItemEID(p, e);
+    } else if (tag == "sharedPart") {
+        AsciiStringView s = e.readAsciiText();
+        EID eid = EID::fromStdString(s);
+        DO_ASSERT(eid.isValid());
+        EIDRegister* eidRegister = ctx.score()->masterScore()->eidRegister();
+        EngravingObject* obj = eidRegister->itemFromEID(eid);
+        DO_ASSERT(obj && obj->isSharedPart());
+        SharedPart* sharedPart = toSharedPart(obj);
+        sharedPart->addOriginPart(p);
     } else if (tag == "Staff") {
         Staff* staff = Factory::createStaff(p);
         p->score()->appendStaff(staff);
