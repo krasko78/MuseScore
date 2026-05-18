@@ -47,8 +47,6 @@ static constexpr char KEY_AutoRestoreSessionOnStart[] = "krasko/autoRestoreSessi
 
 static constexpr char KEY_FocusExportButtonOnExportDialog[] = "krasko/focusExportButtonOnExportDialog";
 
-static constexpr char KEY_TabAndShiftTabNavigateBetweenControls[] = "krasko/tabAndShiftTabNavigateBetweenControls";
-
 static constexpr char KEY_ChangeActiveGripWithEditElementKey[] = "krasko/changeActiveGripWithEditElementKey";
 
 static constexpr char KEY_ExpandShowMoreSectionsInPropertiesPanel[] = "krasko/expandShowMoreSectionsInPropertiesPanel";
@@ -178,14 +176,6 @@ void AppShellConfiguration::createKraskoSettings()
         .valueChanged().onReceive(this, [this](const Val& val) {
             m_focusExportButtonOnExportDialogChanged.send(val.toBool());
         });
-
-    sc.createSetting(krasko_module_name, KEY_TabAndShiftTabNavigateBetweenControls)
-        .setDefaultValue(Val(false))
-        .setDescription(muse::trc("krasko", "Tab and Shift+Tab navigate between controls"))
-        .setHelpString(muse::trc("krasko",
-            "When enabled, the keys for 'Next panel' and 'Prev panel' (Tab and Shift+Tab "
-            "by default) will navigate between controls instead of panels."))
-        .withoutValueChangedNotifications();
 
     sc.createSetting(krasko_module_name, KEY_ChangeActiveGripWithEditElementKey)
         .setDefaultValue(Val(false))
@@ -432,11 +422,6 @@ bool AppShellConfiguration::focusExportButtonOnExportDialog() const
 muse::async::Channel<bool> AppShellConfiguration::focusExportButtonOnExportDialogChanged() const
 {
     return m_focusExportButtonOnExportDialogChanged;
-}
-
-bool AppShellConfiguration::tabAndShiftTabNavigateBetweenControls() const
-{
-    return kraskoSettingValue(KEY_TabAndShiftTabNavigateBetweenControls).toBool();
 }
 
 bool AppShellConfiguration::changeActiveGripWithEditElementKey() const

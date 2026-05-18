@@ -47,6 +47,9 @@ class AppShellConfigurationProxy : public QObject, muse::async::Asyncable
 	Q_PROPERTY(int verticalPanelsWidth READ verticalPanelsWidth NOTIFY verticalPanelsWidthChanged)
     int verticalPanelsWidth() { return appshellConfiguration()->verticalPanelsWidth(); }
 
+    Q_PROPERTY(QColor scrollbarColor READ scrollbarColor NOTIFY scrollbarColorChanged)
+    QColor scrollbarColor() { return appshellConfiguration()->scrollbarColor().toQColor(); }
+
 public:
     void init();
 
@@ -58,6 +61,8 @@ signals:
     void showScrollbarOnScrollableDropDownListsChanged(bool newValue);
 
     void verticalPanelsWidthChanged(int newValue);
+
+    void scrollbarColorChanged(QColor newValue);
 };
 }
 // krasko end

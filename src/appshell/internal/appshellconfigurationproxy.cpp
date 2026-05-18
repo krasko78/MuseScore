@@ -40,4 +40,8 @@ void AppShellConfigurationProxy::init()
     appshellConfiguration()->verticalPanelsWidthChanged().onReceive(this, [this](int newValue) {
         emit verticalPanelsWidthChanged(newValue);
     });
+
+    appshellConfiguration()->scrollbarColorChanged().onReceive(this, [this](const mu::engraving::Color& newValue) {
+        emit scrollbarColorChanged(newValue.toQColor());
+    });
 }

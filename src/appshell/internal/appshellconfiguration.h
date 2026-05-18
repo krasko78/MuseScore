@@ -61,8 +61,6 @@ public:
     bool focusExportButtonOnExportDialog() const override;
     muse::async::Channel<bool> focusExportButtonOnExportDialogChanged() const override;
 
-    bool tabAndShiftTabNavigateBetweenControls() const override;
-
     bool changeActiveGripWithEditElementKey() const override;
 
     bool expandShowMoreSectionsInPropertiesPanel() const override;

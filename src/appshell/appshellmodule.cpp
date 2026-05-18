@@ -23,16 +23,19 @@
 #include "appshellmodule.h"
 
 #include <QQmlEngine>
+#include <QQmlContext> // krasko
 #include <string>
 
 #include "modularity/ioc.h"
 
+#include "ui/iuiengine.h" // krasko
 #include "ui/iuiactionsregister.h"
 #include "interactive/iinteractiveuriregister.h"
 
 #include "internal/applicationuiactions.h"
 #include "internal/applicationactioncontroller.h"
 #include "internal/appshellconfiguration.h"
+#include "internal/appshellconfigurationproxy.h" // krasko
 #include "internal/appshellstate.h"
 #include "internal/startupscenario.h"
 #include "internal/applicationactioncontroller.h"
@@ -50,6 +53,7 @@ using namespace muse::modularity;
 using namespace muse::dock;
 
 static const std::string mname("appshell");
+static AppShellConfigurationProxy* appShellConfigurationProxy = nullptr; // krasko
 
 std::string AppShellModule::moduleName() const
 {
@@ -61,6 +65,9 @@ void AppShellModule::registerExports()
     m_appShellConfiguration = std::make_shared<AppShellConfiguration>(globalCtx());
 
     globalIoc()->registerExport<IAppShellConfiguration>(moduleName(), m_appShellConfiguration);
+
+    appShellConfigurationProxy = new AppShellConfigurationProxy(); // krasko
+    appShellConfigurationProxy->init(); // krasko
 }
 
 void AppShellModule::resolveImports()
@@ -132,6 +139,11 @@ void AppShellContext::onPreInit(const muse::IApplication::RunMode&)
 
 void AppShellContext::onInit(const muse::IApplication::RunMode& mode)
 {
+    // krasko start
+    QQmlEngine* engine = ioc()->resolve<muse::ui::IUiEngine>("app")->qmlEngine();
+    engine->rootContext()->setContextProperty("appshellConfig", QVariant::fromValue(appShellConfigurationProxy));
+    // krasko end
+
     m_sessionsManager->init();
 
     if (mode == IApplication::RunMode::GuiApp) {

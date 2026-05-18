@@ -44,8 +44,6 @@ public:
     virtual bool focusExportButtonOnExportDialog() const = 0;
     virtual muse::async::Channel<bool> focusExportButtonOnExportDialogChanged() const = 0;
 
-    virtual bool tabAndShiftTabNavigateBetweenControls() const = 0;
-
     virtual bool changeActiveGripWithEditElementKey() const = 0;
 
     virtual bool expandShowMoreSectionsInPropertiesPanel() const = 0;
