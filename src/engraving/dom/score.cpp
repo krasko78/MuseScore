@@ -1346,31 +1346,6 @@ void Score::styleChanged()
 }
 
 //---------------------------------------------------------
-//   getCreateMeasure
-//    - return Measure for tick
-//    - create Factory::createMeasure(s) if there is no measure for
-//      this tick
-//---------------------------------------------------------
-
-Measure* Score::getCreateMeasure(const Fraction& tick)
-{
-    Measure* last = lastMeasure();
-    if (!last || last->endTick() <= tick) {
-        Fraction lastTick  = last ? last->endTick() : Fraction(0, 1);
-        while (tick >= lastTick) {
-            Measure* m = Factory::createMeasure(this->dummy()->system());
-            Fraction ts = sigmap()->timesig(lastTick).timesig();
-            m->setTick(lastTick);
-            m->setTimesig(ts);
-            m->setTicks(ts);
-            measures()->append(toMeasureBase(m));
-            lastTick += m->ticks();
-        }
-    }
-    return tick2measure(tick);
-}
-
-//---------------------------------------------------------
 //   addElement
 //---------------------------------------------------------
 
@@ -1713,7 +1688,7 @@ void Score::doUndoRemoveElement(EngravingItem* element)
 {
     if (element->generated()) {
         removeElement(element);
-        //! HACK: don't delete as it may still be used in Inspector
+        //! HACK: don't delete as it may still be used in PropertiesPanel
         // element->deleteLater();
     } else {
         undo(new RemoveElement(element));
@@ -4443,6 +4418,7 @@ std::vector<Spanner*> Score::spannerList() const
 {
     std::vector<Spanner*> result;
     const std::multimap<int, Spanner*>& spannerMap = m_spanner.map();
+    result.reserve(spannerMap.size());
     for (auto it = spannerMap.begin(); it != spannerMap.end(); ++it) {
         result.push_back(it->second);
     }

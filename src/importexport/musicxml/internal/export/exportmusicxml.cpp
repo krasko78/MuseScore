@@ -542,8 +542,8 @@ String ExportMusicXml::positioningAttributes(EngravingItem const* const el, bool
             //       seg, p.x(), p.y(), seg->offset().x(), seg->offset().y(), seg->spatium());
         } else {
             const LineSegment* seg = span->backSegment();
-            const PointF userOff = seg->offset();       // This is the offset accessible from the inspector
-            const PointF userOff2 = seg->userOff2();       // Offset of the actual dragged anchor, which doesn't affect the inspector offset
+            const PointF userOff = seg->offset();       // This is the offset accessible from the Properties panel
+            const PointF userOff2 = seg->userOff2();       // Offset of the actual dragged anchor, which doesn't affect the Properties panel offset
             //auto pos = seg->pos();
             //auto pos2 = seg->pos2();
 
@@ -3999,12 +3999,14 @@ static void writeNotehead(XmlWriter& xml, const Note* const note)
         static const std::regex nameparts("^note([A-Z][a-z]*)(Sharp|Flat)?");
         AsciiStringView noteheadName = SymNames::nameForSymId(note->noteHead());
         StringList matches = String::fromAscii(noteheadName.ascii()).search(nameparts, { 1, 2 }, SplitBehavior::SkipEmptyParts);
-        xml.startElement("notehead-text");
-        xml.tag("display-text", matches.at(0));
-        if (matches.size() > 1) {
-            xml.tag("accidental-text", matches.at(1).toLower());
+        if (!matches.empty()) {
+            xml.startElement("notehead-text");
+            xml.tag("display-text", matches.at(0));
+            if (matches.size() > 1) {
+                xml.tag("accidental-text", matches.at(1).toLower());
+            }
+            xml.endElement();
         }
-        xml.endElement();
     }
 }
 
