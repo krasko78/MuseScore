@@ -2769,6 +2769,16 @@ void Score::cmdIncDecDuration(int nSteps, bool stepDotted)
                 select(toEngravingItem(n), SelectType::ADD);
             }
         }
+        if (m_is.noteEntryMode()) {
+            const ChordRest* cr = crs.size() == 1 ? crs.front() : nullptr;
+            IF_ASSERT_FAILED(cr) {
+                // (At time of writing) it shouldn't be possible to have more than
+                // one CR selected during note entry...
+                return;
+            }
+            m_is.setDuration(cr->durationType());
+            nextInputPos(cr, false);
+        }
     }
 }
 
@@ -2906,7 +2916,6 @@ static std::map<Chord*, std::set<Note*, NoteComparator> > getNotesByChord(std::l
     if (notes.empty()) {
         return notesByChord;
     }
-    std::set<Note*> additionalNotes;
     for (Note* noteToAdd : notes) {
         Chord* chord = noteToAdd->chord();
         auto notesByChordIt = notesByChord.find(chord);
