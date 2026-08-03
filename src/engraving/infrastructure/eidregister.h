@@ -23,6 +23,7 @@
 
 #include <cstdint>
 #include <unordered_map>
+#include <shared_mutex>
 
 #include "eid.h"
 #include "../types/types.h"
@@ -38,6 +39,7 @@ public:
     EID newEIDForItem(const EngravingObject* item);
     void registerItemEID(const EID& eid, const EngravingObject* item);
     void removeItem(const EngravingObject* item);
+    void onItemDestroyed(const EngravingObject* item);
 
     EngravingObject* itemFromEID(const EID& eid) const;
     EID EIDFromItem(const EngravingObject* item) const;
@@ -49,5 +51,7 @@ private:
     std::unordered_map<EngravingObject*, EID> m_itemToEid;
 
     uint64_t m_maxValTestMode = 0;
+
+    mutable std::shared_mutex m_mutex;
 };
 }

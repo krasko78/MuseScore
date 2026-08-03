@@ -24,13 +24,15 @@
 #include "layoutcontext.h"
 
 #include "dom/sharedpart.h"
+#include "dom/stavesharinglabel.h"
 
 namespace mu::engraving::rendering::score {
 class StaveSharingLayout
 {
 public:
     static void updateStaveSharingForFullSystem(MeasureBase* firstMB, MeasureBase* lastMB, LayoutContext& ctx);
-    static void updateStaveSharingForLastAddedMeasure(System* system, LayoutContext& ctx);
+    static bool updateStaveSharingForLastAddedMeasure(System* system, LayoutContext& ctx);
+    static void updateNotationWithoutRecomputingTrackMap(Measure* measure, LayoutContext& ctx);
 
 private:
     using TrackGroup = std::vector<track_idx_t>;
@@ -44,29 +46,56 @@ private:
         std::vector<Segment*> crSegments;
         std::vector<Segment*> segmentsToUpdate;
         std::vector<Segment*> crSegmentsToUpdate;
+        std::vector<Spanner*> overlappingSpanners;
+
+        SharedPart* curSharedPart = nullptr;
+        std::unordered_set<Note*> sharedUnisonNotes;
+        std::vector<StaveSharingLabel*> oldStaveSharingLabels;
+        std::vector<StaveSharingLabel*> updatedStaveSharingLabels;
 
         Score* score = nullptr;
         LayoutContext& layoutCtx;
+        const MStyle& style;
 
         StaveSharingContext(MeasureBase* first, MeasureBase* last, LayoutContext& ctx);
     };
 
     static void updateStaveSharing(StaveSharingContext& ctx);
 
-    static void updateTrackMaps(SharedPart* p, StaveSharingContext& ctx);
-    static SharedTrackMap computeTrackMap(SharedPart* p, StaveSharingContext& ctx);
+    static void updateTrackMaps(StaveSharingContext& ctx);
+    static SharedTrackMap computeTrackMap(StaveSharingContext& ctx);
 
     static bool isEmpty(track_idx_t track, StaveSharingContext& ctx);
 
     static bool isUnison(track_idx_t prevTrack, track_idx_t nextTrack, StaveSharingContext& ctx);
     static bool canGoToSameVoice(track_idx_t prevTrack, track_idx_t nextTrack, StaveSharingContext& ctx, const TrackGroup& curTrackGroup,
                                  std::unordered_set<Note*>& localUnisonNotes);
+
+    static bool checkAnnotationsForSameVoice(Segment* segment, track_idx_t prevTrack, track_idx_t nextTrack);
+    static bool checkNoteSpannersForUnison(const Note* note1, const Note* note2);
+    static bool checkSpannersForSameVoice(track_idx_t prevTrack, track_idx_t nextTrack, StaveSharingContext& ctx);
+    static bool checkArticulationsForSameVoice(Chord* chord1, Chord* chord2);
+
     static bool canGoToSameStave(track_idx_t prevTrack, track_idx_t nextTrack, StaveSharingContext& ctx);
 
-    static void updateNotation(SharedPart* p, StaveSharingContext& ctx);
+    static void updateNotation(StaveSharingContext& ctx);
     static void computeSegmentsToUpdate(StaveSharingContext& ctx);
-    static void disconnectAll(SharedPart* p, StaveSharingContext& ctx);
-    static void makeSharedNotation(SharedPart* p, StaveSharingContext& ctx);
-    static void cleanup(SharedPart* p, StaveSharingContext& ctx);
+    static void disconnectAll(StaveSharingContext& ctx);
+
+    static void makeSharedNotation(StaveSharingContext& ctx);
+    static void makeSharedChordRests(StaveSharingContext& ctx);
+    static void makeSharedArticulations(Chord* originChord, Chord* sharedChord);
+    static void makeSharedTiesAndNoteSpanners(Note* originNote, Note* sharedNote);
+    static void makeSharedAnnotations(StaveSharingContext& ctx);
+    static void makeSharedSpanners(StaveSharingContext& ctx);
+
+    static void makeStaveSharingLabels(StaveSharingContext& ctx);
+    static bool unisonNoteNeedsLabel(Note* unisonNote, bool& isForNewSystem, StaveSharingContext& ctx);
+    static String formatUnisonLabel(Note* unisonNote, const SharedTrackMap& trackMap, bool isForNewSystem, const StaveSharingContext& ctx);
+
+    static void manageVoicePropertyAndTrackForSharedItems(const std::vector<EngravingItem*>& sharedItems, track_idx_t startOriginTrack,
+                                                          track_idx_t endOriginTrack, const SharedTrackMap& trackMap);
+
+    static void cleanup(StaveSharingContext& ctx);
 };
 }

@@ -422,6 +422,7 @@ enum class ElementType {
     TAB_DURATION_SYMBOL   = int(mu::engraving::ElementType::TAB_DURATION_SYMBOL),
     FSYMBOL               = int(mu::engraving::ElementType::FSYMBOL),
     PAGE                  = int(mu::engraving::ElementType::PAGE),
+    PAGE_LOCK_INDICATOR   = int(mu::engraving::ElementType::PAGE_LOCK_INDICATOR),
     HAIRPIN               = int(mu::engraving::ElementType::HAIRPIN),
     OTTAVA                = int(mu::engraving::ElementType::OTTAVA),
     PEDAL                 = int(mu::engraving::ElementType::PEDAL),
@@ -1390,13 +1391,17 @@ enum class TremoloType {
     R16       = int(mu::engraving::TremoloType::R16),
     R32       = int(mu::engraving::TremoloType::R32),
     R64       = int(mu::engraving::TremoloType::R64),
+    R128      = int(mu::engraving::TremoloType::R128),
+    R256      = int(mu::engraving::TremoloType::R256),
     BUZZ_ROLL = int(mu::engraving::TremoloType::BUZZ_ROLL),
 
     /// two-chord tremolos
-    C8  = int(mu::engraving::TremoloType::C8),
-    C16 = int(mu::engraving::TremoloType::C16),
-    C32 = int(mu::engraving::TremoloType::C32),
-    C64 = int(mu::engraving::TremoloType::C64),
+    C8   = int(mu::engraving::TremoloType::C8),
+    C16  = int(mu::engraving::TremoloType::C16),
+    C32  = int(mu::engraving::TremoloType::C32),
+    C64  = int(mu::engraving::TremoloType::C64),
+    C128 = int(mu::engraving::TremoloType::C128),
+    C256 = int(mu::engraving::TremoloType::C256),
 };
 Q_ENUM_NS(TremoloType);
 

@@ -28,7 +28,7 @@
 
 #include "engraving/dom/accidental.h"
 #include "engraving/dom/barline.h"
-#include "engraving/dom/bracketItem.h"
+#include "engraving/dom/bracketitem.h"
 #include "engraving/dom/chord.h"
 #include "engraving/dom/dynamic.h"
 #include "engraving/dom/factory.h"
@@ -604,7 +604,7 @@ void MnxImporter::createTremolo(const mnx::sequence::MultiNoteTremolo& mnxTremol
         return;
     }
     int tremoloBeamsNum = int(TremoloType::C8) - 1 + mnxTremolo.marks();
-    tremoloBeamsNum = std::clamp(tremoloBeamsNum, int(TremoloType::C8), int(TremoloType::C64));
+    tremoloBeamsNum = std::clamp(tremoloBeamsNum, int(TremoloType::C8), int(TremoloType::C256));
     if (tremoloBeamsNum <= c1->durationType().hooks()) {
         return; // no tremolo is possible
     }
@@ -662,10 +662,11 @@ ChordRest* MnxImporter::importEvent(const mnx::sequence::Event& event,
     if (crossStaffMove != 0) {
         const staff_idx_t targetStaffIdxCandidate = static_cast<staff_idx_t>(int(staffIdx) + crossStaffMove);
         Staff* candidateStaff = m_score->staff(targetStaffIdxCandidate);
+        const TrackRange basePartTrackRange = baseStaff->part()->trackRange();
         const bool canUseCandidate = candidateStaff && candidateStaff->visible()
                                      && candidateStaff->isLinked() == baseStaff->isLinked()
-                                     && staff2track(staffIdx) >= baseStaff->part()->startTrack()
-                                     && staff2track(targetStaffIdxCandidate) < baseStaff->part()->endTrack()
+                                     && staff2track(staffIdx) >= basePartTrackRange.startTrack
+                                     && staff2track(targetStaffIdxCandidate) < basePartTrackRange.endTrack
                                      && candidateStaff->staffType(eventTick)->group() == baseStaff->staffType(eventTick)->group();
         if (canUseCandidate) {
             targetStaff = candidateStaff;

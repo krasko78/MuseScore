@@ -31,7 +31,7 @@
 #include "style/textstyle.h"
 #include "types/typesconv.h"
 
-#include "bracketItem.h"
+#include "bracketitem.h"
 #include "linkedobjects.h"
 #include "masterscore.h"
 #include "score.h"
@@ -385,7 +385,7 @@ static void changeProperty(EngravingObject* e, Pid t, const PropertyValue& st, P
     if (e->getProperty(t) != st || e->propertyFlags(t) != ps) {
         if (e->isBracketItem()) {
             BracketItem* bi = toBracketItem(e);
-            e->score()->undo(new ChangeBracketProperty(bi->staff(), bi->column(), t, st, ps));
+            e->score()->undo(new ChangeBracketProperty(bi->startStaff(), bi->column(), t, st, ps));
         } else {
             e->score()->undo(new ChangeProperty(e, t, st, ps));
         }
@@ -424,6 +424,20 @@ static void changeProperties(EngravingObject* object, Pid propertyId, const Prop
         default:
             break;
         }
+    }
+
+    if (!object->isEngravingItem() || propertyGroup(propertyId) == PropertyGroup::POSITION) {
+        return;
+    }
+
+    EngravingItem* item = toEngravingItem(object);
+    for (EngravingItem* originItem : item->originItems()) {
+        // This is a shared item: propagate to all origin items
+        changeProperty(originItem, propertyId, propertyValue, propertyFlag);
+    }
+    if (EngravingItem* sharedItem = item->sharedItem(); sharedItem && sharedItem->originItems().front() == item) {
+        // This is the first origin item of the shared item: propagate to shared item
+        changeProperty(sharedItem, propertyId, propertyValue, propertyFlag);
     }
 }
 
@@ -727,32 +741,7 @@ bool EngravingObject::isSLineSegment() const
 
 bool EngravingObject::isTextBase() const
 {
-    return type() == ElementType::TEXT
-           || type() == ElementType::LYRICS
-           || type() == ElementType::DYNAMIC
-           || type() == ElementType::EXPRESSION
-           || type() == ElementType::FINGERING
-           || type() == ElementType::HARMONY
-           || type() == ElementType::MARKER
-           || type() == ElementType::JUMP
-           || type() == ElementType::STAFF_TEXT
-           || type() == ElementType::SYSTEM_TEXT
-           || type() == ElementType::TRIPLET_FEEL
-           || type() == ElementType::PLAY_COUNT_TEXT
-           || type() == ElementType::PLAYTECH_ANNOTATION
-           || type() == ElementType::CAPO
-           || type() == ElementType::STRING_TUNINGS
-           || type() == ElementType::REHEARSAL_MARK
-           || type() == ElementType::INSTRUMENT_CHANGE
-           || type() == ElementType::FIGURED_BASS
-           || type() == ElementType::TEMPO_TEXT
-           || type() == ElementType::INSTRUMENT_NAME
-           || type() == ElementType::MEASURE_NUMBER
-           || type() == ElementType::MMREST_RANGE
-           || type() == ElementType::STICKING
-           || type() == ElementType::HARP_DIAGRAM
-           || type() == ElementType::GUITAR_BEND_TEXT
-           || type() == ElementType::HAMMER_ON_PULL_OFF_TEXT;
+    return muse::contains(TEXTBASE_TYPES, type());
 }
 
 //---------------------------------------------------------

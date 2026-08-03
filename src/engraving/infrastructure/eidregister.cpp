@@ -37,6 +37,7 @@ EID EIDRegister::newEIDForItem(const EngravingObject* item)
 
 void EIDRegister::registerItemEID(const EID& eid, const EngravingObject* item)
 {
+    std::lock_guard lock(m_mutex);
     IF_ASSERT_FAILED(eid.isValid() && item) {
         return;
     }
@@ -58,6 +59,7 @@ void EIDRegister::registerItemEID(const EID& eid, const EngravingObject* item)
 
 void EIDRegister::removeItem(const EngravingObject* item)
 {
+    std::lock_guard lock(m_mutex);
     // NOTE: needed only when elements are removed during read (e.g. broken spanners)
 
     auto itemIter = m_itemToEid.find(const_cast<EngravingObject*>(item));
@@ -78,8 +80,25 @@ void EIDRegister::removeItem(const EngravingObject* item)
     m_eidToItem.erase(eidIter);
 }
 
+void EIDRegister::onItemDestroyed(const EngravingObject* item)
+{
+    std::lock_guard lock(m_mutex);
+    // NOTE: most items never get an EID assigned, so a missing entry is the normal case.
+    // Items that do have one must be unregistered here: a later allocation can reuse
+    // the freed address, and a stale entry would corrupt the register.
+
+    auto itemIter = m_itemToEid.find(const_cast<EngravingObject*>(item));
+    if (itemIter == m_itemToEid.end()) {
+        return;
+    }
+
+    m_eidToItem.erase(itemIter->second);
+    m_itemToEid.erase(itemIter);
+}
+
 EngravingObject* EIDRegister::itemFromEID(const EID& eid) const
 {
+    std::shared_lock lock(m_mutex);
     auto iter = m_eidToItem.find(eid);
     IF_ASSERT_FAILED(iter != m_eidToItem.end()) {
         return nullptr;
@@ -89,6 +108,7 @@ EngravingObject* EIDRegister::itemFromEID(const EID& eid) const
 
 EID EIDRegister::EIDFromItem(const EngravingObject* item) const
 {
+    std::shared_lock lock(m_mutex);
     auto iter = m_itemToEid.find(const_cast<EngravingObject*>(item));
     return iter == m_itemToEid.end() ? EID::invalid() : iter->second;
 }

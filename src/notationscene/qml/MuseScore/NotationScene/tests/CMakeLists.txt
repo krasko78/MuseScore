@@ -32,6 +32,7 @@ set(MODULE_TEST_SRC
 
 set(MODULE_TEST_LINK
     appshell # krasko
+    Qt::Quick
     engraving
     notationscene_qml
 )

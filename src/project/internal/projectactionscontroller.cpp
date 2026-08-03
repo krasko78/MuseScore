@@ -19,6 +19,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 #include "projectactionscontroller.h"
 
 #include <QBuffer>
@@ -38,6 +39,10 @@
 #include "cloud/qml/Muse/Cloud/enums.h"
 #include "engraving/infrastructure/mscio.h"
 #include "engraving/engravingerrors.h"
+
+#include "notation/imasternotation.h"
+#include "notation/inotationinteraction.h"
+#include "notation/inotationselection.h"
 
 #include "projecterrors.h"
 #include "projectextensionpoints.h"
@@ -91,6 +96,7 @@ void ProjectActionsController::init()
 
     dispatcher()->reg(this, "file-export", this, &ProjectActionsController::exportScore);
     dispatcher()->reg(this, "file-import-pdf", this, &ProjectActionsController::importPdf);
+    dispatcher()->reg(this, "file-import-audio-to-score", this, &ProjectActionsController::importAudioToScore);
 
     dispatcher()->reg(this, "print", this, &ProjectActionsController::printScore);
 
@@ -133,6 +139,7 @@ bool ProjectActionsController::canReceiveAction(const ActionCode& code) const
             "file-new",
             "file-open",
             "file-import-pdf",
+            "file-import-audio-to-score",
             "continue-last-session",
             "clear-recent",
         };
@@ -711,7 +718,7 @@ bool ProjectActionsController::closeOpenedProject(bool goToHome)
     }
 
     if (globalContext()->playbackState()->isPlaying()) {
-        dispatcher()->dispatch("stop");
+        commandDispatcher()->dispatch(rcommand::Command("command://playback/stop"));
     }
 
     bool result = true;
@@ -1851,6 +1858,11 @@ void ProjectActionsController::warnProjectCannotBeOpened(const Ret& ret, const m
 void ProjectActionsController::importPdf()
 {
     platformInteractive()->openUrl("https://musescore.com/import");
+}
+
+void ProjectActionsController::importAudioToScore()
+{
+    platformInteractive()->openUrl("https://musescore.com/upload?format=audio2score");
 }
 
 void ProjectActionsController::clearRecentScores()
