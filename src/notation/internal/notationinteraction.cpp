@@ -46,6 +46,8 @@
 #include "draw/painter.h"
 #include "draw/types/pen.h"
 
+#include "engraving/iengravingconfiguration.h" // IWYU pragma: keep
+
 // TODO: Don't include from engraving/internal
 #include "engraving/internal/qmimedataadapter.h"
 
@@ -126,6 +128,7 @@
 #include "engraving/editing/textedit.h"
 #include "engraving/editing/transaction/transaction.h"
 #include "engraving/editing/transpose.h"
+#include "engraving/rendering/iscorerenderer.h"
 #include "engraving/rw/rwregister.h"
 #include "engraving/rw/xmlreader.h"
 
@@ -2354,12 +2357,10 @@ void NotationInteraction::applyPaletteElementToList(EngravingItem* element, mu::
         const ActionIcon* icon = toActionIcon(element);
         switch (icon->actionType()) {
         case ActionIconType::SYSTEM_LOCK: {
-            engraving::Transaction& tx = score->transactionManager()->currentOrDummyTransaction();
             EditSystemLocks::toggleSystemLock(tx, score, score->selection().selectedSystems());
             return;
         }
         case ActionIconType::PAGE_LOCK: {
-            engraving::Transaction& tx = score->transactionManager()->currentOrDummyTransaction();
             EditPageLocks::togglePageLock(tx, score, score->selection().pagesContainingSelection());
             return;
         }
@@ -4261,7 +4262,7 @@ bool NotationInteraction::doTextEdit(QKeyEvent* event, TextBase* tb)
     const int col = static_cast<int>(cursor->column());
     if (col > 1) {
         const String prev = cursor->extractText(row, col - 2, row, col - 1);
-        useCloseQuote = prev != String(" ");
+        useCloseQuote = !prev.isEmpty() && !prev.front().isSpace();
     }
 
     //: Means: an editing operation triggered by a keystroke

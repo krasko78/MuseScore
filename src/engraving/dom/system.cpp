@@ -27,6 +27,8 @@
 
 #include "system.h"
 
+#include "iengravingconfiguration.h" // IWYU pragma: keep
+
 #include "style/style.h"
 
 #include "../editing/navigation.h"
@@ -35,7 +37,6 @@
 #include "box.h"
 #include "bracket.h"
 #include "bracketitem.h"
-#include "chord.h"
 #include "chordrest.h"
 #include "factory.h"
 #include "measure.h"
@@ -725,6 +726,10 @@ MeasureBase* System::nextMeasure(const MeasureBase* m) const
 
 void System::scanElements(std::function<void(EngravingItem*)> func)
 {
+    if (m_pageLockIndicator) {
+        func(m_pageLockIndicator);
+    }
+
     if (vbox()) {
         return;
     }
@@ -741,10 +746,6 @@ void System::scanElements(std::function<void(EngravingItem*)> func)
 
     if (m_staffVisibilityIndicator) {
         func(m_staffVisibilityIndicator);
-    }
-
-    if (m_pageLockIndicator) {
-        func(m_pageLockIndicator);
     }
 
     for (auto i : m_systemLockIndicators) {
@@ -776,7 +777,7 @@ void System::scanElements(std::function<void(EngravingItem*)> func)
         }
         bool v = true;
         Spanner* spanner = ss->spanner();
-        if (spanner->anchor() == Spanner::Anchor::SEGMENT || spanner->anchor() == Spanner::Anchor::CHORD) {
+        if (spanner->anchor() == Spanner::Anchor::SEGMENT || spanner->anchor() == Spanner::Anchor::CHORDREST) {
             EngravingItem* se = spanner->startElement();
             EngravingItem* ee = spanner->endElement();
             bool v1 = true;

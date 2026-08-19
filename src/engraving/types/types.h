@@ -1492,6 +1492,12 @@ enum class LayoutFlag : unsigned char {
 };
 
 typedef muse::Flags<LayoutFlag> LayoutFlags;
+
+enum class LoopBoundaryType : signed char {
+    Unknown = -1,
+    LoopIn = 0,
+    LoopOut = 1
+};
 } // mu::engraving
 
 template<>

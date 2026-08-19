@@ -2626,10 +2626,6 @@ const UiActionList NotationUiActions::s_actions = {
              TranslatableString("action", "Insert staff type change"),
              IconCode::Code::STAFF_TYPE_CHANGE
              ),
-    UiAction("notation-popup-menu",
-             mu::context::UiCtxProjectFocused,
-             mu::context::CTX_NOTATION_FOCUSED
-             ),
     UiAction("standard-bend",
              mu::context::UiCtxProjectFocused,
              mu::context::CTX_NOTATION_OPENED,
@@ -3056,11 +3052,6 @@ bool NotationUiActions::actionChecked(const UiAction& act) const
         if (interaction) {
             return isScoreConfigChecked(act.code, interaction->scoreConfig());
         }
-    }
-
-    auto engravingDebuggingActionsSearch = NotationActionController::engravingDebuggingActions.find(act.code);
-    if (engravingDebuggingActionsSearch != NotationActionController::engravingDebuggingActions.cend()) {
-        return engravingConfiguration()->debuggingOptions().*(engravingDebuggingActionsSearch->second);
     }
 
     return false;

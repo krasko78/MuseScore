@@ -19,6 +19,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 #include "importtef.h"
 #include "measurehandler.h"
 #include "readinglist.h"
@@ -32,6 +33,7 @@
 #include "engraving/dom/glissando.h"
 #include "engraving/dom/hammeronpulloff.h"
 #include "engraving/dom/keysig.h"
+#include "engraving/dom/measure.h"
 #include "engraving/dom/measurebase.h"
 #include "engraving/dom/note.h"
 #include "engraving/dom/part.h"
@@ -558,7 +560,6 @@ static void addContinuousSlideHammerOn(Score* _score, const std::map<const TefNo
         /// Layout info
         if (tefNote->simpleEffect == 3) {
             Glissando* gl = mu::engraving::Factory::createGlissando(_score->dummy());
-            gl->setAnchor(Spanner::Anchor::NOTE);
             gl->setStartElement(startNote);
             gl->setTrack(track);
             gl->setTick(startTick);

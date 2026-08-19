@@ -23,6 +23,8 @@
 
 #include "measurelayout.h"
 
+#include "iengravingconfiguration.h" // IWYU pragma: keep
+
 #include "dom/ambitus.h"
 #include "dom/barline.h"
 #include "dom/beam.h"
@@ -40,6 +42,7 @@
 #include "dom/parenthesis.h"
 #include "dom/spacer.h"
 #include "dom/score.h"
+#include "dom/staff.h"
 #include "dom/stafflines.h"
 #include "dom/system.h"
 #include "dom/tie.h"
@@ -48,14 +51,12 @@
 #include "dom/tremolotwochord.h"
 #include "dom/utils.h"
 
-#include "editing/addremoveelement.h"
 #include "editing/editkeysig.h"
-#include "editing/editmeasures.h"
-#include "editing/editproperty.h"
 #include "types/typesconv.h"
 
 #include "arpeggiolayout.h"
 #include "beamlayout.h"
+#include "chordbracketlayout.h"
 #include "chordlayout.h"
 #include "horizontalspacing.h"
 #include "layoutcontext.h"
@@ -302,6 +303,7 @@ void MeasureLayout::layoutMeasure(MeasureBase* currentMB, LayoutContext& ctx)
                 }
             }
         } else if (segment.isChordRestType()) {
+            ChordBracketLayout::layoutSegment(&segment, ctx);
             for (EngravingItem* e : segment.annotations()) {
                 if (e->isSymbol() || e->isHarmony() || e->isFretDiagram()) {
                     TLayout::layoutItem(e, ctx);
@@ -500,6 +502,7 @@ void MeasureLayout::computePreSpacingItems(Measure* m, LayoutContext& ctx)
             }
         }
 
+        ChordBracketLayout::layoutSegment(&seg, ctx);
         seg.createShapes();
         isFirstChordInMeasure = false;
     }

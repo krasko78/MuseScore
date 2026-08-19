@@ -27,10 +27,12 @@
 #include "global/types/number.h"
 #include "draw/fontmetrics.h"
 
+#include "iengravingconfiguration.h" // IWYU pragma: keep
+#include "iengravingfont.h"
+
 #include "infrastructure/rtti.h"
 #include "infrastructure/ld_access.h"
 
-#include "iengravingfont.h"
 #include "types/typesconv.h"
 #include "types/symnames.h"
 #include "dom/score.h"
@@ -90,6 +92,7 @@
 #include "dom/lyrics.h"
 
 #include "dom/marker.h"
+#include "dom/measure.h"
 #include "dom/measurebase.h"
 #include "dom/measurenumber.h"
 #include "dom/measurenumberbase.h"
@@ -931,7 +934,7 @@ void TLayout::layoutChordBracket(const ChordBracket* item, Arpeggio::LayoutData*
     ldata->setMag(item->staff() ? item->staff()->staffMag(item->tick()) : item->mag());
     ldata->magS = conf.magS(ldata->mag());
 
-    ldata->setShape(Shape(RectF(0.0, ldata->top, item->absoluteFromSpatium(item->hookLength()), ldata->bottom), item));
+    ldata->setShape(Shape(RectF(0.0, ldata->top, item->absoluteFromSpatium(item->hookLength()), ldata->bottom).normalized(), item));
 
     const Note* upnote = item->chord()->upNote();
     ldata->setPosY(upnote->y() + upnote->ldata()->bbox().top());
@@ -2447,8 +2450,7 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                     if (ldata->offsetChanged() != OffsetChange::NONE) {
                         // user moved element within the skyline
                         // we may need to adjust minDistance, yd, and/or offset
-                        bool inStaff = above ? r.bottom() + rebase > 0.0 : r.top() + rebase < item->staff()->staffHeight(item->tick());
-                        Autoplace::rebaseMinDistance(item, ldata, md, yd, sp, rebase, above, inStaff);
+                        Autoplace::rebaseMinDistance(item, ldata, md, yd, sp, rebase, above);
                     }
                     ldata->moveY(yd);
                 }
@@ -2494,8 +2496,7 @@ void TLayout::layoutFingering(const Fingering* item, Fingering::LayoutData* ldat
                     if (ldata->offsetChanged() != OffsetChange::NONE) {
                         // user moved element within the skyline
                         // we may need to adjust minDistance, yd, and/or offset
-                        bool inStaff = above ? r.bottom() + rebase > 0.0 : r.top() + rebase < item->staff()->staffHeight(item->tick());
-                        Autoplace::rebaseMinDistance(item, ldata, md, yd, sp, rebase, above, inStaff);
+                        Autoplace::rebaseMinDistance(item, ldata, md, yd, sp, rebase, above);
                     }
                     ldata->moveY(yd);
                 }
@@ -2959,16 +2960,16 @@ void TLayout::layoutGradualTempoChange(GradualTempoChange* item, LayoutContext& 
     layoutLine(item, ctx);
 }
 
-void TLayout::layoutGuitarBend(GuitarBend* item, LayoutContext& ctx)
+void TLayout::layoutGuitarBend(GuitarBend* item, LayoutContext& ctx, System* system)
 {
     LAYOUT_CALL_ITEM(item);
     item->computeBendAmount();
 
-    GuitarBendLayout::updateSegmentsAndLayout(item, ctx);
+    GuitarBendLayout::updateSegmentsAndLayout(item, ctx, system);
 
     item->updateHoldLine();
     if (item->holdLine()) {
-        GuitarBendLayout::updateSegmentsAndLayout(item->holdLine(), ctx);
+        GuitarBendLayout::updateSegmentsAndLayout(item->holdLine(), ctx, system);
     }
 }
 
@@ -6765,13 +6766,22 @@ SpannerSegment* TLayout::layoutSystem(Spanner* item, System* system, LayoutConte
 SpannerSegment* TLayout::getNextLayoutSystemSegment(Spanner* spanner, System* system,
                                                     std::function<SpannerSegment* (System* parent)> createSegment)
 {
+    // Prefer a segment which has already been added to the system
     SpannerSegment* seg = nullptr;
+    SpannerSegment* detached = nullptr;
     for (SpannerSegment* ss : spanner->spannerSegments()) {
-        if (!ss->system() || ss->isTappingHalfSlurSegment()) {
+        if (ss->system() == system) {
             seg = ss;
             break;
         }
+        if (!detached && !ss->system()) {
+            detached = ss;
+        }
     }
+    if (!seg) {
+        seg = detached;
+    }
+
     if (!seg) {
         if ((seg = spanner->popUnusedSegment())) {
             spanner->reuse(seg);
@@ -6965,20 +6975,4 @@ SpannerSegment* TLayout::layoutSystem(Slur* line, System* system, LayoutContext&
 {
     LAYOUT_CALL_ITEM(line);
     return SlurTieLayout::layoutSystem(line, system, ctx);
-}
-
-// Called after layout of all systems is done so precise
-// number of systems for this spanner becomes available.
-void TLayout::layoutSystemsDone(Spanner* item)
-{
-    LAYOUT_CALL_ITEM(item);
-    std::vector<SpannerSegment*> validSegments;
-    for (SpannerSegment* seg : item->spannerSegments()) {
-        if (seg->system()) {
-            validSegments.push_back(seg);
-        } else { // TODO: score()->selection().remove(ss); needed?
-            item->pushUnusedSegment(seg);
-        }
-    }
-    item->setSpannerSegments(validSegments);
 }
