@@ -4173,6 +4173,7 @@ bool NotationInteraction::handleKeyPress(QKeyEvent* event)
 
     switch (event->key()) {
     case Qt::Key_Tab:
+    case Qt::Key::Key_F2: // krasko
         if (!editElem->hasGrips()) {
             return false;
         }

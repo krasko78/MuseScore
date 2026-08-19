@@ -1466,7 +1466,10 @@ void NotationViewInputController::keyPressEvent(QKeyEvent* event)
 {
     auto key = event->key();
 
-    if (startTextEditingAllowed() && (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter)) {
+    if (key == Qt::Key::Key_F2) { // krasko start
+        commandDispatcher()->dispatch(SCREEN_EDIT_ELEMENT_COMMAND);
+        event->accept();
+    } else /* krasko end */ if (startTextEditingAllowed() && (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter)) {
         commandDispatcher()->dispatch(SCREEN_EDIT_TEXT_COMMAND);
         event->accept();
     } else if (event->key() == Qt::Key_Escape && m_mouseDownInfo.dragAction == MouseDownInfo::PasteRangeOnRelease) {
