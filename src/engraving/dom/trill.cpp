@@ -48,13 +48,8 @@ static const ElementStyle trillStyle {
     { Sid::trillPlacement, Pid::PLACEMENT },
 };
 
-TrillSegment::TrillSegment(Trill* sp, System* parent)
-    : LineSegment(ElementType::TRILL_SEGMENT, sp, parent, ElementFlag::MOVABLE | ElementFlag::ON_STAFF)
-{
-}
-
-TrillSegment::TrillSegment(System* parent)
-    : LineSegment(ElementType::TRILL_SEGMENT, parent, ElementFlag::MOVABLE | ElementFlag::ON_STAFF)
+TrillSegment::TrillSegment(Trill* sp)
+    : LineSegment(ElementType::TRILL_SEGMENT, sp, ElementFlag::MOVABLE | ElementFlag::ON_STAFF)
 {
 }
 
@@ -230,11 +225,11 @@ void Trill::computeStartElement()
 {
     Spanner::computeStartElement();
     if (startElement() && startElement()->isChord() && m_ornament) {
-        m_ornament->setParent(startElement());
+        m_ornament->setOwnershipParent(startElement());
 
         Chord* cueChord = m_ornament->cueNoteChord();
         if (cueChord) {
-            cueChord->setParent(toChord(startElement())->segment());
+            cueChord->setOwnershipParent(toChord(startElement())->segment());
         }
     }
 }
@@ -261,13 +256,11 @@ PointF Trill::trillLinePos(const SLine* line, Grip grip, System** system)
         return PointF(x, 0.0);
     }
 
-    Segment* graceNoteSeg = segment->preAppendedItem(line->track2()) ? segment : nullptr;
     Segment* clefSeg = segment->isClefType() ? segment : nullptr;
     Fraction curTick = segment->tick();
     while (true) {
         Segment* prevSeg = mmRest ? segment->prev1MM() : segment->prev1();
         if (prevSeg && prevSeg->tick() == curTick) {
-            graceNoteSeg = prevSeg->preAppendedItem(line->track2()) ? prevSeg : graceNoteSeg;
             clefSeg = prevSeg->isClefType() ? prevSeg : clefSeg;
             segment = prevSeg;
         } else {
@@ -287,19 +280,17 @@ PointF Trill::trillLinePos(const SLine* line, Grip grip, System** system)
     }
 
     // Stop line before grace notes
-    if (graceNoteSeg) {
-        const EngravingItem* preAppendedItem = graceNoteSeg->preAppendedItem(line->track2());
-        if (preAppendedItem && preAppendedItem->isGraceNotesGroup()) {
-            // get x position of leftmost grace note
-            const Chord* leftMostGraceChord = nullptr;
-            const GraceNotesGroup* graceGroup = toGraceNotesGroup(preAppendedItem);
-            for (const Chord* graceChord : *graceGroup) {
-                leftMostGraceChord = leftMostGraceChord
-                                     && leftMostGraceChord->x() < graceChord->x() ? leftMostGraceChord : graceChord;
-            }
-            if (leftMostGraceChord) {
-                graceOffset = segment->pageX() - leftMostGraceChord->pageX();
-            }
+    if (const EngravingItem* preAppendedItem = segment->preAppendedItem(line->track2());
+        preAppendedItem&& preAppendedItem->isGraceNotesGroup()) {
+        // get x position of leftmost grace note
+        const Chord* leftMostGraceChord = nullptr;
+        const GraceNotesGroup* graceGroup = toGraceNotesGroup(preAppendedItem);
+        for (const Chord* graceChord : *graceGroup) {
+            leftMostGraceChord = leftMostGraceChord
+                                 && leftMostGraceChord->x() < graceChord->x() ? leftMostGraceChord : graceChord;
+        }
+        if (leftMostGraceChord) {
+            graceOffset = segment->pageX() - leftMostGraceChord->pageX();
         }
     }
 
@@ -334,9 +325,9 @@ static const ElementStyle trillSegmentStyle {
     { Sid::trillMinDistance, Pid::MIN_DISTANCE },
 };
 
-LineSegment* Trill::createLineSegment(System* parent)
+LineSegment* Trill::createLineSegment()
 {
-    TrillSegment* seg = new TrillSegment(this, parent);
+    TrillSegment* seg = new TrillSegment(this);
     seg->setTrack(track());
     seg->setColor(lineColor());
     seg->initElementStyle(&trillSegmentStyle);

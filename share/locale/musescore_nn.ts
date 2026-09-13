@@ -4116,7 +4116,7 @@ followed by dashes</source>
     <message>
         <location filename="../../src/palette/widgets/keyedit.ui" line="111"/>
         <source>Clear</source>
-        <translation type="unfinished"/>
+        <translation>Tøm</translation>
     </message>
     <message>
         <location filename="../../src/palette/widgets/keyedit.ui" line="131"/>
@@ -4524,7 +4524,7 @@ followed by dashes</source>
         <location filename="../../src/notationscene/widgets/selectdialog.ui" line="14"/>
         <location filename="../../src/notationscene/widgets/selectdialog.ui" line="34"/>
         <source>Select</source>
-        <translation type="unfinished"/>
+        <translation>Vel</translation>
     </message>
     <message>
         <location filename="../../src/notationscene/widgets/selectdialog.ui" line="40"/>
@@ -4607,7 +4607,7 @@ followed by dashes</source>
     <message>
         <location filename="../../src/notationscene/widgets/selectnotedialog.ui" line="34"/>
         <source>Select</source>
-        <translation type="unfinished"/>
+        <translation>Vel</translation>
     </message>
     <message>
         <location filename="../../src/notationscene/widgets/selectnotedialog.ui" line="40"/>
@@ -4757,7 +4757,7 @@ followed by dashes</source>
     <message>
         <location filename="../../src/palette/widgets/symboldialog.ui" line="32"/>
         <source>Clear</source>
-        <translation type="unfinished"/>
+        <translation>Tøm</translation>
     </message>
     <message>
         <location filename="../../src/palette/widgets/symboldialog.ui" line="72"/>
@@ -9708,32 +9708,32 @@ followed by dashes</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectuiactions.cpp" line="124"/>
+        <location filename="../../src/project/internal/projectuiactions.cpp" line="128"/>
         <source>Project propert&amp;ies…</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectuiactions.cpp" line="125"/>
+        <location filename="../../src/project/internal/projectuiactions.cpp" line="129"/>
         <source>Project properties</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectuiactions.cpp" line="130"/>
+        <location filename="../../src/project/internal/projectuiactions.cpp" line="134"/>
         <source>&amp;Print…</source>
         <translation>S&amp;kriv ut…</translation>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectuiactions.cpp" line="131"/>
+        <location filename="../../src/project/internal/projectuiactions.cpp" line="135"/>
         <source>Print</source>
         <translation>Skriv ut</translation>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectuiactions.cpp" line="137"/>
+        <location filename="../../src/project/internal/projectuiactions.cpp" line="141"/>
         <source>&amp;Clear list of recent files</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectuiactions.cpp" line="138"/>
+        <location filename="../../src/project/internal/projectuiactions.cpp" line="142"/>
         <source>Clear list of recent files</source>
         <translation type="unfinished"/>
     </message>
@@ -20708,12 +20708,14 @@ Band %1 på streng %2</translation>
     </message>
     <message>
         <location filename="../../src/appshell/qml/MuseScore/AppShell/FirstLaunchSetup/FirstLaunchSetupDialog.qml" line="136"/>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/ConvertButtonBox.qml" line="46"/>
         <location filename="../../src/project/qml/MuseScore/Project/NewScoreDialog.qml" line="157"/>
         <source>Back</source>
-        <translation type="unfinished"/>
+        <translation>Tilbake</translation>
     </message>
     <message>
         <location filename="../../src/appshell/qml/MuseScore/AppShell/FirstLaunchSetup/FirstLaunchSetupDialog.qml" line="192"/>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/LinkPastePanel.qml" line="94"/>
         <location filename="../../src/project/qml/MuseScore/Project/NewScoreDialog.qml" line="168"/>
         <source>Next</source>
         <translation>Neste</translation>
@@ -20743,6 +20745,7 @@ Band %1 på streng %2</translation>
         <location filename="../../src/framework/cloud/qml/Muse/Cloud/RequireAuthorizationDialog.qml" line="72"/>
         <location filename="../../src/framework/ui/qml/Muse/Ui/Dialogs/ProgressDialog.qml" line="98"/>
         <location filename="../../src/palette/qml/MuseScore/Palette/internal/CreateCustomPalettePopup.qml" line="87"/>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/ConvertButtonBox.qml" line="34"/>
         <location filename="../../src/project/qml/MuseScore/Project/NewScoreDialog.qml" line="147"/>
         <location filename="../../src/framework/global/internal/interactive.cpp" line="69"/>
         <location filename="../../src/project/internal/opensaveprojectscenario.cpp" line="350"/>
@@ -20764,7 +20767,7 @@ Band %1 på streng %2</translation>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/TextInputField.qml" line="284"/>
         <location filename="../../src/inspector/qml/MuseScore/Inspector/notation/fretdiagrams/FretDiagramSettings.qml" line="184"/>
         <source>Clear</source>
-        <translation type="unfinished"/>
+        <translation>Tøm</translation>
     </message>
     <message>
         <location filename="../../src/framework/midiremote/qml/Muse/MidiRemote/internal/MidiMappingBottomPanel.qml" line="83"/>
@@ -20892,8 +20895,9 @@ Band %1 på streng %2</translation>
     </message>
     <message>
         <location filename="../../src/framework/workspace/qml/Muse/Workspace/WorkspacesDialog.qml" line="113"/>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/SelectFilePage.qml" line="150"/>
         <source>Select</source>
-        <translation type="unfinished"/>
+        <translation>Vel</translation>
     </message>
     <message>
         <location filename="../../src/inspector/qml/MuseScore/Inspector/common/FrameSettings.qml" line="125"/>
@@ -21280,7 +21284,7 @@ Band %1 på streng %2</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/ProjectUploadedDialog.qml" line="108"/>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1405"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1407"/>
         <source>Success!</source>
         <translation type="unfinished"/>
     </message>
@@ -21359,12 +21363,12 @@ Band %1 på streng %2</translation>
     <message>
         <location filename="../../src/framework/global/internal/interactive.cpp" line="58"/>
         <source>Save all</source>
-        <translation type="unfinished"/>
+        <translation>Lagre alle</translation>
     </message>
     <message>
         <location filename="../../src/framework/global/internal/interactive.cpp" line="59"/>
         <source>Don’t save</source>
-        <translation type="unfinished"/>
+        <translation>Ikkje lagre</translation>
     </message>
     <message>
         <location filename="../../src/framework/global/internal/interactive.cpp" line="60"/>
@@ -21374,27 +21378,27 @@ Band %1 på streng %2</translation>
     <message>
         <location filename="../../src/framework/global/internal/interactive.cpp" line="61"/>
         <source>Yes</source>
-        <translation type="unfinished"/>
+        <translation>Ja</translation>
     </message>
     <message>
         <location filename="../../src/framework/global/internal/interactive.cpp" line="62"/>
         <source>Yes to all</source>
-        <translation type="unfinished"/>
+        <translation>Ja til alle</translation>
     </message>
     <message>
         <location filename="../../src/framework/global/internal/interactive.cpp" line="63"/>
         <source>No</source>
-        <translation type="unfinished"/>
+        <translation>Nei</translation>
     </message>
     <message>
         <location filename="../../src/framework/global/internal/interactive.cpp" line="64"/>
         <source>No to all</source>
-        <translation type="unfinished"/>
+        <translation>Nei til alle</translation>
     </message>
     <message>
         <location filename="../../src/framework/global/internal/interactive.cpp" line="65"/>
         <source>Abort</source>
-        <translation type="unfinished"/>
+        <translation>Avbryt</translation>
     </message>
     <message>
         <location filename="../../src/framework/global/internal/interactive.cpp" line="66"/>
@@ -21404,7 +21408,7 @@ Band %1 på streng %2</translation>
     <message>
         <location filename="../../src/framework/global/internal/interactive.cpp" line="67"/>
         <source>Ignore</source>
-        <translation type="unfinished"/>
+        <translation>Ignorer</translation>
     </message>
     <message>
         <location filename="../../src/framework/global/internal/interactive.cpp" line="70"/>
@@ -21462,6 +21466,35 @@ Band %1 på streng %2</translation>
         <location filename="../../src/notationscene/widgets/realizeharmonydialog.cpp" line="91"/>
         <source>Show more…</source>
         <translation>Vis meir…</translation>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/MultipleFilesPanel.qml" line="255"/>
+        <source>Move up</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/MultipleFilesPanel.qml" line="269"/>
+        <source>Move down</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/MultipleFilesPanel.qml" line="284"/>
+        <source>Select more</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>or</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/FileItem.qml" line="97"/>
+        <source>Remove</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="214"/>
+        <source>Proceed</source>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -22688,12 +22721,12 @@ Band %1 på streng %2</translation>
 <context>
     <name>iex_capella</name>
     <message>
-        <location filename="../../src/importexport/capella/internal/capella.cpp" line="2838"/>
+        <location filename="../../src/importexport/capella/internal/capella.cpp" line="2881"/>
         <source>Import Capella</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/importexport/capella/internal/capella.cpp" line="2839"/>
+        <location filename="../../src/importexport/capella/internal/capella.cpp" line="2882"/>
         <source>Import failed: %1</source>
         <translation type="unfinished"/>
     </message>
@@ -22713,7 +22746,7 @@ Band %1 på streng %2</translation>
     </message>
     <message>
         <location filename="../../src/importexport/guitarpro/internal/gtp/gpconverter.cpp" line="1051"/>
-        <location filename="../../src/importexport/guitarpro/internal/importgtp.cpp" line="2787"/>
+        <location filename="../../src/importexport/guitarpro/internal/importgtp.cpp" line="2795"/>
         <source>Words by %1</source>
         <translation type="unfinished"/>
     </message>
@@ -24414,14 +24447,14 @@ pickup measure</source>
         <source>Major</source>
         <comment>key signature mode</comment>
         <extracomment>mode of a key signature, not an interval</extracomment>
-        <translation type="unfinished"/>
+        <translation>Dur</translation>
     </message>
     <message>
         <location filename="../../src/inspector/qml/MuseScore/Inspector/notation/keysignatures/KeySignatureSettings.qml" line="71"/>
         <source>Minor</source>
         <comment>key signature mode</comment>
         <extracomment>mode of a key signature, not an interval</extracomment>
-        <translation type="unfinished"/>
+        <translation>Moll</translation>
     </message>
     <message>
         <location filename="../../src/inspector/qml/MuseScore/Inspector/notation/keysignatures/KeySignatureSettings.qml" line="72"/>
@@ -24978,14 +25011,14 @@ pickup measure</source>
         <source>Major</source>
         <comment>interval quality</comment>
         <extracomment>Interval, not the mode of a key signature</extracomment>
-        <translation type="unfinished"/>
+        <translation>Dur</translation>
     </message>
     <message>
         <location filename="../../src/inspector/qml/MuseScore/Inspector/notation/ornaments/OrnamentSettings.qml" line="131"/>
         <source>Minor</source>
         <comment>interval quality</comment>
         <extracomment>Interval, not the mode of a key signature</extracomment>
-        <translation type="unfinished"/>
+        <translation>Moll</translation>
     </message>
     <message>
         <location filename="../../src/inspector/qml/MuseScore/Inspector/notation/ornaments/OrnamentSettings.qml" line="157"/>
@@ -28538,7 +28571,7 @@ In addition, Mastering MuseScore features a supportive community of musicians, w
         <location filename="../../src/notationscene/qml/MuseScore/NotationScene/notationcontextmenumodel.cpp" line="276"/>
         <location filename="../../src/notationscene/qml/MuseScore/NotationScene/notationcontextmenumodel.cpp" line="418"/>
         <source>Select</source>
-        <translation type="unfinished"/>
+        <translation>Vel</translation>
     </message>
     <message>
         <location filename="../../src/notationscene/qml/MuseScore/NotationScene/notationcontextmenumodel.cpp" line="295"/>
@@ -30546,7 +30579,7 @@ In addition, Mastering MuseScore features a supportive community of musicians, w
     <message>
         <location filename="../../src/notationscene/widgets/timeline.cpp" line="3071"/>
         <source>Edit instruments</source>
-        <translation type="unfinished"/>
+        <translation>Rediger instrument</translation>
     </message>
     <message>
         <location filename="../../src/notationscene/widgets/timeline.cpp" line="3088"/>
@@ -33393,7 +33426,7 @@ failed: %2</source>
     <message>
         <location filename="../../src/playback/qml/MuseScore/Playback/internal/AudioResourceControl.qml" line="261"/>
         <source>Menu</source>
-        <translation type="unfinished"/>
+        <translation>Meny</translation>
     </message>
     <message>
         <location filename="../../src/playback/qml/MuseScore/Playback/internal/MeasureAndBeatFields.qml" line="77"/>
@@ -33988,7 +34021,7 @@ failed: %2</source>
         <location filename="../../src/preferences/qml/MuseScore/Preferences/internal/MeiSection.qml" line="30"/>
         <source>MEI</source>
         <extracomment>MEI refers to a file format that can be imported and exported in MuseScore. It stands for Music Encoding Initiative.</extracomment>
-        <translation type="unfinished"/>
+        <translation>MEI</translation>
     </message>
     <message>
         <location filename="../../src/preferences/qml/MuseScore/Preferences/internal/MeiSection.qml" line="40"/>
@@ -34054,7 +34087,7 @@ failed: %2</source>
     <message>
         <location filename="../../src/preferences/qml/MuseScore/Preferences/internal/MusicXmlSection.qml" line="29"/>
         <source>MusicXML</source>
-        <translation type="unfinished"/>
+        <translation>MusicXML</translation>
     </message>
     <message>
         <location filename="../../src/preferences/qml/MuseScore/Preferences/internal/MusicXmlSection.qml" line="45"/>
@@ -34774,6 +34807,7 @@ failed: %2</source>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/GeneralInfoView.qml" line="71"/>
         <location filename="../../src/project/internal/notationproject.cpp" line="88"/>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="200"/>
         <source>Untitled score</source>
         <translation type="unfinished"/>
     </message>
@@ -34973,7 +35007,7 @@ failed: %2</source>
     </message>
     <message>
         <location filename="../../src/notationscene/internal/notationactioncontroller.cpp" line="2359"/>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1793"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1795"/>
         <source>File “%1” is corrupted</source>
         <translation type="unfinished"/>
     </message>
@@ -35003,232 +35037,232 @@ failed: %2</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="749"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="751"/>
         <source>Do you want to save changes to the score “%1” before closing?</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="752"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="754"/>
         <source>Your changes will be lost if you don’t save them.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1529"/>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1621"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1531"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1623"/>
         <source>Your score cannot be uploaded to the cloud</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1532"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1534"/>
         <source>This score has become corrupted and contains errors. You can fix the errors manually, or save the score to your computer and get help for this issue on MuseScore.org.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1540"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1542"/>
         <source>Save as…</source>
         <translation>Lagre som...</translation>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1545"/>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1587"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1547"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1589"/>
         <source>Revert to last saved</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1568"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1570"/>
         <source>This score has become corrupted and contains errors</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1572"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1574"/>
         <source>You can continue saving it locally, although the file may become unusable. You can try to fix the errors manually, or get help for this issue on MuseScore.org.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1574"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1576"/>
         <source>You can continue saving it locally, although the file may become unusable. To preserve your score, revert to the last saved version, or fix the errors manually. You can also get help for this issue on MuseScore.org.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1582"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1584"/>
         <source>Save anyway</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1620"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1622"/>
         <source>Your score cannot be saved</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1624"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1626"/>
         <source>This score is corrupted. You can get help for this issue on MuseScore.org.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1627"/>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1815"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1629"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1817"/>
         <source>Get help</source>
-        <translation type="unfinished"/>
+        <translation>Få hjelp</translation>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1677"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1679"/>
         <source>Try again</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1692"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1694"/>
         <source>Revert to last saved?</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1693"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1695"/>
         <source>Your changes will be lost. This action cannot be undone.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1773"/>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1798"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1775"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1800"/>
         <source>Open anyway</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1785"/>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1829"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1787"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1831"/>
         <source>Cannot read file %1</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1786"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1788"/>
         <source>This file was saved using a newer version of MuseScore Studio. Please visit &lt;a href=&quot;%1&quot;&gt;MuseScore.org&lt;/a&gt; to obtain the latest version.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1795"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1797"/>
         <source>This file contains errors that could cause MuseScore Studio to malfunction.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1810"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1812"/>
         <source>File “%1” is corrupted and cannot be opened</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1812"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1814"/>
         <source>Get help for this issue on MuseScore.org.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1834"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1836"/>
         <source>This file does not exist or cannot be accessed at the moment.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1837"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1839"/>
         <source>This file could not be opened. Please make sure that MuseScore Studio has permission to read this file.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1844"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1846"/>
         <source>An error occurred while reading this file.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1905"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1927"/>
         <source>All supported files</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1906"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1928"/>
         <source>MuseScore files</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1907"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1929"/>
         <source>MusicXML files</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1908"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1930"/>
         <source>MIDI files</source>
         <translation>MIDI-filer</translation>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1909"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1931"/>
         <source>MNX files (experimental)</source>
-        <translation type="unfinished"/>
+        <translation>MNX-filer (eksperimentell)</translation>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1910"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1932"/>
         <source>MuseData files</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1911"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1933"/>
         <source>Capella files</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1912"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1934"/>
         <source>BB files (experimental)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1913"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1935"/>
         <source>Overture / Score Writer files (experimental)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1914"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1936"/>
         <source>Bagpipe Music Writer files (experimental)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1915"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1937"/>
         <source>Guitar Pro files</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1916"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1938"/>
         <source>Power Tab Editor files (experimental)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1917"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1939"/>
         <source>MEI files</source>
-        <translation type="unfinished"/>
+        <translation>MEI-filer</translation>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1918"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1940"/>
         <source>TablEdit files (experimental)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1919"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1941"/>
         <source>Uncompressed MuseScore folders (experimental)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1920"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1942"/>
         <source>MuseScore developer files</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1921"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1943"/>
         <source>MuseScore backup files</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1923"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1945"/>
         <source>Open</source>
         <translation>Opne</translation>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectconfiguration.cpp" line="135"/>
+        <location filename="../../src/project/internal/projectconfiguration.cpp" line="139"/>
         <source>Create backup of file on disk before saving new changes</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectconfiguration.cpp" line="367"/>
+        <location filename="../../src/project/internal/projectconfiguration.cpp" line="386"/>
         <source>Untitled</source>
         <translation>Namnlaus</translation>
     </message>
@@ -35301,7 +35335,7 @@ failed: %2</source>
     <message>
         <location filename="../../src/framework/cloud/qml/Muse/Cloud/internal/CloudScoresListView.qml" line="115"/>
         <source>Private</source>
-        <translation type="unfinished"/>
+        <translation>Privat</translation>
     </message>
     <message>
         <location filename="../../src/framework/cloud/qml/Muse/Cloud/internal/CloudScoresListView.qml" line="117"/>
@@ -35388,10 +35422,445 @@ failed: %2</source>
     </message>
 </context>
 <context>
+    <name>project/convert</name>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/ConvertFileToScoreDialog.qml" line="35"/>
+        <source>Convert file to score</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/ConvertFileToScoreDialog.qml" line="86"/>
+        <source>Convert audio to score (beta)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/ConvertFileToScoreDialog.qml" line="87"/>
+        <source>Convert a file to score</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/FileRequirements.qml" line="66"/>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/FileRequirements.qml" line="89"/>
+        <source>File requirements</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/SaveAsField.qml" line="45"/>
+        <source>Save as</source>
+        <translation>Lagre som</translation>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/ConvertButtonBox.qml" line="57"/>
+        <source>Convert</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/SelectFilePage.qml" line="117"/>
+        <source>Drag your file here</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/SelectFilePage.qml" line="125"/>
+        <source>Use a PDF, images, or MP3 (beta)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="190"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="398"/>
+        <source>Log in or create a free account on MuseScore.com to convert a file.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="216"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="761"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="795"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="828"/>
+        <source>Would you like to convert this file to a score?</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="217"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="762"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="796"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="829"/>
+        <source>This file needs to be converted online before it can be edited. Would you like to proceed?</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="269"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="340"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="703"/>
+        <source>Unable to connect to MuseScore.com</source>
+        <translation>Klarte ikkje å kople til MuseScore.com</translation>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="270"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="341"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="704"/>
+        <source>An internet connection is required to convert a file. Please check your internet connection or try again later.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="278"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="512"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="523"/>
+        <source>The maximum file size is %1. Reduce the size of your file and try again.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="280"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="515"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="526"/>
+        <source>This file is too large</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/SelectFilePage.qml" line="218"/>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/SelectFilePage.qml" line="240"/>
+        <source>Uploading guidelines</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="287"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="534"/>
+        <source>The maximum combined file size for all images is %1. Choose a smaller file or remove some images to continue.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="290"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="538"/>
+        <source>Maximum file size exceeded</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="296"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="488"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="732"/>
+        <source>This file type is not compatible</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="297"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="489"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="733"/>
+        <source>Make sure you’ve selected a PDF, image or MP3 file.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="308"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="592"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="619"/>
+        <source>Make sure you’re using a valid link from YouTube or Audio.com.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="310"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="646"/>
+        <source>Make sure you’re using a valid link from YouTube.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="312"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="673"/>
+        <source>Make sure you’re using a valid link from Audio.com.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="315"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="591"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="618"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="645"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="672"/>
+        <source>Please use a compatible URL</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="321"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="495"/>
+        <source>Please select files of the same type</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="322"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="496"/>
+        <source>Per conversion, you may select either one MP3 file, one PDF file, or multiple image files.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="329"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="503"/>
+        <source>Please select a single PDF file</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="330"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="504"/>
+        <source>Only one PDF file can be converted at a time.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="336"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="545"/>
+        <source>You can convert up to %1 audio files at a time. Remove some files and try again.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="338"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="549"/>
+        <source>Too many files selected</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="344"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="556"/>
+        <source>You can convert up to %1 images at a time. Remove some images and try again.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="346"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="559"/>
+        <source>Too many images selected</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="355"/>
+        <source>Upload more</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="356"/>
+        <source>Go to scores</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="359"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="865"/>
+        <source>We’ll notify you once the score is ready to open. You can check the status of the score in Home &gt; Scores.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="363"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="864"/>
+        <source>Your score is being processed</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="392"/>
+        <source>Open score</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="393"/>
+        <source>Dismiss</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="396"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="195"/>
+        <source>‘%1’ has finished processing and is ready to open.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="400"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="194"/>
+        <source>Your score is ready!</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="414"/>
+        <source>Good</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="415"/>
+        <source>Bad</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="419"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="261"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="293"/>
+        <source>How does your score look?</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/internal/convertfiletoscorescenario.cpp" line="420"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="262"/>
+        <location filename="../../src/project/tests/convertfiletoscorescenariotest.cpp" line="294"/>
+        <source>We’re always improving our score conversion accuracy. Let us know how we did with this one.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="59"/>
+        <source>%1 max</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="65"/>
+        <source>%1 max combined</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="224"/>
+        <source>%1 pages max</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="228"/>
+        <source>PDF</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="255"/>
+        <source>Max %1 images</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Images will be combined into one score in the order you upload them</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/filelistmodel.cpp" line="145"/>
+        <source>Images will be combined into one score in the order shown here</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/filelistmodel.cpp" line="268"/>
+        <source>%1/%2 used</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="259"/>
+        <source>Images</source>
+        <translation>Bilde</translation>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="267"/>
+        <source>%1 format</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>1 file per upload</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>%1 files per upload</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="282"/>
+        <source>Audio</source>
+        <translation>Lyd</translation>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="111"/>
+        <source>Paste a link from %1 (beta)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="107"/>
+        <source>Paste a link from %1 or %2 (beta)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="227"/>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="275"/>
+        <source>1 file per conversion</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="277"/>
+        <source>%1 files per conversion</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="342"/>
+        <source>Or paste a link from %1 or %2 (beta)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="346"/>
+        <source>Or paste a link from %1 (beta)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="406"/>
+        <source>Supported files</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="407"/>
+        <source>All files</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="414"/>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="417"/>
+        <source>Choose file</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="496"/>
+        <source>No, stay here</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="497"/>
+        <source>Yes, go back</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="500"/>
+        <source>Are you sure you want to go back?</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="501"/>
+        <source>Your current selection will be lost.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="485"/>
+        <source>“%1” cannot be used as a file name. Please choose a different name.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/ConvertFromLinkPanel.qml" line="94"/>
+        <source>Convert from link</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/LinkEntryPage.qml" line="120"/>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/LinkPastePanel.qml" line="82"/>
+        <source>Link</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/LinkEntryPage.qml" line="131"/>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/convertfiletoscoremodel.cpp" line="281"/>
+        <source>Recommended for solo arrangements only</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/MultipleFilesPanel.qml" line="83"/>
+        <source>Selected files</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/project/qml/MuseScore/Project/internal/ConvertFileToScore/MultipleFilesPanel.qml" line="225"/>
+        <source>%1/%2 max files</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Maximum files selected (%1)</source>
+        <translation type="unfinished"/>
+    </message>
+</context>
+<context>
     <name>project/export</name>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/ExportDialog.qml" line="34"/>
-        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="91"/>
+        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="93"/>
         <source>Export</source>
         <translation>Eksporter</translation>
     </message>
@@ -35585,64 +36054,64 @@ failed: %2</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="70"/>
+        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="72"/>
         <source>Score_and_Parts</source>
         <extracomment>Used in export filename suggestion. Please use only characters that are valid for filenames.</extracomment>
         <translation>Partitur_og_stemmer</translation>
     </message>
     <message>
-        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="73"/>
+        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="75"/>
         <source>Parts</source>
         <extracomment>Used in export filename suggestion. Please use only characters that are valid for filenames.</extracomment>
         <translation>Stemmer</translation>
     </message>
     <message>
-        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="358"/>
+        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="360"/>
         <source>File already exists</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="359"/>
+        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="361"/>
         <source>A file already exists with the filename %1. Do you want to replace it?</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="361"/>
+        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="363"/>
         <source>Replace</source>
         <translation>Erstatt</translation>
     </message>
     <message>
-        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="362"/>
+        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="364"/>
         <source>Replace all</source>
         <translation>Erstatt alle</translation>
     </message>
     <message>
-        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="363"/>
+        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="365"/>
         <source>Skip</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="364"/>
+        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="366"/>
         <source>Skip all</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="387"/>
+        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="389"/>
         <source>Error</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="388"/>
+        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="390"/>
         <source>An error occurred while writing the file %1. Do you want to retry?</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="449"/>
+        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="451"/>
         <source>Exporting audio…</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="449"/>
+        <location filename="../../src/project/internal/exportprojectscenario.cpp" line="451"/>
         <source>Exporting…</source>
         <translation>Eksporterer…</translation>
     </message>
@@ -35675,85 +36144,85 @@ failed: %2</source>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="70"/>
         <source>PDF file</source>
-        <translation type="unfinished"/>
+        <translation>PDF-fil</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="71"/>
         <source>PDF files</source>
-        <translation type="unfinished"/>
+        <translation>PDF-filer</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="74"/>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="75"/>
         <source>PNG images</source>
-        <translation type="unfinished"/>
+        <translation>PNG-bilde</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="78"/>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="79"/>
         <source>SVG images</source>
-        <translation type="unfinished"/>
+        <translation>SVG-bilde</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="82"/>
         <source>MP3 audio</source>
-        <translation type="unfinished"/>
+        <translation>MP3-lyd</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="83"/>
         <source>MP3 audio files</source>
-        <translation type="unfinished"/>
+        <translation>MP3-lydfiler</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="86"/>
         <source>WAV audio</source>
-        <translation type="unfinished"/>
+        <translation>WAV-lyd</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="87"/>
         <source>WAV audio files</source>
-        <translation type="unfinished"/>
+        <translation>WAV-lydfiler</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="90"/>
         <source>OGG audio</source>
-        <translation type="unfinished"/>
+        <translation>OGG-lyd</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="91"/>
         <source>OGG audio files</source>
-        <translation type="unfinished"/>
+        <translation>OGG-lydfiler</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="94"/>
         <source>FLAC audio</source>
-        <translation type="unfinished"/>
+        <translation>FLAC-lyd</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="95"/>
         <source>FLAC audio files</source>
-        <translation type="unfinished"/>
+        <translation>FLAC-lydfiler</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="98"/>
         <source>AAC audio</source>
-        <translation type="unfinished"/>
+        <translation>AAC-lyd</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="99"/>
         <source>AAC audio files</source>
-        <translation type="unfinished"/>
+        <translation>AAC-lydfiler</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="103"/>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="104"/>
         <source>MP4 video</source>
-        <translation type="unfinished"/>
+        <translation>MP4-video</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="108"/>
         <source>MIDI file</source>
-        <translation type="unfinished"/>
+        <translation>MIDI-fil</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="109"/>
@@ -35763,7 +36232,7 @@ failed: %2</source>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="112"/>
         <source>MusicXML</source>
-        <translation type="unfinished"/>
+        <translation>MusicXML</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="117"/>
@@ -35779,32 +36248,32 @@ failed: %2</source>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="120"/>
         <source>MEI</source>
-        <translation type="unfinished"/>
+        <translation>MEI</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="121"/>
         <source>MEI files</source>
-        <translation type="unfinished"/>
+        <translation>MEI-filer</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="124"/>
         <source>MNX (experimental)</source>
-        <translation type="unfinished"/>
+        <translation>MNX (eksperimentell)</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="125"/>
         <source>MNX files (experimental)</source>
-        <translation type="unfinished"/>
+        <translation>MNX-filer (eksperimentell)</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="128"/>
         <source>LRC file</source>
-        <translation type="unfinished"/>
+        <translation>LRC-fil</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="129"/>
         <source>LRC files</source>
-        <translation type="unfinished"/>
+        <translation>LRC-filer</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/Export/exportdialogmodel.cpp" line="370"/>
@@ -36012,14 +36481,14 @@ failed: %2</source>
         <source>Major</source>
         <comment>key signature mode</comment>
         <extracomment>mode of a key signature, not an interval</extracomment>
-        <translation type="unfinished"/>
+        <translation>Dur</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/KeySignatureSettings.qml" line="109"/>
         <source>Minor</source>
         <comment>key signature mode</comment>
         <extracomment>mode of a key signature, not an interval</extracomment>
-        <translation type="unfinished"/>
+        <translation>Moll</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/MeasuresSettings.qml" line="52"/>
@@ -36070,28 +36539,28 @@ failed: %2</source>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/additionalinfomodel.cpp" line="97"/>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/additionalinfomodel.cpp" line="118"/>
         <source>C major</source>
-        <translation type="unfinished"/>
+        <translation>C-dur</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/additionalinfomodel.cpp" line="97"/>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/additionalinfomodel.cpp" line="118"/>
         <source>A minor</source>
-        <translation type="unfinished"/>
+        <translation>A-moll</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/additionalinfomodel.cpp" line="120"/>
         <source>G major</source>
-        <translation type="unfinished"/>
+        <translation>G-dur</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/additionalinfomodel.cpp" line="120"/>
         <source>E minor</source>
-        <translation type="unfinished"/>
+        <translation>E-moll</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/additionalinfomodel.cpp" line="122"/>
         <source>D major</source>
-        <translation type="unfinished"/>
+        <translation>D-dur</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/additionalinfomodel.cpp" line="122"/>
@@ -36101,7 +36570,7 @@ failed: %2</source>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/additionalinfomodel.cpp" line="124"/>
         <source>A major</source>
-        <translation type="unfinished"/>
+        <translation>A-dur</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/additionalinfomodel.cpp" line="124"/>
@@ -36111,7 +36580,7 @@ failed: %2</source>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/additionalinfomodel.cpp" line="126"/>
         <source>E major</source>
-        <translation type="unfinished"/>
+        <translation>E-dur</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/additionalinfomodel.cpp" line="126"/>
@@ -36156,12 +36625,12 @@ failed: %2</source>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/additionalinfomodel.cpp" line="136"/>
         <source>F major</source>
-        <translation type="unfinished"/>
+        <translation>F-dur</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/additionalinfomodel.cpp" line="136"/>
         <source>D minor</source>
-        <translation type="unfinished"/>
+        <translation>D-moll</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/additionalinfomodel.cpp" line="138"/>
@@ -36171,7 +36640,7 @@ failed: %2</source>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/additionalinfomodel.cpp" line="138"/>
         <source>G minor</source>
-        <translation type="unfinished"/>
+        <translation>G-moll</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/additionalinfomodel.cpp" line="140"/>
@@ -36181,7 +36650,7 @@ failed: %2</source>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/additionalinfomodel.cpp" line="140"/>
         <source>C minor</source>
-        <translation type="unfinished"/>
+        <translation>C-moll</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/additionalinfomodel.cpp" line="142"/>
@@ -36191,7 +36660,7 @@ failed: %2</source>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/additionalinfomodel.cpp" line="142"/>
         <source>F minor</source>
-        <translation type="unfinished"/>
+        <translation>F-moll</translation>
     </message>
     <message>
         <location filename="../../src/project/qml/MuseScore/Project/internal/NewScore/additionalinfomodel.cpp" line="144"/>
@@ -36451,7 +36920,7 @@ failed: %2</source>
     <message>
         <location filename="../../src/framework/cloud/qml/Muse/Cloud/cloudsmodel.cpp" line="173"/>
         <source>Private</source>
-        <translation type="unfinished"/>
+        <translation>Privat</translation>
     </message>
     <message>
         <location filename="../../src/framework/cloud/qml/Muse/Cloud/cloudsmodel.cpp" line="185"/>
@@ -36495,7 +36964,7 @@ failed: %2</source>
     <message>
         <location filename="../../src/framework/cloud/qml/Muse/Cloud/cloudsmodel.cpp" line="209"/>
         <source>Share</source>
-        <translation type="unfinished"/>
+        <translation>Del</translation>
     </message>
     <message>
         <location filename="../../src/project/internal/notationproject.cpp" line="956"/>
@@ -36532,7 +37001,7 @@ failed: %2</source>
     </message>
     <message>
         <location filename="../../src/project/internal/opensaveprojectscenario.cpp" line="235"/>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1032"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1034"/>
         <source>Log in to MuseScore.com to save this score to the cloud.</source>
         <translation type="unfinished"/>
     </message>
@@ -36581,7 +37050,7 @@ failed: %2</source>
     </message>
     <message>
         <location filename="../../src/project/internal/opensaveprojectscenario.cpp" line="411"/>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1477"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1479"/>
         <source>Unable to connect to the cloud</source>
         <translation>Kan ikkje kople til skya</translation>
     </message>
@@ -36613,7 +37082,7 @@ failed: %2</source>
     <message>
         <location filename="../../src/project/internal/opensaveprojectscenario.cpp" line="553"/>
         <source>Get help</source>
-        <translation type="unfinished"/>
+        <translation>Få hjelp</translation>
     </message>
     <message>
         <location filename="../../src/project/internal/opensaveprojectscenario.cpp" line="568"/>
@@ -36643,53 +37112,53 @@ failed: %2</source>
     </message>
     <message>
         <location filename="../../src/project/internal/opensaveprojectscenario.cpp" line="587"/>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1673"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1675"/>
         <source>Save as…</source>
         <translation>Lagre som...</translation>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="464"/>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="557"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="466"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="559"/>
         <source>Log in or create a free account on MuseScore.com to open this score.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1399"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1401"/>
         <source>View online</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1402"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1404"/>
         <source>All saved changes will now update to the cloud. You can manage this file in the score manager on MuseScore.com.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1478"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1480"/>
         <source>Your changes will be saved to a local file until the connection resumes.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1493"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1495"/>
         <source>Please add at least one instrument to enable saving.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1643"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1645"/>
         <source>An unknown error occurred while saving this file.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1651"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1653"/>
         <source>Your score could not be saved</source>
         <translation>Klarte ikkje å lagre partituret</translation>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1661"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1663"/>
         <source>An error occurred while saving your score</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1663"/>
+        <location filename="../../src/project/internal/projectactionscontroller.cpp" line="1665"/>
         <source>To preserve your score, try saving it again. If this message still appears, please save your score as new copy. You can also get help for this issue on %1.&lt;br/&gt;&lt;br/&gt;Error details (please cite when asking for support): %2</source>
         <translation type="unfinished"/>
     </message>
@@ -36760,7 +37229,7 @@ failed: %2</source>
         <location filename="../../src/framework/midiremote/qml/Muse/MidiRemote/editmidimappingmodel.cpp" line="59"/>
         <source>Waiting…</source>
         <extracomment>The app is waiting for the user to trigger a valid MIDI remote event</extracomment>
-        <translation type="unfinished"/>
+        <translation>Ventar…</translation>
     </message>
     <message>
         <location filename="../../src/framework/shortcuts/qml/Muse/Shortcuts/EditShortcutDialogContent.qml" line="98"/>
@@ -36816,7 +37285,7 @@ failed: %2</source>
         <location filename="../../src/framework/midiremote/qml/Muse/MidiRemote/MidiDeviceMappingPage.qml" line="93"/>
         <location filename="../../src/framework/shortcuts/qml/Muse/Shortcuts/internal/ShortcutsList.qml" line="32"/>
         <source>action</source>
-        <translation type="unfinished"/>
+        <translation>handling</translation>
     </message>
     <message>
         <location filename="../../src/framework/shortcuts/qml/Muse/Shortcuts/internal/ShortcutsList.qml" line="34"/>
@@ -36841,7 +37310,7 @@ failed: %2</source>
     <message>
         <location filename="../../src/framework/midiremote/qml/Muse/MidiRemote/MidiDeviceMappingPage.qml" line="95"/>
         <source>status</source>
-        <translation type="unfinished"/>
+        <translation>status</translation>
     </message>
     <message>
         <location filename="../../src/framework/shortcuts/qml/Muse/Shortcuts/StandardEditShortcutDialog.qml" line="31"/>
@@ -37097,7 +37566,7 @@ failed: %2</source>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/MenuButton.qml" line="50"/>
         <source>Menu</source>
         <extracomment>a type of ui item</extracomment>
-        <translation type="unfinished"/>
+        <translation>Meny</translation>
     </message>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/internal/ValueListHeaderItem.qml" line="54"/>
@@ -37122,17 +37591,17 @@ failed: %2</source>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/Utils.mjs" line="39"/>
         <source>Red</source>
-        <translation type="unfinished"/>
+        <translation>Raud</translation>
     </message>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/Utils.mjs" line="40"/>
         <source>Green</source>
-        <translation type="unfinished"/>
+        <translation>Grøn</translation>
     </message>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/Utils.mjs" line="41"/>
         <source>Blue</source>
-        <translation type="unfinished"/>
+        <translation>Blå</translation>
     </message>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/ValueList.qml" line="42"/>
@@ -37184,13 +37653,13 @@ failed: %2</source>
         <location filename="../../src/framework/ui/internal/themeconverter.cpp" line="82"/>
         <source>White</source>
         <extracomment>The name of the high contrast light ui theme</extracomment>
-        <translation type="unfinished"/>
+        <translation>Kvit</translation>
     </message>
     <message>
         <location filename="../../src/framework/ui/internal/themeconverter.cpp" line="85"/>
         <source>Black</source>
         <extracomment>The name of the high contrast dark ui theme</extracomment>
-        <translation type="unfinished"/>
+        <translation>Svart</translation>
     </message>
     <message>
         <location filename="../../src/framework/ui/qml/Muse/Ui/navigationpanel.cpp" line="143"/>
@@ -37213,7 +37682,7 @@ failed: %2</source>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/buttonboxmodel.h" line="136"/>
         <source>No button</source>
-        <translation type="unfinished"/>
+        <translation>Ingen knapp</translation>
     </message>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/buttonboxmodel.h" line="137"/>
@@ -37228,12 +37697,12 @@ failed: %2</source>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/buttonboxmodel.h" line="139"/>
         <source>Save all</source>
-        <translation type="unfinished"/>
+        <translation>Lagre alle</translation>
     </message>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/buttonboxmodel.h" line="140"/>
         <source>Don’t save</source>
-        <translation type="unfinished"/>
+        <translation>Ikkje lagre</translation>
     </message>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/buttonboxmodel.h" line="141"/>
@@ -37243,27 +37712,27 @@ failed: %2</source>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/buttonboxmodel.h" line="142"/>
         <source>Yes</source>
-        <translation type="unfinished"/>
+        <translation>Ja</translation>
     </message>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/buttonboxmodel.h" line="143"/>
         <source>Yes to all</source>
-        <translation type="unfinished"/>
+        <translation>Ja til alle</translation>
     </message>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/buttonboxmodel.h" line="144"/>
         <source>No</source>
-        <translation type="unfinished"/>
+        <translation>Nei</translation>
     </message>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/buttonboxmodel.h" line="145"/>
         <source>No to all</source>
-        <translation type="unfinished"/>
+        <translation>Nei til alle</translation>
     </message>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/buttonboxmodel.h" line="146"/>
         <source>Abort</source>
-        <translation type="unfinished"/>
+        <translation>Avbryt</translation>
     </message>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/buttonboxmodel.h" line="147"/>
@@ -37273,7 +37742,7 @@ failed: %2</source>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/buttonboxmodel.h" line="148"/>
         <source>Ignore</source>
-        <translation type="unfinished"/>
+        <translation>Ignorer</translation>
     </message>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/buttonboxmodel.h" line="149"/>
@@ -37323,17 +37792,17 @@ failed: %2</source>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/buttonboxmodel.h" line="158"/>
         <source>Back</source>
-        <translation type="unfinished"/>
+        <translation>Tilbake</translation>
     </message>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/buttonboxmodel.h" line="159"/>
         <source>Select</source>
-        <translation type="unfinished"/>
+        <translation>Vel</translation>
     </message>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/buttonboxmodel.h" line="160"/>
         <source>Clear</source>
-        <translation type="unfinished"/>
+        <translation>Tøm</translation>
     </message>
     <message>
         <location filename="../../src/framework/uicomponents/qml/Muse/UiComponents/buttonboxmodel.h" line="161"/>
@@ -37436,7 +37905,7 @@ failed: %2</source>
         <location filename="../../src/notationscene/qml/MuseScore/NotationScene/abstractelementpopupmodel.cpp" line="211"/>
         <location filename="../../src/notationscene/qml/MuseScore/NotationScene/abstractelementpopupmodel.cpp" line="223"/>
         <source>Edit %1</source>
-        <translation type="unfinished"/>
+        <translation>Rediger %1</translation>
     </message>
     <message>
         <location filename="../../src/inspector/qml/MuseScore/Inspector/abstractinspectormodel.cpp" line="511"/>
@@ -37446,7 +37915,7 @@ failed: %2</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/inspector/qml/MuseScore/Inspector/abstractinspectormodel.cpp" line="594"/>
+        <location filename="../../src/inspector/qml/MuseScore/Inspector/abstractinspectormodel.cpp" line="599"/>
         <location filename="../../src/notationscene/widgets/editstyle.cpp" line="1271"/>
         <source>Edit style</source>
         <translation>Rediger stil</translation>
@@ -37596,7 +38065,7 @@ failed: %2</source>
         <location filename="../../src/notation/internal/masternotationparts.cpp" line="106"/>
         <location filename="../../src/notation/internal/notationparts.cpp" line="868"/>
         <source>Remove instruments</source>
-        <translation type="unfinished"/>
+        <translation>Fjern instrument</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/masternotationparts.cpp" line="121"/>
@@ -37627,7 +38096,7 @@ failed: %2</source>
         <location filename="../../src/notation/internal/masternotationparts.cpp" line="226"/>
         <location filename="../../src/notation/internal/notationparts.cpp" line="723"/>
         <source>Edit drumset</source>
-        <translation type="unfinished"/>
+        <translation>Rediger trommesett</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/masternotationparts.cpp" line="264"/>
@@ -37742,7 +38211,7 @@ failed: %2</source>
     <message>
         <location filename="../../src/notation/internal/notationinteraction.cpp" line="4402"/>
         <source>Edit text</source>
-        <translation type="unfinished"/>
+        <translation>Rediger tekst</translation>
     </message>
     <message>
         <location filename="../../src/notation/internal/notationinteraction.cpp" line="4454"/>

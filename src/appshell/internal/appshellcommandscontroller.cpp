@@ -72,7 +72,7 @@ void AppshellCommandsController::preInit()
 void AppshellCommandsController::init()
 {
     auto cd = commandDispatcher();
-    cd->onRequest(this, APP_QUIT_COMMAND, [this](const rcommand::CommandQuery& query) { return quit(query); });
+    cd->onRequest(this, APP_QUIT_COMMAND, [this](const rcommand::Params& params) { return quit(params); });
     cd->onRequest(this, APP_RESTART_COMMAND, [this]() { restart(); return muse::make_ok(); });
     cd->onRequest(this, APP_FULLSCREEN_COMMAND, [this]() { toggleFullScreen(); return muse::make_ok(); });
 
@@ -145,7 +145,7 @@ bool AppshellCommandsController::eventFilter(QObject* watched, QEvent* event)
             const QFileOpenEvent* openEvent = static_cast<const QFileOpenEvent*>(event);
             const QUrl url = openEvent->url();
 
-            if (projectFilesController()->isUrlSupported(url)) {
+            if (openProjectScenario()->isUrlSupported(url)) {
                 if (startupScenario()->startupCompleted()) {
                     dispatcher()->dispatch("file-open", actions::ActionData::make_arg1<QUrl>(url));
                 } else {
@@ -198,7 +198,7 @@ QWindow* AppshellCommandsController::qWindow() const
 
 AppshellCommandsController::DragTarget AppshellCommandsController::dragTarget(const QUrl& url) const
 {
-    if (projectFilesController()->isUrlSupported(url)) {
+    if (openProjectScenario()->isUrlSupported(url)) {
         return DragTarget::ProjectFile;
     } else if (url.isLocalFile()) {
         muse::io::path_t filePath = url.toLocalFile();
@@ -245,7 +245,7 @@ bool AppshellCommandsController::onDropEvent(QDropEvent* event)
         switch (target) {
         case DragTarget::ProjectFile: {
             async::Async::call(this, [this, url]() {
-                    Ret ret = projectFilesController()->openProject(url);
+                    Ret ret = openProjectScenario()->openProject(url);
                     if (!ret) {
                         LOGE() << ret.toString();
                     }
@@ -280,10 +280,10 @@ bool AppshellCommandsController::onDropEvent(QDropEvent* event)
     return false;
 }
 
-muse::Ret AppshellCommandsController::quit(const muse::rcommand::CommandQuery& query)
+muse::Ret AppshellCommandsController::quit(const muse::rcommand::Params& params)
 {
-    bool isAllInstances = query.param("all_instances", Val(true)).toBool();
-    muse::io::path_t installatorPath = query.param("installer_path", Val("")).toString();
+    bool isAllInstances = params.at("all_instances").toBool();
+    muse::io::path_t installatorPath = params.at("installer_path").toString();
     return quit(isAllInstances, installatorPath);
 }
 
@@ -301,11 +301,23 @@ muse::Ret AppshellCommandsController::quit(bool isAllInstances, const muse::io::
     }
 
     if (multiwindowsProvider()->isFirstWindow() && !installerPath.empty()) {
+        //! NOTE: All windows are quitting to complete the update, apply it
+        //! in-place, falling back to handing the package to the user.
+        bool applied = false;
+        if (appUpdateService()->canAutoInstall()) {
+            const muse::RetVal<muse::io::path_t> prepared = appUpdateService()->prepareUpdate(installerPath);
+            if (prepared.ret) {
+                applied = bool(appUpdateService()->finalizeUpdate(prepared.val));
+            }
+        }
+
+        if (!applied) {
 #if defined(Q_OS_LINUX)
-        platformInteractive()->revealInFileBrowser(installerPath);
+            platformInteractive()->revealInFileBrowser(installerPath);
 #else
-        platformInteractive()->openUrl(QUrl::fromLocalFile(installerPath.toQString()));
+            platformInteractive()->openUrl(QUrl::fromLocalFile(installerPath.toQString()));
 #endif
+        }
     }
 
     if (!multiwindowsProvider()->isFirstWindow()) {

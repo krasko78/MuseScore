@@ -190,13 +190,17 @@ Ret ConverterController::convertFile(const muse::io::path_t& in, const muse::io:
     }
 
     if (!copyright.text.isEmpty()) {
-        engraving::MStyle& style = notationProject->masterNotation()->masterScore()->style();
+        auto masterScore = notationProject->masterNotation()->masterScore();
+
+        engraving::MStyle& style = masterScore->style();
         String footerOdd = style.value(engraving::Sid::oddFooterC).value<String>();
         String footerEven = style.value(engraving::Sid::evenFooterC).value<String>();
         footerOdd += copyright.text;
         footerEven += copyright.text;
         style.set(engraving::Sid::oddFooterC, footerOdd);
         style.set(engraving::Sid::evenFooterC, footerEven);
+
+        masterScore->doLayout();
     }
 
     globalContext()->setCurrentProject(notationProject);
@@ -416,8 +420,11 @@ RetVal<ConverterController::BatchJob> ConverterController::parseBatchJob(const m
 Ret ConverterController::convertByExtension(INotationWriterPtr writer, INotationPtr notation, const muse::io::path_t& out,
                                             const muse::UriQuery& extensionUri)
 {
+    extensions::ExtensionUri uri = extensionUri.uri();
+    extensions::ExtensionActionCode actionCode = extensionUri.param("action", Val("main")).toString();
+
     //! NOTE First we do the extension, it can modify the notation (score)
-    Ret ret = extensionsProvider()->perform(extensionUri);
+    Ret ret = extensionsProvider()->perform(uri, actionCode);
     if (!ret) {
         return ret;
     }

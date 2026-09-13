@@ -241,8 +241,9 @@ public:
     void beamSelectedRange() override;
 
     void increaseDecreaseDuration(int steps, bool stepByDots) override;
+    void increaseDecreaseSelectedDynamicsValues(int delta) override;
 
-    void autoFlipHairpinsType(engraving::Dynamic* selDyn) override;
+    void autoFlipHairpinsType(engraving::Dynamic* dynamic) override;
 
     void toggleDynamicPopup() override;
     bool toggleLayoutBreakAvailable() const override;
@@ -480,6 +481,8 @@ private:
 
     void doAddSlur(const mu::engraving::Slur* slurTemplate = nullptr);
     void doAddSlur(EngravingItem* firstItem, EngravingItem* secondItem, const mu::engraving::Slur* slurTemplate);
+
+    void doAutoFlipHairpinsType(mu::engraving::Dynamic* dynamic);
 
     bool scoreHasMeasure() const;
     bool notesHaveActiculation(const std::vector<Note*>& notes, SymbolId articulationSymbolId) const;

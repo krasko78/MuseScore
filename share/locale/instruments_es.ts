@@ -832,7 +832,7 @@
         <source>Whistle pitched in D (notated at concert pitch).</source>
         <comment>d-tin-whistle description</comment>
         <extracomment>description for Tin Whistle; tuning: D; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>Flauta irlandesa afinada en Re (escrita en tono de concierto).</translation>
+        <translation>Flauta irlandesa afinada en Re (escrita en afinación de concierto).</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="480"/>
@@ -902,7 +902,7 @@
         <source>Whistle pitched in B♭ (notated at concert pitch).</source>
         <comment>bflat-tin-whistle description</comment>
         <extracomment>description for Tin Whistle; tuning: B♭; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>Flauta irlandesa afinada en Si♭ (escrita en tono de concierto).</translation>
+        <translation>Flauta irlandesa afinada en Si♭ (escrita en afinación de concierto).</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="502"/>
@@ -7077,7 +7077,7 @@ Afinada en Do.</translation>
         <source>Baritone horn (sometimes just called ‘baritone’). Notated in bass clef, at concert pitch.</source>
         <comment>baritone-horn description</comment>
         <extracomment>description for Baritone Horn; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>Trompa barítono (a veces simplemente llamada ‘barítono’). Escrita en clave de Fa, a tono de concierto.</translation>
+        <translation>Trompa barítono (a veces simplemente llamada ‘barítono’). Escrita en clave de Fa, en afinación de concierto.</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="2465"/>
@@ -7203,7 +7203,7 @@ Afinada en Do.</translation>
         <source>Central European variant of the baritone horn. Notated in bass clef, at concert pitch.</source>
         <comment>baritone-horn-central-europe description</comment>
         <extracomment>description for Baritone Horn (Central European); Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>Variante centroeuropea de la trompa barítono. Escrita en clave de Fa, a tono de concierto.</translation>
+        <translation>Variante centroeuropea de la trompa barítono. Escrita en clave de Fa, en afinación de concierto.</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="2504"/>
@@ -9625,7 +9625,7 @@ Afinada en Do.</translation>
         <source>Bass tuba in F (notated in bass clef at concert pitch).</source>
         <comment>f-tuba description</comment>
         <extracomment>description for Tuba; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>Tuba baja en Fa (escrita en clave de fa y en tono de concierto)</translation>
+        <translation>Tuba baja en Fa (escrita en clave de fa y en afinación de concierto)</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="3259"/>
@@ -9653,7 +9653,7 @@ Afinada en Do.</translation>
         <source>Bass tuba in E♭ (notated in bass clef at concert pitch).</source>
         <comment>eb-tuba description</comment>
         <extracomment>description for Tuba; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>Tuba baja en Mi♭ (escrita en clave de fa y en tono de concierto)</translation>
+        <translation>Tuba baja en Mi♭ (escrita en clave de fa y en afinación de concierto)</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="3268"/>
@@ -9681,7 +9681,7 @@ Afinada en Do.</translation>
         <source>Bass tuba in E♭ (notated in bass clef at concert pitch).</source>
         <comment>bass-eb-tuba description</comment>
         <extracomment>description for Bass Tuba; tuning: E♭; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>Tuba baja en Mi♭ (escrita en clave de fa y en tono de concierto)</translation>
+        <translation>Tuba baja en Mi♭ (escrita en clave de fa y en afinación de concierto)</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="3277"/>
@@ -9716,7 +9716,7 @@ Afinada en Do.</translation>
         <source>Bass tuba in F (notated in bass clef at concert pitch).</source>
         <comment>bass-f-tuba description</comment>
         <extracomment>description for Bass Tuba; tuning: F; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>Tuba baja en Fa (escrita en clave de fa al tono de concierto)</translation>
+        <translation>Tuba baja en Fa (escrita en clave de fa en afinación de concierto)</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="3288"/>
@@ -9821,7 +9821,7 @@ Afinada en Do.</translation>
         <source>Contrabass tuba in B♭ (notated in bass clef at concert pitch).</source>
         <comment>bb-tuba description</comment>
         <extracomment>description for Contrabass Tuba; tuning: B♭; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>Tuba de contrabajo en Si♭ (escrita en clave de Fa al tono de concierto)</translation>
+        <translation>Tuba de contrabajo en Si♭ (escrita en clave de Fa en afinación de concierto)</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="3321"/>
@@ -9989,14 +9989,14 @@ Afinada en Do.</translation>
         <source>Sousaphone in B♭ (notated in treble clef at concert pitch).</source>
         <comment>sousaphone description</comment>
         <extracomment>description for Sousaphone (concert pitch); Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>Sousaphone en Si♭ (anotado en clave de sol en tono de concierto).</translation>
+        <translation>Sousaphone en Si♭ (anotado en clave de sol en afinación de concierto).</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="3374"/>
         <source>Sousaphone (concert pitch)</source>
         <comment>sousaphone trackName</comment>
         <extracomment>trackName for Sousaphone (concert pitch); Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>Sousafón (tono de concierto)</translation>
+        <translation>Sousafón (afinación de concierto)</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="3376"/>
@@ -10500,7 +10500,7 @@ Afinada en Do.</translation>
         <source>4 Cello Pans</source>
         <comment>cello-steel-drums-four shortName</comment>
         <extracomment>shortName for Four Cello Steel Pans; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
-        <translation>4 tambores de acero cello</translation>
+        <translation>4 Tambores de acero cello</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="3541"/>
@@ -10585,6 +10585,41 @@ Afinada en Do.</translation>
         <comment>bass-steel-drums shortName</comment>
         <extracomment>shortName for Bass Steel Pans; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
         <translation>B. Pans</translation>
+    </message>
+    <message>
+        <location filename="../instruments/instrumentsxml.h" line="3568"/>
+        <source>Tuned metal bars arranged like piano keys. Played with mallets. Sounds two octaves higher than written.</source>
+        <comment>glockenspiel description</comment>
+        <extracomment>description for Glockenspiel; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
+        <translation>Barras metálicas afinadas dispuestas como las teclas de un piano. Se tocan con baquetas. Suenan dos octavas más agudas de lo escrito.</translation>
+    </message>
+    <message>
+        <location filename="../instruments/instrumentsxml.h" line="3577"/>
+        <source>Tuned wooden bars arranged like piano keys, sometimes with resonator tubes below. Played with mallets. Sounds an octave higher than written.</source>
+        <comment>xylophone description</comment>
+        <extracomment>description for Xylophone; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
+        <translation>Barras de madera afinadas dispuestas como las teclas de un piano, a veces con tubos resonadores debajo. Se tocan con baquetas. Suenan una octava más agudas de lo escrito.</translation>
+    </message>
+    <message>
+        <location filename="../instruments/instrumentsxml.h" line="3595"/>
+        <source>Tuned aluminium bars arranged like piano keys, with resonator tubes and a sustain pedal. Some have variable-speed electric motors that rapidly open and close the resonators to create tremolo.</source>
+        <comment>vibraphone description</comment>
+        <extracomment>description for Vibraphone; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
+        <translation>Barras de aluminio afinadas dispuestas como las teclas de un piano, con tubos resonadores y un pedal de sostenido. Algunas tienen motores eléctricos de velocidad variable que abren y cierran rápidamente los resonadores para crear un trémolo.</translation>
+    </message>
+    <message>
+        <location filename="../instruments/instrumentsxml.h" line="3622"/>
+        <source>Tuned wooden bars arranged like piano keys, with resonator tubes below. Played with mallets. Deeper and mellower than the xylophone, and sounds as written.</source>
+        <comment>marimba description</comment>
+        <extracomment>description for Marimba (grand staff); Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
+        <translation>Barras de madera afinadas dispuestas como las teclas de un piano, con tubos resonadores debajo. Se tocan con baquetas. Suenan más graves y con un timbre más cálido que el xilófono, y suenan a la altura escrita.</translation>
+    </message>
+    <message>
+        <location filename="../instruments/instrumentsxml.h" line="3631"/>
+        <source>Tuned wooden bars arranged like piano keys, with resonator tubes below. Played with mallets. Deeper and mellower than the xylophone, and sounds as written.</source>
+        <comment>marimba-single description</comment>
+        <extracomment>description for Marimba (single staff); Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
+        <translation>Barras de madera afinadas dispuestas como las teclas de un piano, con tubos resonadores debajo. Se tocan con baquetas. Suenan más graves y con un timbre más cálido que el xilófono, y suenan a la altura escrita.</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="3904"/>
@@ -10697,6 +10732,108 @@ Afinada en Do.</translation>
         <comment>sori-buk shortName</comment>
         <extracomment>shortName for Sori Buk; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
         <translation>So. Buk</translation>
+    </message>
+    <message>
+        <location filename="../instruments/instrumentsxml.h" line="5031"/>
+        <source>Bell-piano. Essentially a key-operated glockenspiel with a sustain pedal. Sounds an octave higher than written.</source>
+        <comment>celesta description</comment>
+        <extracomment>description for Celesta; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
+        <translation>Piano de campanas. Esencialmente, un carillón de láminas accionado mediante teclas, con un pedal de sostenido. Suena una octava más agudo de lo escrito.</translation>
+    </message>
+    <message>
+        <location filename="../instruments/instrumentsxml.h" line="5040"/>
+        <source>Uses tangents (small blades) to strike, and also set the length (i.e. pitch) of, metal strings. Expressive, but very quiet.</source>
+        <comment>clavichord description</comment>
+        <extracomment>description for Clavichord; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
+        <translation>Utiliza tangentes (pequeñas láminas) para golpear las cuerdas metálicas y, al mismo tiempo, determinar su longitud (es decir, su altura tonal). Es expresivo, pero muy silencioso.</translation>
+    </message>
+    <message>
+        <location filename="../instruments/instrumentsxml.h" line="5049"/>
+        <source>Clavichord with electrically amplified strings. This alters the sound and removes the volume limitations.</source>
+        <comment>clavinet description</comment>
+        <extracomment>description for Clavinet; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
+        <translation>Clavicordio con cuerdas amplificadas eléctricamente. Esto modifica el sonido y elimina las limitaciones de volumen.</translation>
+    </message>
+    <message>
+        <location filename="../instruments/instrumentsxml.h" line="5058"/>
+        <source>Plucks strings, producing a harsher sound with smaller dynamic range compared to the piano.</source>
+        <comment>harpsichord description</comment>
+        <extracomment>description for Harpsichord; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
+        <translation>Instrumento de cuerdas pulsadas, produciendo un sonido más áspero y con un rango dinámico menor que el del piano.</translation>
+    </message>
+    <message>
+        <location filename="../instruments/instrumentsxml.h" line="5067"/>
+        <source>Small harpsichord with only one string per key, which limits the dynamic range and timbre.</source>
+        <comment>virginal description</comment>
+        <extracomment>description for Virginal; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
+        <translation>Clavicémbalo pequeño con una sola cuerda por tecla, lo que limita el rango dinámico y el timbre.</translation>
+    </message>
+    <message>
+        <location filename="../instruments/instrumentsxml.h" line="5076"/>
+        <source>Piano with electrically amplified strings, reeds, or tuning forks. (Or a digital piano configured to sound like an electric piano.)</source>
+        <comment>electric-piano description</comment>
+        <extracomment>description for Electric Piano; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
+        <translation>Piano con cuerdas, lengüetas o diapasones amplificados eléctricamente. (O un piano digital configurado para sonar como un piano eléctrico.)</translation>
+    </message>
+    <message>
+        <location filename="../instruments/instrumentsxml.h" line="5085"/>
+        <source>Has a larger horizontal frame, which can provide richer sound and more precise key control compared to an upright piano.</source>
+        <comment>grand-piano description</comment>
+        <extracomment>description for Grand Piano; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
+        <translation>Tiene un armazón horizontal más grande, lo que puede proporcionar un sonido más rico y un control más preciso de las teclas que un piano vertical.</translation>
+    </message>
+    <message>
+        <location filename="../instruments/instrumentsxml.h" line="5094"/>
+        <source>Honky-tonk (very out of tune) upright piano often associated with bars, country music, and music hall.</source>
+        <comment>honky-tonk-piano description</comment>
+        <extracomment>description for Honky Tonk Piano; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
+        <translation>Piano vertical honky-tonk (muy desafinado), asociado a menudo con bares, música country y espectáculos de variedades.</translation>
+    </message>
+    <message>
+        <location filename="../instruments/instrumentsxml.h" line="5103"/>
+        <source>Upright or grand pianoforte. Strikes strings with a hammer, enabling a large dynamic range. Notes can be sustained via a pedal.</source>
+        <comment>piano description</comment>
+        <extracomment>description for Piano; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
+        <translation>Pianoforte vertical o de cola. Golpea las cuerdas con un martillo, lo que permite un amplio rango dinámico. Las notas pueden mantenerse mediante un pedal.
+ 
+ 
+ 
+ </translation>
+    </message>
+    <message>
+        <location filename="../instruments/instrumentsxml.h" line="5112"/>
+        <source>Small piano with metal rods instead of strings, using a mechanism similar to a celesta. Typically lacks pedals and was originally designed for children.</source>
+        <comment>toy-piano description</comment>
+        <extracomment>description for Toy Piano; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
+        <translation>Piano pequeño con varillas metálicas en lugar de cuerdas, que utiliza un mecanismo similar al de una celesta. Normalmente no tiene pedales y originalmente fue diseñado para niños.</translation>
+    </message>
+    <message>
+        <location filename="../instruments/instrumentsxml.h" line="5121"/>
+        <source>Has a smaller vertical frame, making it more compact than a grand piano. Typically used for rehearsal, or performance in a casual setting.</source>
+        <comment>upright-piano description</comment>
+        <extracomment>description for Upright Piano; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
+        <translation>Tiene un armazón vertical más pequeño, lo que lo hace más compacto que un piano de cola. Normalmente se utiliza para ensayos o para actuaciones en entornos informales.</translation>
+    </message>
+    <message>
+        <location filename="../instruments/instrumentsxml.h" line="5541"/>
+        <source>Solid-body guitar with electrically amplified strings (staff notation, with 8va bassa treble clef).</source>
+        <comment>electric-guitar description</comment>
+        <extracomment>description for Electric Guitar; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
+        <translation>Guitarra eléctrica de cuerpo sólido con cuerdas amplificadas eléctricamente (notación en pentagrama, con clave de sol 8.ª baja).</translation>
+    </message>
+    <message>
+        <location filename="../instruments/instrumentsxml.h" line="5562"/>
+        <source>Solid-body guitar with electrically amplified strings (staff notation, with normal treble clef).</source>
+        <comment>electric-guitar-treble-clef description</comment>
+        <extracomment>description for Electric Guitar (treble clef); Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
+        <translation>Guitarra eléctrica de cuerpo sólido con cuerdas amplificadas eléctricamente (notación en pentagrama, con clave de sol normal).</translation>
+    </message>
+    <message>
+        <location filename="../instruments/instrumentsxml.h" line="5621"/>
+        <source>Solid-body guitar with electrically amplified strings (tablature).</source>
+        <comment>electric-guitar-tablature description</comment>
+        <extracomment>description for Electric Guitar (tablature); Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
+        <translation>Guitarra eléctrica de cuerpo sólido con cuerdas amplificadas eléctricamente (tablatura).</translation>
     </message>
     <message>
         <location filename="../instruments/instrumentsxml.h" line="6253"/>
@@ -10895,7 +11032,6 @@ Afinada en Do.</translation>
         <translation>pizzicato</translation>
     </message>
     <message>
-        <location filename="../instruments/instrumentsxml.h" line="3568"/>
         <source>Glockenspiel.</source>
         <comment>glockenspiel description</comment>
         <extracomment>description for Glockenspiel; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
@@ -10923,7 +11059,6 @@ Afinada en Do.</translation>
         <translation>Glock.</translation>
     </message>
     <message>
-        <location filename="../instruments/instrumentsxml.h" line="3577"/>
         <source>Xylophone.</source>
         <comment>xylophone description</comment>
         <extracomment>description for Xylophone; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
@@ -10979,7 +11114,6 @@ Afinada en Do.</translation>
         <translation>XMrm.</translation>
     </message>
     <message>
-        <location filename="../instruments/instrumentsxml.h" line="3595"/>
         <source>Vibraphone.</source>
         <comment>vibraphone description</comment>
         <extracomment>description for Vibraphone; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
@@ -11063,7 +11197,6 @@ Afinada en Do.</translation>
         <translation>Cimb.</translation>
     </message>
     <message>
-        <location filename="../instruments/instrumentsxml.h" line="3622"/>
         <source>Marimba notated on a grand staff.</source>
         <comment>marimba description</comment>
         <extracomment>description for Marimba (grand staff); Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
@@ -11091,7 +11224,6 @@ Afinada en Do.</translation>
         <translation>Mrm.</translation>
     </message>
     <message>
-        <location filename="../instruments/instrumentsxml.h" line="3631"/>
         <source>Marimba notated on a single staff.</source>
         <comment>marimba-single description</comment>
         <extracomment>description for Marimba (single staff); Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
@@ -15291,7 +15423,6 @@ Afinada en Do.</translation>
         <translation>Kaz.</translation>
     </message>
     <message>
-        <location filename="../instruments/instrumentsxml.h" line="5031"/>
         <source>Celesta.</source>
         <comment>celesta description</comment>
         <extracomment>description for Celesta; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
@@ -15319,7 +15450,6 @@ Afinada en Do.</translation>
         <translation>Cel.</translation>
     </message>
     <message>
-        <location filename="../instruments/instrumentsxml.h" line="5040"/>
         <source>Clavichord.</source>
         <comment>clavichord description</comment>
         <extracomment>description for Clavichord; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
@@ -15347,7 +15477,6 @@ Afinada en Do.</translation>
         <translation>Ccord.</translation>
     </message>
     <message>
-        <location filename="../instruments/instrumentsxml.h" line="5049"/>
         <source>Electrically amplified clavichord.</source>
         <comment>clavinet description</comment>
         <extracomment>description for Clavinet; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
@@ -15375,7 +15504,6 @@ Afinada en Do.</translation>
         <translation>Clav.</translation>
     </message>
     <message>
-        <location filename="../instruments/instrumentsxml.h" line="5058"/>
         <source>Harpsichord.</source>
         <comment>harpsichord description</comment>
         <extracomment>description for Harpsichord; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
@@ -15403,7 +15531,6 @@ Afinada en Do.</translation>
         <translation>Clavm.</translation>
     </message>
     <message>
-        <location filename="../instruments/instrumentsxml.h" line="5067"/>
         <source>Virginal.</source>
         <comment>virginal description</comment>
         <extracomment>description for Virginal; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
@@ -15431,7 +15558,6 @@ Afinada en Do.</translation>
         <translation>Vir.</translation>
     </message>
     <message>
-        <location filename="../instruments/instrumentsxml.h" line="5076"/>
         <source>Electric piano.</source>
         <comment>electric-piano description</comment>
         <extracomment>description for Electric Piano; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
@@ -15459,7 +15585,6 @@ Afinada en Do.</translation>
         <translation>Pno. El.</translation>
     </message>
     <message>
-        <location filename="../instruments/instrumentsxml.h" line="5085"/>
         <source>Specifically a grand piano.</source>
         <comment>grand-piano description</comment>
         <extracomment>description for Grand Piano; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
@@ -15487,7 +15612,6 @@ Afinada en Do.</translation>
         <translation>Pno.</translation>
     </message>
     <message>
-        <location filename="../instruments/instrumentsxml.h" line="5094"/>
         <source>Honky-tonk (very out of tune) piano.</source>
         <comment>honky-tonk-piano description</comment>
         <extracomment>description for Honky Tonk Piano; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
@@ -15515,7 +15639,6 @@ Afinada en Do.</translation>
         <translation>Piano dfndo.</translation>
     </message>
     <message>
-        <location filename="../instruments/instrumentsxml.h" line="5103"/>
         <source>Piano.</source>
         <comment>piano description</comment>
         <extracomment>description for Piano; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
@@ -15543,7 +15666,6 @@ Afinada en Do.</translation>
         <translation>Pno.</translation>
     </message>
     <message>
-        <location filename="../instruments/instrumentsxml.h" line="5112"/>
         <source>Toy piano.</source>
         <comment>toy-piano description</comment>
         <extracomment>description for Toy Piano; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
@@ -15571,7 +15693,6 @@ Afinada en Do.</translation>
         <translation>Pno. juguete</translation>
     </message>
     <message>
-        <location filename="../instruments/instrumentsxml.h" line="5121"/>
         <source>Specifically an upright piano.</source>
         <comment>upright-piano description</comment>
         <extracomment>description for Upright Piano; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
@@ -16880,7 +17001,6 @@ Afinada en Do.</translation>
         <translation>sordina</translation>
     </message>
     <message>
-        <location filename="../instruments/instrumentsxml.h" line="5541"/>
         <source>Electric guitar (notated with 8va bassa treble clef).</source>
         <comment>electric-guitar description</comment>
         <extracomment>description for Electric Guitar; Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
@@ -16950,7 +17070,6 @@ Afinada en Do.</translation>
         <translation>sobrecargado</translation>
     </message>
     <message>
-        <location filename="../instruments/instrumentsxml.h" line="5562"/>
         <source>Electric guitar (notated with normal treble clef).</source>
         <comment>electric-guitar-treble-clef description</comment>
         <extracomment>description for Electric Guitar (treble clef); Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>
@@ -17139,7 +17258,6 @@ Afinada en Do.</translation>
         <translation>sordina</translation>
     </message>
     <message>
-        <location filename="../instruments/instrumentsxml.h" line="5621"/>
         <source>Electric guitar (tablature).</source>
         <comment>electric-guitar-tablature description</comment>
         <extracomment>description for Electric Guitar (tablature); Please see https://github.com/musescore/MuseScore/wiki/Translating-instrument-names</extracomment>

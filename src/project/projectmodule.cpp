@@ -28,7 +28,8 @@
 #include "internal/engravingpluginapihelper.h"
 #include "internal/projectuiactions.h"
 #include "internal/projectconfiguration.h"
-#include "internal/opensaveprojectscenario.h"
+#include "internal/openprojectscenario.h"
+#include "internal/saveprojectscenario.h"
 #include "internal/exportprojectscenario.h"
 #include "internal/mscmetareader.h"
 #include "internal/templatesrepository.h"
@@ -51,8 +52,6 @@
 #include "rcommand/icommandsstate.h"
 #include "ui/iuiactionsregister.h"
 #include "interactive/iinteractiveuriregister.h"
-#include "extensions/iextensionsexecpointsregister.h"
-#include "projectextensionpoints.h"
 
 using namespace mu::project;
 using namespace muse;
@@ -97,18 +96,6 @@ void ProjectModule::resolveImports()
     if (cr) {
         cr->reg(std::make_shared<ProjectCommandsRegister>());
     }
-
-    auto er = globalIoc()->resolve<muse::extensions::IExtensionsExecPointsRegister>(mname);
-    if (er) {
-        er->reg(mname, { EXEC_ONPOST_PROJECT_CREATED,
-                         TranslatableString::untranslatable("On post project created") });
-        er->reg(mname, { EXEC_ONPOST_PROJECT_OPENED,
-                         TranslatableString::untranslatable("On post project opened") });
-        er->reg(mname, { EXEC_ONPRE_PROJECT_SAVE,
-                         TranslatableString::untranslatable("On pre project save") });
-        er->reg(mname, { EXEC_ONPOST_PROJECT_SAVED,
-                         TranslatableString::untranslatable("On post project saved") });
-    }
 }
 
 void ProjectModule::onInit(const IApplication::RunMode& mode)
@@ -142,7 +129,8 @@ void ProjectContext::registerExports()
     ioc()->registerExport<IProjectCommandsController>(mname, m_actionsController);
     ioc()->registerExport<IProjectFilesController>(mname, m_actionsController);
     ioc()->registerExport<mi::IProjectProvider>(mname, m_actionsController);
-    ioc()->registerExport<IOpenSaveProjectScenario>(mname, new OpenSaveProjectScenario(iocContext()));
+    ioc()->registerExport<IOpenProjectScenario>(mname, new OpenProjectScenario(iocContext()));
+    ioc()->registerExport<ISaveProjectScenario>(mname, new SaveProjectScenario(iocContext()));
     ioc()->registerExport<IExportProjectScenario>(mname, new ExportProjectScenario(iocContext()));
     ioc()->registerExport<IRecentFilesController>(mname, m_recentFilesController);
     ioc()->registerExport<ITemplatesRepository>(mname, new TemplatesRepository());

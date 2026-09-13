@@ -85,6 +85,10 @@ std::string TablEdit::readUtf8Text()
 {
     std::string result;
     uint16_t size = readUInt16();
+    if (size < 1) {
+        LOGE() << "Invalid Utf8Text";
+        return result;
+    }
     for (uint16_t i = 0; i < size - 1; ++i) {
         result += readUInt8();
     }
@@ -336,6 +340,7 @@ static void addVolta(Score* score, Measure* measure, const Ending& ending)
         Measure* next = endMeasure->nextMeasure();
         if (!next) {
             LOGD() << "Ending at " << "TBD" << " specifies non-existent end measure.";
+            break;
         }
         endMeasure = next;
     }
@@ -565,7 +570,7 @@ static void addContinuousSlideHammerOn(Score* _score, const std::map<const TefNo
             gl->setTick(startTick);
             gl->setTick2(endNote->chord()->tick());
             gl->setEndElement(endNote);
-            gl->setParent(startNote);
+            gl->setOwnershipParent(startNote);
             gl->setText(u"Sl");
             gl->setGlissandoType(GlissandoType::STRAIGHT);
             gl->setGlissandoStyle(startNote->part()->instrument(startTick)->glissandoStyle());
@@ -654,7 +659,7 @@ void TablEdit::createMeasures(const MeasureHandler& measureHandler)
     for (size_t idx = 0; idx < tefMeasures.size(); ++idx) {
         TefMeasure& tefMeasure { tefMeasures.at(idx) };
         // create measure
-        auto measure = Factory::createMeasure(score->dummy()->system());
+        auto measure = Factory::createMeasure(score);
         measure->setTick(tick);
         Fraction nominalLength{ tefMeasure.numerator, tefMeasure.denominator };
         Fraction actualLength{ reducedActualLength(measureHandler.actualSize(tefMeasures, idx), tefMeasure.denominator) };
@@ -713,13 +718,13 @@ void TablEdit::createMeasures(const MeasureHandler& measureHandler)
 
         tick += actualLength;
     }
-    score->setUpTempoMap();
+    score->updateTicksAndTimeSigMap();
 }
 
 void TablEdit::createNotesFrame()
 {
     if (!tefHeader.notes.empty()) {
-        TBox* tbox = Factory::createTBox(score->dummy()->system());
+        TBox* tbox = Factory::createTBox(score);
         tbox->setTick(score->endTick());
         score->measures()->add(tbox);
         tbox->text()->setPlainText(muse::String::fromStdString(tefHeader.notes));
@@ -937,7 +942,10 @@ void TablEdit::createTexts()
             LOGD("error: no segment");
             continue;
         }
-
+        if (textMarker.index < 0 || textMarker.index >= static_cast<int>(tefTexts.size())) {
+            LOGE() << "text marker index invalid";
+            continue;
+        }
         StaffText* staffText = Factory::createStaffText(segment);
         muse::String text { tefTexts.at(textMarker.index).c_str() };
         staffText->setPlainText(text);
@@ -948,7 +956,7 @@ void TablEdit::createTexts()
 
 void TablEdit::createTitleFrame()
 {
-    VBox* vbox = Factory::createTitleVBox(score->dummy()->system());
+    VBox* vbox = Factory::createTitleVBox(score);
     vbox->setTick(mu::engraving::Fraction(0, 1));
     score->measures()->add(vbox);
     if (!tefHeader.title.empty()) {
@@ -1072,11 +1080,16 @@ void TablEdit::readTefContents()
         LOGD("no instruments");
         return;
     }
+
     int totalNumberOfStrings { 0 };
     for (const auto& instrument : tefInstruments) {
         totalNumberOfStrings += instrument.stringNumber;
     }
     LOGN("totalNumberOfStrings %d", totalNumberOfStrings);
+    if (totalNumberOfStrings < 1) {
+        LOGE() << "totalNumberOfStrings invalid";
+        return;
+    }
 
     _file->seek(OFFSET_CONTENTS);
     uint32_t position = readUInt32();
@@ -1204,7 +1217,14 @@ void TablEdit::readTefMeasures()
         /* uint8_t uTmp = */ readUInt8();
         measure.key = readInt8();
         measure.size = readUInt8();
-        measure.denominator = readUInt8();
+        const int denom = readUInt8();
+        if (denom < 1) {
+            LOGE() << "Error reading measure - corrupt denominator";
+            readUInt8(); // numerator
+            readUInt16(); // margins
+            continue;
+        }
+        measure.denominator = denom;
         measure.numerator = readUInt8();
         /* uint16_t margins = */ readUInt16();
         tefMeasures.push_back(measure);

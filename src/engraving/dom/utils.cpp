@@ -535,7 +535,7 @@ Note* searchTieNote(const Note* note, const Segment* nextSegment, const bool dis
     }
 
     if (chord->isGraceBefore()) {
-        chord = toChord(chord->explicitParent());
+        chord = toChord(chord->ownershipParent());
 
         // try to tie to next grace note
 
@@ -558,7 +558,7 @@ Note* searchTieNote(const Note* note, const Segment* nextSegment, const bool dis
         // grace after
         // we will try to tie to note in next normal chord, below
         // meanwhile, set chord to parent chord so the endTick calculation will make sense
-        chord = toChord(chord->explicitParent());
+        chord = toChord(chord->ownershipParent());
     } else {
         // normal chord
         // try to tie to grace note after if present
@@ -1555,8 +1555,8 @@ bool segmentsAreAdjacent(const Segment* firstSeg, const Segment* secondSeg)
     }
     const MasterScore* master = firstSeg->masterScore();
 
-    Measure* firstMeasure = firstSeg->measure();
-    Measure* secondMeasure = secondSeg->measure();
+    const Measure* firstMeasure = firstSeg->measure();
+    const Measure* secondMeasure = secondSeg->measure();
 
     if (firstMeasure == secondMeasure) {
         return true;
@@ -1572,8 +1572,11 @@ bool segmentsAreAdjacent(const Segment* firstSeg, const Segment* secondSeg)
         secondMasterMeasure = secondMasterMeasure->coveringMMRestOrThis();
     }
 
-    Score* score = firstSeg->score();
+    IF_ASSERT_FAILED(firstMasterMeasure && secondMasterMeasure) {
+        return false;
+    }
 
+    const Score* score = firstSeg->score();
     const RepeatList& repeatList = score->repeatList(true, false);
 
     std::vector<const Measure*> measures;
