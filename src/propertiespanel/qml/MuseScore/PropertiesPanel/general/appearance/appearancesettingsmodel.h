@@ -77,6 +77,9 @@ public:
     bool isVerticalOffsetAvailable() const;
     double step() const; // krasko
 
+    void onNotationChanged(const mu::engraving::PropertyIdSet& changedPropertyIdSet,
+                           const mu::engraving::StyleIdSet& changedStyleIdSet) override;
+
 public slots:
     void setIsSnappedToGrid(bool isSnapped);
     void setIsVerticalOffsetAvailable(bool isAvailable);
@@ -87,8 +90,6 @@ signals:
     void stepChanged(double step); // krasko
 
 private:
-    void onNotationChanged(const mu::engraving::PropertyIdSet& changedPropertyIdSet,
-                           const mu::engraving::StyleIdSet& changedStyleIdSet) override;
     void loadProperties(const mu::engraving::PropertyIdSet& allowedPropertyIdSet);
 
     void updateIsVerticalOffsetAvailable();
