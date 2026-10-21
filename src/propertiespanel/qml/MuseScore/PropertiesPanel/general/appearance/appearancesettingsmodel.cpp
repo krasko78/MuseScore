@@ -22,16 +22,23 @@
 
 #include "appearancesettingsmodel.h"
 
+#include "global/translation.h"
+
 #include "engraving/dom/page.h"
+#include "engraving/dom/score.h"
+
+#include "engraving/editing/transaction/transaction.h"
+#include "engraving/editing/editposition.h"
+
+#include "notationscene/notationcommands.h"
 
 #include "types/commontypes.h"
-#include "translation.h"
 
 #include "log.h"
 
 using namespace mu::propertiespanel;
-using namespace muse::actions;
 using namespace mu::engraving;
+using namespace mu::notation;
 
 static constexpr int REARRANGE_ORDER_STEP = 50;
 
@@ -168,6 +175,8 @@ void AppearanceSettingsModel::loadProperties(const PropertyIdSet& propertyIdSet)
     }
 
     emit isSnappedToGridChanged(isSnappedToGrid());
+
+    updateIsAutoplaceEnabled();
 }
 
 Page* AppearanceSettingsModel::page() const
@@ -284,7 +293,25 @@ void AppearanceSettingsModel::pushToFrontInOrder()
 
 void AppearanceSettingsModel::configureGrid()
 {
-    dispatcher()->dispatch("config-raster");
+    commandDispatcher()->dispatch(OPEN_EDITGRIDSIZE_COMMAND);
+}
+
+void AppearanceSettingsModel::freezeCurrentPlacement()
+{
+    if (m_elementsForOffsetProperty.empty()) {
+        return;
+    }
+    Score* score = m_elementsForOffsetProperty.front()->score();
+
+    beginCommand(TranslatableString("undoableAction", "Freeze current placement"));
+    std::vector<EngravingItem*> items(m_elementsForOffsetProperty.begin(), m_elementsForOffsetProperty.end());
+
+    EditPosition::freezeItemsPositions(score->transactionManager()->currentOrDummyTransaction(), items);
+
+    updateNotation();
+    endCommand();
+
+    loadProperties();
 }
 
 PropertyItem* AppearanceSettingsModel::leadingSpace() const
@@ -322,12 +349,22 @@ bool AppearanceSettingsModel::isVerticalOffsetAvailable() const
     return m_isVerticalOffsetAvailable;
 }
 
+bool AppearanceSettingsModel::isAutoplaceEnabled() const
+{
+    return m_isAutoplaceEnabled;
+}
+
 bool AppearanceSettingsModel::isSnappedToGrid() const
 {
     bool isSnapped = notationConfiguration()->isSnappedToGrid(muse::Orientation::Horizontal);
     isSnapped &= notationConfiguration()->isSnappedToGrid(muse::Orientation::Vertical);
 
     return isSnapped;
+}
+
+QString AppearanceSettingsModel::freezeCurrentPlacementShortcut() const
+{
+    return shortcutsForCommand(FREEZE_CURRENT_PLACEMENT_COMMAND);
 }
 
 void AppearanceSettingsModel::setIsSnappedToGrid(bool isSnapped)
@@ -369,3 +406,24 @@ double AppearanceSettingsModel::step() const // krasko
     return appshellConfiguration()->stepForSpinControlsOnAppearanceTab();
 }
 
+void AppearanceSettingsModel::setIsAutoplaceEnabled(bool isEnabled)
+{
+    if (isEnabled == m_isAutoplaceEnabled) {
+        return;
+    }
+
+    m_isAutoplaceEnabled = isEnabled;
+    emit isAutoplaceEnabledChanged(m_isAutoplaceEnabled);
+}
+
+void AppearanceSettingsModel::updateIsAutoplaceEnabled()
+{
+    bool isEnabled = false;
+    for (EngravingItem* item : m_elementsForOffsetProperty) {
+        if (item->autoplace() && autoplaceAppliesToType(item->type())) {
+            isEnabled = true;
+            break;
+        }
+    }
+    setIsAutoplaceEnabled(isEnabled);
+}

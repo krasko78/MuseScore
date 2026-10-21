@@ -74,6 +74,8 @@ Column {
 
         offset: root.model?.offset ?? null
         isSnappedToGrid: root.model?.isSnappedToGrid ?? false
+        isAutoplaceEnabled: root.model?.isAutoplaceEnabled ?? true
+        freezePlacementShortcut: root.model?.freezeCurrentPlacementShortcut ?? ""
         isVerticalOffsetAvailable: root.model?.isVerticalOffsetAvailable ?? false
         measurementUnits: root.model?.measurementUnits ?? CommonTypes.UNITS_UNKNOWN
         step: root.step // krasko
@@ -89,6 +91,9 @@ Column {
 
         onConfigureGridRequested: {
             root.model?.configureGrid()
+        }
+        onFreezeCurrentPlacementRequested: {
+            root.model?.freezeCurrentPlacement()
         }
     }
 
