@@ -307,7 +307,7 @@ void StartupScenario::restoreLastSession()
             } else {
                 removeProjectsUnsavedChanges(configuration()->sessionProjectsPaths());
                 sessionsManager()->reset();
-                checkAndShowMuseSamplerUpdateIfNeed();
+                checkAndShowMuseSamplerStatusIfNeed();
             }
         });
     } else {
