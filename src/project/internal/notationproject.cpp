@@ -804,7 +804,7 @@ Ret NotationProject::doSave(const muse::io::path_t& path, engraving::MscIoMode i
         } else {
             Ret ret = muse::make_ok();
 
-            ret = fileSystem()->copy(savePath, targetContainerPath, true);
+            ret = fileSystem()->move(savePath, targetContainerPath, true); // krasko: move instead of copy
             if (!ret) {
                 return ret;
             }
@@ -863,7 +863,7 @@ Ret NotationProject::makeBackup(muse::io::path_t filePath)
 
     fileSystem()->setAttribute(backupDir, io::IFileSystem::Attribute::Hidden);
 
-    ret = fileSystem()->copy(filePath, backupPath, true);
+    ret = fileSystem()->move(filePath, backupPath, true); // krasko: move instead of copy
     if (!ret) {
         LOGE() << "failed to copy: " << filePath << " to: " << backupPath;
         return ret;
