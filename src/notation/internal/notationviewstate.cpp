@@ -185,7 +185,7 @@ void NotationViewState::setStyleDialogLastPageIndex(int value)
         return;
     }
     m_styleDialogLastPageIndex = value;
-    m_stateChanged.notify();
+    //m_stateChanged.notify(); // krasko commented out: do not mark score as changed on Style dialog page change (34456)
 }
 
 int NotationViewState::styleDialogLastSubPageIndex() const
@@ -199,7 +199,7 @@ void NotationViewState::setStyleDialogLastSubPageIndex(int value)
         return;
     }
     m_styleDialogLastSubPageIndex = value;
-    m_stateChanged.notify();
+    //m_stateChanged.notify(); // krasko commented out: do not mark score as changed on Style dialog page change (34456)
 }
 
 void NotationViewState::makeDefault()
