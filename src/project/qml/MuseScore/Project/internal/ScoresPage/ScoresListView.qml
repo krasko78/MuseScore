@@ -55,6 +55,7 @@ Item {
 
     component ColumnItem : QtObject {
         property string header
+        property int horizontalAlignment: Text.AlignLeft // krasko
 
         property var width: function (parentWidth) {
             return parentWidth / 5
@@ -179,7 +180,7 @@ Item {
                             text: modelData.header
 
                             font: Qt.font(Object.assign({}, ui.theme.bodyBoldFont, { capitalization: Font.AllUppercase }))
-                            horizontalAlignment: Text.AlignLeft
+                            horizontalAlignment: modelData.horizontalAlignment // krasko
                         }
                     }
                 }

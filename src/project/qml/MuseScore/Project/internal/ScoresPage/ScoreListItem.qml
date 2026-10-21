@@ -102,7 +102,7 @@ ListItemBlank {
         spacing: root.columnSpacing
 
         RowLayout {
-            spacing: 24
+            spacing: 16 // krasko
 
             Loader {
                 id: thumbnailLoader
@@ -141,13 +141,27 @@ ListItemBlank {
                 }
             }
 
-            StyledTextLabel {
-                Layout.fillWidth: true
+            ColumnLayout { // krasko start
+                spacing: 0
 
-                text: root.score.name ?? ""
-                font: ui.theme.largeBodyFont
-                horizontalAlignment: Text.AlignLeft
-            }
+				StyledTextLabel {
+					Layout.fillWidth: true
+
+					text: root.score.name ?? ""
+                    font: ui.theme.largeBodyBoldFont
+					horizontalAlignment: Text.AlignLeft
+				}
+
+				StyledTextLabel {
+					Layout.fillWidth: true
+
+					text: root.score.displayPath ?? ""
+					horizontalAlignment: Text.AlignLeft
+
+                    opacity: 0.5
+                    visible: Boolean(root.score.displayPath)
+				}
+            } // krasko end
 
             Loader {
                 active: root.isProcessing || (root.score.isCloud ?? false)

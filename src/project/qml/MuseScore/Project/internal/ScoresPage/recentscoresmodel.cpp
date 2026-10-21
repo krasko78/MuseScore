@@ -79,14 +79,26 @@ void RecentScoresModel::updateRecentScores()
     for (const RecentFile& file : recentScores) {
         QVariantMap obj;
 
+        QString filePath = file.path.toQString(); // krasko
+
         std::string suffix = io::suffix(file.path);
         bool isSuffixInteresting = suffix != engraving::MSCZ;
+
+        QString displayName = file.displayName(isSuffixInteresting); // krasko start
+        QString displayPath = filePath;
+        if (displayPath.endsWith(isSuffixInteresting ? displayName : displayName + "." + QString::fromStdString(suffix))) {
+            displayPath.chop(isSuffixInteresting ? displayName.length() : displayName.length() + 1 + QString::fromStdString(suffix).length());
+        }
+        if (displayPath.endsWith("/")) {
+            displayPath.chop(1);
+        } // krasko end
 
         RetVal<uint64_t> fileSize = fileSystem()->fileSize(file.path);
         QString fileSizeString = (fileSize.ret && fileSize.val > 0) ? DataFormatter::formatFileSize(fileSize.val).toQString() : QString();
 
-        obj[NAME_KEY] = file.displayName(isSuffixInteresting);
-        obj[PATH_KEY] = file.path.toQString();
+        obj[NAME_KEY] = displayName; // krasko
+        obj[PATH_KEY] = filePath; // krasko
+        obj[DISPLAY_PATH_KEY] = displayPath; // krasko
         obj[SUFFIX_KEY] = QString::fromStdString(suffix);
         obj[FILE_SIZE_KEY] = fileSizeString;
         obj[IS_CLOUD_KEY] = configuration()->isCloudProject(file.path);

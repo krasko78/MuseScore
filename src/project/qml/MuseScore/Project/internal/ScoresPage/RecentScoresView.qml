@@ -141,14 +141,14 @@ ScoresView {
 
                     width: function (parentWidth) {
                         let parentWidthExclusingSpacing = parentWidth - list.columns.length * list.view.columnSpacing;
-                        return 0.25 * parentWidthExclusingSpacing
+                        return 8 * ui.theme.largeBodyFont.pixelSize // krasko
                     }
 
                     delegate: StyledTextLabel {
                         id: modifiedLabel
                         text: score.timeSinceModified ?? ""
 
-                        font.capitalization: Font.AllUppercase
+                        font.capitalization: Font.AllLowercase // krasko
                         horizontalAlignment: Text.AlignLeft
 
                         NavigationFocusBorder {
@@ -177,10 +177,11 @@ ScoresView {
                 ScoresListView.ColumnItem {
                     id: sizeColumn
                     header: qsTrc("global", "Size", "file size")
+                    horizontalAlignment: Text.AlignRight // krasko
 
                     width: function (parentWidth) {
                         let parentWidthExclusingSpacing = parentWidth - list.columns.length * list.view.columnSpacing;
-                        return 0.15 * parentWidthExclusingSpacing
+                        return 5 * ui.theme.largeBodyFont.pixelSize // krasko
                     }
 
                     delegate: StyledTextLabel {
@@ -188,7 +189,7 @@ ScoresView {
                         text: Boolean(score.fileSize) ? score.fileSize : "-"
 
                         font: ui.theme.largeBodyFont
-                        horizontalAlignment: Text.AlignLeft
+                        horizontalAlignment: Text.AlignRight // krasko
 
                         NavigationFocusBorder {
                             navigationCtrl: NavigationControl {
@@ -211,7 +212,19 @@ ScoresView {
                             radius: 2 + border.width
                         }
                     }
-                }
+                }, // krasko start
+
+                ScoresListView.ColumnItem {
+                    id: ellipsisReserved
+                    header: ""
+                    horizontalAlignment: Text.AlignRight
+
+                    width: 30
+
+                    //delegate: StyledTextLabel {
+                    //    text: ""
+                    //}
+                } // krasko end
             ]
         }
     }

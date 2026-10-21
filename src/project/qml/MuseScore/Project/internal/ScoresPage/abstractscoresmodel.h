@@ -60,6 +60,7 @@ protected:
 
     static const QString NAME_KEY;
     static const QString PATH_KEY;
+    static const QString DISPLAY_PATH_KEY; // krasko
     static const QString SUFFIX_KEY;
     static const QString FILE_SIZE_KEY;
     static const QString THUMBNAIL_URL_KEY;

@@ -27,6 +27,7 @@ using namespace mu::project;
 
 const QString AbstractScoresModel::NAME_KEY("name");
 const QString AbstractScoresModel::PATH_KEY("path");
+const QString AbstractScoresModel::DISPLAY_PATH_KEY("displayPath"); // krasko
 const QString AbstractScoresModel::SUFFIX_KEY("suffix");
 const QString AbstractScoresModel::FILE_SIZE_KEY("fileSize");
 const QString AbstractScoresModel::THUMBNAIL_URL_KEY("thumbnailUrl");

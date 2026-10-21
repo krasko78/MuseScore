@@ -316,11 +316,11 @@ FocusScope {
 
                 text: root.name
 
-                wrapMode: Text.WrapAnywhere
-                maximumLineCount: 1
+                wrapMode: Text.Wrap // krasko
+                maximumLineCount: 2 // krasko
                 width: parent.width
 
-                font: ui.theme.largeBodyFont
+                font: ui.theme.largeBodyBoldFont // krasko
             }
 
             StyledTextLabel {
@@ -328,7 +328,8 @@ FocusScope {
 
                 anchors.horizontalCenter: parent.horizontalCenter
 
-                font.capitalization: Font.AllUppercase
+                font.capitalization: Font.AllLowercase // krasko
+                opacity: 0.5 // krasko
 
                 visible: !root.isCreateNew && !root.isNoResultsFound && !root.isProcessing
             }
