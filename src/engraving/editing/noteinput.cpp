@@ -273,7 +273,9 @@ NoteVal NoteInput::noteValForPosition(const Score* score, Position pos, Accident
         break;
     }
 
-    case StaffGroup::STANDARD: {
+    case StaffGroup::STANDARD:
+    case StaffGroup::JIANPU:
+    {
         AccidentalVal acci
             = (at == AccidentalType::NONE ? s->measure()->findAccidental(s, staffIdx, line, error) : Accidental::subtype2value(at));
         if (error) {
@@ -829,6 +831,7 @@ Ret NoteInput::putNote(Transaction& tx, Score* score, const Position& p, bool re
         is.setDrumNote(-1);
         break;
     case StaffGroup::STANDARD:
+    case StaffGroup::JIANPU:
         is.setDrumNote(-1);
         break;
     }
@@ -1102,7 +1105,10 @@ Ret NoteInput::insertChordByInsertingTime(Transaction& tx, Score* score, const P
             if (s->isChordRestType()) {
                 for (EngravingItem* e : s->elist()) {
                     for (Tuplet* t = e ? toChordRest(e)->tuplet() : nullptr; t && t->tick() >= tick; t = t->tuplet()) {
-                        tuplets.insert(t);
+                        // shared tuplets follow their origin
+                        if (t->originItems().empty()) {
+                            tuplets.insert(t);
+                        }
                     }
                 }
             }

@@ -52,6 +52,7 @@
 #include "notation/inotationstyle.h" // IWYU pragma: keep
 #include "notation/inotationundostack.h" // IWYU pragma: keep
 #include "notation/inotationviewstate.h" // IWYU pragma: keep
+#include "notation/utilities/offsetutilities.h"
 
 #include "ui/view/widgetstatestore.h"
 #include "ui/view/widgetutils.h"
@@ -106,6 +107,7 @@ static const QStringList ALL_PAGE_CODES {
     "chord-symbols",
     "fretboard-diagrams",
     "tablature-styles",
+    "jianpu",
     "text-styles"
 };
 
@@ -160,6 +162,7 @@ static const QStringList ALL_TEXT_STYLE_SUBPAGE_CODES {
     "fretboard-diagram-fret-number",
     "harp-pedal-diagram",
     "harp-pedal-text-diagram",
+    "jianpu-number",
     "text-line",
     "system-text-line",
     "note-line",
@@ -717,6 +720,15 @@ void EditStyle::classBegin()
         { StyleId::tabShowTiedFret, false, tabShowTiedFrets, 0 },
         { StyleId::tabParenthesizeTiedFret, false, tabParenthFrets, 0 },
         { StyleId::parenthesizeTiedFretIfArticulation, false, tabParenthArticulation, 0 },
+
+        { StyleId::jianpuNumberVerticalDistance, false, jianpuNumberVerticalDistance, jianpuNumberVerticalDistanceReset },
+        { StyleId::jianpuVoiceVerticalDistance, false, jianpuVoiceVerticalDistance, jianpuVoiceVerticalDistanceReset },
+        { StyleId::jianpuOctaveDotRadius, false, jianpuOctaveDotRadius, jianpuOctaveDotRadiusReset },
+        { StyleId::jianpuOctaveDotDistance, false, jianpuOctaveDotDistance, jianpuOctaveDotDistanceReset },
+        { StyleId::jianpuDiminutionBeamThickness, false, jianpuDiminutionBeamThickness, jianpuDiminutionBeamThicknessReset },
+        { StyleId::jianpuDiminutionBeamDistance, false, jianpuDiminutionBeamDistance, jianpuDiminutionBeamDistanceReset },
+        { StyleId::jianpuDiminutionBeamPlacement, false, jianpuDiminutionBeamPlacement, jianpuDiminutionBeamPlacementReset },
+        { StyleId::jianpuDurationLineThickness, false, jianpuDurationLineThickness, jianpuDurationLineThicknessReset },
     };
 
     // ====================================================
@@ -781,6 +793,7 @@ void EditStyle::classBegin()
         tempoTextPlacement,
         staffTextPlacement,
         rehearsalMarkPlacement,
+        jianpuDiminutionBeamPlacement,
     };
 
     for (QComboBox* cb : verticalPlacementComboBoxes) {
@@ -1144,7 +1157,12 @@ void EditStyle::classBegin()
         QListWidgetItem* item = new QListWidgetItem(score->getTextStyleUserName(textStyleType).qTranslated());
         item->setData(Qt::UserRole, int(textStyleType));
         textStyles->addItem(item);
+        if (textStyleType == TextStyleType::JIANPU_NUMBER) {
+            item->setHidden(!notationConfiguration()->enableJianpu());
+        }
     }
+
+    pageList->item(ALL_PAGE_CODES.indexOf("jianpu"))->setHidden(!notationConfiguration()->enableJianpu());
 
     textStyleFrameType->clear();
     textStyleFrameType->addItem(muse::qtrc("notation/editstyle", "None", "no frame for text"), int(FrameType::NO_FRAME));
@@ -1307,11 +1325,19 @@ void EditStyle::classBegin()
     });
 
     connect(textStyles, &QListWidget::currentRowChanged, this, &EditStyle::textStyleChanged);
-    textStyles->setCurrentRow(notation->viewState()->styleDialogLastSubPageIndex());
+    int lastSubPage = notation->viewState()->styleDialogLastSubPageIndex();
+    if (QListWidgetItem* item = textStyles->item(lastSubPage); item&& item->isHidden()) {
+        lastSubPage = 0;
+    }
+    textStyles->setCurrentRow(lastSubPage);
 
     connect(pageList, &QListWidget::currentRowChanged, pageStack, &QStackedWidget::setCurrentIndex);
     connect(pageList, &QListWidget::currentRowChanged, this, &EditStyle::on_pageRowSelectionChanged);
-    pageList->setCurrentRow(notation->viewState()->styleDialogLastPageIndex());
+    int lastPage = notation->viewState()->styleDialogLastPageIndex();
+    if (QListWidgetItem* item = pageList->item(lastPage); item&& item->isHidden()) {
+        lastPage = 0;
+    }
+    pageList->setCurrentRow(lastPage);
 
     editLyricsTextStyleButton->setChecked(false);
     connect(editLyricsTextStyleButton, &QPushButton::clicked, pageList, [this](){
@@ -1806,6 +1832,11 @@ PropertyValue EditStyle::getValue(StyleId idx)
     switch (type) {
     case P_TYPE::SPATIUM: {
         QDoubleSpinBox* sb = qobject_cast<QDoubleSpinBox*>(sw.widget);
+        if (idx == StyleId::mmRestNumberPos) {
+            // Displayed: positive = up, negative = down
+            // Internal:  negative = up, positive = down
+            return Spatium(OffsetUtils::flipSign(sb->value()));
+        }
         return Spatium(sb->value() * (sw.showPercent ? 0.01 : 1.0));
     } break;
     case P_TYPE::REAL: {
@@ -1821,7 +1852,7 @@ PropertyValue EditStyle::getValue(StyleId idx)
         if (idx == StyleId::figuredBassYOffset) {
             // Displayed: positive = up, negative = down
             // Internal:  negative = up, positive = down
-            value = -value;
+            value = OffsetUtils::flipSign(value);
         }
         return value;
     } break;
@@ -1890,12 +1921,10 @@ PropertyValue EditStyle::getValue(StyleId idx)
         // Internal:  negative = up, positive = down
         if (idx == StyleId::lyricsPosAbove || idx == StyleId::lyricsPosBelow) {
             QDoubleSpinBox* dsb = qobject_cast<QDoubleSpinBox*>(sw.widget);
-            return PointF(0.0, -dsb->value());
+            return PointF(0.0, OffsetUtils::flipSign(dsb->value()));
         }
         if (OffsetSelect* cb = qobject_cast<OffsetSelect*>(sw.widget)) {
-            PointF offset = cb->offset();
-            offset.setY(-offset.y());
-            return offset;
+            return OffsetUtils::flipYSign(cb->offset());
         } else {
             ASSERT_X("unhandled muse::PointF");
         }
@@ -1937,7 +1966,9 @@ void EditStyle::setValues()
         // Displayed: positive = up, negative = down
         // Internal:  negative = up, positive = down
         PropertyValue val = sw.idx == StyleId::lyricsPosAbove || sw.idx == StyleId::lyricsPosBelow
-                            ? Spatium(-styleValue(sw.idx).value<PointF>().y())
+                            ? Spatium(OffsetUtils::flipSign(styleValue(sw.idx).value<PointF>().y()))
+                            : sw.idx == StyleId::mmRestNumberPos
+                            ? Spatium(OffsetUtils::flipSign(styleValue(sw.idx).value<Spatium>().val()))
                             : styleValue(sw.idx);
         if (sw.reset) {
             sw.reset->setEnabled(!hasDefaultStyleValue(sw.idx));
@@ -1960,7 +1991,7 @@ void EditStyle::setValues()
             if (sw.idx == StyleId::figuredBassYOffset) {
                 // Displayed: positive = up, negative = down
                 // Internal:  negative = up, positive = down
-                value = -value;
+                value = OffsetUtils::flipSign(value);
             }
             if (!sw.widget->setProperty("value", value)) {
                 unhandledType(sw);
@@ -2052,9 +2083,7 @@ void EditStyle::setValues()
             if (as) {
                 // Displayed: positive = up, negative = down
                 // Internal:  negative = up, positive = down
-                muse::PointF offset = val.value<muse::PointF>();
-                offset.setY(-offset.y());
-                as->setOffset(offset);
+                as->setOffset(OffsetUtils::flipYSign(val.value<muse::PointF>()));
             }
         } break;
         default: {
@@ -2098,7 +2127,7 @@ void EditStyle::setValues()
     doubleSpinFBSize->setValue(styleValue(StyleId::figuredBassFontSize).toDouble());
     // Displayed: positive = up, negative = down
     // Internal:  negative = up, positive = down
-    doubleSpinFBVertPos->setValue(-styleValue(StyleId::figuredBassYOffset).toDouble());
+    doubleSpinFBVertPos->setValue(OffsetUtils::flipSign(styleValue(StyleId::figuredBassYOffset).toDouble()));
     spinFBLineHeight->setValue(styleValue(StyleId::figuredBassLineHeight).toDouble() * 100.0);
 
     QString mfont(styleValue(StyleId::musicalSymbolFont).value<String>());
@@ -2555,9 +2584,7 @@ void EditStyle::textStyleChanged(int row)
 
     // Displayed: positive = up, negative = down
     // Internal:  negative = up, positive = down
-    PointF textStyleOffsetValue = styleValue(ts->offsetSids.above).value<PointF>();
-    textStyleOffsetValue.setY(-textStyleOffsetValue.y());
-    textStyleOffset->setOffset(textStyleOffsetValue);
+    textStyleOffset->setOffset(OffsetUtils::flipYSign(styleValue(ts->offsetSids.above).value<PointF>()));
     resetTextStyleOffset->setEnabled(styleValue(ts->offsetSids.above) != defaultStyleValue(ts->offsetSids.above));
 
     INotationPtr notation = projectSession()->currentNotation();
@@ -2591,9 +2618,7 @@ void EditStyle::textStyleValueChanged(TextStylePropertyType type, const Property
     if (type == TextStylePropertyType::Offset) {
         // Displayed: positive = up, negative = down
         // Internal:  negative = up, positive = down
-        PointF offset = value.value<PointF>();
-        offset.setY(-offset.y());
-        setStyleValue(ts->offsetSids.above, offset);
+        setStyleValue(ts->offsetSids.above, OffsetUtils::flipYSign(value.value<PointF>()));
     } else {
         for (const auto& a : *ts) {
             if (a.type == type) {

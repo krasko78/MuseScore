@@ -155,6 +155,7 @@ StyledDialogView {
                     FlatButton {
                         id: exportButton // krasko
                         text: qsTrc("project/export", "Export…")
+                        navigation.name: "Export"
                         buttonRole: ButtonBoxModel.AcceptRole
                         buttonId: ButtonBoxModel.Done
                         enabled: exportModel.selectionLength > 0 && exportOptionsView.isExportAvailable

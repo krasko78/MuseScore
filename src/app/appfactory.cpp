@@ -93,9 +93,9 @@
 #endif
 
 #ifdef MUSE_MODULE_SHORTCUTS
-#include "framework/shortcuts/shortcutsmodule.h"
+#include "framework/shortcuts_v2/shortcutsmodule.h"
 #else
-#include "framework/stubs/shortcuts/shortcutsstubmodule.h"
+#include "framework/stubs/shortcuts_v2/shortcutsstubmodule.h"
 #endif
 
 #ifdef MUSE_MODULE_TOAST
@@ -146,7 +146,11 @@
 #endif
 
 // Modules
+#ifdef MUE_CONFIGURATION_IS_APPWEB
+#include "web/appshell/appshellmodule.h"
+#else
 #include "appshell/appshellmodule.h"
+#endif
 
 #ifdef MUSE_MODULE_TESTFLOW
 #include "testflow/testflowmodule.h"
@@ -491,6 +495,8 @@ static void addConsoleModules(std::shared_ptr<MuseScoreConsoleApp> app)
 #ifdef MUSE_MODULE_VST
     app->addModule(new muse::vst::VSTModule());
 #endif
+
+    app->addModule(new muse::media::MediaModule());
 
 #ifdef MUSE_MODULE_TESTFLOW
     app->addModule(new muse::testflow::TestflowModule());
