@@ -36,6 +36,8 @@ target_sources(appshell PRIVATE
     internal/appshellcommandsstate.h
     internal/appshellstate.cpp
     internal/appshellstate.h
+    internal/appshortcutsscopes.cpp
+    internal/appshortcutsscopes.h
     internal/appshellconfiguration.cpp
     internal/appshellconfiguration.h
     internal/appshellconfigurationproxy.cpp # krasko
@@ -47,8 +49,6 @@ target_sources(appshell PRIVATE
     internal/sessionsmanager.h
     internal/startupscenario.cpp
     internal/startupscenario.h
-    internal/shortcutresolver.cpp
-    internal/shortcutresolver.h
     internal/extensioncontextresolver.cpp
     internal/extensioncontextresolver.h
     widgets/splashscreen/splashscreen.cpp
